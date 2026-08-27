@@ -1,0 +1,42 @@
+# OronBox pubspec.yaml — 鸿蒙适配需做的具体修改
+# 说明：因当前环境 git 不可用，本文件为“手动修改指引”，请在 DevEco 中按此改动 pubspec.yaml。
+# 无法直接 `git apply`（沙箱 git 提交不可持久化）。
+
+## 1) 降低 Flutter SDK 下限以匹配 oh-3.44.9-release
+#    原文：
+#      environment:
+#        sdk: ^3.13.0
+#    若 flutter pub get 报 SDK 冲突，把 ^3.13.0 放宽（通常 3.13 已满足 3.44.9，可不改；
+#    若用 fvm，把 .fvmrc 的 3.47.1 改为 3.44.9）。
+
+## 2) universal_ble 改为指向你 fork 的 ohos 分支（关键）
+#    原文：
+#      universal_ble: ^2.1.0
+#    改为（替换为你自己的 fork 地址/分支）：
+      universal_ble:
+        git:
+          url: https://github.com/diana9905454/universal_ble.git
+          ref: ohos-pigeon-host
+#    说明：该 fork 在 ohos/ 下用 Pigeon 生成了 C++ host（见 UNIVERSAL_BLE_PIGEON_CONTRACT.md）。
+
+## 3) 桌面专用插件加条件（ohos 不编译这些）
+#    desktop_drop / window_manager / tray_manager 仅桌面用，ohos 构建会失败。
+#    做法：在 lib/ 代码中把它们的 import 包进平台守卫，例如：
+#      // lib/src/desktop/desktop_stub.dart
+#      // ignore: unused_import
+#      import 'package:window_manager/window_manager.dart'
+#          if (dart.library.ffi) 'package:window_manager/window_manager.dart';
+#    或在 pubspec 里临时注释掉这三个依赖，先跑通 ohos，再补桌面守卫。
+
+## 4) flutter_soloud / wasm_run_flutter / quickjs_engine / mdns_dart 首版处理
+#    首版建议注释掉以下依赖，用 stub 替代，先跑通主体：
+#      # flutter_soloud: ^4.0.12
+#      # wasm_run_flutter: ^0.1.0
+#      # quickjs_engine: ^0.1.5
+#      # mdns_dart: ^2.2.2
+#    后续再按需用 OHOS NDK 移植（quickjs 纯 C 较易；soloud 最难）。
+
+## 5) 验证
+#    flutter pub get
+#    flutter create --platforms=ohos .   # 若已生成可跳过
+#    flutter build hap
