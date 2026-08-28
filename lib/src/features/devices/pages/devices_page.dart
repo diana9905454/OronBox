@@ -64,9 +64,16 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       PassiveReconnectPhase.failed =>
         '${l10n.deviceReconnectFailedPrefix}${l10n.errorBluetoothConnectFailed}',
     };
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+    _showDeviceStatusSnackBar(message, replaceCurrent: true);
+  }
+
+  void _showDeviceStatusSnackBar(
+    String message, {
+    bool replaceCurrent = false,
+  }) {
+    final messenger = ScaffoldMessenger.of(context);
+    if (replaceCurrent) messenger.hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -89,8 +96,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       final message = localizedErrorMessage(l10n, next.error);
       if (message == _lastErrorToast) return;
       _lastErrorToast = message;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      _showDeviceStatusSnackBar(message);
     });
 
     final isReady = state.protocolState == proto.ProtocolState.ready;

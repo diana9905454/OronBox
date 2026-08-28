@@ -833,11 +833,11 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "v0.1.2"
-      resolved-ref: "18429280b3b9b774cb80f1b406db26fcce6ef04d"
+      ref: "v0.1.3"
+      resolved-ref: "81065c47051d14152c875f96b4dbeb11b42fb8f5"
       url: "https://github.com/zxor-org/OronBox-Package-Network.git"
     source: git
-    version: "0.1.2"
+    version: "0.1.3"
   package_config:
     dependency: transitive
     description:

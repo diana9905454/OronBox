@@ -563,6 +563,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorAccountTwoFactorIncomplete => '小米账号二次验证未完成，请重新登录';
 
   @override
+  String get errorXiaomiAccountSessionExpired => '小米账号已过期，请重新登录';
+
+  @override
   String get errorOronBoxSessionExpired => 'OronBox 登录已过期，请重新登录米坛账号';
 
   @override
@@ -644,7 +647,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resources => '资源';
 
   @override
-  String get communitySourceAstroBoxRepo => 'AstroBox Repo';
+  String get communitySourceAstroBoxRepo => 'AstroBox';
 
   @override
   String get communitySourceBandBbs => '米坛社区';
@@ -3021,6 +3024,162 @@ class AppLocalizationsZh extends AppLocalizations {
   String get inboxClearFailed => '清空消息失败，请稍后重试';
 
   @override
+  String get messageUnknownTitle => '通知';
+
+  @override
+  String get messageUnknownBody => '无法获取此通知的详细数据。';
+
+  @override
+  String get messageCommentRepliedTitle => '评论收到新回复';
+
+  @override
+  String get messageCommentHiddenTitle => '评论已被隐藏';
+
+  @override
+  String get messageCommentHiddenAutomatedBody =>
+      '你的评论未通过自动审核，当前暂不可见，可在消息中发起申诉。';
+
+  @override
+  String get messageCommentHiddenReviewedBody => '你的评论经人工复审后已被隐藏。';
+
+  @override
+  String get messageReviewApprovedTitle => '资源审核已通过';
+
+  @override
+  String get messageReviewRejectedTitle => '资源需要修改';
+
+  @override
+  String get messageResourceSuspendedTitle => '资源已下架';
+
+  @override
+  String get messageResourceFrozenTitle => '资源已冻结';
+
+  @override
+  String get messageResourceDeletedTitle => '资源已删除';
+
+  @override
+  String get messageResourceRestoredTitle => '资源已恢复';
+
+  @override
+  String get messageReportUpdatedTitle => '举报状态已更新';
+
+  @override
+  String get messagePluginApprovedTitle => '插件审核已通过';
+
+  @override
+  String get messagePluginRelistedTitle => '插件已恢复上架';
+
+  @override
+  String get messagePluginRejectedTitle => '插件需要修改';
+
+  @override
+  String get messagePluginDelistedTitle => '插件已下架';
+
+  @override
+  String get messageCollectionApprovedTitle => '合集审核已通过';
+
+  @override
+  String get messageCollectionRejectedTitle => '合集需要修改';
+
+  @override
+  String get messageCoinAddedTitle => '硬币已到账';
+
+  @override
+  String get messageCoinDeductedTitle => '硬币已扣除';
+
+  @override
+  String get messageCoinReversedTitle => '硬币记录已冲正';
+
+  @override
+  String get messageCoinVoteRevokedTitle => '投币已作废';
+
+  @override
+  String get messageAppealOverturnedTitle => '申诉已受理';
+
+  @override
+  String get messageAppealUpheldTitle => '维持原处理结果';
+
+  @override
+  String get messageAppealDismissedTitle => '申诉已驳回';
+
+  @override
+  String get messageAccountBannedTitle => '账号已被停用';
+
+  @override
+  String get messageAccountUnbannedTitle => '账号已解除停用';
+
+  @override
+  String get messageCreatorFrozenTitle => '创作者权限已冻结';
+
+  @override
+  String get messageCreatorUnfrozenTitle => '创作者权限已恢复';
+
+  @override
+  String get messageRoleChangedTitle => '账号角色已变更';
+
+  @override
+  String get messageRoleUser => '普通用户';
+
+  @override
+  String get messageRoleReviewer => '审核员';
+
+  @override
+  String get messageRoleAdministrator => '管理员';
+
+  @override
+  String get messageApprovedBody => '你的提交已通过审核。';
+
+  @override
+  String get messageNeedsChangesBody => '审核发现需要修改的问题。';
+
+  @override
+  String messageReasonBody(String reason) {
+    return '原因：$reason';
+  }
+
+  @override
+  String messageReviewNoteBody(String note) {
+    return '审核意见：$note';
+  }
+
+  @override
+  String get messageStatusChangedBody => '该项目的状态已发生变化。';
+
+  @override
+  String messageReportStatusBody(String status) {
+    return '举报状态：$status';
+  }
+
+  @override
+  String messageCoinAddedBody(String amount) {
+    return '你的账号增加了 $amount 枚硬币。';
+  }
+
+  @override
+  String messageCoinDeductedBody(String amount) {
+    return '你的账号扣除了 $amount 枚硬币。';
+  }
+
+  @override
+  String messageCoinVoteRevokedBody(String amount) {
+    return '你对该资源投出的 $amount 枚硬币已被作废。';
+  }
+
+  @override
+  String get messageAppealOverturnedBody => '管理员已撤销原处理结果。';
+
+  @override
+  String get messageAppealUpheldBody => '复核后维持原处理结果。';
+
+  @override
+  String get messageAppealDismissedBody => '该申诉未被受理。';
+
+  @override
+  String messageRoleChangedBody(String role) {
+    return '你的账号角色已变更为 $role。';
+  }
+
+  @override
   String get cleanMode => '功能开关';
 
   @override
@@ -4469,6 +4628,9 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get errorAccountTwoFactorIncomplete => 'Xiaomi 帳號雙重驗證尚未完成，請重新登入';
 
   @override
+  String get errorXiaomiAccountSessionExpired => 'Xiaomi 帳號已過期，請重新登入';
+
+  @override
   String get errorOronBoxSessionExpired => '你的 OronBox 工作階段已過期，請重新登入 BandBBS';
 
   @override
@@ -4550,7 +4712,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get resources => '資源';
 
   @override
-  String get communitySourceAstroBoxRepo => 'AstroBox Repo';
+  String get communitySourceAstroBoxRepo => 'AstroBox';
 
   @override
   String get communitySourceBandBbs => 'BandBBS 社群';
@@ -6928,6 +7090,162 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get inboxClearFailed => '無法清除訊息，請稍後再試';
+
+  @override
+  String get messageUnknownTitle => '通知';
+
+  @override
+  String get messageUnknownBody => '無法取得此通知的詳細資料。';
+
+  @override
+  String get messageCommentRepliedTitle => '留言收到新回覆';
+
+  @override
+  String get messageCommentHiddenTitle => '留言已隱藏';
+
+  @override
+  String get messageCommentHiddenAutomatedBody =>
+      '你的留言未通過自動審核，目前暫時不可見，可從訊息中提出申訴。';
+
+  @override
+  String get messageCommentHiddenReviewedBody => '你的留言經人工複審後已隱藏。';
+
+  @override
+  String get messageReviewApprovedTitle => '資源審核已通過';
+
+  @override
+  String get messageReviewRejectedTitle => '資源需要修改';
+
+  @override
+  String get messageResourceSuspendedTitle => '資源已下架';
+
+  @override
+  String get messageResourceFrozenTitle => '資源已凍結';
+
+  @override
+  String get messageResourceDeletedTitle => '資源已刪除';
+
+  @override
+  String get messageResourceRestoredTitle => '資源已恢復';
+
+  @override
+  String get messageReportUpdatedTitle => '檢舉狀態已更新';
+
+  @override
+  String get messagePluginApprovedTitle => '插件審核已通過';
+
+  @override
+  String get messagePluginRelistedTitle => '插件已恢復上架';
+
+  @override
+  String get messagePluginRejectedTitle => '插件需要修改';
+
+  @override
+  String get messagePluginDelistedTitle => '插件已下架';
+
+  @override
+  String get messageCollectionApprovedTitle => '合輯審核已通過';
+
+  @override
+  String get messageCollectionRejectedTitle => '合輯需要修改';
+
+  @override
+  String get messageCoinAddedTitle => '硬幣已入帳';
+
+  @override
+  String get messageCoinDeductedTitle => '硬幣已扣除';
+
+  @override
+  String get messageCoinReversedTitle => '硬幣紀錄已沖銷';
+
+  @override
+  String get messageCoinVoteRevokedTitle => '投幣已作廢';
+
+  @override
+  String get messageAppealOverturnedTitle => '申訴已受理';
+
+  @override
+  String get messageAppealUpheldTitle => '維持原處理結果';
+
+  @override
+  String get messageAppealDismissedTitle => '申訴已駁回';
+
+  @override
+  String get messageAccountBannedTitle => '帳號已停用';
+
+  @override
+  String get messageAccountUnbannedTitle => '帳號已解除停用';
+
+  @override
+  String get messageCreatorFrozenTitle => '創作者權限已凍結';
+
+  @override
+  String get messageCreatorUnfrozenTitle => '創作者權限已恢復';
+
+  @override
+  String get messageRoleChangedTitle => '帳號角色已變更';
+
+  @override
+  String get messageRoleUser => '一般使用者';
+
+  @override
+  String get messageRoleReviewer => '審核員';
+
+  @override
+  String get messageRoleAdministrator => '管理員';
+
+  @override
+  String get messageApprovedBody => '你的提交已通過審核。';
+
+  @override
+  String get messageNeedsChangesBody => '審核發現需要修改的問題。';
+
+  @override
+  String messageReasonBody(String reason) {
+    return '原因：$reason';
+  }
+
+  @override
+  String messageReviewNoteBody(String note) {
+    return '審核意見：$note';
+  }
+
+  @override
+  String get messageStatusChangedBody => '此項目的狀態已變更。';
+
+  @override
+  String messageReportStatusBody(String status) {
+    return '檢舉狀態：$status';
+  }
+
+  @override
+  String messageCoinAddedBody(String amount) {
+    return '你的帳號增加了 $amount 枚硬幣。';
+  }
+
+  @override
+  String messageCoinDeductedBody(String amount) {
+    return '你的帳號扣除了 $amount 枚硬幣。';
+  }
+
+  @override
+  String messageCoinVoteRevokedBody(String amount) {
+    return '你對此資源投出的 $amount 枚硬幣已作廢。';
+  }
+
+  @override
+  String get messageAppealOverturnedBody => '管理員已撤銷原處理結果。';
+
+  @override
+  String get messageAppealUpheldBody => '複審後維持原處理結果。';
+
+  @override
+  String get messageAppealDismissedBody => '此申訴未獲受理。';
+
+  @override
+  String messageRoleChangedBody(String role) {
+    return '你的帳號角色已變更為 $role。';
+  }
 
   @override
   String get cleanMode => '功能開關';

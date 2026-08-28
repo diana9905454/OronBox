@@ -40,7 +40,6 @@ class _OobePageState extends ConsumerState<OobePage> {
   int _currentStep = _welcomeStep;
   bool _termsAgreed = false;
   bool _privacyAgreed = false;
-  bool _cdnReady = false;
   late final bool _preAccepted = isLegalAccepted();
 
   bool get _agreementReady =>
@@ -77,9 +76,8 @@ class _OobePageState extends ConsumerState<OobePage> {
       return;
     }
     final l10n = AppLocalizations.of(context)!;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(l10n.oobeDeclineWebHint)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.oobeDeclineWebHint)));
   }
 
   Future<void> _finish() async {
@@ -115,7 +113,7 @@ class _OobePageState extends ConsumerState<OobePage> {
         );
         title = l10n.privacyTitle;
       case 3:
-        body = _LoginStep(onCdnReady: () => setState(() => _cdnReady = true));
+        body = const _LoginStep();
         title = l10n.oobeLoginTitle;
       default:
         body = const _DoneStep();
@@ -132,7 +130,6 @@ class _OobePageState extends ConsumerState<OobePage> {
             _OobeBottomBar(
               currentStep: _currentStep,
               agreementReady: _agreementReady,
-              cdnReady: _cdnReady,
               onNext: _next,
               onBack: _back,
               onDecline: _decline,
@@ -149,7 +146,6 @@ class _OobeBottomBar extends StatelessWidget {
   const _OobeBottomBar({
     required this.currentStep,
     required this.agreementReady,
-    required this.cdnReady,
     required this.onNext,
     required this.onBack,
     required this.onDecline,
@@ -158,7 +154,6 @@ class _OobeBottomBar extends StatelessWidget {
 
   final int currentStep;
   final bool agreementReady;
-  final bool cdnReady;
   final VoidCallback onNext;
   final VoidCallback onBack;
   final VoidCallback onDecline;
@@ -184,11 +179,7 @@ class _OobeBottomBar extends StatelessWidget {
     final right = currentStep == 4
         ? FilledButton(onPressed: onFinish, child: Text(l10n.oobeFinish))
         : FilledButton(
-            onPressed:
-                (_onAgreement && !agreementReady) ||
-                    (currentStep == 3 && !cdnReady)
-                ? null
-                : onNext,
+            onPressed: _onAgreement && !agreementReady ? null : onNext,
             child: Text(l10n.oobeNext),
           );
 
@@ -354,17 +345,14 @@ class _FeatureCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     body,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: cs.onSurfaceVariant,
-                      height: 1.35,
-                    ),
+                    style: Theme.of(context).textTheme.bodyMedium
+                        ?.copyWith(color: cs.onSurfaceVariant, height: 1.35),
                   ),
                 ],
               ),
@@ -535,9 +523,7 @@ class _AgreementStepState extends State<_AgreementStep> {
 }
 
 class _LoginStep extends ConsumerStatefulWidget {
-  const _LoginStep({this.onCdnReady});
-
-  final VoidCallback? onCdnReady;
+  const _LoginStep();
 
   @override
   ConsumerState<_LoginStep> createState() => _LoginStepState();
@@ -563,6 +549,7 @@ class _LoginStepState extends ConsumerState<_LoginStep> {
         ref.read(appSettingsProvider).cdn == GitHubCdn.auto) {
       await ref.read(appSettingsProvider.notifier).setEffectiveCdn(fastest);
     }
+    if (!mounted) return;
 
     setState(() {
       for (final (cdn, ms) in results) {
@@ -570,7 +557,6 @@ class _LoginStepState extends ConsumerState<_LoginStep> {
       }
       _cdnTesting = false;
     });
-    widget.onCdnReady?.call();
   }
 
   @override
@@ -662,9 +648,8 @@ class _LoginStepState extends ConsumerState<_LoginStep> {
       child: Text(
         l10n.oobeLoginLocalNote,
         textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
 
@@ -680,7 +665,11 @@ class _LoginStepState extends ConsumerState<_LoginStep> {
 
 Dio _createOobeDio() {
   return createAppHttpTransport(
-    options: BaseOptions(connectTimeout: const Duration(seconds: 5)),
+    options: BaseOptions(
+      connectTimeout: githubCdnProbeTimeout,
+      sendTimeout: githubCdnProbeTimeout,
+      receiveTimeout: githubCdnProbeTimeout,
+    ),
   );
 }
 
@@ -694,9 +683,8 @@ Future<void> _startBandBbsLogin(BuildContext context, WidgetRef ref) async {
     );
   } catch (e) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(localizedErrorMessage(l10n, e))));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(localizedErrorMessage(l10n, e))));
   }
 }
 

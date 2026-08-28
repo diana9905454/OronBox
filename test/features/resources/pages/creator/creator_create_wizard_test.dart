@@ -97,14 +97,14 @@ void main() {
       await tester.tap(find.text('BandBBS Community'));
       await tester.pump();
       await tester.pump(const Duration(seconds: 1));
-      await tester.tap(find.text('AstroBox Repo'));
+      await tester.tap(find.text('AstroBox'));
       await tester.pump();
       await host.firstAstroBoxRequestStarted.future;
 
       await tester.tap(find.text('BandBBS Community'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      await tester.tap(find.text('AstroBox Repo'));
+      await tester.tap(find.text('AstroBox'));
       await tester.pump();
       await host.secondAstroBoxRequestStarted.future;
 

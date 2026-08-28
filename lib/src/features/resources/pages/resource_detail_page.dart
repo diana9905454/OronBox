@@ -1091,13 +1091,13 @@ class _ActionsState extends ConsumerState<_Actions> {
         final expand = constraints.maxWidth < 520;
         final color = Theme.of(context).colorScheme;
         final baseLabel = inQueue ? l10n.productInQueue : l10n.install;
-        final label = preferredFileSize == null
-            ? baseLabel
-            : '$baseLabel (${_formatResourceFileSize(preferredFileSize)})';
+        final sizeLabel = preferredFileSize == null
+            ? null
+            : _formatResourceFileSize(preferredFileSize);
         final foreground = canInstall
             ? color.onPrimaryContainer
             : color.onSurface.withValues(alpha: .38);
-        final buttonWidth = expand ? double.infinity : 190.0;
+        final buttonWidth = expand ? double.infinity : 200.0;
         final installButton = files.isEmpty
             ? null
             : SizedBox(
@@ -1129,14 +1129,15 @@ class _ActionsState extends ConsumerState<_Actions> {
                           ? color.primaryContainer
                           : color.onSurface.withValues(alpha: .08),
                       child: SizedBox(
-                        height: 48,
+                        height: sizeLabel == null ? 48 : 58,
                         child: preferred == null
                             ? InkWell(
                                 onTap: canInstall
                                     ? () => _toggleMenu(controller)
                                     : null,
                                 child: _InstallButtonContent(
-                                  label: label,
+                                  label: baseLabel,
+                                  sizeLabel: sizeLabel,
                                   color: foreground,
                                   trailing: const Icon(Icons.arrow_drop_down),
                                 ),
@@ -1149,13 +1150,14 @@ class _ActionsState extends ConsumerState<_Actions> {
                                           ? () => enqueue(preferred)
                                           : null,
                                       child: _InstallButtonContent(
-                                        label: label,
+                                        label: baseLabel,
+                                        sizeLabel: sizeLabel,
                                         color: foreground,
                                       ),
                                     ),
                                   ),
                                   SizedBox(
-                                    height: 28,
+                                    height: 36,
                                     child: VerticalDivider(
                                       width: 1,
                                       color: foreground.withValues(alpha: .20),
@@ -1319,11 +1321,13 @@ class _InstallButtonContent extends StatelessWidget {
   const _InstallButtonContent({
     required this.label,
     required this.color,
+    this.sizeLabel,
     this.trailing,
   });
 
   final String label;
   final Color color;
+  final String? sizeLabel;
   final Widget? trailing;
 
   @override
@@ -1332,14 +1336,32 @@ class _InstallButtonContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
-          Icon(Icons.download_for_offline, color: color),
+          Icon(Icons.download, color: color),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: color, fontWeight: FontWeight.w700),
+                ),
+                if (sizeLabel != null)
+                  Text(
+                    sizeLabel!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: color.withValues(alpha: .72),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
             ),
           ),
           if (trailing != null) ...[

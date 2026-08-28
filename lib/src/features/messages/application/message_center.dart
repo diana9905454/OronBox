@@ -83,37 +83,61 @@ class UserMessage {
   const UserMessage({
     required this.id,
     required this.kind,
-    required this.title,
-    required this.body,
+    required this.event,
+    required this.data,
+    required this.legacyTitle,
+    required this.legacyBody,
     required this.createdAt,
     required this.read,
     required this.targetResourceId,
     required this.targetCommentId,
   });
-  final String id, kind, title, body, targetResourceId, targetCommentId;
+  final String id, kind, event, legacyTitle, legacyBody;
+  final String targetResourceId, targetCommentId;
+  final Map<String, Object?> data;
   final DateTime createdAt;
   final bool read;
   UserMessage copyWith({bool? read}) => UserMessage(
     id: id,
     kind: kind,
-    title: title,
-    body: body,
+    event: event,
+    data: data,
+    legacyTitle: legacyTitle,
+    legacyBody: legacyBody,
     createdAt: createdAt,
     read: read ?? this.read,
     targetResourceId: targetResourceId,
     targetCommentId: targetCommentId,
   );
 
-  factory UserMessage.fromJson(Map<String, Object?> json) => UserMessage(
-    id: json['id']?.toString() ?? '',
-    kind: json['kind']?.toString() ?? '',
-    title: json['title']?.toString() ?? '',
-    body: json['body']?.toString() ?? '',
-    createdAt:
-        DateTime.tryParse(json['created_at']?.toString() ?? '') ??
-        DateTime.now(),
-    read: json['read_at'] != null,
-    targetResourceId: json['target_resource_id']?.toString() ?? '',
-    targetCommentId: json['target_comment_id']?.toString() ?? '',
-  );
+  factory UserMessage.fromJson(Map<String, Object?> json) {
+    final data = switch (json['data']) {
+      final Map value => value.cast<String, Object?>(),
+      _ => const <String, Object?>{},
+    };
+    String value(String key) => data[key]?.toString() ?? '';
+    final targetSource = value('target_source').toLowerCase();
+    return UserMessage(
+      id: json['id']?.toString() ?? '',
+      kind: json['kind']?.toString() ?? '',
+      event: json['event']?.toString() ?? '',
+      data: data,
+      legacyTitle: json['title']?.toString() ?? value('title'),
+      legacyBody: json['body']?.toString() ?? value('body'),
+      createdAt:
+          DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
+      read: json['read_at'] != null,
+      targetResourceId: value('resource_id').isNotEmpty
+          ? value('resource_id')
+          : targetSource == 'resource' || targetSource == 'oronbox'
+          ? value('target_id')
+          : json['target_resource_id']?.toString() ?? '',
+      targetCommentId: value('comment_id').isNotEmpty
+          ? value('comment_id')
+          : targetSource == 'comment'
+          ? value('target_id')
+          : json['target_comment_id']?.toString() ?? '',
+    );
+  }
 }

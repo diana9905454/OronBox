@@ -591,6 +591,10 @@ class AppLocalizationsRu extends AppLocalizations {
       'Двухфакторная проверка аккаунта Xiaomi не завершена. Войдите снова';
 
   @override
+  String get errorXiaomiAccountSessionExpired =>
+      'Сеанс аккаунта Xiaomi истёк. Войдите снова';
+
+  @override
   String get errorOronBoxSessionExpired =>
       'Сеанс OronBox истёк. Войдите в BandBBS снова';
 
@@ -687,7 +691,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get resources => 'Ресурсы';
 
   @override
-  String get communitySourceAstroBoxRepo => 'AstroBox-Repo';
+  String get communitySourceAstroBoxRepo => 'AstroBox';
 
   @override
   String get communitySourceBandBbs => 'Сообщество BandBBS';
@@ -3193,6 +3197,166 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get inboxClearFailed =>
       'Не удалось очистить сообщения. Повторите позже';
+
+  @override
+  String get messageUnknownTitle => 'Уведомление';
+
+  @override
+  String get messageUnknownBody => 'Данные уведомления недоступны.';
+
+  @override
+  String get messageCommentRepliedTitle => 'Новый ответ на комментарий';
+
+  @override
+  String get messageCommentHiddenTitle => 'Комментарий скрыт';
+
+  @override
+  String get messageCommentHiddenAutomatedBody =>
+      'Комментарий не прошёл автоматическую проверку и сейчас скрыт. Вы можете подать апелляцию из сообщения.';
+
+  @override
+  String get messageCommentHiddenReviewedBody =>
+      'Комментарий был скрыт после ручной проверки.';
+
+  @override
+  String get messageReviewApprovedTitle => 'Ресурс одобрен';
+
+  @override
+  String get messageReviewRejectedTitle => 'Ресурс требует изменений';
+
+  @override
+  String get messageResourceSuspendedTitle => 'Ресурс снят с публикации';
+
+  @override
+  String get messageResourceFrozenTitle => 'Ресурс заморожен';
+
+  @override
+  String get messageResourceDeletedTitle => 'Ресурс удалён';
+
+  @override
+  String get messageResourceRestoredTitle => 'Ресурс восстановлен';
+
+  @override
+  String get messageReportUpdatedTitle => 'Статус жалобы обновлён';
+
+  @override
+  String get messagePluginApprovedTitle => 'Плагин одобрен';
+
+  @override
+  String get messagePluginRelistedTitle => 'Плагин снова опубликован';
+
+  @override
+  String get messagePluginRejectedTitle => 'Плагин требует изменений';
+
+  @override
+  String get messagePluginDelistedTitle => 'Плагин снят с публикации';
+
+  @override
+  String get messageCollectionApprovedTitle => 'Коллекция одобрена';
+
+  @override
+  String get messageCollectionRejectedTitle => 'Коллекция требует изменений';
+
+  @override
+  String get messageCoinAddedTitle => 'Монеты начислены';
+
+  @override
+  String get messageCoinDeductedTitle => 'Монеты списаны';
+
+  @override
+  String get messageCoinReversedTitle => 'Операция с монетами отменена';
+
+  @override
+  String get messageCoinVoteRevokedTitle => 'Поддержка монетами отменена';
+
+  @override
+  String get messageAppealOverturnedTitle => 'Апелляция удовлетворена';
+
+  @override
+  String get messageAppealUpheldTitle => 'Исходное решение оставлено в силе';
+
+  @override
+  String get messageAppealDismissedTitle => 'Апелляция отклонена';
+
+  @override
+  String get messageAccountBannedTitle => 'Аккаунт заблокирован';
+
+  @override
+  String get messageAccountUnbannedTitle => 'Блокировка аккаунта снята';
+
+  @override
+  String get messageCreatorFrozenTitle => 'Доступ автора заморожен';
+
+  @override
+  String get messageCreatorUnfrozenTitle => 'Доступ автора восстановлен';
+
+  @override
+  String get messageRoleChangedTitle => 'Роль аккаунта изменена';
+
+  @override
+  String get messageRoleUser => 'пользователь';
+
+  @override
+  String get messageRoleReviewer => 'рецензент';
+
+  @override
+  String get messageRoleAdministrator => 'администратор';
+
+  @override
+  String get messageApprovedBody => 'Ваша заявка прошла проверку.';
+
+  @override
+  String get messageNeedsChangesBody =>
+      'При проверке обнаружены проблемы, требующие исправления.';
+
+  @override
+  String messageReasonBody(String reason) {
+    return 'Причина: $reason';
+  }
+
+  @override
+  String messageReviewNoteBody(String note) {
+    return 'Комментарий проверки: $note';
+  }
+
+  @override
+  String get messageStatusChangedBody => 'Статус этого объекта изменился.';
+
+  @override
+  String messageReportStatusBody(String status) {
+    return 'Статус жалобы: $status';
+  }
+
+  @override
+  String messageCoinAddedBody(String amount) {
+    return 'На ваш аккаунт начислено $amount монет.';
+  }
+
+  @override
+  String messageCoinDeductedBody(String amount) {
+    return 'С вашего аккаунта списано $amount монет.';
+  }
+
+  @override
+  String messageCoinVoteRevokedBody(String amount) {
+    return 'Поддержка этого ресурса на $amount монет была отменена.';
+  }
+
+  @override
+  String get messageAppealOverturnedBody =>
+      'Администратор отменил исходное решение.';
+
+  @override
+  String get messageAppealUpheldBody =>
+      'После пересмотра исходное решение оставлено в силе.';
+
+  @override
+  String get messageAppealDismissedBody => 'Апелляция не была принята.';
+
+  @override
+  String messageRoleChangedBody(String role) {
+    return 'Новая роль вашего аккаунта: $role.';
+  }
 
   @override
   String get cleanMode => 'Переключатели функций';

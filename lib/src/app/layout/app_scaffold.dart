@@ -84,12 +84,16 @@ class AppScaffold extends ConsumerWidget {
         branchIndices,
       );
     }
-    return Scaffold(
-      body: Container(
-        color: Theme.of(context).colorScheme.surfaceContainer,
-        child: ShellBranchIndex(
-          index: navigationShell.currentIndex,
+    return ShellBranchIndex(
+      index: navigationShell.currentIndex,
+      child: Scaffold(
+        body: Container(
+          color: Theme.of(context).colorScheme.surfaceContainer,
           child: AnnouncementGate(child: navigationShell),
+        ),
+        bottomNavigationBar: AppBottomNavigationBar(
+          currentBranch: navigationShell.currentIndex,
+          onBranchSelected: (branch) => navigationShell.goBranch(branch),
         ),
       ),
     );

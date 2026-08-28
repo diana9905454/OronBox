@@ -657,7 +657,7 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
     HealthSleepSummary sleep,
     Map<HealthSleepStageKind, String> labels,
   ) {
-    const kinds = [
+    const orderedKinds = [
       HealthSleepStageKind.deep,
       HealthSleepStageKind.light,
       HealthSleepStageKind.rem,
@@ -667,14 +667,27 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
       HealthSleepStageKind.light: Color(0xFF3986F6),
       HealthSleepStageKind.rem: Color(0xFF47BEFF),
     };
-    final seconds = [
-      sleep.deepSleepDurationSeconds ??
-          _stageSeconds(sleep, HealthSleepStageKind.deep),
-      sleep.lightSleepDurationSeconds ??
-          _stageSeconds(sleep, HealthSleepStageKind.light),
-      sleep.remSleepDurationSeconds ??
-          _stageSeconds(sleep, HealthSleepStageKind.rem),
-    ].map((value) => value < 0 ? 0 : value).toList(growable: false);
+    final reportedSeconds = <HealthSleepStageKind, int?>{
+      HealthSleepStageKind.deep: sleep.deepSleepDurationSeconds,
+      HealthSleepStageKind.light: sleep.lightSleepDurationSeconds,
+      HealthSleepStageKind.rem: sleep.remSleepDurationSeconds,
+    };
+    final kinds = orderedKinds
+        .where((kind) {
+          final reported = reportedSeconds[kind];
+          return (reported != null && reported > 0) ||
+              sleep.stages.any((stage) => stage.kind == kind);
+        })
+        .toList(growable: false);
+    final seconds = kinds
+        .map((kind) {
+          final reported = reportedSeconds[kind];
+          return reported != null && reported > 0
+              ? reported
+              : _stageSeconds(sleep, kind);
+        })
+        .map((value) => value < 0 ? 0 : value)
+        .toList(growable: false);
     final total = seconds.fold<int>(0, (sum, value) => sum + value);
     if (total <= 0) return const [];
     final percentages = _sleepPercentages(seconds, total);

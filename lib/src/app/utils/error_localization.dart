@@ -115,6 +115,7 @@ const oronBoxKnownErrorCodes = <String>{
   'resource_not_found',
   'service_unavailable',
   'session_expired',
+  'xiaomi_account_session_expired',
   'target_lookup_failed',
   'token_create_failed',
   'token_decrypt_failed',
@@ -138,6 +139,8 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'session_expired':
     case 'http_401':
       return l10n.errorOronBoxSessionExpired;
+    case 'xiaomi_account_session_expired':
+      return l10n.errorXiaomiAccountSessionExpired;
     case 'auth_required':
     case 'unauthenticated':
     case 'bandbbs_grant_invalid':
@@ -430,6 +433,11 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
 
   if (normalized.contains('huami account is not signed in')) {
     return l10n.settingsHuamiAccountRequired;
+  }
+
+  if (normalized.contains('xiaomi_account_session_expired') ||
+      normalized.contains('xiaomi account session expired')) {
+    return l10n.errorXiaomiAccountSessionExpired;
   }
 
   if (normalized.contains('2fa') ||

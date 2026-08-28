@@ -592,6 +592,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Xiaomi account two-factor verification was not completed. Sign in again';
 
   @override
+  String get errorXiaomiAccountSessionExpired =>
+      'Your Xiaomi account session has expired. Sign in again';
+
+  @override
   String get errorOronBoxSessionExpired =>
       'Your OronBox session has expired. Sign in to BandBBS again';
 
@@ -687,7 +691,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get resources => 'Resources';
 
   @override
-  String get communitySourceAstroBoxRepo => 'AstroBox Repo';
+  String get communitySourceAstroBoxRepo => 'AstroBox';
 
   @override
   String get communitySourceBandBbs => 'BandBBS Community';
@@ -3172,6 +3176,166 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get inboxClearFailed => 'Could not clear messages. Try again later.';
+
+  @override
+  String get messageUnknownTitle => 'Notification';
+
+  @override
+  String get messageUnknownBody => 'The notification data is unavailable.';
+
+  @override
+  String get messageCommentRepliedTitle => 'New comment reply';
+
+  @override
+  String get messageCommentHiddenTitle => 'Comment hidden';
+
+  @override
+  String get messageCommentHiddenAutomatedBody =>
+      'Your comment did not pass automated moderation and is currently hidden. You can submit an appeal from the message.';
+
+  @override
+  String get messageCommentHiddenReviewedBody =>
+      'Your comment was hidden after manual review.';
+
+  @override
+  String get messageReviewApprovedTitle => 'Resource approved';
+
+  @override
+  String get messageReviewRejectedTitle => 'Resource needs changes';
+
+  @override
+  String get messageResourceSuspendedTitle => 'Resource delisted';
+
+  @override
+  String get messageResourceFrozenTitle => 'Resource frozen';
+
+  @override
+  String get messageResourceDeletedTitle => 'Resource deleted';
+
+  @override
+  String get messageResourceRestoredTitle => 'Resource restored';
+
+  @override
+  String get messageReportUpdatedTitle => 'Report updated';
+
+  @override
+  String get messagePluginApprovedTitle => 'Plugin approved';
+
+  @override
+  String get messagePluginRelistedTitle => 'Plugin relisted';
+
+  @override
+  String get messagePluginRejectedTitle => 'Plugin needs changes';
+
+  @override
+  String get messagePluginDelistedTitle => 'Plugin delisted';
+
+  @override
+  String get messageCollectionApprovedTitle => 'Collection approved';
+
+  @override
+  String get messageCollectionRejectedTitle => 'Collection needs changes';
+
+  @override
+  String get messageCoinAddedTitle => 'Coins added';
+
+  @override
+  String get messageCoinDeductedTitle => 'Coins deducted';
+
+  @override
+  String get messageCoinReversedTitle => 'Coin transaction reversed';
+
+  @override
+  String get messageCoinVoteRevokedTitle => 'Coin contribution revoked';
+
+  @override
+  String get messageAppealOverturnedTitle => 'Appeal accepted';
+
+  @override
+  String get messageAppealUpheldTitle => 'Original decision upheld';
+
+  @override
+  String get messageAppealDismissedTitle => 'Appeal dismissed';
+
+  @override
+  String get messageAccountBannedTitle => 'Account suspended';
+
+  @override
+  String get messageAccountUnbannedTitle => 'Account suspension lifted';
+
+  @override
+  String get messageCreatorFrozenTitle => 'Creator access frozen';
+
+  @override
+  String get messageCreatorUnfrozenTitle => 'Creator access restored';
+
+  @override
+  String get messageRoleChangedTitle => 'Account role changed';
+
+  @override
+  String get messageRoleUser => 'user';
+
+  @override
+  String get messageRoleReviewer => 'reviewer';
+
+  @override
+  String get messageRoleAdministrator => 'administrator';
+
+  @override
+  String get messageApprovedBody => 'Your submission passed review.';
+
+  @override
+  String get messageNeedsChangesBody =>
+      'Review found issues that require changes.';
+
+  @override
+  String messageReasonBody(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String messageReviewNoteBody(String note) {
+    return 'Review note: $note';
+  }
+
+  @override
+  String get messageStatusChangedBody => 'The status of this item has changed.';
+
+  @override
+  String messageReportStatusBody(String status) {
+    return 'Report status: $status';
+  }
+
+  @override
+  String messageCoinAddedBody(String amount) {
+    return '$amount coins were added to your account.';
+  }
+
+  @override
+  String messageCoinDeductedBody(String amount) {
+    return '$amount coins were deducted from your account.';
+  }
+
+  @override
+  String messageCoinVoteRevokedBody(String amount) {
+    return 'Your contribution of $amount coins to this resource was revoked.';
+  }
+
+  @override
+  String get messageAppealOverturnedBody =>
+      'The administrator reversed the original decision.';
+
+  @override
+  String get messageAppealUpheldBody =>
+      'The original decision remains unchanged after review.';
+
+  @override
+  String get messageAppealDismissedBody => 'The appeal was not accepted.';
+
+  @override
+  String messageRoleChangedBody(String role) {
+    return 'Your account role is now $role.';
+  }
 
   @override
   String get cleanMode => 'Feature switches';

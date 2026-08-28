@@ -9,6 +9,7 @@ import 'package:oronbox/src/device/xiaomi/components/info_system.dart';
 import 'package:oronbox/src/device/xiaomi/components/mass_system.dart';
 import 'package:oronbox/src/device/xiaomi/system/xiaomi_protocol_trace.dart';
 import 'package:oronbox/src/device/xiaomi/system/xiaomi_system.dart';
+import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
 import 'package:oronbox/src/features/accounts/services/mi_account_service.dart';
 import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
 import 'package:oronbox/src/protocols/generated/xiaomi/wear_gnss.pb.dart'
@@ -245,7 +246,8 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
       operation?.complete();
     } catch (error, stackTrace) {
       operation?.fail(error);
-      if (error is XiaomiGnssAccountRequiredException) {
+      if (error is XiaomiGnssAccountRequiredException ||
+          error is MiAccountSessionExpired) {
         _log.warning(
           '[${entity.id}] GNSS assistance request requires a Xiaomi account',
         );

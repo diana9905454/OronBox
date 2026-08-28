@@ -120,7 +120,7 @@
                 android:layout_height="1dp"
                 android:visibility="gone" />
         </LinearLayout>
-        <Space android:layout_width="8dp" android:layout_height="1dp" />
+        <FrameLayout android:layout_width="8dp" android:layout_height="1dp" />
         <LinearLayout
             android:id="@+id/widget_health_blood_oxygen_card"
             android:layout_width="0dp"
@@ -154,7 +154,7 @@
         android:textSize="9sp"
         android:maxLines="1"
         android:ellipsize="end" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_health_stress_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
