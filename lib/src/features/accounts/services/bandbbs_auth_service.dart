@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/errors/coded_error.dart';
+import 'package:oronbox/src/core/extensions/riverpod_mounted_ext.dart';
 import 'package:oronbox/src/core/constants/oronbox_server.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/network/http_observability_interceptor.dart';

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/oronbox_app.dart';
@@ -13,14 +14,24 @@ import 'package:oronbox/src/core/logging/diagnostic_event.dart';
 import 'package:oronbox/src/core/services/license_registry_service.dart';
 import 'package:oronbox/src/core/services/bluetooth_permission_bootstrap.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/services/ohos_ble_channel.dart';
+import 'package:oronbox/src/core/services/ohos_file_picker.dart';
+import 'package:file_picker_platform_interface/file_picker_platform_interface.dart';
 import 'package:oronbox/src/host/gui_host_overrides.dart';
 import 'package:oronbox/src/features/devices/widgets/device_deep_link_handler.dart';
 import 'package:oronbox/src/features/debug/pages/debug_window_app.dart';
 import 'package:oronbox/src/features/plugins/pages/plugin_window_app.dart';
+import 'package:universal_ble/universal_ble.dart';
 
 void main(List<String> args) async {
   final startupStopwatch = Stopwatch()..start();
   WidgetsFlutterBinding.ensureInitialized();
+  // 鸿蒙端：universal_ble 无原生实现，注入基于 @ohos.bluetooth.ble 的桥接实现。
+  if (defaultTargetPlatform == TargetPlatform.ohos) {
+    UniversalBle.setInstance(OhosUniversalBlePlatform.instance);
+    // file_picker 同样无鸿蒙实现，注入基于鸿蒙 photoAccessHelper/picker 的桥接。
+    FilePickerPlatform.instance = OhosFilePickerPlatform();
+  }
   final window = WindowLaunchSpec.parse(args);
   final process = switch (window.role) {
     OronBoxWindowRole.debug => DiagnosticProcess.debugWindow,

@@ -1,4 +1,5 @@
 import 'package:segmented_list/segmented_list.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -201,19 +202,21 @@ class CleanModePage extends ConsumerWidget {
               ),
             ],
           ),
-          SegmentedSection(
-            title: Text(l10n.cleanUpdateGroup),
-            tiles: [
-              _switch(
-                l10n.cleanCheckUpdates,
-                ref.watch(appSettingsProvider).checkUpdateOnLaunch,
-                (enabled) => ref
-                    .read(appSettingsProvider.notifier)
-                    .setCheckUpdateOnLaunch(enabled),
-                icon: Icons.system_update_outlined,
-              ),
-            ],
-          ),
+          // 鸿蒙端不提供「启动时检查更新」（更新走系统应用市场）。
+          if (defaultTargetPlatform != TargetPlatform.ohos)
+            SegmentedSection(
+              title: Text(l10n.cleanUpdateGroup),
+              tiles: [
+                _switch(
+                  l10n.cleanCheckUpdates,
+                  ref.watch(appSettingsProvider).checkUpdateOnLaunch,
+                  (enabled) => ref
+                      .read(appSettingsProvider.notifier)
+                      .setCheckUpdateOnLaunch(enabled),
+                  icon: Icons.system_update_outlined,
+                ),
+              ],
+            ),
         ],
       ),
     );

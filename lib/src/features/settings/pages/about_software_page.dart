@@ -94,11 +94,13 @@ class AboutSoftwarePage extends ConsumerWidget {
                   ],
                 ),
               ),
-              _Section(
-                icon: Icons.article_outlined,
-                title: l10n.changelog,
-                child: const _ChangelogSection(),
-              ),
+              // 鸿蒙端不显示更新日志（更新走系统应用市场，无 changelog 可拉取）。
+              if (defaultTargetPlatform != TargetPlatform.ohos)
+                _Section(
+                  icon: Icons.article_outlined,
+                  title: l10n.changelog,
+                  child: const _ChangelogSection(),
+                ),
               _Section(
                 icon: Icons.terminal_outlined,
                 title: l10n.settingsAboutSoftwareBuildInfo,
@@ -329,6 +331,16 @@ class _UpdatePillState extends ConsumerState<_UpdatePill> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
+    // 鸿蒙端不提供「检查更新」，只静态展示当前版本号。
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      return Text(
+        'v${BuildInfoService.appVersion}',
+        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+          color: colors.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+    }
     final found = _found != null;
     final (icon, label) = _checking
         ? (null, l10n.updateChecking)

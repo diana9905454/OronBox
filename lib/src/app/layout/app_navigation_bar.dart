@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -242,6 +244,22 @@ class AppBottomNavigationBar extends ConsumerWidget {
     // indicator from the previous branch instead of appearing pre-selected.
     final activeBranch = ShellBranchIndex.maybeOf(context) ?? currentBranch;
     final selectedIndex = branchIndices.indexOf(activeBranch);
+    // 鸿蒙端底部导航栏加沉浸光感（毛玻璃 + 顶部高光渐变）。
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      return _OhosImmersiveNavigationBar(
+        destinations: [
+          for (final index in branchIndices)
+            bottomNavDestination(context, l10n, queue, doneAt, index),
+        ],
+        selectedIndex: selectedIndex < 0 ? 0 : selectedIndex,
+        onDestinationSelected: (index) {
+          final branch = branchIndices[index];
+          if (branch != activeBranch) {
+            StatefulNavigationShell.of(context).goBranch(branch);
+          }
+        },
+      );
+    }
     return NavigationBar(
       destinations: [
         for (final index in branchIndices)
@@ -254,6 +272,73 @@ class AppBottomNavigationBar extends ConsumerWidget {
           StatefulNavigationShell.of(context).goBranch(branch);
         }
       },
+    );
+  }
+}
+
+/// 鸿蒙沉浸式底部导航栏：半透明毛玻璃背景 + 顶部柔和高光，营造 HarmonyOS
+/// 标志性的「光感」质感。
+class _OhosImmersiveNavigationBar extends StatelessWidget {
+  const _OhosImmersiveNavigationBar({
+    required this.destinations,
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+  });
+
+  final List<NavigationDestination> destinations;
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        child: Container(
+          decoration: BoxDecoration(
+            color: scheme.surface.withValues(alpha: 0.72),
+            border: Border(
+              top: BorderSide(
+                color: scheme.outlineVariant.withValues(alpha: 0.4),
+                width: 0.5,
+              ),
+            ),
+          ),
+          child: Stack(
+            children: [
+              // 顶部高光渐变：HarmonyOS 导航栏顶部的柔和光晕。
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: 1.5,
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          scheme.primary.withValues(alpha: 0.0),
+                          scheme.primary.withValues(alpha: 0.35),
+                          scheme.primary.withValues(alpha: 0.0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              NavigationBar(
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                height: 68,
+                destinations: destinations,
+                selectedIndex: selectedIndex,
+                onDestinationSelected: onDestinationSelected,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
