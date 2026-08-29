@@ -16,7 +16,7 @@ import 'package:oronbox/src/core/utils/layout.dart';
 import 'package:oronbox/src/features/debug/widgets/debug_console.dart';
 import 'package:oronbox/src/features/debug/widgets/debug_inspectors.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
-import 'package:material_ui/material_ui.dart' as material_ui;
+import 'package:flutter/material.dart' as material_ui;
 
 final _desktopAccentColorProvider = FutureProvider<Color?>((ref) {
   final source = ref.watch(

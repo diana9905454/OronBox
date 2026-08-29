@@ -143,3 +143,11 @@ server
 /.kimi-code/
 CONTEXT.md
 tmp/script.md
+
+# HarmonyOS port build/debug temp files
+HANDOFF.md
+hvigor-env-dump.json
+lock_result.txt
+node-procs.txt
+proc_list.txt
+ps-test.txt

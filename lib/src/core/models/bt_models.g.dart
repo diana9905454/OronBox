@@ -6,30 +6,31 @@ part of 'bt_models.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_BTDeviceInfo _$BTDeviceInfoFromJson(Map<String, dynamic> json) =>
-    _BTDeviceInfo(
+_$BTDeviceInfoImpl _$$BTDeviceInfoImplFromJson(Map<String, dynamic> json) =>
+    _$BTDeviceInfoImpl(
       name: json['name'] as String,
       addr: json['addr'] as String,
       connectType: json['connectType'] as String,
     );
 
-Map<String, dynamic> _$BTDeviceInfoToJson(_BTDeviceInfo instance) =>
+Map<String, dynamic> _$$BTDeviceInfoImplToJson(_$BTDeviceInfoImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
       'addr': instance.addr,
       'connectType': instance.connectType,
     };
 
-_MiWearState _$MiWearStateFromJson(Map<String, dynamic> json) => _MiWearState(
-  name: json['name'] as String,
-  addr: json['addr'] as String,
-  connectType: json['connectType'] as String,
-  authkey: json['authkey'] as String?,
-  codename: json['codename'] as String?,
-  disconnected: json['disconnected'] as bool? ?? false,
-);
+_$MiWearStateImpl _$$MiWearStateImplFromJson(Map<String, dynamic> json) =>
+    _$MiWearStateImpl(
+      name: json['name'] as String,
+      addr: json['addr'] as String,
+      connectType: json['connectType'] as String,
+      authkey: json['authkey'] as String?,
+      codename: json['codename'] as String?,
+      disconnected: json['disconnected'] as bool? ?? false,
+    );
 
-Map<String, dynamic> _$MiWearStateToJson(_MiWearState instance) =>
+Map<String, dynamic> _$$MiWearStateImplToJson(_$MiWearStateImpl instance) =>
     <String, dynamic>{
       'name': instance.name,
       'addr': instance.addr,
@@ -39,16 +40,17 @@ Map<String, dynamic> _$MiWearStateToJson(_MiWearState instance) =>
       'disconnected': instance.disconnected,
     };
 
-_ChargeInfo _$ChargeInfoFromJson(Map<String, dynamic> json) => _ChargeInfo(
-  state: (json['state'] as num?)?.toInt() ?? 0,
-  timestamp: (json['timestamp'] as num?)?.toInt(),
-);
+_$ChargeInfoImpl _$$ChargeInfoImplFromJson(Map<String, dynamic> json) =>
+    _$ChargeInfoImpl(
+      state: (json['state'] as num?)?.toInt() ?? 0,
+      timestamp: (json['timestamp'] as num?)?.toInt(),
+    );
 
-Map<String, dynamic> _$ChargeInfoToJson(_ChargeInfo instance) =>
+Map<String, dynamic> _$$ChargeInfoImplToJson(_$ChargeInfoImpl instance) =>
     <String, dynamic>{'state': instance.state, 'timestamp': instance.timestamp};
 
-_BatteryStatus _$BatteryStatusFromJson(Map<String, dynamic> json) =>
-    _BatteryStatus(
+_$BatteryStatusImpl _$$BatteryStatusImplFromJson(Map<String, dynamic> json) =>
+    _$BatteryStatusImpl(
       capacity: (json['capacity'] as num).toInt(),
       chargeStatus:
           $enumDecodeNullable(_$ChargeStatusEnumMap, json['chargeStatus']) ??
@@ -58,7 +60,7 @@ _BatteryStatus _$BatteryStatusFromJson(Map<String, dynamic> json) =>
           : ChargeInfo.fromJson(json['chargeInfo'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$BatteryStatusToJson(_BatteryStatus instance) =>
+Map<String, dynamic> _$$BatteryStatusImplToJson(_$BatteryStatusImpl instance) =>
     <String, dynamic>{
       'capacity': instance.capacity,
       'chargeStatus': _$ChargeStatusEnumMap[instance.chargeStatus]!,
@@ -72,45 +74,49 @@ const _$ChargeStatusEnumMap = {
   ChargeStatus.full: 'full',
 };
 
-_AppInfo _$AppInfoFromJson(Map<String, dynamic> json) => _AppInfo(
-  packageName: json['packageName'] as String,
-  fingerprint:
-      (json['fingerprint'] as List<dynamic>?)
-          ?.map((e) => (e as num).toInt())
-          .toList() ??
-      const <int>[],
-  versionCode: (json['versionCode'] as num?)?.toInt() ?? 0,
-  canRemove: json['canRemove'] as bool? ?? false,
-  appName: json['appName'] as String,
-);
+_$AppInfoImpl _$$AppInfoImplFromJson(Map<String, dynamic> json) =>
+    _$AppInfoImpl(
+      packageName: json['packageName'] as String,
+      fingerprint:
+          (json['fingerprint'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const <int>[],
+      versionCode: (json['versionCode'] as num?)?.toInt() ?? 0,
+      canRemove: json['canRemove'] as bool? ?? false,
+      appName: json['appName'] as String,
+    );
 
-Map<String, dynamic> _$AppInfoToJson(_AppInfo instance) => <String, dynamic>{
-  'packageName': instance.packageName,
-  'fingerprint': instance.fingerprint,
-  'versionCode': instance.versionCode,
-  'canRemove': instance.canRemove,
-  'appName': instance.appName,
-};
+Map<String, dynamic> _$$AppInfoImplToJson(_$AppInfoImpl instance) =>
+    <String, dynamic>{
+      'packageName': instance.packageName,
+      'fingerprint': instance.fingerprint,
+      'versionCode': instance.versionCode,
+      'canRemove': instance.canRemove,
+      'appName': instance.appName,
+    };
 
-_StorageInfo _$StorageInfoFromJson(Map<String, dynamic> json) => _StorageInfo(
-  used: (json['used'] as num).toInt(),
-  total: (json['total'] as num).toInt(),
-);
+_$StorageInfoImpl _$$StorageInfoImplFromJson(Map<String, dynamic> json) =>
+    _$StorageInfoImpl(
+      used: (json['used'] as num).toInt(),
+      total: (json['total'] as num).toInt(),
+    );
 
-Map<String, dynamic> _$StorageInfoToJson(_StorageInfo instance) =>
+Map<String, dynamic> _$$StorageInfoImplToJson(_$StorageInfoImpl instance) =>
     <String, dynamic>{'used': instance.used, 'total': instance.total};
 
-_SystemInfo _$SystemInfoFromJson(Map<String, dynamic> json) => _SystemInfo(
-  serialNumber: json['serialNumber'] as String,
-  firmwareVersion: json['firmwareVersion'] as String,
-  imei: json['imei'] as String,
-  model: json['model'] as String,
-  storageInfo: json['storageInfo'] == null
-      ? null
-      : StorageInfo.fromJson(json['storageInfo'] as Map<String, dynamic>),
-);
+_$SystemInfoImpl _$$SystemInfoImplFromJson(Map<String, dynamic> json) =>
+    _$SystemInfoImpl(
+      serialNumber: json['serialNumber'] as String,
+      firmwareVersion: json['firmwareVersion'] as String,
+      imei: json['imei'] as String,
+      model: json['model'] as String,
+      storageInfo: json['storageInfo'] == null
+          ? null
+          : StorageInfo.fromJson(json['storageInfo'] as Map<String, dynamic>),
+    );
 
-Map<String, dynamic> _$SystemInfoToJson(_SystemInfo instance) =>
+Map<String, dynamic> _$$SystemInfoImplToJson(_$SystemInfoImpl instance) =>
     <String, dynamic>{
       'serialNumber': instance.serialNumber,
       'firmwareVersion': instance.firmwareVersion,
@@ -119,8 +125,8 @@ Map<String, dynamic> _$SystemInfoToJson(_SystemInfo instance) =>
       'storageInfo': instance.storageInfo,
     };
 
-_WatchfaceInfo _$WatchfaceInfoFromJson(Map<String, dynamic> json) =>
-    _WatchfaceInfo(
+_$WatchfaceInfoImpl _$$WatchfaceInfoImplFromJson(Map<String, dynamic> json) =>
+    _$WatchfaceInfoImpl(
       id: json['id'] as String,
       name: json['name'] as String,
       isCurrent: json['isCurrent'] as bool? ?? false,
@@ -137,7 +143,7 @@ _WatchfaceInfo _$WatchfaceInfoFromJson(Map<String, dynamic> json) =>
           const <String>[],
     );
 
-Map<String, dynamic> _$WatchfaceInfoToJson(_WatchfaceInfo instance) =>
+Map<String, dynamic> _$$WatchfaceInfoImplToJson(_$WatchfaceInfoImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

@@ -444,21 +444,23 @@ class SettingsPage extends ConsumerWidget {
                   title: Text(l10n.settingsQueueDontClear),
                   description: Text(l10n.settingsQueueDontClearDesc),
                 ),
-                SegmentedTile.switchTile(
-                  onToggle: (value) async {
-                    await ref
-                        .read(appSettingsProvider.notifier)
-                        .setRealtimeActivityNotification(value ?? true);
-                  },
-                  initialValue: ref
-                      .watch(appSettingsProvider)
-                      .realtimeActivityNotification,
-                  leading: const Icon(Icons.notifications_active_outlined),
-                  title: Text(l10n.settingsRealtimeActivityNotification),
-                  description: Text(
-                    l10n.settingsRealtimeActivityNotificationDesc,
+                // 鸿蒙端不提供实时活动通知（实况窗是系统受控能力，第三方无法接入）。
+                if (defaultTargetPlatform != TargetPlatform.ohos)
+                  SegmentedTile.switchTile(
+                    onToggle: (value) async {
+                      await ref
+                          .read(appSettingsProvider.notifier)
+                          .setRealtimeActivityNotification(value ?? true);
+                    },
+                    initialValue: ref
+                        .watch(appSettingsProvider)
+                        .realtimeActivityNotification,
+                    leading: const Icon(Icons.notifications_active_outlined),
+                    title: Text(l10n.settingsRealtimeActivityNotification),
+                    description: Text(
+                      l10n.settingsRealtimeActivityNotificationDesc,
+                    ),
                   ),
-                ),
               ],
             ),
           if (category == null || category == SettingsCategory.support)

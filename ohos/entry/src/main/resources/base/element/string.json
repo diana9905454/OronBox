@@ -1,0 +1,32 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "module description"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "description"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "OronBox"
+    },
+    {
+      "name": "perm_ble",
+      "value": "需要蓝牙权限以连接手环设备"
+    },
+    {
+      "name": "perm_loc",
+      "value": "需要位置权限以扫描蓝牙设备"
+    },
+    {
+      "name": "perm_net",
+      "value": "需要网络权限以同步数据"
+    },
+    {
+      "name": "perm_bg",
+      "value": "需要后台运行权限以持续同步"
+    }
+  ]
+}

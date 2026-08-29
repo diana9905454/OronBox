@@ -9,7 +9,7 @@ import 'package:oronbox/src/app/window/secondary_window_host.dart';
 import 'package:oronbox/src/core/providers/theme_locale_providers.dart';
 import 'package:oronbox/src/features/plugins/pages/plugin_detail_page.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_host_request_handler.dart';
-import 'package:material_ui/material_ui.dart' as material_ui;
+import 'package:flutter/material.dart' as material_ui;
 
 final _desktopAccentColorProvider = FutureProvider<Color?>((ref) {
   final source = ref.watch(
