@@ -1147,6 +1147,12 @@ abstract class AppLocalizations {
   /// **'Xiaomi account two-factor verification was not completed. Sign in again'**
   String get errorAccountTwoFactorIncomplete;
 
+  /// No description provided for @errorXiaomiAccountSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your Xiaomi account session has expired. Sign in again'**
+  String get errorXiaomiAccountSessionExpired;
+
   /// No description provided for @errorOronBoxSessionExpired.
   ///
   /// In en, this message translates to:
@@ -1306,7 +1312,7 @@ abstract class AppLocalizations {
   /// No description provided for @communitySourceAstroBoxRepo.
   ///
   /// In en, this message translates to:
-  /// **'AstroBox Repo'**
+  /// **'AstroBox'**
   String get communitySourceAstroBoxRepo;
 
   /// No description provided for @communitySourceBandBbs.
@@ -5711,6 +5717,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not clear messages. Try again later.'**
   String get inboxClearFailed;
+
+  /// No description provided for @messageUnknownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification'**
+  String get messageUnknownTitle;
+
+  /// No description provided for @messageUnknownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The notification data is unavailable.'**
+  String get messageUnknownBody;
+
+  /// No description provided for @messageCommentRepliedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New comment reply'**
+  String get messageCommentRepliedTitle;
+
+  /// No description provided for @messageCommentHiddenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment hidden'**
+  String get messageCommentHiddenTitle;
+
+  /// No description provided for @messageCommentHiddenAutomatedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your comment did not pass automated moderation and is currently hidden. You can submit an appeal from the message.'**
+  String get messageCommentHiddenAutomatedBody;
+
+  /// No description provided for @messageCommentHiddenReviewedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your comment was hidden after manual review.'**
+  String get messageCommentHiddenReviewedBody;
+
+  /// No description provided for @messageReviewApprovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource approved'**
+  String get messageReviewApprovedTitle;
+
+  /// No description provided for @messageReviewRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource needs changes'**
+  String get messageReviewRejectedTitle;
+
+  /// No description provided for @messageResourceSuspendedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource delisted'**
+  String get messageResourceSuspendedTitle;
+
+  /// No description provided for @messageResourceFrozenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource frozen'**
+  String get messageResourceFrozenTitle;
+
+  /// No description provided for @messageResourceDeletedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource deleted'**
+  String get messageResourceDeletedTitle;
+
+  /// No description provided for @messageResourceRestoredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource restored'**
+  String get messageResourceRestoredTitle;
+
+  /// No description provided for @messageReportUpdatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report updated'**
+  String get messageReportUpdatedTitle;
+
+  /// No description provided for @messagePluginApprovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin approved'**
+  String get messagePluginApprovedTitle;
+
+  /// No description provided for @messagePluginRelistedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin relisted'**
+  String get messagePluginRelistedTitle;
+
+  /// No description provided for @messagePluginRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin needs changes'**
+  String get messagePluginRejectedTitle;
+
+  /// No description provided for @messagePluginDelistedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin delisted'**
+  String get messagePluginDelistedTitle;
+
+  /// No description provided for @messageCollectionApprovedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection approved'**
+  String get messageCollectionApprovedTitle;
+
+  /// No description provided for @messageCollectionRejectedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection needs changes'**
+  String get messageCollectionRejectedTitle;
+
+  /// No description provided for @messageCoinAddedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins added'**
+  String get messageCoinAddedTitle;
+
+  /// No description provided for @messageCoinDeductedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coins deducted'**
+  String get messageCoinDeductedTitle;
+
+  /// No description provided for @messageCoinReversedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coin transaction reversed'**
+  String get messageCoinReversedTitle;
+
+  /// No description provided for @messageCoinVoteRevokedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Coin contribution revoked'**
+  String get messageCoinVoteRevokedTitle;
+
+  /// No description provided for @messageAppealOverturnedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal accepted'**
+  String get messageAppealOverturnedTitle;
+
+  /// No description provided for @messageAppealUpheldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Original decision upheld'**
+  String get messageAppealUpheldTitle;
+
+  /// No description provided for @messageAppealDismissedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appeal dismissed'**
+  String get messageAppealDismissedTitle;
+
+  /// No description provided for @messageAccountBannedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account suspended'**
+  String get messageAccountBannedTitle;
+
+  /// No description provided for @messageAccountUnbannedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account suspension lifted'**
+  String get messageAccountUnbannedTitle;
+
+  /// No description provided for @messageCreatorFrozenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator access frozen'**
+  String get messageCreatorFrozenTitle;
+
+  /// No description provided for @messageCreatorUnfrozenTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Creator access restored'**
+  String get messageCreatorUnfrozenTitle;
+
+  /// No description provided for @messageRoleChangedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account role changed'**
+  String get messageRoleChangedTitle;
+
+  /// No description provided for @messageRoleUser.
+  ///
+  /// In en, this message translates to:
+  /// **'user'**
+  String get messageRoleUser;
+
+  /// No description provided for @messageRoleReviewer.
+  ///
+  /// In en, this message translates to:
+  /// **'reviewer'**
+  String get messageRoleReviewer;
+
+  /// No description provided for @messageRoleAdministrator.
+  ///
+  /// In en, this message translates to:
+  /// **'administrator'**
+  String get messageRoleAdministrator;
+
+  /// No description provided for @messageApprovedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your submission passed review.'**
+  String get messageApprovedBody;
+
+  /// No description provided for @messageNeedsChangesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review found issues that require changes.'**
+  String get messageNeedsChangesBody;
+
+  /// No description provided for @messageReasonBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Reason: {reason}'**
+  String messageReasonBody(String reason);
+
+  /// No description provided for @messageReviewNoteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Review note: {note}'**
+  String messageReviewNoteBody(String note);
+
+  /// No description provided for @messageStatusChangedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The status of this item has changed.'**
+  String get messageStatusChangedBody;
+
+  /// No description provided for @messageReportStatusBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Report status: {status}'**
+  String messageReportStatusBody(String status);
+
+  /// No description provided for @messageCoinAddedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} coins were added to your account.'**
+  String messageCoinAddedBody(String amount);
+
+  /// No description provided for @messageCoinDeductedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} coins were deducted from your account.'**
+  String messageCoinDeductedBody(String amount);
+
+  /// No description provided for @messageCoinVoteRevokedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your contribution of {amount} coins to this resource was revoked.'**
+  String messageCoinVoteRevokedBody(String amount);
+
+  /// No description provided for @messageAppealOverturnedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The administrator reversed the original decision.'**
+  String get messageAppealOverturnedBody;
+
+  /// No description provided for @messageAppealUpheldBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The original decision remains unchanged after review.'**
+  String get messageAppealUpheldBody;
+
+  /// No description provided for @messageAppealDismissedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The appeal was not accepted.'**
+  String get messageAppealDismissedBody;
+
+  /// No description provided for @messageRoleChangedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account role is now {role}.'**
+  String messageRoleChangedBody(String role);
 
   /// No description provided for @cleanMode.
   ///

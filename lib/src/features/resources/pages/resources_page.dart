@@ -138,27 +138,47 @@ class ResourcesPage extends ConsumerWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: StyleConstants.pagePadding,
-                  vertical: StyleConstants.pagePadding,
                 ),
                 child: SegmentedButton<ResourceMode>(
+                  expandedInsets: EdgeInsets.zero,
                   showSelectedIcon: false,
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    iconSize: WidgetStatePropertyAll(18),
+                  ),
                   segments: [
                     if (showHome)
                       ButtonSegment(
                         value: ResourceMode.home,
-                        label: Text(l10n.homeTab),
+                        label: Text(
+                          l10n.homeTab,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         icon: const Icon(Icons.home_outlined),
                       ),
                     if (showExplore)
                       ButtonSegment(
                         value: ResourceMode.library,
-                        label: Text(l10n.resourceLibrary),
+                        label: Text(
+                          l10n.resourceLibrary,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         icon: const Icon(Icons.library_books_outlined),
                       ),
                     if (showCreator)
                       ButtonSegment(
                         value: ResourceMode.creator,
-                        label: Text(l10n.creatorCenter),
+                        label: Text(
+                          l10n.creatorCenter,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                         icon: const Icon(Icons.create_outlined),
                       ),
                   ],
@@ -194,6 +214,26 @@ class ResourcesPage extends ConsumerWidget {
   }
 }
 
+/// Keeps the resource card Hero enabled until a pushed detail route has
+/// finished its reverse transition.
+class ResourceRouteObserver extends RouteObserver<ModalRoute<dynamic>> {
+  Route<dynamic>? _lastPoppedRoute;
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    _lastPoppedRoute = route;
+    super.didPop(route, previousRoute);
+  }
+
+  Route<dynamic>? takeLastPoppedRoute() {
+    final route = _lastPoppedRoute;
+    _lastPoppedRoute = null;
+    return route;
+  }
+}
+
+final resourceRouteObserver = ResourceRouteObserver();
+
 class _InboxAction extends StatelessWidget {
   const _InboxAction({required this.unread});
 
@@ -219,8 +259,64 @@ class _ResourceHomeView extends ConsumerStatefulWidget {
   ConsumerState<_ResourceHomeView> createState() => _ResourceHomeViewState();
 }
 
-class _ResourceHomeViewState extends ConsumerState<_ResourceHomeView> {
+class _ResourceHomeViewState extends ConsumerState<_ResourceHomeView>
+    with RouteAware {
   String? _activeHeroOccurrence;
+  ModalRoute<dynamic>? _observedRoute;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is ModalRoute<dynamic> && route != _observedRoute) {
+      if (_observedRoute != null) {
+        resourceRouteObserver.unsubscribe(this);
+      }
+      _observedRoute = route;
+      resourceRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    resourceRouteObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  @override
+  void didPopNext() {
+    _finishHeroAfterRoutePop(resourceRouteObserver.takeLastPoppedRoute());
+  }
+
+  void _finishHeroAfterRoutePop(Route<dynamic>? route) {
+    if (_activeHeroOccurrence == null) return;
+    final animation = route is TransitionRoute<dynamic>
+        ? route.animation
+        : null;
+    if (animation == null || animation.status == AnimationStatus.dismissed) {
+      _clearActiveHeroOccurrence();
+      return;
+    }
+
+    void handleStatus(AnimationStatus status) {
+      if (status == AnimationStatus.dismissed) {
+        animation.removeStatusListener(handleStatus);
+        _clearActiveHeroOccurrence();
+      } else if (status == AnimationStatus.completed) {
+        // A back gesture may have been canceled. Keep the source Hero enabled
+        // so a later pop can start a new flight.
+        animation.removeStatusListener(handleStatus);
+      }
+    }
+
+    animation.addStatusListener(handleStatus);
+  }
+
+  void _clearActiveHeroOccurrence() {
+    if (mounted && _activeHeroOccurrence != null) {
+      setState(() => _activeHeroOccurrence = null);
+    }
+  }
 
   void _openResource(CommunityResource resource, String occurrence) {
     if (_activeHeroOccurrence != null) return;
@@ -230,11 +326,7 @@ class _ResourceHomeViewState extends ConsumerState<_ResourceHomeView> {
       final path = resource.isCollection
           ? '/resources/collection/${resource.ref.id}'
           : '/resources/detail/${resource.ref.id}';
-      unawaited(
-        context.push(path, extra: resource).whenComplete(() {
-          if (mounted) setState(() => _activeHeroOccurrence = null);
-        }),
-      );
+      unawaited(context.push(path, extra: resource));
     });
   }
 
@@ -244,11 +336,11 @@ class _ResourceHomeViewState extends ConsumerState<_ResourceHomeView> {
     final clean = ref.watch(appSettingsProvider.select((state) => state.clean));
     final home = ref.watch(homeFeedProvider);
     final sections = [
-      if (clean.homeFeaturedEnabled)
+      if (clean.homeLatestEnabled)
         (
-          l10n.resourceHomeFeatured,
-          CommunitySortRule.recommendation,
-          ref.watch(_featuredFeedProvider),
+          l10n.newlyPublished,
+          CommunitySortRule.time,
+          ref.watch(_homeFeedProvider(CommunitySortRule.time)),
         ),
       if (clean.homeRecommendedEnabled)
         (
@@ -256,11 +348,11 @@ class _ResourceHomeViewState extends ConsumerState<_ResourceHomeView> {
           CommunitySortRule.recommendation,
           ref.watch(_homeFeedProvider(CommunitySortRule.recommendation)),
         ),
-      if (clean.homeLatestEnabled)
+      if (clean.homeFeaturedEnabled)
         (
-          l10n.newlyPublished,
-          CommunitySortRule.time,
-          ref.watch(_homeFeedProvider(CommunitySortRule.time)),
+          l10n.resourceHomeFeatured,
+          CommunitySortRule.recommendation,
+          ref.watch(_featuredFeedProvider),
         ),
     ];
     final curated = home.value;
@@ -1596,19 +1688,9 @@ class _ResourceLibraryViewState extends ConsumerState<_ResourceLibraryView>
                       : l10n.resourceGridView,
                   onPressed: _toggleLayout,
                   icon: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: RotationTransition(
-                        turns: Tween<double>(begin: -.12, end: 0).animate(
-                          CurvedAnimation(
-                            parent: animation,
-                            curve: Curves.easeOutCubic,
-                          ),
-                        ),
-                        child: child,
-                      ),
-                    ),
+                    duration: const Duration(milliseconds: 140),
+                    transitionBuilder: (child, animation) =>
+                        FadeTransition(opacity: animation, child: child),
                     child: Icon(
                       _gridView ? Icons.view_list : Icons.grid_view,
                       key: ValueKey(_gridView),
@@ -1840,10 +1922,15 @@ class _CommunitySourceMenu extends ConsumerWidget {
             ),
           )
           .toList(),
-      builder: (_, controller, _) => TextButton.icon(
+      builder: (_, controller, _) => TextButton(
         onPressed: controller.isOpen ? controller.close : controller.open,
-        icon: const Icon(Icons.arrow_drop_down),
-        label: Text(_communitySourceLabel(l10n, source)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_communitySourceLabel(l10n, source)),
+            const Icon(Icons.arrow_drop_down),
+          ],
+        ),
       ),
     );
   }

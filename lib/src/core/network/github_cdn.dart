@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 
 enum GitHubCdn { auto, raw, ghfast, ghproxy }
+
+/// Maximum time allowed for one CDN probe, including connection and response.
+const githubCdnProbeTimeout = Duration(seconds: 5);
 
 extension GitHubCdnExtension on GitHubCdn {
   String get displayName {
@@ -35,32 +40,55 @@ Future<List<(GitHubCdn cdn, int? milliseconds)>> testGithubCdns({
       dio ??
       Dio(
         BaseOptions(
-          connectTimeout: const Duration(seconds: 5),
-          receiveTimeout: const Duration(seconds: 5),
+          connectTimeout: githubCdnProbeTimeout,
+          sendTimeout: githubCdnProbeTimeout,
+          receiveTimeout: githubCdnProbeTimeout,
         ),
       );
   const testUrl =
       'https://raw.githubusercontent.com/zxor-org/oronbox/main/README.md';
   final results = await Future.wait(
     GitHubCdn.values.where((cdn) => cdn != GitHubCdn.auto).map((cdn) async {
-      final uri = rewriteGithubCdnUri(Uri.parse(testUrl), cdn);
-      final stopwatch = Stopwatch()..start();
-      int? milliseconds;
-      try {
-        final response = await client.headUri(uri);
-        if (response.statusCode == 200) {
-          milliseconds = stopwatch.elapsedMilliseconds;
-        }
-      } catch (_) {
-        // A failed probe is represented by null and excluded from selection
-      } finally {
-        stopwatch.stop();
-      }
-      return (cdn, milliseconds);
+      return _testGithubCdn(client, testUrl, cdn);
     }),
   );
   if (dio == null) client.close();
   return results;
+}
+
+Future<(GitHubCdn cdn, int? milliseconds)> _testGithubCdn(
+  Dio client,
+  String testUrl,
+  GitHubCdn cdn,
+) async {
+  final uri = rewriteGithubCdnUri(Uri.parse(testUrl), cdn);
+  final cancelToken = CancelToken();
+  final stopwatch = Stopwatch()..start();
+  int? milliseconds;
+  try {
+    final response = await client
+        .headUri(
+          uri,
+          options: Options(
+            connectTimeout: githubCdnProbeTimeout,
+            sendTimeout: githubCdnProbeTimeout,
+            receiveTimeout: githubCdnProbeTimeout,
+          ),
+          cancelToken: cancelToken,
+        )
+        // Dio's phase timeouts do not form a total request deadline.
+        .timeout(githubCdnProbeTimeout);
+    if (response.statusCode == 200) {
+      milliseconds = stopwatch.elapsedMilliseconds;
+    }
+  } on TimeoutException {
+    cancelToken.cancel('GitHub CDN probe timed out');
+  } catch (_) {
+    // A failed probe is represented by null and excluded from selection.
+  } finally {
+    stopwatch.stop();
+  }
+  return (cdn, milliseconds);
 }
 
 GitHubCdn? fastestGithubCdn(List<(GitHubCdn cdn, int? milliseconds)> results) {

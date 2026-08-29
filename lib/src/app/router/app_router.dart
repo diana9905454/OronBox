@@ -120,11 +120,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
         branches: [
           StatefulShellBranch(
+            observers: [resourceRouteObserver],
             routes: [
               GoRoute(
                 path: '/resources',
                 builder: (context, state) => const PrimaryBranchScaffold(
-                  branch: 0,
                   child: ResourcesPage(),
                 ),
                 routes: [
@@ -166,7 +166,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         reverseTransitionDuration: const Duration(
                           milliseconds: 300,
                         ),
-                        child: ScaffoldMessenger(child: child),
+                        child: child,
                         transitionsBuilder:
                             AppTheme.buildPlatformPageTransition,
                       );
@@ -244,7 +244,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/devices',
                 builder: (context, state) => const PrimaryBranchScaffold(
-                  branch: 1,
                   child: DevicesPage(),
                 ),
                 routes: [
@@ -264,9 +263,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       reverseTransitionDuration: const Duration(
                         milliseconds: 300,
                       ),
-                      child: const ScaffoldMessenger(
-                        child: DeviceFirmwarePage(),
-                      ),
+                      child: const DeviceFirmwarePage(),
                       transitionsBuilder: AppTheme.buildPlatformPageTransition,
                     ),
                   ),
@@ -368,8 +365,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/queue',
-                builder: (context, state) =>
-                    const PrimaryBranchScaffold(branch: 2, child: QueuePage()),
+                builder: (context, state) => const PrimaryBranchScaffold(
+                  child: QueuePage(),
+                ),
               ),
             ],
           ),
@@ -378,7 +376,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/plugins',
                 builder: (context, state) => const PrimaryBranchScaffold(
-                  branch: 3,
                   child: PluginsPage(),
                 ),
                 routes: [
@@ -396,7 +393,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/settings',
                 builder: (context, state) => const PrimaryBranchScaffold(
-                  branch: 4,
                   child: SettingsPage(),
                 ),
                 routes: [

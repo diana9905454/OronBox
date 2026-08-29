@@ -6,6 +6,7 @@ import 'package:archive/archive.dart';
 import 'package:crypto/crypto.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/network/dio_provider.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
@@ -100,6 +101,7 @@ List<MiCloudDevice> extractMiDevicesFromWearableLogZip(List<int> bytes) {
 class MiAccountService {
   MiAccountService({Dio? dio}) : _dio = dio ?? createAppHttpTransport();
 
+  static final _log = getLogger('MiAccountService');
   final Dio _dio;
 
   static const _sessionKey = 'mi.account.token';
@@ -156,6 +158,98 @@ class MiAccountService {
     if (!prefs.isInitialized) await prefs.init();
     await prefs.remove(_sessionKey);
     await prefs.remove(_legacySessionKey);
+  }
+
+  /// Renews the short-lived Xiaomi service session with the stored pass token.
+  ///
+  /// Xiaomi does not return a reliable client-visible expiry timestamp for
+  /// the service token. The account pass token is the credential used to run
+  /// the serviceLogin -> STS exchange again. If that credential is no longer
+  /// accepted, the caller must ask the user to sign in again.
+  Future<MiAccountToken> refreshToken({
+    required MiAccountToken token,
+    String userAgent = defaultUserAgent,
+  }) async {
+    if (token.userId.isEmpty ||
+        token.deviceId.isEmpty ||
+        token.passToken.isEmpty) {
+      await invalidateStoredToken(token);
+      throw const MiAccountSessionExpired();
+    }
+
+    // Do not send the old serviceToken here. Xiaomi's account endpoint uses
+    // the long-lived account cookies to mint a fresh service session.
+    final cookieJar = _CookieJar()
+      ..set('sdkVersion', _sdkVersion)
+      ..set('deviceId', token.deviceId)
+      ..set('userId', token.userId)
+      ..set('passToken', token.passToken);
+    if (token.cUserId.isNotEmpty) cookieJar.set('cUserId', token.cUserId);
+
+    late final Response<String> response;
+    try {
+      response = await _dio.get<String>(
+        _serviceLoginUrl,
+        options: _requestOptions(userAgent, cookieJar),
+      );
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (_isSessionFailureStatus(status)) {
+        await invalidateStoredToken(token);
+        throw MiAccountSessionExpired(statusCode: status);
+      }
+      rethrow;
+    }
+    cookieJar.mergeSetCookie(response.headers);
+
+    final body = _fillAuthResponseFromHeaders(
+      _decodeJsonBody(response.data),
+      response.headers,
+    );
+    final code = _parseCode(body);
+    final requiresInteractiveLogin =
+        (body['_sign']?.toString() ?? '').isNotEmpty ||
+        (body['notificationUrl']?.toString() ?? '').trim().isNotEmpty;
+    if (code != 0 || requiresInteractiveLogin) {
+      await invalidateStoredToken(token);
+      throw MiAccountSessionExpired(statusCode: code > 0 ? code : null);
+    }
+
+    late final MiAccountToken refreshed;
+    try {
+      refreshed = await _finishLogin(
+        body,
+        userAgent: userAgent,
+        deviceId: token.deviceId,
+        cookieJar: cookieJar,
+      );
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (_isSessionFailureStatus(status)) {
+        await invalidateStoredToken(token);
+        throw MiAccountSessionExpired(statusCode: status);
+      }
+      rethrow;
+    } on StateError {
+      await invalidateStoredToken(token);
+      throw const MiAccountSessionExpired();
+    }
+
+    await _persistRefreshedTokenIfCurrent(token, refreshed);
+    _log.info('Xiaomi account service session refreshed');
+    return refreshed;
+  }
+
+  /// Clears the persisted session only when it is still the session that
+  /// failed. A login started concurrently must not be removed by an older
+  /// request completing later.
+  Future<void> invalidateStoredToken(MiAccountToken token) async {
+    final stored = await loadStoredToken();
+    if (stored == null || !_sameSession(stored, token)) return;
+    await clearStoredToken();
+    _log.warning(
+      'Xiaomi account session invalidated after authentication failure',
+    );
   }
 
   Future<MiAccountToken> login({
@@ -231,6 +325,10 @@ class MiAccountService {
 
     final payload = jsonDecode(body) as Map<String, dynamic>;
     final code = _parseCode(payload);
+    if (_isSessionFailureCode(code)) {
+      await invalidateStoredToken(token);
+      throw MiAccountSessionExpired(statusCode: code);
+    }
     if (code != 0 && code != 200) {
       throw StateError(
         'Xiaomi device list failed: code=$code, message=${payload['message'] ?? payload['msg'] ?? ''}',
@@ -277,6 +375,10 @@ class MiAccountService {
         ? decoded.cast<String, dynamic>()
         : const <String, dynamic>{};
     final code = _parseCode(payload);
+    if (_isSessionFailureCode(code)) {
+      await invalidateStoredToken(token);
+      throw MiAccountSessionExpired(statusCode: code);
+    }
     if (code != 0 && code != 200) {
       throw StateError(
         'Xiaomi AGPS metadata failed: code=$code, '
@@ -407,6 +509,7 @@ class MiAccountService {
     String? signaturePath,
     required Map<String, String> paramsPlain,
     required String userAgent,
+    bool allowRefresh = true,
   }) async {
     final nonce = _generateNonce(DateTime.now().millisecondsSinceEpoch);
     final signedNonce = _calcSignedNonce(token.ssecurity, nonce);
@@ -439,20 +542,44 @@ class MiAccountService {
       'serviceToken=${token.serviceToken}',
     ];
 
-    final response = await _dio.post<String>(
-      url,
-      data: encryptedParams,
-      options: Options(
-        contentType: Headers.formUrlEncodedContentType,
-        responseType: ResponseType.plain,
-        headers: {
-          'User-Agent': userAgent,
-          'region_tag': 'cn',
-          'HandleParams': 'true',
-          'Cookie': cookieParts.join('; '),
-        },
-      ),
-    );
+    late final Response<String> response;
+    try {
+      response = await _dio.post<String>(
+        url,
+        data: encryptedParams,
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+          responseType: ResponseType.plain,
+          headers: {
+            'User-Agent': userAgent,
+            'region_tag': 'cn',
+            'HandleParams': 'true',
+            'Cookie': cookieParts.join('; '),
+          },
+        ),
+      );
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (_isSessionFailureStatus(status)) {
+        if (!allowRefresh) {
+          await invalidateStoredToken(token);
+          throw MiAccountSessionExpired(statusCode: status);
+        }
+        final refreshed = await refreshToken(
+          token: token,
+          userAgent: userAgent,
+        );
+        return _miServiceCallEncrypted(
+          token: refreshed,
+          url: url,
+          signaturePath: signaturePath,
+          paramsPlain: paramsPlain,
+          userAgent: userAgent,
+          allowRefresh: false,
+        );
+      }
+      rethrow;
+    }
 
     final raw = (response.data ?? '').trim();
     if (raw.isEmpty) return raw;
@@ -461,7 +588,26 @@ class MiAccountService {
         : raw;
     final encrypted = base64.decode(encoded);
     final decrypted = _rc4Crypt(base64.decode(signedNonce), encrypted);
-    return utf8.decode(decrypted);
+    final result = utf8.decode(decrypted);
+    if (_bodySignalsSessionFailure(result)) {
+      if (!allowRefresh) {
+        await invalidateStoredToken(token);
+        throw const MiAccountSessionExpired();
+      }
+      final refreshed = await refreshToken(
+        token: token,
+        userAgent: userAgent,
+      );
+      return _miServiceCallEncrypted(
+        token: refreshed,
+        url: url,
+        signaturePath: signaturePath,
+        paramsPlain: paramsPlain,
+        userAgent: userAgent,
+        allowRefresh: false,
+      );
+    }
+    return result;
   }
 
   Options _requestOptions(String userAgent, _CookieJar cookieJar) {
@@ -521,6 +667,38 @@ class MiAccountService {
     if (raw is num) return raw.toInt();
     return int.tryParse(raw?.toString() ?? '') ?? -1;
   }
+
+  bool _isSessionFailureStatus(int? status) => status == 401 || status == 403;
+
+  bool _isSessionFailureCode(int code) => code == 401 || code == 403;
+
+  bool _bodySignalsSessionFailure(String body) {
+    try {
+      final value = jsonDecode(body);
+      return value is Map &&
+          _isSessionFailureCode(_parseCode(value.cast<String, dynamic>()));
+    } catch (_) {
+      return false;
+    }
+  }
+
+  bool _sameSession(MiAccountToken first, MiAccountToken second) =>
+      first.ssecurity == second.ssecurity &&
+      first.serviceToken == second.serviceToken;
+
+  Future<void> _persistRefreshedTokenIfCurrent(
+    MiAccountToken previous,
+    MiAccountToken refreshed,
+  ) async {
+    final stored = await loadStoredToken();
+    if (stored == null || !_sameRefreshSource(stored, previous)) return;
+    await persistToken(refreshed);
+  }
+
+  bool _sameRefreshSource(MiAccountToken first, MiAccountToken second) =>
+      first.userId == second.userId &&
+      first.deviceId == second.deviceId &&
+      first.passToken == second.passToken;
 
   String _generateNonce(int millis) {
     final random = Random.secure();

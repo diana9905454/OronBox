@@ -4,7 +4,7 @@
     android:minHeight="72dp"
     android:minResizeWidth="110dp"
     android:minResizeHeight="72dp"
-    android:maxResizeHeight="144dp"
+    android:maxResizeHeight="280dp"
     android:label="@string/widget_device_status"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"

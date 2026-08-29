@@ -514,11 +514,12 @@ class _PluginsPageState extends ConsumerState<PluginsPage> {
                 tooltip: l10n.pluginUpload,
               ),
           ],
-          IconButton(
-            onPressed: _importPlugin,
-            icon: const Icon(Icons.add_box_outlined),
-            tooltip: l10n.pluginImport,
-          ),
+          if (!(_section == 1 && _marketSource == 'oronbox'))
+            IconButton(
+              onPressed: _importPlugin,
+              icon: const Icon(Icons.add_box_outlined),
+              tooltip: l10n.pluginImport,
+            ),
           IconButton(
             onPressed: _section == 0 ? _load : () => _loadMarket(force: true),
             icon: const Icon(Icons.refresh),
@@ -556,7 +557,7 @@ class _PluginsPageState extends ConsumerState<PluginsPage> {
             maxWidth: wide ? 1280 : 1000,
             padding: const EdgeInsets.fromLTRB(
               StyleConstants.pagePadding,
-              8,
+              0,
               StyleConstants.pagePadding,
               0,
             ),
@@ -880,27 +881,49 @@ class _PluginCatalog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 600;
     return Column(
       children: [
         SegmentedButton<int>(
+          expandedInsets: EdgeInsets.zero,
           showSelectedIcon: false,
+          style: const ButtonStyle(
+            visualDensity: VisualDensity.compact,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            iconSize: WidgetStatePropertyAll(18),
+          ),
           segments: [
             ButtonSegment(
               value: 0,
-              label: Text(installedLabel),
+              label: Text(
+                installedLabel,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+              ),
               icon: const Icon(Icons.extension_outlined),
             ),
             ButtonSegment(
               value: 1,
-              label: Text(marketLabel),
+              label: Text(
+                marketLabel,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
+              ),
               icon: const Icon(Icons.storefront_outlined),
             ),
           ],
           selected: {section},
           onSelectionChanged: (value) => onSectionChanged(value.first),
         ),
-        const SizedBox(height: 12),
+        SizedBox(
+          height: compact ? 10 : StyleConstants.pagePadding,
+        ),
         SearchBar(
+          constraints: BoxConstraints.tightFor(
+            height: compact ? 48 : 56,
+          ),
           elevation: const WidgetStatePropertyAll(0),
           leading: const Icon(Icons.search),
           hintText: AppLocalizations.of(context)!.search,

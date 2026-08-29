@@ -6,6 +6,7 @@ import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/features/messages/application/message_center.dart';
+import 'package:oronbox/src/features/messages/application/message_presentation.dart';
 
 class InboxPage extends ConsumerWidget {
   const InboxPage({super.key});
@@ -61,71 +62,72 @@ class InboxPage extends ConsumerWidget {
                   children: [
                     PageContainer(
                       child: Column(
-                        children: value.messages
-                            .map(
-                              (message) => Card(
-                                margin: const EdgeInsets.only(bottom: 8),
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: .5),
-                                clipBehavior: Clip.antiAlias,
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                    vertical: 8,
-                                  ),
-                                  leading: Icon(
-                                    message.read
-                                        ? Icons.mail_outline
-                                        : Icons.mark_email_unread,
-                                  ),
-                                  title: Text(
-                                    message.title,
-                                    style: TextStyle(
-                                      fontWeight: message.read
-                                          ? null
-                                          : FontWeight.bold,
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(message.body),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _messageTime(message.createdAt),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                  onTap: () async {
-                                    final read = ref
-                                        .read(messageCenterProvider.notifier)
-                                        .read(message.id);
-                                    if (message.targetResourceId.isEmpty) {
-                                      await read;
-                                      return;
-                                    }
-                                    final query = Uri(
-                                      queryParameters: {
-                                        'source': 'oronBox',
-                                        if (message.targetCommentId.isNotEmpty)
-                                          'comment': message.targetCommentId,
-                                      },
-                                    ).query;
-                                    context.go(
-                                      '/resources/detail/${message.targetResourceId}?$query',
-                                    );
-                                    await read;
-                                  },
+                        children: value.messages.map((message) {
+                          final presentation = MessagePresentation.localize(
+                            l10n,
+                            message,
+                          );
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest
+                                .withValues(alpha: .5),
+                            clipBehavior: Clip.antiAlias,
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: Icon(
+                                message.read
+                                    ? Icons.mail_outline
+                                    : Icons.mark_email_unread,
+                              ),
+                              title: Text(
+                                presentation.title,
+                                style: TextStyle(
+                                  fontWeight: message.read
+                                      ? null
+                                      : FontWeight.bold,
                                 ),
                               ),
-                            )
-                            .toList(),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(presentation.body),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _messageTime(message.createdAt),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall,
+                                  ),
+                                ],
+                              ),
+                              onTap: () async {
+                                final read = ref
+                                    .read(messageCenterProvider.notifier)
+                                    .read(message.id);
+                                if (message.targetResourceId.isEmpty) {
+                                  await read;
+                                  return;
+                                }
+                                final query = Uri(
+                                  queryParameters: {
+                                    'source': 'oronBox',
+                                    if (message.targetCommentId.isNotEmpty)
+                                      'comment': message.targetCommentId,
+                                  },
+                                ).query;
+                                context.go(
+                                  '/resources/detail/${message.targetResourceId}?$query',
+                                );
+                                await read;
+                              },
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ],

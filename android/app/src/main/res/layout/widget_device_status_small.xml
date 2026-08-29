@@ -30,6 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
+        android:drawablePadding="3dp"
         android:textColor="@color/widget_on_surface"
         android:textSize="14sp"
         android:textStyle="bold" />
@@ -84,22 +85,22 @@
         android:textSize="9sp"
         android:maxLines="1"
         android:ellipsize="end" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_battery_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_storage_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_apps_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_watchfaces_card"
         android:layout_width="1dp"
         android:layout_height="1dp"

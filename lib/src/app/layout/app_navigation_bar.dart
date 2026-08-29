@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/utils/layout.dart';
@@ -221,9 +220,14 @@ class ShellBranchIndex extends InheritedWidget {
 }
 
 class AppBottomNavigationBar extends ConsumerWidget {
-  const AppBottomNavigationBar({super.key, required this.currentBranch});
+  const AppBottomNavigationBar({
+    super.key,
+    required this.currentBranch,
+    required this.onBranchSelected,
+  });
 
   final int currentBranch;
+  final ValueChanged<int> onBranchSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -269,7 +273,7 @@ class AppBottomNavigationBar extends ConsumerWidget {
       onDestinationSelected: (index) {
         final branch = branchIndices[index];
         if (branch != activeBranch) {
-          StatefulNavigationShell.of(context).goBranch(branch);
+          onBranchSelected(branch);
         }
       },
     );
@@ -344,21 +348,13 @@ class _OhosImmersiveNavigationBar extends StatelessWidget {
 }
 
 class PrimaryBranchScaffold extends StatelessWidget {
-  const PrimaryBranchScaffold({
-    super.key,
-    required this.branch,
-    required this.child,
-  });
+  const PrimaryBranchScaffold({super.key, required this.child});
 
-  final int branch;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     if (useWideLayout(MediaQuery.sizeOf(context).width)) return child;
-    return Scaffold(
-      body: child,
-      bottomNavigationBar: AppBottomNavigationBar(currentBranch: branch),
-    );
+    return Scaffold(body: child);
   }
 }

@@ -90,6 +90,8 @@ class MainActivity : FlutterActivity() {
     private var pendingOpenFilePath: String? = null
     private var pendingWearableLogResult: MethodChannel.Result? = null
     private var pendingScreenshotSave: PendingScreenshotSave? = null
+    private var pendingBluetoothPermissionResult: MethodChannel.Result? = null
+    private var pendingBluetoothPermissionContinuation: (() -> Unit)? = null
     @Volatile
     private var phoneFinderPlayer: MediaPlayer? = null
     @Volatile
@@ -106,6 +108,7 @@ class MainActivity : FlutterActivity() {
     companion object {
         private const val NOTIFICATION_PERMISSION_REQUEST = 0x5A12
         private const val SCREENSHOT_STORAGE_PERMISSION_REQUEST = 0x5A13
+        private const val BLUETOOTH_PERMISSION_REQUEST = 0x5A10
         private const val WEARABLE_LOG_DIRECTORY_REQUEST = 0x5A11
         private const val WEARABLE_LOG_DIRECTORY_PREF = "wearable_log_directory"
         private const val MAX_WEARABLE_LOG_BYTES = 64 * 1024 * 1024
@@ -548,8 +551,7 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestPermissions" -> {
-                    requestBluetoothPermissionsIfNeeded()
-                    result.success(null)
+                    requestBluetoothPermissions(result)
                 }
                 "startScan" -> startSppScan(call, result)
                 "stopScan" -> {
@@ -627,8 +629,6 @@ class MainActivity : FlutterActivity() {
                 }
             }
         }
-
-        requestBluetoothPermissionsIfNeeded()
     }
 
     private fun saveXiaomiScreenshot(call: MethodCall, result: MethodChannel.Result) {
@@ -734,6 +734,25 @@ class MainActivity : FlutterActivity() {
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == BLUETOOTH_PERMISSION_REQUEST) {
+            val pending = pendingBluetoothPermissionResult ?: return
+            val continuation = pendingBluetoothPermissionContinuation
+            pendingBluetoothPermissionResult = null
+            pendingBluetoothPermissionContinuation = null
+            val granted = grantResults.isNotEmpty() && grantResults.all {
+                it == PackageManager.PERMISSION_GRANTED
+            }
+            if (granted) {
+                continuation?.invoke()
+            } else {
+                pending.error(
+                    "BLUETOOTH_PERMISSION_DENIED",
+                    "Bluetooth permission is required",
+                    null,
+                )
+            }
+            return
+        }
         if (requestCode != SCREENSHOT_STORAGE_PERMISSION_REQUEST) return
 
         val pending = pendingScreenshotSave ?: return
@@ -1012,8 +1031,7 @@ class MainActivity : FlutterActivity() {
     @SuppressLint("MissingPermission")
     private fun startSppScan(call: MethodCall, result: MethodChannel.Result) {
         if (!hasBluetoothScanPermission() || !hasBluetoothConnectPermission()) {
-            requestBluetoothPermissionsIfNeeded()
-            result.error("MISSING_PERMISSION", "Bluetooth permission is required", null)
+            withBluetoothPermissions(result) { startSppScan(call, result) }
             return
         }
         val adapter = BluetoothAdapter.getDefaultAdapter()
@@ -1279,8 +1297,7 @@ class MainActivity : FlutterActivity() {
             ?: listOf(5, 1)
         val removeBond = call.argument<Boolean>("removeBond") ?: false
         if (!hasBluetoothConnectPermission()) {
-            requestBluetoothPermissionsIfNeeded()
-            result.error("MISSING_PERMISSION", "Bluetooth permission is required", null)
+            withBluetoothPermissions(result) { connect(call, result) }
             return
         }
 
@@ -1302,12 +1319,34 @@ class MainActivity : FlutterActivity() {
                     throw IOException("SPP connect was cancelled")
                 }
 
-                val connected = serviceUuid?.let { tryUuid(device, it, generation) }
+                val failures = mutableListOf<String>()
+                val connected = serviceUuid?.let {
+                    tryUuid(device, it, generation, failures, "configured UUID")
+                }
                     ?: fallbackChannels.firstNotNullOfOrNull { channel ->
-                        tryChannel(device, channel, generation)
+                        tryChannel(device, channel, generation, failures)
                     }
-                    ?: trySdpUuid(device, serviceUuid, generation)
-                    ?: throw IOException("No SPP channel/UUID available")
+                    ?: if (serviceUuid == null) {
+                        tryUuid(
+                            device,
+                            sppUuid,
+                            generation,
+                            failures,
+                            "standard SPP UUID",
+                        )
+                    } else {
+                        null
+                    }
+                    ?: trySdpUuid(device, serviceUuid, generation, failures)
+                    ?: throw IOException(
+                        buildString {
+                            append("No SPP channel/UUID available")
+                            if (failures.isNotEmpty()) {
+                                append(": ")
+                                append(failures.joinToString("; "))
+                            }
+                        },
+                    )
 
                 if (generation != connectGeneration.get()) {
                     connected.socket.close()
@@ -1499,18 +1538,24 @@ class MainActivity : FlutterActivity() {
         device: BluetoothDevice,
         uuid: UUID,
         generation: Long,
+        failures: MutableList<String>,
+        label: String,
     ): ConnectedSocket? {
-        runCatching {
+        try {
             val socket = device.createInsecureRfcommSocketToServiceRecord(uuid)
             if (connectSocket(socket, 6_000, generation)) {
                 return ConnectedSocket(socket, -1)
             }
+        } catch (error: Exception) {
+            failures += "$label insecure: ${describeBluetoothError(error)}"
         }
-        runCatching {
+        try {
             val socket = device.createRfcommSocketToServiceRecord(uuid)
             if (connectSocket(socket, 6_000, generation)) {
                 return ConnectedSocket(socket, -1)
             }
+        } catch (error: Exception) {
+            failures += "$label secure: ${describeBluetoothError(error)}"
         }
         return null
     }
@@ -1520,15 +1565,23 @@ class MainActivity : FlutterActivity() {
         device: BluetoothDevice,
         channel: Int,
         generation: Long,
+        failures: MutableList<String>,
     ): ConnectedSocket? {
         val methods = listOf("createInsecureRfcommSocket", "createRfcommSocket")
         for (name in methods) {
-            val socket = runCatching {
+            val socket = try {
                 val method = device.javaClass.getMethod(name, Int::class.javaPrimitiveType)
                 method.invoke(device, channel) as BluetoothSocket
-            }.getOrNull() ?: continue
-            if (connectSocket(socket, 3_000, generation)) {
-                return ConnectedSocket(socket, channel)
+            } catch (error: Exception) {
+                failures += "channel $channel $name: ${describeBluetoothError(error)}"
+                continue
+            }
+            try {
+                if (connectSocket(socket, 3_000, generation)) {
+                    return ConnectedSocket(socket, channel)
+                }
+            } catch (error: Exception) {
+                failures += "channel $channel $name: ${describeBluetoothError(error)}"
             }
         }
         return null
@@ -1539,14 +1592,48 @@ class MainActivity : FlutterActivity() {
         device: BluetoothDevice,
         preferredUuid: UUID?,
         generation: Long,
+        failures: MutableList<String>,
     ): ConnectedSocket? {
-        if (!device.fetchUuidsWithSdp()) {
-            return null
+        val latch = CountDownLatch(1)
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action != BluetoothDevice.ACTION_UUID) return
+                val changed = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableExtra(
+                        BluetoothDevice.EXTRA_DEVICE,
+                        BluetoothDevice::class.java,
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                }
+                if (changed?.address == device.address) latch.countDown()
+            }
         }
-        if (generation != connectGeneration.get()) return null
-        repeat(20) {
+        val filter = IntentFilter(BluetoothDevice.ACTION_UUID)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(receiver, filter, RECEIVER_EXPORTED)
+        } else {
+            @Suppress("DEPRECATION")
+            registerReceiver(receiver, filter)
+        }
+        try {
+            val started = try {
+                device.fetchUuidsWithSdp()
+            } catch (error: Exception) {
+                failures += "SDP start: ${describeBluetoothError(error)}"
+                false
+            }
+            if (!started) {
+                failures += "SDP start returned false"
+                return null
+            }
             if (generation != connectGeneration.get()) return null
-            device.uuids
+            if (!latch.await(8, TimeUnit.SECONDS)) {
+                failures += "SDP discovery timed out after 8s"
+            }
+            if (generation != connectGeneration.get()) return null
+            val parcel = device.uuids
                 ?.firstOrNull {
                     if (preferredUuid != null) {
                         it.uuid == preferredUuid
@@ -1554,12 +1641,37 @@ class MainActivity : FlutterActivity() {
                         it.uuid.toString().startsWith("00001101", ignoreCase = true)
                     }
                 }
-                ?.let { parcel ->
-                    tryUuid(device, parcel.uuid, generation)?.let { return it }
-                }
-            Thread.sleep(100)
+            if (parcel == null) {
+                failures += "matching SDP UUID not found"
+                return null
+            }
+            return tryUuid(
+                device,
+                parcel.uuid,
+                generation,
+                failures,
+                "SDP UUID ${parcel.uuid}",
+            )
+        } finally {
+            try {
+                unregisterReceiver(receiver)
+            } catch (_: IllegalArgumentException) {
+            }
         }
-        return null
+    }
+
+    private fun describeBluetoothError(error: Throwable): String {
+        val cause = if (error is java.lang.reflect.InvocationTargetException) {
+            error.targetException ?: error
+        } else {
+            error
+        }
+        val message = cause.message?.replace('\n', ' ')?.trim()
+        return if (message.isNullOrEmpty()) {
+            cause.javaClass.simpleName
+        } else {
+            "${cause.javaClass.simpleName}: $message"
+        }
     }
 
     private fun connectSocket(
@@ -1576,29 +1688,30 @@ class MainActivity : FlutterActivity() {
         }
         val latch = CountDownLatch(1)
         val connected = AtomicReference(false)
+        val failure = AtomicReference<Exception?>()
         val connector = Thread {
             try {
                 socket.connect()
                 connected.set(true)
-            } catch (_: IOException) {
+            } catch (error: Exception) {
+                failure.set(error)
             } finally {
                 latch.countDown()
             }
         }
         connector.start()
         return try {
-            val ok = latch.await(timeoutMs, TimeUnit.MILLISECONDS) &&
-                connected.get() &&
-                generation == connectGeneration.get()
-            if (!ok) {
-                try {
-                    socket.close()
-                } catch (_: IOException) {
-                }
-                false
-            } else {
-                true
+            val completed = latch.await(timeoutMs, TimeUnit.MILLISECONDS)
+            if (!completed) {
+                throw IOException("connection timed out after ${timeoutMs}ms")
             }
+            failure.get()?.let { throw it }
+            val valid = connected.get() && generation == connectGeneration.get()
+            if (!valid) socket.close()
+            valid
+        } catch (error: Exception) {
+            runCatching { socket.close() }
+            throw error
         } finally {
             synchronized(sppStateLock) {
                 activeConnectingSockets.remove(socket)
@@ -1680,7 +1793,14 @@ class MainActivity : FlutterActivity() {
             PackageManager.PERMISSION_GRANTED
     }
 
-    private fun requestBluetoothPermissionsIfNeeded() {
+    private fun requestBluetoothPermissions(result: MethodChannel.Result) {
+        withBluetoothPermissions(result) { result.success(null) }
+    }
+
+    private fun withBluetoothPermissions(
+        result: MethodChannel.Result,
+        continuation: () -> Unit,
+    ) {
         val required = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             listOf(
                 Manifest.permission.BLUETOOTH_SCAN,
@@ -1692,9 +1812,21 @@ class MainActivity : FlutterActivity() {
         val missing = required.filter {
             checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
         }
-        if (missing.isNotEmpty()) {
-            requestPermissions(missing.toTypedArray(), 0x5A10)
+        if (missing.isEmpty()) {
+            continuation()
+            return
         }
+        if (pendingBluetoothPermissionResult != null) {
+            result.error(
+                "PERMISSION_REQUEST_PENDING",
+                "A Bluetooth permission request is already pending",
+                null,
+            )
+            return
+        }
+        pendingBluetoothPermissionResult = result
+        pendingBluetoothPermissionContinuation = continuation
+        requestPermissions(missing.toTypedArray(), BLUETOOTH_PERMISSION_REQUEST)
     }
 
     private fun hasBluetoothScanPermission(): Boolean {
@@ -1800,6 +1932,13 @@ class MainActivity : FlutterActivity() {
         wearableLogExecutor.shutdownNow()
         pendingWearableLogResult?.error("CANCELLED", "Activity destroyed", null)
         pendingWearableLogResult = null
+        pendingBluetoothPermissionResult?.error(
+            "CANCELLED",
+            "Activity destroyed while requesting Bluetooth permission",
+            null,
+        )
+        pendingBluetoothPermissionResult = null
+        pendingBluetoothPermissionContinuation = null
         super.onDestroy()
     }
 }

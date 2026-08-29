@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.2+14
+version: 1.1.3+15
 
 environment:
   sdk: ^3.12.0
@@ -86,7 +86,10 @@ dependencies:
   # while we are offline (Pub's git ref fetch requires GitHub connectivity).
   # The path points at a v0.1.2 mirror cloned locally from Pub's cache.
   oronbox_network:
-    path: ../OronBox-Package-Network
+  oronbox_network:
+    git:
+      url: https://github.com/zxor-org/OronBox-Package-Network.git
+      ref: v0.1.3
   web: ^1.1.1
   flutter_markdown_plus: ^1.0.12
   uuid: ^4.5.3

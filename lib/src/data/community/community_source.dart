@@ -10,7 +10,7 @@ class CommunitySourceId {
   static const astroboxRepo = CommunitySourceId._(
     'astroboxRepo',
     'astrobox-repo',
-    'AstroBox Repo',
+    'AstroBox',
   );
   static const bandbbs = CommunitySourceId._('bandbbs', 'bandbbs', '米坛社区');
   static const huamiAppStore = CommunitySourceId._(

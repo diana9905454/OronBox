@@ -89,3 +89,12 @@ class MiAccountTwoFactorRequired implements Exception {
   @override
   String toString() => 'Xiaomi account requires two-factor verification: $url';
 }
+
+class MiAccountSessionExpired implements Exception {
+  const MiAccountSessionExpired({this.statusCode});
+
+  final int? statusCode;
+
+  @override
+  String toString() => 'Xiaomi account session expired';
+}

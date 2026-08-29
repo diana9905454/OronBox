@@ -792,11 +792,18 @@ packages:
   oronbox_network:
     dependency: "direct main"
     description:
+ feat/harmonyos-ohos-port
       path: "../OronBox-Package-Network"
       relative: true
     source: path
     version: "0.1.2"
-  package_config:
+      path: "."
+      ref: "v0.1.3"
+      resolved-ref: "81065c47051d14152c875f96b4dbeb11b42fb8f5"
+      url: "https://github.com/zxor-org/OronBox-Package-Network.git"
+    source: git
+    version: "
+    package_config:
     dependency: transitive
     description:
       name: package_config

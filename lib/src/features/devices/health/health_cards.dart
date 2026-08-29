@@ -671,16 +671,17 @@ class HealthSleepTimeline extends StatelessWidget {
       HealthSleepStageKind.light: const Color(0xFF3986F6),
       HealthSleepStageKind.deep: const Color(0xFF2231B6),
     };
-    final hasAwake = summary.stages.any(
-      (stage) => stage.kind == HealthSleepStageKind.awake,
-    );
+    final visibleKinds = summary.stages
+        .map((stage) => stage.kind)
+        .where((kind) => kind != HealthSleepStageKind.unknown)
+        .toSet();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _SleepStageLegend(
           stageLabels: stageLabels,
           colors: colors,
-          hasAwake: hasAwake,
+          visibleKinds: visibleKinds,
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -801,12 +802,12 @@ class _SleepStageLegend extends StatelessWidget {
   const _SleepStageLegend({
     required this.stageLabels,
     required this.colors,
-    required this.hasAwake,
+    required this.visibleKinds,
   });
 
   final Map<HealthSleepStageKind, String> stageLabels;
   final Map<HealthSleepStageKind, Color> colors;
-  final bool hasAwake;
+  final Set<HealthSleepStageKind> visibleKinds;
 
   @override
   Widget build(BuildContext context) {
@@ -815,8 +816,8 @@ class _SleepStageLegend extends StatelessWidget {
       HealthSleepStageKind.deep,
       HealthSleepStageKind.light,
       HealthSleepStageKind.rem,
-      if (hasAwake) HealthSleepStageKind.awake,
-    ];
+      HealthSleepStageKind.awake,
+    ].where(visibleKinds.contains);
     return Wrap(
       spacing: 18,
       runSpacing: 6,

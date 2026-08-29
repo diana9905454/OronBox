@@ -22,6 +22,7 @@ void main() {
           query: 'music',
           type: CommunityResourceType.quickApp,
           hidePaid: true,
+          featured: true,
           selectedDevices: {'o65m'},
         ),
       );
@@ -33,6 +34,7 @@ void main() {
       expect(host.lastCommand?.params['query'], 'music');
       expect(host.lastCommand?.params['devices'], ['o65m']);
       expect(host.lastCommand?.params['hidePaid'], true);
+      expect(host.lastCommand?.params['featured'], true);
     },
   );
 }

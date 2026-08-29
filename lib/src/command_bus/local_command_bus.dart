@@ -136,6 +136,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         );
       }
       if (event is XiaomiGnssAccountRequired) {
+        _markXiaomiAccountSignedOut();
         _events.add(
           CommandEvent(
             XiaomiGnssAccountRequired.commandEvent,
@@ -2248,6 +2249,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         type: type,
         hidePaid: params['hidePaid'] == true,
         hideForcePaid: params['hideForcePaid'] == true,
+        featured: params['featured'] == true,
         selectedDevices: selectedDevices,
         selectedAttributes: selectedAttributes,
       ),
@@ -2555,6 +2557,44 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     _xiaomiAccountSessionLoaded = true;
   }
 
+  void _markXiaomiAccountSignedOut() {
+    final hadSession = _xiaomiAccountToken?.isValid == true;
+    _xiaomiAccountToken = null;
+    _xiaomiAccountSessionLoaded = true;
+    if (!hadSession) return;
+    _events.add(
+      CommandEvent(
+        'account.state',
+        data: {
+          'state': _wireValue([
+            _accountStatus('xiaomi'),
+            _accountStatus('amazfit'),
+            _accountStatus('bandbbs'),
+          ]),
+        },
+      ),
+    );
+  }
+
+  Future<List<MiCloudDevice>> _fetchXiaomiBoundDevices(
+    MiAccountService service,
+    MiAccountToken token,
+  ) async {
+    try {
+      return await service.fetchBoundDevices(token: token);
+    } on MiAccountSessionExpired catch (error) {
+      _log.warning('Xiaomi account session expired while fetching devices');
+      _markXiaomiAccountSignedOut();
+      throw CommandFailure(
+        'xiaomi_account_session_expired',
+        'Xiaomi account session expired; sign in again',
+        details: {
+          if (error.statusCode case final status?) 'statusCode': status,
+        },
+      );
+    }
+  }
+
   Map<String, Object?> _accountStatus(String? provider) {
     return switch (provider) {
       'xiaomi' => {
@@ -2679,7 +2719,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         await service.persistToken(token);
         _xiaomiAccountToken = token;
         _xiaomiAccountSessionLoaded = true;
-        final devices = await service.fetchBoundDevices(token: token);
+        final devices = await _fetchXiaomiBoundDevices(service, token);
         final imported = await _manager.importMiCloudDevices(devices);
         return {
           'provider': 'xiaomi',
@@ -2707,7 +2747,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     await service.persistToken(token);
     _xiaomiAccountToken = token;
     _xiaomiAccountSessionLoaded = true;
-    final devices = await service.fetchBoundDevices(token: token);
+    final devices = await _fetchXiaomiBoundDevices(service, token);
     final imported = await _manager.importMiCloudDevices(devices);
     return {
       'provider': 'xiaomi',

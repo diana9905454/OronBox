@@ -15,7 +15,10 @@ import java.util.Date
 import java.util.Locale
 
 private const val COMPACT_WIDTH_DP = 160
-private const val COMPACT_HEIGHT_DP = 96
+// One launcher row is commonly reported as 100-120dp rather than the nominal
+// 72dp from provider metadata. Keep every one-row placement on the compact
+// layout; the medium layout needs a genuine second row.
+private const val COMPACT_HEIGHT_DP = 160
 private const val STALE_AFTER_MS = 6 * 60 * 60 * 1000L
 
 private data class WidgetColors(
@@ -170,10 +173,21 @@ class DeviceStatusWidgetProvider : OronBoxWidgetProvider() {
         views.setTextViewText(
             R.id.widget_battery_value,
             if (data.battery in 0..100) {
-                "${data.battery}%${if (data.charging) " ⚡" else ""}"
+                "${data.battery}%"
             } else {
                 context.getString(R.string.widget_no_value)
             },
+        )
+        views.setTextViewCompoundDrawables(
+            R.id.widget_battery_value,
+            0,
+            0,
+            if (data.charging) R.drawable.ic_widget_charging else 0,
+            0,
+        )
+        views.setTextColor(
+            R.id.widget_battery_value,
+            if (data.charging) colors.primary else colors.onSurface,
         )
         views.setProgressBar(
             R.id.widget_battery_progress,

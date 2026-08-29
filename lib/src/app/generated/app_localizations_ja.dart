@@ -571,6 +571,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'Xiaomiアカウントの2段階認証が完了していません。再度サインインしてください';
 
   @override
+  String get errorXiaomiAccountSessionExpired =>
+      'Xiaomiアカウントのセッションが期限切れです。再度サインインしてください';
+
+  @override
   String get errorOronBoxSessionExpired =>
       'OronBoxのセッションが期限切れです。BandBBSに再度サインインしてください';
 
@@ -653,7 +657,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resources => 'リソース';
 
   @override
-  String get communitySourceAstroBoxRepo => 'AstroBox Repo';
+  String get communitySourceAstroBoxRepo => 'AstroBox';
 
   @override
   String get communitySourceBandBbs => 'BandBBSコミュニティ';
@@ -3045,6 +3049,162 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get inboxClearFailed => 'メッセージを消去できません。後でもう一度お試しください';
+
+  @override
+  String get messageUnknownTitle => '通知';
+
+  @override
+  String get messageUnknownBody => '通知の詳細データを取得できません。';
+
+  @override
+  String get messageCommentRepliedTitle => 'コメントへの新しい返信';
+
+  @override
+  String get messageCommentHiddenTitle => 'コメントが非表示になりました';
+
+  @override
+  String get messageCommentHiddenAutomatedBody =>
+      'コメントは自動審査を通過しなかったため、現在非表示です。メッセージから異議申し立てができます。';
+
+  @override
+  String get messageCommentHiddenReviewedBody => 'コメントは手動審査後に非表示になりました。';
+
+  @override
+  String get messageReviewApprovedTitle => 'リソースが承認されました';
+
+  @override
+  String get messageReviewRejectedTitle => 'リソースの修正が必要です';
+
+  @override
+  String get messageResourceSuspendedTitle => 'リソースが公開停止になりました';
+
+  @override
+  String get messageResourceFrozenTitle => 'リソースが凍結されました';
+
+  @override
+  String get messageResourceDeletedTitle => 'リソースが削除されました';
+
+  @override
+  String get messageResourceRestoredTitle => 'リソースが復元されました';
+
+  @override
+  String get messageReportUpdatedTitle => '報告の状態が更新されました';
+
+  @override
+  String get messagePluginApprovedTitle => 'プラグインが承認されました';
+
+  @override
+  String get messagePluginRelistedTitle => 'プラグインが再公開されました';
+
+  @override
+  String get messagePluginRejectedTitle => 'プラグインの修正が必要です';
+
+  @override
+  String get messagePluginDelistedTitle => 'プラグインが公開停止になりました';
+
+  @override
+  String get messageCollectionApprovedTitle => 'コレクションが承認されました';
+
+  @override
+  String get messageCollectionRejectedTitle => 'コレクションの修正が必要です';
+
+  @override
+  String get messageCoinAddedTitle => 'コインが追加されました';
+
+  @override
+  String get messageCoinDeductedTitle => 'コインが差し引かれました';
+
+  @override
+  String get messageCoinReversedTitle => 'コイン取引が取り消されました';
+
+  @override
+  String get messageCoinVoteRevokedTitle => 'コインの支援が無効になりました';
+
+  @override
+  String get messageAppealOverturnedTitle => '異議申し立てが認められました';
+
+  @override
+  String get messageAppealUpheldTitle => '元の決定が維持されました';
+
+  @override
+  String get messageAppealDismissedTitle => '異議申し立てが却下されました';
+
+  @override
+  String get messageAccountBannedTitle => 'アカウントが停止されました';
+
+  @override
+  String get messageAccountUnbannedTitle => 'アカウント停止が解除されました';
+
+  @override
+  String get messageCreatorFrozenTitle => 'クリエイター権限が凍結されました';
+
+  @override
+  String get messageCreatorUnfrozenTitle => 'クリエイター権限が復元されました';
+
+  @override
+  String get messageRoleChangedTitle => 'アカウントの役割が変更されました';
+
+  @override
+  String get messageRoleUser => 'ユーザー';
+
+  @override
+  String get messageRoleReviewer => 'レビュアー';
+
+  @override
+  String get messageRoleAdministrator => '管理者';
+
+  @override
+  String get messageApprovedBody => '提出内容は審査に合格しました。';
+
+  @override
+  String get messageNeedsChangesBody => '審査で修正が必要な問題が見つかりました。';
+
+  @override
+  String messageReasonBody(String reason) {
+    return '理由：$reason';
+  }
+
+  @override
+  String messageReviewNoteBody(String note) {
+    return '審査メモ：$note';
+  }
+
+  @override
+  String get messageStatusChangedBody => 'この項目の状態が変更されました。';
+
+  @override
+  String messageReportStatusBody(String status) {
+    return '報告の状態：$status';
+  }
+
+  @override
+  String messageCoinAddedBody(String amount) {
+    return 'アカウントに $amount コインが追加されました。';
+  }
+
+  @override
+  String messageCoinDeductedBody(String amount) {
+    return 'アカウントから $amount コインが差し引かれました。';
+  }
+
+  @override
+  String messageCoinVoteRevokedBody(String amount) {
+    return 'このリソースへの $amount コインの支援が無効になりました。';
+  }
+
+  @override
+  String get messageAppealOverturnedBody => '管理者が元の決定を取り消しました。';
+
+  @override
+  String get messageAppealUpheldBody => '再審査後も元の決定が維持されました。';
+
+  @override
+  String get messageAppealDismissedBody => '異議申し立ては受理されませんでした。';
+
+  @override
+  String messageRoleChangedBody(String role) {
+    return 'アカウントの役割は $role になりました。';
+  }
 
   @override
   String get cleanMode => '機能スイッチ';

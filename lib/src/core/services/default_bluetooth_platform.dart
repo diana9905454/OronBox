@@ -47,12 +47,12 @@ class DefaultBluetoothPlatform implements BluetoothPlatform {
 
   @override
   Future<void> requestPermissions() async {
-    await _ble.requestPermissions();
     try {
       await _rfcomm.requestPermissions();
     } catch (e) {
       _log.fine('SPP permission request ignored: $e');
     }
+    await _ble.requestPermissions();
   }
 
   @override
@@ -137,6 +137,7 @@ class DefaultBluetoothPlatform implements BluetoothPlatform {
     String name,
     BluetoothConnectOptions options,
   ) async {
+    await requestPermissions();
     await stopScan();
     final connectionKey = _connectionKey(address, options.connectType);
     if (options.connectType == ConnectType.spp) {

@@ -53,6 +53,7 @@ class CommandResourceCatalog implements CommunityResourceCatalog {
             },
           'hidePaid': query.hidePaid,
           'hideForcePaid': query.hideForcePaid,
+          'featured': query.featured,
           'devices': query.selectedDevices.toList(growable: false),
           'attributes': query.selectedAttributes.toList(growable: false),
         },
@@ -132,15 +133,9 @@ class CommandResourceCatalog implements CommunityResourceCatalog {
       }
     });
     try {
-      final task =
-          (await _execute(
-                    OronBoxCommand(
-                      method: 'queue.wait',
-                      params: {'id': taskId},
-                    ),
-                  )
-                  as Map)
-              .cast<String, Object?>();
+      final task = (await _execute(
+        OronBoxCommand(method: 'queue.wait', params: {'id': taskId}),
+      ) as Map).cast<String, Object?>();
       final nested = CommandResult.fromJson(
         (task['result'] as Map).cast<String, Object?>(),
       );

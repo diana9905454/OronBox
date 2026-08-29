@@ -187,6 +187,53 @@ void main() {
     expect(labels[1] - labels[0], closeTo(labels[2] - labels[1], 2));
   });
 
+  testWidgets('sleep card omits unavailable REM data', (tester) async {
+    final start = DateTime(2026, 8, 27, 16, 14);
+    final sleep = HealthSleepSummary(
+      startedAt: start,
+      endedAt: start.add(const Duration(hours: 6)),
+      durationSeconds: 6 * 3600,
+      stages: [
+        HealthSleepStageSegment(
+          startedAt: start,
+          endedAt: start.add(const Duration(minutes: 90)),
+          kind: HealthSleepStageKind.deep,
+        ),
+        HealthSleepStageSegment(
+          startedAt: start.add(const Duration(minutes: 90)),
+          endedAt: start.add(const Duration(hours: 6)),
+          kind: HealthSleepStageKind.light,
+        ),
+      ],
+      deepSleepDurationSeconds: 90 * 60,
+      lightSleepDurationSeconds: 270 * 60,
+      remSleepDurationSeconds: 0,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('zh'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: HealthSleepCard(
+            title: '睡眠',
+            icon: Icons.bedtime_outlined,
+            color: Colors.deepPurple,
+            summary: sleep,
+            noDataLabel: '暂无数据',
+            onPressed: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('深睡'), findsOneWidget);
+    expect(find.text('浅睡'), findsOneWidget);
+    expect(find.text('REM'), findsNothing);
+  });
+
   testWidgets('daily and abnormal heart-rate cards fit the phone layout', (
     tester,
   ) async {
@@ -414,5 +461,52 @@ void main() {
       find.text('${previousDay.year}/${previousDay.month}/${previousDay.day}'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('sleep detail omits unavailable REM stage', (tester) async {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day, 1);
+    final sleep = HealthSleepSummary(
+      startedAt: start,
+      endedAt: start.add(const Duration(hours: 6)),
+      durationSeconds: 6 * 3600,
+      deepSleepDurationSeconds: 90 * 60,
+      lightSleepDurationSeconds: 270 * 60,
+      remSleepDurationSeconds: 0,
+      stages: [
+        HealthSleepStageSegment(
+          startedAt: start,
+          endedAt: start.add(const Duration(minutes: 90)),
+          kind: HealthSleepStageKind.deep,
+        ),
+        HealthSleepStageSegment(
+          startedAt: start.add(const Duration(minutes: 90)),
+          endedAt: start.add(const Duration(hours: 6)),
+          kind: HealthSleepStageKind.light,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        child: MaterialApp(
+          locale: const Locale('zh'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: XiaomiHealthDetailPage(
+            args: XiaomiHealthDetailArgs(
+              metric: XiaomiHealthMetric.sleep,
+              data: XiaomiHealthData(sleep: [sleep]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('深睡'), findsNWidgets(2));
+    expect(find.text('浅睡'), findsNWidgets(2));
+    expect(find.text('REM'), findsNothing);
+    expect(find.text('0%'), findsNothing);
   });
 }

@@ -112,17 +112,17 @@
         android:textSize="9sp"
         android:maxLines="1"
         android:ellipsize="end" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_health_heart_rate_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_health_blood_oxygen_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
         android:visibility="gone" />
-    <View
+    <FrameLayout
         android:id="@+id/widget_health_stress_card"
         android:layout_width="1dp"
         android:layout_height="1dp"
