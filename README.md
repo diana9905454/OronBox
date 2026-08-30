@@ -147,6 +147,7 @@ tool/build_web.sh
 | GPT 5.6-Luna | GitHub CI / Release 脚本重写与修复、运动健康实现 |
 | Kimi K3 | OOBE、创作者相关逻辑 |
 | Kimi K2.6 | 部分前端、UI/UX、初版后端 |
+| Deepseek V4 Pro | 协助HarmonyOS适配 |
 
 ## 鸣谢
 
