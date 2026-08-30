@@ -18,7 +18,8 @@
 
 ## 快速入口
 
-- [下载最新版本](https://github.com/zxor-org/OronBox/releases)
+- [下载其他端最新版本](https://github.com/zxor-org/OronBox/releases)
+- [下载鸿蒙端最新版本](https://github.com/diana9905454/OronBox/releases)
 - [用户文档](https://oronbox.zxor.org/user)
 - [开发文档](https://oronbox.zxor.org/developer)
 - [问题反馈](https://github.com/zxor-org/OronBox/issues)
