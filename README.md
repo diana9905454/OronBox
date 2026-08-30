@@ -38,7 +38,7 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 | macOS | ✅ 已支持 | macOS 12+ |
 | Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 |
 | iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ |
-| harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 |
+| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 |
 
 
 ## 设备支持
