@@ -75,9 +75,19 @@ final class Wasm3Bindings {
         'wb_wasm_compile',
       );
 
-  late final int Function(Pointer<Void>) instantiate = _lib
+  late final int Function(Pointer<Void>, Pointer<Void>) instantiate = _lib
+      .lookupFunction<
+        Int32 Function(Pointer<Void>, Pointer<Void>),
+        int Function(Pointer<Void>, Pointer<Void>)>('wb_wasm_instantiate');
+
+  late final int Function(Pointer<Void>, Pointer<Void>) loadModule = _lib
+      .lookupFunction<
+        Int32 Function(Pointer<Void>, Pointer<Void>),
+        int Function(Pointer<Void>, Pointer<Void>)>('wb_wasm_load_module');
+
+  late final int Function(Pointer<Void>) runStart = _lib
       .lookupFunction<Int32 Function(Pointer<Void>), int Function(Pointer<Void>)>(
-        'wb_wasm_instantiate',
+        'wb_wasm_run_start',
       );
 
   late final void Function(Pointer<Void>) freeModule = _lib

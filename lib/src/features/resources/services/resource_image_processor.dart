@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
+import 'package:oronbox/src/core/wasm/ohos_webp_encoder.dart';
 import 'package:oronbox/src/core/wasm/wasm_webp_encoder.dart';
 
 /// The canonical dimensions used by creator media.
@@ -26,6 +27,18 @@ Future<ProcessedResourceImage?> processResourceImage(
   int maxDimension = creatorMediaMaxDimension,
   double quality = 75,
 }) async {
+  // 鸿蒙引擎不支持 Isolate.spawn（spawn 出的 isolate 初始化时解析
+  // package_config.json 失败，报 "resource image worker failed to start"），
+  // 故与 web 一样走同步编码路径：短暂阻塞 UI，但功能可用。
+  // 鸿蒙的 WebP 编码改用原生 ImagePacker（wasm3 无法加载 zig 编译的
+  // webp_encoder.wasm），其余平台仍走 wasm3 的 WasmWebpEncoder。
+  if (defaultTargetPlatform == TargetPlatform.ohos) {
+    return _encodeResourceImageOhos(
+      raw,
+      maxDimension: maxDimension,
+      quality: quality,
+    );
+  }
   if (kIsWeb) {
     final encoder = await WasmWebpEncoder.instance();
     return _encodeResourceImage(
@@ -42,15 +55,43 @@ Future<ProcessedResourceImage?> processResourceImage(
   );
 }
 
-/// Performs all CPU-heavy image work on the caller's isolate.
-///
-/// This is shared by the worker and the web fallback so both paths have the
-/// same frame selection, source limits, dimensions, and encoding behavior.
-ProcessedResourceImage? _encodeResourceImage(
+/// OpenHarmony path: decode/bounds/resize in Dart, encode WebP natively via
+/// the `oronbox/image_encode` MethodChannel (native ImagePacker).
+Future<ProcessedResourceImage?> _encodeResourceImageOhos(
   Uint8List raw, {
   required int maxDimension,
   required double quality,
-  required WasmWebpEncoder encoder,
+}) async {
+  final prepared = _prepareResourceImageRgba(raw, maxDimension: maxDimension);
+  if (prepared == null) return null;
+  final webp = await OhosWebpEncoder.instance.encode(
+    prepared.rgba,
+    prepared.width,
+    prepared.height,
+    quality: quality,
+  );
+  if (webp == null || webp.isEmpty) return null;
+  return ProcessedResourceImage(
+    bytes: webp,
+    width: prepared.width,
+    height: prepared.height,
+  );
+}
+
+/// The result of decoding, bounding, and materializing an image to RGBA.
+final class _PreparedResourceImage {
+  const _PreparedResourceImage(this.rgba, this.width, this.height);
+
+  final Uint8List rgba;
+  final int width;
+  final int height;
+}
+
+/// Decodes, bounds (to [maxDimension]), and materializes [raw] as non-palette
+/// 8-bit RGBA, shared by every encoding backend.
+_PreparedResourceImage? _prepareResourceImageRgba(
+  Uint8List raw, {
+  required int maxDimension,
 }) {
   if (maxDimension <= 0) {
     throw ArgumentError.value(maxDimension, 'maxDimension');
@@ -93,17 +134,32 @@ ProcessedResourceImage? _encodeResourceImage(
   // unchanged. Optimizers such as TinyPNG commonly produce this indexed PNG
   // representation.
   final rgba = materializeResourceImageRgba(processed);
+  return _PreparedResourceImage(rgba, processed.width, processed.height);
+}
+
+/// Performs all CPU-heavy image work on the caller's isolate.
+///
+/// This is shared by the worker and the web fallback so both paths have the
+/// same frame selection, source limits, dimensions, and encoding behavior.
+ProcessedResourceImage? _encodeResourceImage(
+  Uint8List raw, {
+  required int maxDimension,
+  required double quality,
+  required WasmWebpEncoder encoder,
+}) {
+  final prepared = _prepareResourceImageRgba(raw, maxDimension: maxDimension);
+  if (prepared == null) return null;
   final webp = encoder.encode(
-    rgba,
-    processed.width,
-    processed.height,
+    prepared.rgba,
+    prepared.width,
+    prepared.height,
     quality: quality,
   );
   if (webp == null || webp.isEmpty) return null;
   return ProcessedResourceImage(
     bytes: webp,
-    width: processed.width,
-    height: processed.height,
+    width: prepared.width,
+    height: prepared.height,
   );
 }
 

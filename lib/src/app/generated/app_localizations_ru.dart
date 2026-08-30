@@ -2296,6 +2296,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsTeamRoleZeppOS => 'Разработка ZeppOS';
 
   @override
+  String get settingsTeamRoleHarmony => 'Адаптация Harmony';
+
+  @override
   String get settingsAboutSoftware => 'О программе';
 
   @override
@@ -2311,6 +2314,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsAboutSoftwareTeam => 'Команда разработки';
+
+  @override
+  String get settingsSpecialThanks => 'Особая благодарность';
 
   @override
   String get settingsAboutSoftwareBuildInfo => 'Сведения о сборке';

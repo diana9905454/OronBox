@@ -8,6 +8,7 @@
 #include "wasm3_bridge.h"
 #include "wasm3/wasm3.h"
 #include "wasm3/m3_env.h"
+#include "wasm3/m3_core.h"
 
 #include <string.h>
 
@@ -60,16 +61,33 @@ WbWasmModule wb_wasm_compile(WbWasmRuntime rt,
   return (WbWasmModule)module;
 }
 
-int wb_wasm_instantiate(WbWasmModule module) {
-  if (!module) return -1;
-  IM3Module m = (IM3Module)module;
-  IM3Runtime rt = m3_GetModuleRuntime(m);
-  if (!rt) return -1;
-  M3Result r = m3_LoadModule(rt, m);
-  if (r) return -2;
-  /* Optional: run start function (matches wasm semantics). */
-  m3_RunStart(m);
+int wb_wasm_load_module(WbWasmRuntime rt, WbWasmModule module) {
+  if (!rt || !module) return -1;
+  M3Result r = m3_LoadModule((IM3Runtime)rt, (IM3Module)module);
+  if (r) {
+    /* m3_LoadModule's `_throw` path does not populate runtime->error, so
+     * surface the M3Result string through m3Error so wb_wasm_get_error can
+     * report the real cause instead of "unknown error". */
+    m3Error(r, (IM3Runtime)rt, (IM3Module)module, NULL, __FILE__, __LINE__,
+            "%s", r);
+    return -2;
+  }
   return 0;
+}
+
+int wb_wasm_run_start(WbWasmModule module) {
+  if (!module) return -1;
+  m3_RunStart((IM3Module)module);
+  return 0;
+}
+
+int wb_wasm_instantiate(WbWasmRuntime rt, WbWasmModule module) {
+  /* Back-compat: load then run start. New callers should link imports
+   * between wb_wasm_load_module and wb_wasm_run_start (wasm3 requires the
+   * module to be loaded into a runtime before imports can be linked). */
+  int rc = wb_wasm_load_module(rt, module);
+  if (rc) return rc;
+  return wb_wasm_run_start(module);
 }
 
 void wb_wasm_free_module(WbWasmModule module) {
@@ -100,6 +118,11 @@ int wb_wasm_link_function(WbWasmModule module,
                                     signature,
                                     raw,
                                     userdata);
+  if (r) {
+    IM3Module m = (IM3Module)module;
+    m3Error(r, m->runtime, m, NULL,
+            __FILE__, __LINE__, "link %s.%s: %s", module_name, function_name, r);
+  }
   return r ? 1 : 0;
 }
 

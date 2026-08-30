@@ -4141,6 +4141,12 @@ abstract class AppLocalizations {
   /// **'ZeppOS implementation'**
   String get settingsTeamRoleZeppOS;
 
+  /// No description provided for @settingsTeamRoleHarmony.
+  ///
+  /// In en, this message translates to:
+  /// **'HarmonyOS adaptation'**
+  String get settingsTeamRoleHarmony;
+
   /// No description provided for @settingsAboutSoftware.
   ///
   /// In en, this message translates to:
@@ -4170,6 +4176,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Development team'**
   String get settingsAboutSoftwareTeam;
+
+  /// No description provided for @settingsSpecialThanks.
+  ///
+  /// In en, this message translates to:
+  /// **'Special thanks'**
+  String get settingsSpecialThanks;
 
   /// No description provided for @settingsAboutSoftwareBuildInfo.
   ///

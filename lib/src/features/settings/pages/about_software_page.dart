@@ -71,6 +71,17 @@ class AboutSoftwarePage extends ConsumerWidget {
                 ),
               ),
               _Section(
+                icon: Icons.favorite_border,
+                title: l10n.settingsSpecialThanks,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final member in AppConstants.specialThanks)
+                      _TeamMemberTile(member: member),
+                  ],
+                ),
+              ),
+              _Section(
                 icon: Icons.gavel_outlined,
                 title: l10n.legalAndPrivacy,
                 child: Wrap(
@@ -186,6 +197,7 @@ String _roleLabel(AppLocalizations l10n, TeamRole role) {
   return switch (role) {
     TeamRole.mainDeveloperDesigner => l10n.settingsTeamRoleMain,
     TeamRole.zeppOSImplementation => l10n.settingsTeamRoleZeppOS,
+    TeamRole.harmonyAdaptation => l10n.settingsTeamRoleHarmony,
   };
 }
 

@@ -7,6 +7,8 @@ import { OronBoxUrlLauncherStub } from '../plugins/UrlLauncherStub';
 import { OronBoxAppLinksBridge } from '../plugins/AppLinksBridge';
 import { ClassicSppBridge } from '../plugins/ClassicSppBridge';
 import { FilePickerBridge } from '../plugins/FilePickerBridge';
+import { MiAccountTwoFactorBridge } from '../plugins/MiAccountTwoFactorBridge';
+import { ImageEncodeBridge } from '../plugins/ImageEncodeBridge';
 import Want from '@ohos.app.ability.Want';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
@@ -32,6 +34,10 @@ export default class EntryAbility extends FlutterAbility {
     new ClassicSppBridge(this.context).register(flutterEngine)
     // 注册 file_picker 桥接（选图/选文件/保存，鸿蒙用 photoAccessHelper/picker）。
     new FilePickerBridge(this.context).register(flutterEngine)
+    // 注册小米账号 2FA 桥接（ArkWeb WebView 完成短信/邮箱二次验证）。
+    new MiAccountTwoFactorBridge(this.context).register(flutterEngine)
+    // 注册图片编码桥接（WebP 编码用鸿蒙原生 ImagePacker，替代 wasm3 跑 libwebp）。
+    new ImageEncodeBridge(this.context).register(flutterEngine)
   }
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {

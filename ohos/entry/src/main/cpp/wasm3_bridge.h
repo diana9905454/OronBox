@@ -76,15 +76,26 @@ int               wb_wasm_get_error(WbWasmRuntime rt, char* buf, int buf_len);
 
 /* Parses a wasm binary (does NOT load/instantiate it). Returns a module
  * handle or NULL on failure. The module must be loaded via
- * wb_wasm_instantiate after all imports are linked. */
+ * wb_wasm_load_module before imports are linked and the start section runs. */
 WbWasmModule wb_wasm_compile(WbWasmRuntime rt,
                              const uint8_t* wasm_bytes,
                              uint32_t num_bytes);
 
-/* Loads + instantiates a parsed module into its runtime, running the start
- * section if present. Must be called AFTER all imports are linked.
+/* Loads a parsed module into a runtime (does NOT run the start section).
+ * must be called BEFORE linking imports: wasm3 requires the module to be
+ * loaded into a runtime before m3_LinkRawFunctionEx can find its imports.
  * Returns 0 on success, non-zero on failure. */
-int wb_wasm_instantiate(WbWasmModule module);
+int wb_wasm_load_module(WbWasmRuntime rt, WbWasmModule module);
+
+/* Runs the module's start section (if present). Must be called AFTER all
+ * imports are linked. Returns 0 on success, non-zero on failure. */
+int wb_wasm_run_start(WbWasmModule module);
+
+/* Loads + instantiates a parsed module into its runtime, running the start
+ * section if present. Back-compat convenience; modules with imports must use
+ * wb_wasm_load_module -> link imports -> wb_wasm_run_start instead.
+ * Returns 0 on success, non-zero on failure. */
+int wb_wasm_instantiate(WbWasmRuntime rt, WbWasmModule module);
 
 void         wb_wasm_free_module(WbWasmModule module);
 

@@ -2170,6 +2170,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsTeamRoleZeppOS => 'ZeppOS 实现';
 
   @override
+  String get settingsTeamRoleHarmony => 'HarmonyOS 适配';
+
+  @override
   String get settingsAboutSoftware => '关于软件';
 
   @override
@@ -2184,6 +2187,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsAboutSoftwareTeam => '开发团队';
+
+  @override
+  String get settingsSpecialThanks => '特别感谢';
 
   @override
   String get settingsAboutSoftwareBuildInfo => '构建信息';

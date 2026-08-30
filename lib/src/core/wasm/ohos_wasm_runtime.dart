@@ -223,17 +223,26 @@ final class _OhosWasmInstanceBuilder implements WasmInstanceBuilder {
   WasmInstance buildSync() {
     final b = _module.bindings;
 
-    // 1. Link all host function imports against the (parsed, not-yet-loaded)
-    //    module. wasm3 links imports before instantiation.
+    // 1. Load the (parsed) module into its runtime. wasm3 requires the module
+    //    to be loaded before m3_LinkRawFunctionEx can locate its imports, so
+    //    this must precede import linking.
+    final loadRc = b.loadModule(_module.runtimeHandle, _module.moduleHandle);
+    if (loadRc != 0) {
+      throw StateError(
+        'wasm3: load module failed: ${_error(b, _module.runtimeHandle)}',
+      );
+    }
+
+    // 2. Link all host function imports against the loaded module.
     for (final imp in _imports) {
       _linkImport(b, _module, imp);
     }
 
-    // 2. Instantiate (load) the module now that all imports are linked.
-    final rc = b.instantiate(_module.moduleHandle);
-    if (rc != 0) {
+    // 3. Run the start section now that all imports are linked.
+    final startRc = b.runStart(_module.moduleHandle);
+    if (startRc != 0) {
       throw StateError(
-        'wasm3: instantiate failed: ${_error(b, _module.runtimeHandle)}',
+        'wasm3: run start failed: ${_error(b, _module.runtimeHandle)}',
       );
     }
 

@@ -301,9 +301,13 @@ class MiAccountService {
     cookieJar.mergeSetCookie(step2.headers);
 
     final step2Body = _decodeJsonBody(step2.data);
-    if ((step2Body['_sign']?.toString() ?? '').isNotEmpty) {
-      throw StateError('Xiaomi account login returned another credential step');
-    }
+    // A non-empty `_sign` here means Xiaomi wants an extra credential step
+    // (two-factor verification). `_finishLogin` already inspects
+    // `notificationUrl` and throws `MiAccountTwoFactorRequired` so the host
+    // command layer can surface `two_factor_required` and open the 2FA flow.
+    // Throwing a plain StateError here instead (as this used to do) would
+    // escape the host's `MiAccountTwoFactorRequired` catch and surface as a
+    // generic `internal` failure.
     return _finishLogin(
       step2Body,
       userAgent: userAgent,

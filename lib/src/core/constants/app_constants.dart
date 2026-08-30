@@ -12,7 +12,11 @@ class TeamMember {
   final String githubUrl;
 }
 
-enum TeamRole { mainDeveloperDesigner, zeppOSImplementation }
+enum TeamRole {
+  mainDeveloperDesigner,
+  zeppOSImplementation,
+  harmonyAdaptation,
+}
 
 abstract final class AppConstants {
   static const String githubRepoUrl = 'https://github.com/zxor-org/OronBox';
@@ -34,6 +38,16 @@ abstract final class AppConstants {
       role: TeamRole.zeppOSImplementation,
       avatarAsset: 'assets/images/team/zxxhcj.jpg',
       githubUrl: 'https://github.com/zxxhcj',
+    ),
+  ];
+
+  // 特别感谢：非项目核心成员，但对项目有重要贡献（如 HarmonyOS 移植）。
+  static const List<TeamMember> specialThanks = [
+    TeamMember(
+      name: 'Diana',
+      role: TeamRole.harmonyAdaptation,
+      avatarAsset: 'assets/images/team/diana.jpg',
+      githubUrl: 'https://github.com/diana9905454',
     ),
   ];
 }

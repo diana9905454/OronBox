@@ -81,6 +81,12 @@ dependencies:
   # Keep the prebuilt-library plugin path. wasm_run 0.2 currently emits
   # dynamic Android libraries with a static `.a` filename under Flutter 3.47.
   wasm_run_flutter: ^0.1.0
+  # Direct dep for the OpenHarmony wasm3 backend (ohos_wasm_runtime.dart
+  # imports the wasm_run interface types it implements).
+  wasm_run: ^0.1.0
+  # Direct dep for the OpenHarmony wasm3 backend (ohos_wasm3_ffi.dart uses
+  # package:ffi's malloc/Utf8 helpers alongside dart:ffi).
+  ffi: ^2.1.4
   quickjs_engine: ^0.1.5
   oronbox_network:
     git:

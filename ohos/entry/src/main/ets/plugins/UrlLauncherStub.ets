@@ -87,14 +87,16 @@ export class OronBoxUrlLauncherStub {
     const want: Want = {
       action: 'ohos.want.action.viewData',
       uri: url,
+      entities: ['entity.system.browsable'],
     };
     try {
-      this.context.startAbility(want, () => {
-        // 启动结果通过 callback 通知。这里直接返回 true 表示调用已下发。
-        // 即使系统未找到处理器，存根也已尽力，url_launcher 自身在无处理器时
-        // 也会 fallback 到默认浏览器，无需返回 false。
+      this.context.startAbility(want).then(() => {
+        result.success(true);
+      }).catch((e: Error) => {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(TAG + ': startAbility failed: ' + msg);
+        result.success(false);
       });
-      result.success(true);
     } catch (e) {
       // 启动失败（缺权限、没找到应用等），返回 false 让 Dart 端走 fallback 路径。
       const msg = e instanceof Error ? e.message : String(e);
