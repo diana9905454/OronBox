@@ -30,16 +30,15 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 
 > 我们首先希望您的设备支持蓝牙，如果你正在使用 Ubuntu，我们希望它的版本最好是 24.04+
 
-| 平台 | 状态 | 说明 |
-|------|------|------|
-| Android | ✅ 已支持 | Android 7+ |
-| Linux | ✅ 已支持 | x86_64 / aarch64 |
-| Web | ✅ 已支持 | 浏览器需要支持 Web Serial / Bluetooth |
-| macOS | ✅ 已支持 | macOS 12+ |
-| Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 |
-| iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ |
-| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 |
-
+| 平台 | 状态 | 说明 | 下载 |
+|------|------|------|------|
+| Android | ✅ 已支持 | Android 7+ | [ 下载](https://github.com/zxor-org/OronBox/releases) |
+| Linux | ✅ 已支持 | x86_64 / aarch64 | [下载](https://github.com/zxor-org/OronBox/releases) |
+| Web | ✅ 已支持 | 浏览器需要支持 Web Serial / Bluetooth | [下载](https://github.com/zxor-org/OronBox/releases) |
+| macOS | ✅ 已支持 | macOS 12+ | [下载](https://github.com/zxor-org/OronBox/releases) |
+| Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 | [下载](https://github.com/zxor-org/OronBox/releases) |
+| iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ | 暂无 |
+| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 | [下载](https://github.com/diana9905454/OronBox/releases/tag/v1%2C1%2C2-ohos) |
 
 ## 设备支持
 
