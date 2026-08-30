@@ -4,7 +4,8 @@
 
 <h1 align="center">OronBox</h1>
 
-<p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建</p>
+<p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建
+此页为为鸿蒙版OronBox的fork</p>
 
 <p align="center">
   <a href="https://github.com/zxor-org/OronBox/releases"><img src="https://img.shields.io/github/v/release/zxor-org/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
@@ -38,7 +39,7 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 | macOS | ✅ 已支持 | macOS 12+ | [下载](https://github.com/zxor-org/OronBox/releases) |
 | Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 | [下载](https://github.com/zxor-org/OronBox/releases) |
 | iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ | 暂无 |
-| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 | [下载](https://github.com/diana9905454/OronBox/releases/tag/v1%2C1%2C2-ohos) |
+| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 | [下载](https://github.com/diana9905454/OronBox/releases) |
 
 ## 设备支持
 
