@@ -259,7 +259,7 @@ class AppBottomNavigationBar extends ConsumerWidget {
         onDestinationSelected: (index) {
           final branch = branchIndices[index];
           if (branch != activeBranch) {
-            StatefulNavigationShell.of(context).goBranch(branch);
+            onBranchSelected(branch);
           }
         },
       );
