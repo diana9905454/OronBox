@@ -4,7 +4,8 @@
 
 <h1 align="center">OronBox</h1>
 
-<p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建</p>
+<p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建
+此页为为鸿蒙版OronBox的fork</p>
 
 <p align="center">
   <a href="https://github.com/zxor-org/OronBox/releases"><img src="https://img.shields.io/github/v/release/zxor-org/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
@@ -17,10 +18,12 @@
 
 ## 快速入口
 
-- [下载最新版本](https://github.com/zxor-org/OronBox/releases)
+- [下载其他端最新版本](https://github.com/zxor-org/OronBox/releases)
+- [下载鸿蒙端最新版本](https://github.com/diana9905454/OronBox/releases)
 - [用户文档](https://oronbox.zxor.org/user)
 - [开发文档](https://oronbox.zxor.org/developer)
 - [问题反馈](https://github.com/zxor-org/OronBox/issues)
+- [鸿蒙项目开源代码地址](https://github.com/diana9905454/OronBox/tree/feat/harmonyos-ohos-port)
 
 ## OronBox 是什么？
 
@@ -30,15 +33,15 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 
 > 我们首先希望您的设备支持蓝牙，如果你正在使用 Ubuntu，我们希望它的版本最好是 24.04+
 
-| 平台 | 状态 | 说明 |
-|------|------|------|
-| Android | ✅ 已支持 | Android 7+ |
-| Linux | ✅ 已支持 | x86_64 / aarch64 |
-| Web | ✅ 已支持 | 浏览器需要支持 Web Serial / Bluetooth |
-| macOS | ✅ 已支持 | macOS 12+ |
-| Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 |
-| iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ |
-
+| 平台 | 状态 | 说明 | 下载 |
+|------|------|------|------|
+| Android | ✅ 已支持 | Android 7+ | [ 下载](https://github.com/zxor-org/OronBox/releases) |
+| Linux | ✅ 已支持 | x86_64 / aarch64 | [下载](https://github.com/zxor-org/OronBox/releases) |
+| Web | ✅ 已支持 | 浏览器需要支持 Web Serial / Bluetooth | [下载](https://github.com/zxor-org/OronBox/releases) |
+| macOS | ✅ 已支持 | macOS 12+ | [下载](https://github.com/zxor-org/OronBox/releases) |
+| Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 | [下载](https://github.com/zxor-org/OronBox/releases) |
+| iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ | 暂无 |
+| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 | [下载](https://github.com/diana9905454/OronBox/releases) |
 
 ## 设备支持
 
@@ -147,6 +150,7 @@ tool/build_web.sh
 | GPT 5.6-Luna | GitHub CI / Release 脚本重写与修复、运动健康实现 |
 | Kimi K3 | OOBE、创作者相关逻辑 |
 | Kimi K2.6 | 部分前端、UI/UX、初版后端 |
+| Deepseek V4 Pro | 协助HarmonyOS适配 |
 
 ## 鸣谢
 
