@@ -23,6 +23,7 @@
 - [用户文档](https://oronbox.zxor.org/user)
 - [开发文档](https://oronbox.zxor.org/developer)
 - [问题反馈](https://github.com/zxor-org/OronBox/issues)
+- [鸿蒙项目开源代码地址](https://github.com/diana9905454/OronBox/tree/feat/harmonyos-ohos-port)
 
 ## OronBox 是什么？
 
