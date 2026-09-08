@@ -87,7 +87,11 @@ dependencies:
   # Direct dep for the OpenHarmony wasm3 backend (ohos_wasm3_ffi.dart uses
   # package:ffi's malloc/Utf8 helpers alongside dart:ffi).
   ffi: ^2.1.4
-  quickjs_engine: ^0.1.5
+  # Local fork: adds an OpenHarmony branch to the dart:ffi loader so the
+  # libquickjs_c_bridge_plugin.so we build in ohos/entry/src/main/cpp is
+  # loaded via DynamicLibrary.open (upstream falls through to process()).
+  quickjs_engine:
+    path: packages/quickjs_engine
   oronbox_network:
     git:
       url: https://github.com/zxor-org/OronBox-Package-Network.git

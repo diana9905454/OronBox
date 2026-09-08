@@ -6,7 +6,7 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-project(wasm3bridge C)
+project(wasm3bridge C CXX)
 
 # ---------------------------------------------------------------------------
 # wasm3 interpreter core sources (pure C99, no platform deps beyond libc)
@@ -61,3 +61,61 @@ endif()
 # copy is a fallback for manual builds.
 # ---------------------------------------------------------------------------
 install(TARGETS wasm3 LIBRARY DESTINATION libs/${OHOS_ARCH})
+
+# ---------------------------------------------------------------------------
+# QuickJS-NG JS engine (pure C99) + our C ABI bridge, for in-app JS plugin
+# support. Produces libquickjs_c_bridge_plugin.so that the Dart side (a local
+# fork of quickjs_engine) loads via dart:ffi on OpenHarmony. The source list
+# mirrors the upstream package's native/CMakeLists.txt (quickjs.c +
+# libregexp.c + libunicode.c + dtoa.c + the bridge cpp). quickjs-libc.c is
+# intentionally NOT compiled (it drags in POSIX fork/exec deps unavailable in
+# the restricted OpenHarmony libc).
+# ---------------------------------------------------------------------------
+set(QUICKJS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/quickjs)
+
+set(QUICKJS_SOURCES
+    ${QUICKJS_DIR}/quickjs.c
+    ${QUICKJS_DIR}/libregexp.c
+    ${QUICKJS_DIR}/libunicode.c
+    ${QUICKJS_DIR}/dtoa.c
+)
+
+add_library(quickjs_c_bridge_plugin SHARED
+    quickjs_bridge.cpp
+    ${QUICKJS_SOURCES}
+)
+
+target_include_directories(quickjs_c_bridge_plugin PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${QUICKJS_DIR}
+)
+
+# Same version string the upstream package defines for QuickJS-NG 0.14.0.
+# OpenHarmony ships musl libc, which gates clock_gettime/CLOCK_MONOTONIC
+# behind _GNU_SOURCE; alloca needs an explicit <alloca.h> include outside of
+# __sun (quickjs.c relies on it). Verified against the NDK clang directly.
+target_compile_definitions(quickjs_c_bridge_plugin PRIVATE
+    CONFIG_VERSION="ng-0.14.0"
+    _GNU_SOURCE
+)
+
+set_target_properties(quickjs_c_bridge_plugin PROPERTIES
+    C_STANDARD 11
+    C_STANDARD_REQUIRED ON
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON
+    POSITION_INDEPENDENT_CODE ON
+    OUTPUT_NAME quickjs_c_bridge_plugin
+)
+
+# QuickJS uses libm (pow/floor/etc.) and, on arm64 clang, C11 atomics via the
+# bundled quickjs-c-atomics.h. Keep aliasing strictness relaxed as upstream does.
+target_link_libraries(quickjs_c_bridge_plugin PRIVATE m)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR NOT CMAKE_BUILD_TYPE)
+    target_compile_options(quickjs_c_bridge_plugin PRIVATE -O2 -fno-strict-aliasing -include alloca.h)
+else()
+    target_compile_options(quickjs_c_bridge_plugin PRIVATE -O0 -g -include alloca.h)
+endif()
+
+install(TARGETS quickjs_c_bridge_plugin LIBRARY DESTINATION libs/${OHOS_ARCH})
