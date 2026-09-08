@@ -248,7 +248,7 @@ class AppBottomNavigationBar extends ConsumerWidget {
     // indicator from the previous branch instead of appearing pre-selected.
     final activeBranch = ShellBranchIndex.maybeOf(context) ?? currentBranch;
     final selectedIndex = branchIndices.indexOf(activeBranch);
-    // 鸿蒙端底部导航栏加沉浸光感（毛玻璃 + 顶部高光渐变）。
+    // 鸿蒙端底部导航栏用沉浸式毛玻璃背景。
     if (defaultTargetPlatform == TargetPlatform.ohos) {
       return _OhosImmersiveNavigationBar(
         destinations: [
@@ -280,8 +280,7 @@ class AppBottomNavigationBar extends ConsumerWidget {
   }
 }
 
-/// 鸿蒙沉浸式底部导航栏：半透明毛玻璃背景 + 顶部柔和高光，营造 HarmonyOS
-/// 标志性的「光感」质感。
+/// 鸿蒙沉浸式底部导航栏：半透明毛玻璃背景，营造 HarmonyOS 的光感质感。
 class _OhosImmersiveNavigationBar extends StatelessWidget {
   const _OhosImmersiveNavigationBar({
     required this.destinations,
@@ -309,37 +308,13 @@ class _OhosImmersiveNavigationBar extends StatelessWidget {
               ),
             ),
           ),
-          child: Stack(
-            children: [
-              // 顶部高光渐变：HarmonyOS 导航栏顶部的柔和光晕。
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 1.5,
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          scheme.primary.withValues(alpha: 0.0),
-                          scheme.primary.withValues(alpha: 0.35),
-                          scheme.primary.withValues(alpha: 0.0),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              NavigationBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                height: 68,
-                destinations: destinations,
-                selectedIndex: selectedIndex,
-                onDestinationSelected: onDestinationSelected,
-              ),
-            ],
+          child: NavigationBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            height: 68,
+            destinations: destinations,
+            selectedIndex: selectedIndex,
+            onDestinationSelected: onDestinationSelected,
           ),
         ),
       ),
