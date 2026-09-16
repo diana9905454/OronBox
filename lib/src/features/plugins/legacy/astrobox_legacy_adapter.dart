@@ -2,6 +2,11 @@
 ///
 /// The adapter translates the legacy guest API into the canonical OronBox
 /// Host API. Native code must not implement AstroBox-specific method names.
+///
+/// This bootstrap is always evaluated AFTER [oronBoxPluginBootstrap] (the
+/// plugin manager concatenates both) so it can reuse `__zbHost` for host
+/// calls and override the five `__zb*` lifecycle entry points with the
+/// legacy semantics below.
 const astroBoxLegacyBootstrap = r'''
 (() => {
   const callbacks = Object.create(null);
@@ -13,7 +18,12 @@ const astroBoxLegacyBootstrap = r'''
   let nextTimer = 0;
 
   function host(method, args = []) {
-    return sendMessage('OronBoxHost', JSON.stringify({method, args}));
+    if (typeof __zbHost !== 'function') {
+      throw new Error('AstroBox legacy adapter requires the OronBox plugin bootstrap');
+    }
+    // The host settles every request with a JSON-encoded payload; legacy
+    // plugins expect decoded values (objects/lists), so decode transparently.
+    return Promise.resolve(__zbHost(method, args)).then(parseLegacyJson);
   }
 
   function resolveVirtualFile(path) {

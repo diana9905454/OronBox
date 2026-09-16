@@ -51,6 +51,10 @@ const oronBoxPluginBootstrap = r'''
     });
   }
 
+  // Exposed for the AstroBox legacy adapter so every host call shares the
+  // same request-id + settlement pipeline as native plugins.
+  globalThis.__zbHost = host;
+
   globalThis.__zbSettleHostRequest = (requestId, succeeded, payload) => {
     const request = hostRequests[requestId];
     if (!request) return;
