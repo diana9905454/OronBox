@@ -2,8 +2,11 @@
 // they are deprecated in the current Material color API.
 // ignore_for_file: deprecated_member_use
 
+// material_ui is now package:flutter/material.dart (Dart 3.11.5 / Flutter 3.41.9
+// ships with the in-tree Material library; the externally extracted material_ui
+// package only became available for Dart 3.12+).
 import 'package:flutter/material.dart' as flutter;
-import 'package:material_ui/material_ui.dart' as material_ui;
+import 'package:flutter/material.dart' as material_ui;
 
 /// Converts the `material_ui` color scheme returned by dynamic_color 2.x to
 /// Flutter's Material color scheme used by the rest of OronBox.

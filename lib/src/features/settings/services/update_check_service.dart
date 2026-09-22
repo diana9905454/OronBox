@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
@@ -44,6 +45,22 @@ int compareVersions(String a, String b) {
 /// Strips a leading 'v' and any '+build' suffix so releases compare cleanly.
 String normalizeVersion(String version) =>
     version.replaceFirst(RegExp(r'^v'), '').split('+').first;
+
+/// 平台条件包裹：仅在非鸿蒙端执行启动时更新检查 + 弹窗。
+/// 鸿蒙端不应用内检查更新（依赖应用市场更新渠道），直接透传 child。
+class ConditionalUpdateCheckHandler extends StatelessWidget {
+  const ConditionalUpdateCheckHandler({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      return child;
+    }
+    return UpdateCheckHandler(child: child);
+  }
+}
 
 /// Startup update flow: cleans stale APKs, then (when enabled and first-run
 /// onboarding is done) fetches the latest release and shows a changelog

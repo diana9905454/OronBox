@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -10,7 +11,8 @@ MiAccountTwoFactorResolver createPlatformMiAccountTwoFactorResolver() {
   if (Platform.isAndroid ||
       Platform.isLinux ||
       Platform.isMacOS ||
-      Platform.isWindows) {
+      Platform.isWindows ||
+      defaultTargetPlatform == TargetPlatform.ohos) {
     return const NativeMiAccountTwoFactorResolver();
   }
   return const UnsupportedIoMiAccountTwoFactorResolver();

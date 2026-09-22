@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -2184,6 +2183,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsTeamRoleZeppOS => 'ZeppOS実装';
 
   @override
+  String get settingsTeamRoleHarmony => 'Harmony 適応';
+
+  @override
   String get settingsAboutSoftware => 'ソフトウェア情報';
 
   @override
@@ -2198,6 +2200,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsAboutSoftwareTeam => '開発チーム';
+
+  @override
+  String get settingsSpecialThanks => '特別感謝';
 
   @override
   String get settingsAboutSoftwareBuildInfo => 'ビルド情報';

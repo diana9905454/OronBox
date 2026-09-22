@@ -1,5 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:wasm_run_flutter/wasm_run_flutter.dart';
+
+import 'ohos_wasm_runtime.dart'
+    if (dart.library.html) 'ohos_wasm_runtime_stub.dart' as ohos_backend;
 
 typedef WasmInstanceConfigurator = void Function(WasmInstanceBuilder builder);
 
@@ -13,13 +17,25 @@ final class WasmRuntime {
 
   WasmScope openScope(String owner) => WasmScope._(this, owner);
 
+  /// Compiles a wasm binary on the correct backend.
+  ///
+  /// OpenHarmony uses the wasm3 interpreter backend (libwasm3.so via dart:ffi)
+  /// because `wasm_run` ships no native dynamic library for it; every other
+  /// platform uses the bundled `wasm_run` native runtime.
+  Future<WasmModule> _compileModule(Uint8List bytes) {
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      return ohos_backend.compileWasmModule(bytes);
+    }
+    return compileWasmModule(bytes);
+  }
+
   Future<WasmModule> _compile(
     Uint8List bytes, {
     required String? cacheKey,
   }) async {
     await _ensureLibraryInitialized();
 
-    if (cacheKey == null) return compileWasmModule(bytes);
+    if (cacheKey == null) return _compileModule(bytes);
 
     final cached = _compiledModules[cacheKey];
     if (cached != null) return cached;
@@ -27,7 +43,7 @@ final class WasmRuntime {
     late final Future<WasmModule> pending;
     pending = () async {
       try {
-        return await compileWasmModule(bytes);
+        return await _compileModule(bytes);
       } catch (_) {
         if (identical(_compiledModules[cacheKey], pending)) {
           _compiledModules.remove(cacheKey);
@@ -43,6 +59,15 @@ final class WasmRuntime {
     final pending = _libraryInitialization;
     if (pending != null) {
       return pending;
+    }
+
+    // OpenHarmony's wasm3 backend opens libwasm3.so directly and never needs
+    // the `wasm_run` native library, whose `setUp` would otherwise try to
+    // locate/download a desktop dynamic library and fail on-device with
+    // "Could not find package root with .dart_tool/package_config.json".
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      _libraryInitialization = Future<void>.value();
+      return;
     }
 
     final initialization = WasmRunLibrary.setUp(

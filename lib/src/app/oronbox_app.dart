@@ -15,7 +15,8 @@ import 'package:oronbox/src/features/devices/widgets/xms_wearable_bridge.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_host_request_handler.dart';
 import 'package:oronbox/src/features/settings/services/update_check_service.dart';
 import 'package:oronbox/src/app/widgets/app_error_gate.dart';
-import 'package:material_ui/material_ui.dart' as material_ui;
+// material_ui resolves to package:flutter/material.dart on this Flutter fork.
+import 'package:flutter/material.dart' as material_ui;
 
 final _desktopAccentColorProvider = FutureProvider<Color?>((ref) {
   final source = ref.watch(
@@ -79,7 +80,7 @@ class OronBoxApp extends ConsumerWidget {
                 child: AppErrorGate(
                   child: PluginHostRequestHandler(
                     child: XmsWearableBridge(
-                      child: UpdateCheckHandler(
+                      child: ConditionalUpdateCheckHandler(
                         child: FileOpenHandler(
                           child: XiaomiAutomaticSyncScheduler(
                             child: DeviceDeepLinkHandler(

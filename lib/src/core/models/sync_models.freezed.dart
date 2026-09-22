@@ -1,6 +1,6 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 // coverage:ignore-file
-// ignore_for_file: type=lint, type=warning, deprecated_member_use, deprecated_member_use_from_same_package
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
 part of 'sync_models.dart';
@@ -9,1143 +9,873 @@ part of 'sync_models.dart';
 // FreezedGenerator
 // **************************************************************************
 
-// GENERATED CODE - DO NOT MODIFY BY HAND
-// dart format off
 T _$identity<T>(T value) => value;
+
+final _privateConstructorUsedError = UnsupportedError(
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
+
+TimeSyncProps _$TimeSyncPropsFromJson(Map<String, dynamic> json) {
+  return _TimeSyncProps.fromJson(json);
+}
 
 /// @nodoc
 mixin _$TimeSyncProps {
-
- SyncDate get date; SyncTime get time; SyncTimeZone get timezone; bool get is12HourFormat;
-/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$TimeSyncPropsCopyWith<TimeSyncProps> get copyWith => _$TimeSyncPropsCopyWithImpl<TimeSyncProps>(this as TimeSyncProps, _$identity);
+  SyncDate get date => throw _privateConstructorUsedError;
+  SyncTime get time => throw _privateConstructorUsedError;
+  SyncTimeZone get timezone => throw _privateConstructorUsedError;
+  bool get is12HourFormat => throw _privateConstructorUsedError;
 
   /// Serializes this TimeSyncProps to a JSON map.
-  Map<String, dynamic> toJson();
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TimeSyncProps&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.is12HourFormat, is12HourFormat) || other.is12HourFormat == is12HourFormat));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,date,time,timezone,is12HourFormat);
-
-@override
-String toString() {
-  return 'TimeSyncProps(date: $date, time: $time, timezone: $timezone, is12HourFormat: $is12HourFormat)';
-}
-
-
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $TimeSyncPropsCopyWith<TimeSyncProps> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract mixin class $TimeSyncPropsCopyWith<$Res>  {
-  factory $TimeSyncPropsCopyWith(TimeSyncProps value, $Res Function(TimeSyncProps) _then) = _$TimeSyncPropsCopyWithImpl;
-@useResult
-$Res call({
- SyncDate date, SyncTime time, SyncTimeZone timezone, bool is12HourFormat
-});
+abstract class $TimeSyncPropsCopyWith<$Res> {
+  factory $TimeSyncPropsCopyWith(
+    TimeSyncProps value,
+    $Res Function(TimeSyncProps) then,
+  ) = _$TimeSyncPropsCopyWithImpl<$Res, TimeSyncProps>;
+  @useResult
+  $Res call({
+    SyncDate date,
+    SyncTime time,
+    SyncTimeZone timezone,
+    bool is12HourFormat,
+  });
 
-
-$SyncDateCopyWith<$Res> get date;$SyncTimeCopyWith<$Res> get time;$SyncTimeZoneCopyWith<$Res> get timezone;
-
+  $SyncDateCopyWith<$Res> get date;
+  $SyncTimeCopyWith<$Res> get time;
+  $SyncTimeZoneCopyWith<$Res> get timezone;
 }
+
 /// @nodoc
-class _$TimeSyncPropsCopyWithImpl<$Res>
+class _$TimeSyncPropsCopyWithImpl<$Res, $Val extends TimeSyncProps>
     implements $TimeSyncPropsCopyWith<$Res> {
-  _$TimeSyncPropsCopyWithImpl(this._self, this._then);
+  _$TimeSyncPropsCopyWithImpl(this._value, this._then);
 
-  final TimeSyncProps _self;
-  final $Res Function(TimeSyncProps) _then;
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
-/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? date = null,Object? time = null,Object? timezone = null,Object? is12HourFormat = null,}) {
-  return _then(TimeSyncProps(
-date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
-as SyncDate,time: null == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
-as SyncTime,timezone: null == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
-as SyncTimeZone,is12HourFormat: null == is12HourFormat ? _self.is12HourFormat : is12HourFormat // ignore: cast_nullable_to_non_nullable
-as bool,
-  ));
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? date = null,
+    Object? time = null,
+    Object? timezone = null,
+    Object? is12HourFormat = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            date: null == date
+                ? _value.date
+                : date // ignore: cast_nullable_to_non_nullable
+                      as SyncDate,
+            time: null == time
+                ? _value.time
+                : time // ignore: cast_nullable_to_non_nullable
+                      as SyncTime,
+            timezone: null == timezone
+                ? _value.timezone
+                : timezone // ignore: cast_nullable_to_non_nullable
+                      as SyncTimeZone,
+            is12HourFormat: null == is12HourFormat
+                ? _value.is12HourFormat
+                : is12HourFormat // ignore: cast_nullable_to_non_nullable
+                      as bool,
+          )
+          as $Val,
+    );
+  }
+
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SyncDateCopyWith<$Res> get date {
+    return $SyncDateCopyWith<$Res>(_value.date, (value) {
+      return _then(_value.copyWith(date: value) as $Val);
+    });
+  }
+
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SyncTimeCopyWith<$Res> get time {
+    return $SyncTimeCopyWith<$Res>(_value.time, (value) {
+      return _then(_value.copyWith(time: value) as $Val);
+    });
+  }
+
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SyncTimeZoneCopyWith<$Res> get timezone {
+    return $SyncTimeZoneCopyWith<$Res>(_value.timezone, (value) {
+      return _then(_value.copyWith(timezone: value) as $Val);
+    });
+  }
 }
-/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SyncDateCopyWith<$Res> get date {
-  
-  return $SyncDateCopyWith<$Res>(_self.date, (value) {
-    return _then(_self.copyWith(date: value));
+
+/// @nodoc
+abstract class _$$TimeSyncPropsImplCopyWith<$Res>
+    implements $TimeSyncPropsCopyWith<$Res> {
+  factory _$$TimeSyncPropsImplCopyWith(
+    _$TimeSyncPropsImpl value,
+    $Res Function(_$TimeSyncPropsImpl) then,
+  ) = __$$TimeSyncPropsImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({
+    SyncDate date,
+    SyncTime time,
+    SyncTimeZone timezone,
+    bool is12HourFormat,
   });
-}/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SyncTimeCopyWith<$Res> get time {
-  
-  return $SyncTimeCopyWith<$Res>(_self.time, (value) {
-    return _then(_self.copyWith(time: value));
-  });
-}/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SyncTimeZoneCopyWith<$Res> get timezone {
-  
-  return $SyncTimeZoneCopyWith<$Res>(_self.timezone, (value) {
-    return _then(_self.copyWith(timezone: value));
-  });
-}
+
+  @override
+  $SyncDateCopyWith<$Res> get date;
+  @override
+  $SyncTimeCopyWith<$Res> get time;
+  @override
+  $SyncTimeZoneCopyWith<$Res> get timezone;
 }
 
+/// @nodoc
+class __$$TimeSyncPropsImplCopyWithImpl<$Res>
+    extends _$TimeSyncPropsCopyWithImpl<$Res, _$TimeSyncPropsImpl>
+    implements _$$TimeSyncPropsImplCopyWith<$Res> {
+  __$$TimeSyncPropsImplCopyWithImpl(
+    _$TimeSyncPropsImpl _value,
+    $Res Function(_$TimeSyncPropsImpl) _then,
+  ) : super(_value, _then);
 
-/// Adds pattern-matching-related methods to [TimeSyncProps].
-extension TimeSyncPropsPatterns on TimeSyncProps {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TimeSyncProps value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _TimeSyncProps() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TimeSyncProps value)  $default,){
-final _that = this;
-switch (_that) {
-case _TimeSyncProps():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TimeSyncProps value)?  $default,){
-final _that = this;
-switch (_that) {
-case _TimeSyncProps() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( SyncDate date,  SyncTime time,  SyncTimeZone timezone,  bool is12HourFormat)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _TimeSyncProps() when $default != null:
-return $default(_that.date,_that.time,_that.timezone,_that.is12HourFormat);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( SyncDate date,  SyncTime time,  SyncTimeZone timezone,  bool is12HourFormat)  $default,) {final _that = this;
-switch (_that) {
-case _TimeSyncProps():
-return $default(_that.date,_that.time,_that.timezone,_that.is12HourFormat);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( SyncDate date,  SyncTime time,  SyncTimeZone timezone,  bool is12HourFormat)?  $default,) {final _that = this;
-switch (_that) {
-case _TimeSyncProps() when $default != null:
-return $default(_that.date,_that.time,_that.timezone,_that.is12HourFormat);case _:
-  return null;
-
-}
-}
-
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? date = null,
+    Object? time = null,
+    Object? timezone = null,
+    Object? is12HourFormat = null,
+  }) {
+    return _then(
+      _$TimeSyncPropsImpl(
+        date: null == date
+            ? _value.date
+            : date // ignore: cast_nullable_to_non_nullable
+                  as SyncDate,
+        time: null == time
+            ? _value.time
+            : time // ignore: cast_nullable_to_non_nullable
+                  as SyncTime,
+        timezone: null == timezone
+            ? _value.timezone
+            : timezone // ignore: cast_nullable_to_non_nullable
+                  as SyncTimeZone,
+        is12HourFormat: null == is12HourFormat
+            ? _value.is12HourFormat
+            : is12HourFormat // ignore: cast_nullable_to_non_nullable
+                  as bool,
+      ),
+    );
+  }
 }
 
 /// @nodoc
 @JsonSerializable()
-
-class _TimeSyncProps implements TimeSyncProps {
-  const _TimeSyncProps({required this.date, required this.time, required this.timezone, this.is12HourFormat = false});
-  factory _TimeSyncProps.fromJson(Map<String, dynamic> json) => _$TimeSyncPropsFromJson(json);
-
-@override final  SyncDate date;
-@override final  SyncTime time;
-@override final  SyncTimeZone timezone;
-@override@JsonKey() final  bool is12HourFormat;
-
-/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$TimeSyncPropsCopyWith<_TimeSyncProps> get copyWith => __$TimeSyncPropsCopyWithImpl<_TimeSyncProps>(this, _$identity);
-
-@override
-Map<String, dynamic> toJson() {
-  return _$TimeSyncPropsToJson(this, );
-}
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TimeSyncProps&&(identical(other.date, date) || other.date == date)&&(identical(other.time, time) || other.time == time)&&(identical(other.timezone, timezone) || other.timezone == timezone)&&(identical(other.is12HourFormat, is12HourFormat) || other.is12HourFormat == is12HourFormat));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,date,time,timezone,is12HourFormat);
-
-@override
-String toString() {
-  return 'TimeSyncProps(date: $date, time: $time, timezone: $timezone, is12HourFormat: $is12HourFormat)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$TimeSyncPropsCopyWith<$Res> implements $TimeSyncPropsCopyWith<$Res> {
-  factory _$TimeSyncPropsCopyWith(_TimeSyncProps value, $Res Function(_TimeSyncProps) _then) = __$TimeSyncPropsCopyWithImpl;
-@override @useResult
-$Res call({
- SyncDate date, SyncTime time, SyncTimeZone timezone, bool is12HourFormat
-});
-
-
-@override $SyncDateCopyWith<$Res> get date;@override $SyncTimeCopyWith<$Res> get time;@override $SyncTimeZoneCopyWith<$Res> get timezone;
-
-}
-/// @nodoc
-class __$TimeSyncPropsCopyWithImpl<$Res>
-    implements _$TimeSyncPropsCopyWith<$Res> {
-  __$TimeSyncPropsCopyWithImpl(this._self, this._then);
-
-  final _TimeSyncProps _self;
-  final $Res Function(_TimeSyncProps) _then;
-
-/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? date = null,Object? time = null,Object? timezone = null,Object? is12HourFormat = null,}) {
-  return _then(_TimeSyncProps(
-date: null == date ? _self.date : date // ignore: cast_nullable_to_non_nullable
-as SyncDate,time: null == time ? _self.time : time // ignore: cast_nullable_to_non_nullable
-as SyncTime,timezone: null == timezone ? _self.timezone : timezone // ignore: cast_nullable_to_non_nullable
-as SyncTimeZone,is12HourFormat: null == is12HourFormat ? _self.is12HourFormat : is12HourFormat // ignore: cast_nullable_to_non_nullable
-as bool,
-  ));
-}
-
-/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SyncDateCopyWith<$Res> get date {
-  
-  return $SyncDateCopyWith<$Res>(_self.date, (value) {
-    return _then(_self.copyWith(date: value));
+class _$TimeSyncPropsImpl implements _TimeSyncProps {
+  const _$TimeSyncPropsImpl({
+    required this.date,
+    required this.time,
+    required this.timezone,
+    this.is12HourFormat = false,
   });
-}/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SyncTimeCopyWith<$Res> get time {
-  
-  return $SyncTimeCopyWith<$Res>(_self.time, (value) {
-    return _then(_self.copyWith(time: value));
-  });
-}/// Create a copy of TimeSyncProps
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$SyncTimeZoneCopyWith<$Res> get timezone {
-  
-  return $SyncTimeZoneCopyWith<$Res>(_self.timezone, (value) {
-    return _then(_self.copyWith(timezone: value));
-  });
-}
+
+  factory _$TimeSyncPropsImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TimeSyncPropsImplFromJson(json);
+
+  @override
+  final SyncDate date;
+  @override
+  final SyncTime time;
+  @override
+  final SyncTimeZone timezone;
+  @override
+  @JsonKey()
+  final bool is12HourFormat;
+
+  @override
+  String toString() {
+    return 'TimeSyncProps(date: $date, time: $time, timezone: $timezone, is12HourFormat: $is12HourFormat)';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$TimeSyncPropsImpl &&
+            (identical(other.date, date) || other.date == date) &&
+            (identical(other.time, time) || other.time == time) &&
+            (identical(other.timezone, timezone) ||
+                other.timezone == timezone) &&
+            (identical(other.is12HourFormat, is12HourFormat) ||
+                other.is12HourFormat == is12HourFormat));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, date, time, timezone, is12HourFormat);
+
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$TimeSyncPropsImplCopyWith<_$TimeSyncPropsImpl> get copyWith =>
+      __$$TimeSyncPropsImplCopyWithImpl<_$TimeSyncPropsImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$TimeSyncPropsImplToJson(this);
+  }
 }
 
+abstract class _TimeSyncProps implements TimeSyncProps {
+  const factory _TimeSyncProps({
+    required final SyncDate date,
+    required final SyncTime time,
+    required final SyncTimeZone timezone,
+    final bool is12HourFormat,
+  }) = _$TimeSyncPropsImpl;
+
+  factory _TimeSyncProps.fromJson(Map<String, dynamic> json) =
+      _$TimeSyncPropsImpl.fromJson;
+
+  @override
+  SyncDate get date;
+  @override
+  SyncTime get time;
+  @override
+  SyncTimeZone get timezone;
+  @override
+  bool get is12HourFormat;
+
+  /// Create a copy of TimeSyncProps
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$TimeSyncPropsImplCopyWith<_$TimeSyncPropsImpl> get copyWith =>
+      throw _privateConstructorUsedError;
+}
+
+SyncDate _$SyncDateFromJson(Map<String, dynamic> json) {
+  return _SyncDate.fromJson(json);
+}
 
 /// @nodoc
 mixin _$SyncDate {
-
- int get year; int get month; int get day;
-/// Create a copy of SyncDate
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$SyncDateCopyWith<SyncDate> get copyWith => _$SyncDateCopyWithImpl<SyncDate>(this as SyncDate, _$identity);
+  int get year => throw _privateConstructorUsedError;
+  int get month => throw _privateConstructorUsedError;
+  int get day => throw _privateConstructorUsedError;
 
   /// Serializes this SyncDate to a JSON map.
-  Map<String, dynamic> toJson();
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncDate&&(identical(other.year, year) || other.year == year)&&(identical(other.month, month) || other.month == month)&&(identical(other.day, day) || other.day == day));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,year,month,day);
-
-@override
-String toString() {
-  return 'SyncDate(year: $year, month: $month, day: $day)';
-}
-
-
+  /// Create a copy of SyncDate
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SyncDateCopyWith<SyncDate> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract mixin class $SyncDateCopyWith<$Res>  {
-  factory $SyncDateCopyWith(SyncDate value, $Res Function(SyncDate) _then) = _$SyncDateCopyWithImpl;
-@useResult
-$Res call({
- int year, int month, int day
-});
-
-
-
-
+abstract class $SyncDateCopyWith<$Res> {
+  factory $SyncDateCopyWith(SyncDate value, $Res Function(SyncDate) then) =
+      _$SyncDateCopyWithImpl<$Res, SyncDate>;
+  @useResult
+  $Res call({int year, int month, int day});
 }
+
 /// @nodoc
-class _$SyncDateCopyWithImpl<$Res>
+class _$SyncDateCopyWithImpl<$Res, $Val extends SyncDate>
     implements $SyncDateCopyWith<$Res> {
-  _$SyncDateCopyWithImpl(this._self, this._then);
+  _$SyncDateCopyWithImpl(this._value, this._then);
 
-  final SyncDate _self;
-  final $Res Function(SyncDate) _then;
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
-/// Create a copy of SyncDate
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? year = null,Object? month = null,Object? day = null,}) {
-  return _then(SyncDate(
-year: null == year ? _self.year : year // ignore: cast_nullable_to_non_nullable
-as int,month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
-as int,day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
-as int,
-  ));
+  /// Create a copy of SyncDate
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? year = null, Object? month = null, Object? day = null}) {
+    return _then(
+      _value.copyWith(
+            year: null == year
+                ? _value.year
+                : year // ignore: cast_nullable_to_non_nullable
+                      as int,
+            month: null == month
+                ? _value.month
+                : month // ignore: cast_nullable_to_non_nullable
+                      as int,
+            day: null == day
+                ? _value.day
+                : day // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
 }
 
+/// @nodoc
+abstract class _$$SyncDateImplCopyWith<$Res>
+    implements $SyncDateCopyWith<$Res> {
+  factory _$$SyncDateImplCopyWith(
+    _$SyncDateImpl value,
+    $Res Function(_$SyncDateImpl) then,
+  ) = __$$SyncDateImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int year, int month, int day});
 }
 
+/// @nodoc
+class __$$SyncDateImplCopyWithImpl<$Res>
+    extends _$SyncDateCopyWithImpl<$Res, _$SyncDateImpl>
+    implements _$$SyncDateImplCopyWith<$Res> {
+  __$$SyncDateImplCopyWithImpl(
+    _$SyncDateImpl _value,
+    $Res Function(_$SyncDateImpl) _then,
+  ) : super(_value, _then);
 
-/// Adds pattern-matching-related methods to [SyncDate].
-extension SyncDatePatterns on SyncDate {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SyncDate value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _SyncDate() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SyncDate value)  $default,){
-final _that = this;
-switch (_that) {
-case _SyncDate():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SyncDate value)?  $default,){
-final _that = this;
-switch (_that) {
-case _SyncDate() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int year,  int month,  int day)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _SyncDate() when $default != null:
-return $default(_that.year,_that.month,_that.day);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int year,  int month,  int day)  $default,) {final _that = this;
-switch (_that) {
-case _SyncDate():
-return $default(_that.year,_that.month,_that.day);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int year,  int month,  int day)?  $default,) {final _that = this;
-switch (_that) {
-case _SyncDate() when $default != null:
-return $default(_that.year,_that.month,_that.day);case _:
-  return null;
-
-}
-}
-
+  /// Create a copy of SyncDate
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({Object? year = null, Object? month = null, Object? day = null}) {
+    return _then(
+      _$SyncDateImpl(
+        year: null == year
+            ? _value.year
+            : year // ignore: cast_nullable_to_non_nullable
+                  as int,
+        month: null == month
+            ? _value.month
+            : month // ignore: cast_nullable_to_non_nullable
+                  as int,
+        day: null == day
+            ? _value.day
+            : day // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
 }
 
 /// @nodoc
 @JsonSerializable()
+class _$SyncDateImpl implements _SyncDate {
+  const _$SyncDateImpl({
+    required this.year,
+    required this.month,
+    required this.day,
+  });
 
-class _SyncDate implements SyncDate {
-  const _SyncDate({required this.year, required this.month, required this.day});
-  factory _SyncDate.fromJson(Map<String, dynamic> json) => _$SyncDateFromJson(json);
+  factory _$SyncDateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SyncDateImplFromJson(json);
 
-@override final  int year;
-@override final  int month;
-@override final  int day;
+  @override
+  final int year;
+  @override
+  final int month;
+  @override
+  final int day;
 
-/// Create a copy of SyncDate
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$SyncDateCopyWith<_SyncDate> get copyWith => __$SyncDateCopyWithImpl<_SyncDate>(this, _$identity);
+  @override
+  String toString() {
+    return 'SyncDate(year: $year, month: $month, day: $day)';
+  }
 
-@override
-Map<String, dynamic> toJson() {
-  return _$SyncDateToJson(this, );
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SyncDateImpl &&
+            (identical(other.year, year) || other.year == year) &&
+            (identical(other.month, month) || other.month == month) &&
+            (identical(other.day, day) || other.day == day));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, year, month, day);
+
+  /// Create a copy of SyncDate
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SyncDateImplCopyWith<_$SyncDateImpl> get copyWith =>
+      __$$SyncDateImplCopyWithImpl<_$SyncDateImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SyncDateImplToJson(this);
+  }
 }
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncDate&&(identical(other.year, year) || other.year == year)&&(identical(other.month, month) || other.month == month)&&(identical(other.day, day) || other.day == day));
+abstract class _SyncDate implements SyncDate {
+  const factory _SyncDate({
+    required final int year,
+    required final int month,
+    required final int day,
+  }) = _$SyncDateImpl;
+
+  factory _SyncDate.fromJson(Map<String, dynamic> json) =
+      _$SyncDateImpl.fromJson;
+
+  @override
+  int get year;
+  @override
+  int get month;
+  @override
+  int get day;
+
+  /// Create a copy of SyncDate
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SyncDateImplCopyWith<_$SyncDateImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,year,month,day);
-
-@override
-String toString() {
-  return 'SyncDate(year: $year, month: $month, day: $day)';
+SyncTime _$SyncTimeFromJson(Map<String, dynamic> json) {
+  return _SyncTime.fromJson(json);
 }
-
-
-}
-
-/// @nodoc
-abstract mixin class _$SyncDateCopyWith<$Res> implements $SyncDateCopyWith<$Res> {
-  factory _$SyncDateCopyWith(_SyncDate value, $Res Function(_SyncDate) _then) = __$SyncDateCopyWithImpl;
-@override @useResult
-$Res call({
- int year, int month, int day
-});
-
-
-
-
-}
-/// @nodoc
-class __$SyncDateCopyWithImpl<$Res>
-    implements _$SyncDateCopyWith<$Res> {
-  __$SyncDateCopyWithImpl(this._self, this._then);
-
-  final _SyncDate _self;
-  final $Res Function(_SyncDate) _then;
-
-/// Create a copy of SyncDate
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? year = null,Object? month = null,Object? day = null,}) {
-  return _then(_SyncDate(
-year: null == year ? _self.year : year // ignore: cast_nullable_to_non_nullable
-as int,month: null == month ? _self.month : month // ignore: cast_nullable_to_non_nullable
-as int,day: null == day ? _self.day : day // ignore: cast_nullable_to_non_nullable
-as int,
-  ));
-}
-
-
-}
-
 
 /// @nodoc
 mixin _$SyncTime {
-
- int get hour; int get minute; int get second; int get millisecond;
-/// Create a copy of SyncTime
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$SyncTimeCopyWith<SyncTime> get copyWith => _$SyncTimeCopyWithImpl<SyncTime>(this as SyncTime, _$identity);
+  int get hour => throw _privateConstructorUsedError;
+  int get minute => throw _privateConstructorUsedError;
+  int get second => throw _privateConstructorUsedError;
+  int get millisecond => throw _privateConstructorUsedError;
 
   /// Serializes this SyncTime to a JSON map.
-  Map<String, dynamic> toJson();
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncTime&&(identical(other.hour, hour) || other.hour == hour)&&(identical(other.minute, minute) || other.minute == minute)&&(identical(other.second, second) || other.second == second)&&(identical(other.millisecond, millisecond) || other.millisecond == millisecond));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,hour,minute,second,millisecond);
-
-@override
-String toString() {
-  return 'SyncTime(hour: $hour, minute: $minute, second: $second, millisecond: $millisecond)';
-}
-
-
+  /// Create a copy of SyncTime
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SyncTimeCopyWith<SyncTime> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract mixin class $SyncTimeCopyWith<$Res>  {
-  factory $SyncTimeCopyWith(SyncTime value, $Res Function(SyncTime) _then) = _$SyncTimeCopyWithImpl;
-@useResult
-$Res call({
- int hour, int minute, int second, int millisecond
-});
-
-
-
-
+abstract class $SyncTimeCopyWith<$Res> {
+  factory $SyncTimeCopyWith(SyncTime value, $Res Function(SyncTime) then) =
+      _$SyncTimeCopyWithImpl<$Res, SyncTime>;
+  @useResult
+  $Res call({int hour, int minute, int second, int millisecond});
 }
+
 /// @nodoc
-class _$SyncTimeCopyWithImpl<$Res>
+class _$SyncTimeCopyWithImpl<$Res, $Val extends SyncTime>
     implements $SyncTimeCopyWith<$Res> {
-  _$SyncTimeCopyWithImpl(this._self, this._then);
+  _$SyncTimeCopyWithImpl(this._value, this._then);
 
-  final SyncTime _self;
-  final $Res Function(SyncTime) _then;
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
-/// Create a copy of SyncTime
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? hour = null,Object? minute = null,Object? second = null,Object? millisecond = null,}) {
-  return _then(SyncTime(
-hour: null == hour ? _self.hour : hour // ignore: cast_nullable_to_non_nullable
-as int,minute: null == minute ? _self.minute : minute // ignore: cast_nullable_to_non_nullable
-as int,second: null == second ? _self.second : second // ignore: cast_nullable_to_non_nullable
-as int,millisecond: null == millisecond ? _self.millisecond : millisecond // ignore: cast_nullable_to_non_nullable
-as int,
-  ));
+  /// Create a copy of SyncTime
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? hour = null,
+    Object? minute = null,
+    Object? second = null,
+    Object? millisecond = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            hour: null == hour
+                ? _value.hour
+                : hour // ignore: cast_nullable_to_non_nullable
+                      as int,
+            minute: null == minute
+                ? _value.minute
+                : minute // ignore: cast_nullable_to_non_nullable
+                      as int,
+            second: null == second
+                ? _value.second
+                : second // ignore: cast_nullable_to_non_nullable
+                      as int,
+            millisecond: null == millisecond
+                ? _value.millisecond
+                : millisecond // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
+  }
 }
 
+/// @nodoc
+abstract class _$$SyncTimeImplCopyWith<$Res>
+    implements $SyncTimeCopyWith<$Res> {
+  factory _$$SyncTimeImplCopyWith(
+    _$SyncTimeImpl value,
+    $Res Function(_$SyncTimeImpl) then,
+  ) = __$$SyncTimeImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int hour, int minute, int second, int millisecond});
 }
 
+/// @nodoc
+class __$$SyncTimeImplCopyWithImpl<$Res>
+    extends _$SyncTimeCopyWithImpl<$Res, _$SyncTimeImpl>
+    implements _$$SyncTimeImplCopyWith<$Res> {
+  __$$SyncTimeImplCopyWithImpl(
+    _$SyncTimeImpl _value,
+    $Res Function(_$SyncTimeImpl) _then,
+  ) : super(_value, _then);
 
-/// Adds pattern-matching-related methods to [SyncTime].
-extension SyncTimePatterns on SyncTime {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SyncTime value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _SyncTime() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SyncTime value)  $default,){
-final _that = this;
-switch (_that) {
-case _SyncTime():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SyncTime value)?  $default,){
-final _that = this;
-switch (_that) {
-case _SyncTime() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int hour,  int minute,  int second,  int millisecond)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _SyncTime() when $default != null:
-return $default(_that.hour,_that.minute,_that.second,_that.millisecond);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int hour,  int minute,  int second,  int millisecond)  $default,) {final _that = this;
-switch (_that) {
-case _SyncTime():
-return $default(_that.hour,_that.minute,_that.second,_that.millisecond);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int hour,  int minute,  int second,  int millisecond)?  $default,) {final _that = this;
-switch (_that) {
-case _SyncTime() when $default != null:
-return $default(_that.hour,_that.minute,_that.second,_that.millisecond);case _:
-  return null;
-
-}
-}
-
+  /// Create a copy of SyncTime
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? hour = null,
+    Object? minute = null,
+    Object? second = null,
+    Object? millisecond = null,
+  }) {
+    return _then(
+      _$SyncTimeImpl(
+        hour: null == hour
+            ? _value.hour
+            : hour // ignore: cast_nullable_to_non_nullable
+                  as int,
+        minute: null == minute
+            ? _value.minute
+            : minute // ignore: cast_nullable_to_non_nullable
+                  as int,
+        second: null == second
+            ? _value.second
+            : second // ignore: cast_nullable_to_non_nullable
+                  as int,
+        millisecond: null == millisecond
+            ? _value.millisecond
+            : millisecond // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
+  }
 }
 
 /// @nodoc
 @JsonSerializable()
+class _$SyncTimeImpl implements _SyncTime {
+  const _$SyncTimeImpl({
+    required this.hour,
+    required this.minute,
+    this.second = 0,
+    this.millisecond = 0,
+  });
 
-class _SyncTime implements SyncTime {
-  const _SyncTime({required this.hour, required this.minute, this.second = 0, this.millisecond = 0});
-  factory _SyncTime.fromJson(Map<String, dynamic> json) => _$SyncTimeFromJson(json);
+  factory _$SyncTimeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SyncTimeImplFromJson(json);
 
-@override final  int hour;
-@override final  int minute;
-@override@JsonKey() final  int second;
-@override@JsonKey() final  int millisecond;
+  @override
+  final int hour;
+  @override
+  final int minute;
+  @override
+  @JsonKey()
+  final int second;
+  @override
+  @JsonKey()
+  final int millisecond;
 
-/// Create a copy of SyncTime
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$SyncTimeCopyWith<_SyncTime> get copyWith => __$SyncTimeCopyWithImpl<_SyncTime>(this, _$identity);
+  @override
+  String toString() {
+    return 'SyncTime(hour: $hour, minute: $minute, second: $second, millisecond: $millisecond)';
+  }
 
-@override
-Map<String, dynamic> toJson() {
-  return _$SyncTimeToJson(this, );
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SyncTimeImpl &&
+            (identical(other.hour, hour) || other.hour == hour) &&
+            (identical(other.minute, minute) || other.minute == minute) &&
+            (identical(other.second, second) || other.second == second) &&
+            (identical(other.millisecond, millisecond) ||
+                other.millisecond == millisecond));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, hour, minute, second, millisecond);
+
+  /// Create a copy of SyncTime
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SyncTimeImplCopyWith<_$SyncTimeImpl> get copyWith =>
+      __$$SyncTimeImplCopyWithImpl<_$SyncTimeImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SyncTimeImplToJson(this);
+  }
 }
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncTime&&(identical(other.hour, hour) || other.hour == hour)&&(identical(other.minute, minute) || other.minute == minute)&&(identical(other.second, second) || other.second == second)&&(identical(other.millisecond, millisecond) || other.millisecond == millisecond));
+abstract class _SyncTime implements SyncTime {
+  const factory _SyncTime({
+    required final int hour,
+    required final int minute,
+    final int second,
+    final int millisecond,
+  }) = _$SyncTimeImpl;
+
+  factory _SyncTime.fromJson(Map<String, dynamic> json) =
+      _$SyncTimeImpl.fromJson;
+
+  @override
+  int get hour;
+  @override
+  int get minute;
+  @override
+  int get second;
+  @override
+  int get millisecond;
+
+  /// Create a copy of SyncTime
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SyncTimeImplCopyWith<_$SyncTimeImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,hour,minute,second,millisecond);
-
-@override
-String toString() {
-  return 'SyncTime(hour: $hour, minute: $minute, second: $second, millisecond: $millisecond)';
+SyncTimeZone _$SyncTimeZoneFromJson(Map<String, dynamic> json) {
+  return _SyncTimeZone.fromJson(json);
 }
-
-
-}
-
-/// @nodoc
-abstract mixin class _$SyncTimeCopyWith<$Res> implements $SyncTimeCopyWith<$Res> {
-  factory _$SyncTimeCopyWith(_SyncTime value, $Res Function(_SyncTime) _then) = __$SyncTimeCopyWithImpl;
-@override @useResult
-$Res call({
- int hour, int minute, int second, int millisecond
-});
-
-
-
-
-}
-/// @nodoc
-class __$SyncTimeCopyWithImpl<$Res>
-    implements _$SyncTimeCopyWith<$Res> {
-  __$SyncTimeCopyWithImpl(this._self, this._then);
-
-  final _SyncTime _self;
-  final $Res Function(_SyncTime) _then;
-
-/// Create a copy of SyncTime
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? hour = null,Object? minute = null,Object? second = null,Object? millisecond = null,}) {
-  return _then(_SyncTime(
-hour: null == hour ? _self.hour : hour // ignore: cast_nullable_to_non_nullable
-as int,minute: null == minute ? _self.minute : minute // ignore: cast_nullable_to_non_nullable
-as int,second: null == second ? _self.second : second // ignore: cast_nullable_to_non_nullable
-as int,millisecond: null == millisecond ? _self.millisecond : millisecond // ignore: cast_nullable_to_non_nullable
-as int,
-  ));
-}
-
-
-}
-
 
 /// @nodoc
 mixin _$SyncTimeZone {
-
- int get offset; int get dstOffset; String get id;
-/// Create a copy of SyncTimeZone
-/// with the given fields replaced by the non-null parameter values.
-@JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-$SyncTimeZoneCopyWith<SyncTimeZone> get copyWith => _$SyncTimeZoneCopyWithImpl<SyncTimeZone>(this as SyncTimeZone, _$identity);
+  int get offset => throw _privateConstructorUsedError;
+  int get dstOffset => throw _privateConstructorUsedError;
+  String get id => throw _privateConstructorUsedError;
 
   /// Serializes this SyncTimeZone to a JSON map.
-  Map<String, dynamic> toJson();
+  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
-
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SyncTimeZone&&(identical(other.offset, offset) || other.offset == offset)&&(identical(other.dstOffset, dstOffset) || other.dstOffset == dstOffset)&&(identical(other.id, id) || other.id == id));
-}
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,offset,dstOffset,id);
-
-@override
-String toString() {
-  return 'SyncTimeZone(offset: $offset, dstOffset: $dstOffset, id: $id)';
-}
-
-
+  /// Create a copy of SyncTimeZone
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  $SyncTimeZoneCopyWith<SyncTimeZone> get copyWith =>
+      throw _privateConstructorUsedError;
 }
 
 /// @nodoc
-abstract mixin class $SyncTimeZoneCopyWith<$Res>  {
-  factory $SyncTimeZoneCopyWith(SyncTimeZone value, $Res Function(SyncTimeZone) _then) = _$SyncTimeZoneCopyWithImpl;
-@useResult
-$Res call({
- int offset, int dstOffset, String id
-});
-
-
-
-
+abstract class $SyncTimeZoneCopyWith<$Res> {
+  factory $SyncTimeZoneCopyWith(
+    SyncTimeZone value,
+    $Res Function(SyncTimeZone) then,
+  ) = _$SyncTimeZoneCopyWithImpl<$Res, SyncTimeZone>;
+  @useResult
+  $Res call({int offset, int dstOffset, String id});
 }
+
 /// @nodoc
-class _$SyncTimeZoneCopyWithImpl<$Res>
+class _$SyncTimeZoneCopyWithImpl<$Res, $Val extends SyncTimeZone>
     implements $SyncTimeZoneCopyWith<$Res> {
-  _$SyncTimeZoneCopyWithImpl(this._self, this._then);
+  _$SyncTimeZoneCopyWithImpl(this._value, this._then);
 
-  final SyncTimeZone _self;
-  final $Res Function(SyncTimeZone) _then;
+  // ignore: unused_field
+  final $Val _value;
+  // ignore: unused_field
+  final $Res Function($Val) _then;
 
-/// Create a copy of SyncTimeZone
-/// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? offset = null,Object? dstOffset = null,Object? id = null,}) {
-  return _then(SyncTimeZone(
-offset: null == offset ? _self.offset : offset // ignore: cast_nullable_to_non_nullable
-as int,dstOffset: null == dstOffset ? _self.dstOffset : dstOffset // ignore: cast_nullable_to_non_nullable
-as int,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
+  /// Create a copy of SyncTimeZone
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? offset = null,
+    Object? dstOffset = null,
+    Object? id = null,
+  }) {
+    return _then(
+      _value.copyWith(
+            offset: null == offset
+                ? _value.offset
+                : offset // ignore: cast_nullable_to_non_nullable
+                      as int,
+            dstOffset: null == dstOffset
+                ? _value.dstOffset
+                : dstOffset // ignore: cast_nullable_to_non_nullable
+                      as int,
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
+  }
 }
 
+/// @nodoc
+abstract class _$$SyncTimeZoneImplCopyWith<$Res>
+    implements $SyncTimeZoneCopyWith<$Res> {
+  factory _$$SyncTimeZoneImplCopyWith(
+    _$SyncTimeZoneImpl value,
+    $Res Function(_$SyncTimeZoneImpl) then,
+  ) = __$$SyncTimeZoneImplCopyWithImpl<$Res>;
+  @override
+  @useResult
+  $Res call({int offset, int dstOffset, String id});
 }
 
+/// @nodoc
+class __$$SyncTimeZoneImplCopyWithImpl<$Res>
+    extends _$SyncTimeZoneCopyWithImpl<$Res, _$SyncTimeZoneImpl>
+    implements _$$SyncTimeZoneImplCopyWith<$Res> {
+  __$$SyncTimeZoneImplCopyWithImpl(
+    _$SyncTimeZoneImpl _value,
+    $Res Function(_$SyncTimeZoneImpl) _then,
+  ) : super(_value, _then);
 
-/// Adds pattern-matching-related methods to [SyncTimeZone].
-extension SyncTimeZonePatterns on SyncTimeZone {
-/// A variant of `map` that fallback to returning `orElse`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _SyncTimeZone value)?  $default,{required TResult orElse(),}){
-final _that = this;
-switch (_that) {
-case _SyncTimeZone() when $default != null:
-return $default(_that);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// Callbacks receives the raw object, upcasted.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case final Subclass2 value:
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _SyncTimeZone value)  $default,){
-final _that = this;
-switch (_that) {
-case _SyncTimeZone():
-return $default(_that);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `map` that fallback to returning `null`.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case final Subclass value:
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _SyncTimeZone value)?  $default,){
-final _that = this;
-switch (_that) {
-case _SyncTimeZone() when $default != null:
-return $default(_that);case _:
-  return null;
-
-}
-}
-/// A variant of `when` that fallback to an `orElse` callback.
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return orElse();
-/// }
-/// ```
-
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int offset,  int dstOffset,  String id)?  $default,{required TResult orElse(),}) {final _that = this;
-switch (_that) {
-case _SyncTimeZone() when $default != null:
-return $default(_that.offset,_that.dstOffset,_that.id);case _:
-  return orElse();
-
-}
-}
-/// A `switch`-like method, using callbacks.
-///
-/// As opposed to `map`, this offers destructuring.
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case Subclass2(:final field2):
-///     return ...;
-/// }
-/// ```
-
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int offset,  int dstOffset,  String id)  $default,) {final _that = this;
-switch (_that) {
-case _SyncTimeZone():
-return $default(_that.offset,_that.dstOffset,_that.id);case _:
-  throw StateError('Unexpected subclass');
-
-}
-}
-/// A variant of `when` that fallback to returning `null`
-///
-/// It is equivalent to doing:
-/// ```dart
-/// switch (sealedClass) {
-///   case Subclass(:final field):
-///     return ...;
-///   case _:
-///     return null;
-/// }
-/// ```
-
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int offset,  int dstOffset,  String id)?  $default,) {final _that = this;
-switch (_that) {
-case _SyncTimeZone() when $default != null:
-return $default(_that.offset,_that.dstOffset,_that.id);case _:
-  return null;
-
-}
-}
-
+  /// Create a copy of SyncTimeZone
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? offset = null,
+    Object? dstOffset = null,
+    Object? id = null,
+  }) {
+    return _then(
+      _$SyncTimeZoneImpl(
+        offset: null == offset
+            ? _value.offset
+            : offset // ignore: cast_nullable_to_non_nullable
+                  as int,
+        dstOffset: null == dstOffset
+            ? _value.dstOffset
+            : dstOffset // ignore: cast_nullable_to_non_nullable
+                  as int,
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
+  }
 }
 
 /// @nodoc
 @JsonSerializable()
+class _$SyncTimeZoneImpl implements _SyncTimeZone {
+  const _$SyncTimeZoneImpl({
+    required this.offset,
+    this.dstOffset = 0,
+    required this.id,
+  });
 
-class _SyncTimeZone implements SyncTimeZone {
-  const _SyncTimeZone({required this.offset, this.dstOffset = 0, required this.id});
-  factory _SyncTimeZone.fromJson(Map<String, dynamic> json) => _$SyncTimeZoneFromJson(json);
+  factory _$SyncTimeZoneImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SyncTimeZoneImplFromJson(json);
 
-@override final  int offset;
-@override@JsonKey() final  int dstOffset;
-@override final  String id;
+  @override
+  final int offset;
+  @override
+  @JsonKey()
+  final int dstOffset;
+  @override
+  final String id;
 
-/// Create a copy of SyncTimeZone
-/// with the given fields replaced by the non-null parameter values.
-@override @JsonKey(includeFromJson: false, includeToJson: false)
-@pragma('vm:prefer-inline')
-_$SyncTimeZoneCopyWith<_SyncTimeZone> get copyWith => __$SyncTimeZoneCopyWithImpl<_SyncTimeZone>(this, _$identity);
+  @override
+  String toString() {
+    return 'SyncTimeZone(offset: $offset, dstOffset: $dstOffset, id: $id)';
+  }
 
-@override
-Map<String, dynamic> toJson() {
-  return _$SyncTimeZoneToJson(this, );
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _$SyncTimeZoneImpl &&
+            (identical(other.offset, offset) || other.offset == offset) &&
+            (identical(other.dstOffset, dstOffset) ||
+                other.dstOffset == dstOffset) &&
+            (identical(other.id, id) || other.id == id));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(runtimeType, offset, dstOffset, id);
+
+  /// Create a copy of SyncTimeZone
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  @pragma('vm:prefer-inline')
+  _$$SyncTimeZoneImplCopyWith<_$SyncTimeZoneImpl> get copyWith =>
+      __$$SyncTimeZoneImplCopyWithImpl<_$SyncTimeZoneImpl>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$$SyncTimeZoneImplToJson(this);
+  }
 }
 
-@override
-bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SyncTimeZone&&(identical(other.offset, offset) || other.offset == offset)&&(identical(other.dstOffset, dstOffset) || other.dstOffset == dstOffset)&&(identical(other.id, id) || other.id == id));
+abstract class _SyncTimeZone implements SyncTimeZone {
+  const factory _SyncTimeZone({
+    required final int offset,
+    final int dstOffset,
+    required final String id,
+  }) = _$SyncTimeZoneImpl;
+
+  factory _SyncTimeZone.fromJson(Map<String, dynamic> json) =
+      _$SyncTimeZoneImpl.fromJson;
+
+  @override
+  int get offset;
+  @override
+  int get dstOffset;
+  @override
+  String get id;
+
+  /// Create a copy of SyncTimeZone
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  _$$SyncTimeZoneImplCopyWith<_$SyncTimeZoneImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }
-
-@JsonKey(includeFromJson: false, includeToJson: false)
-@override
-int get hashCode => Object.hash(runtimeType,offset,dstOffset,id);
-
-@override
-String toString() {
-  return 'SyncTimeZone(offset: $offset, dstOffset: $dstOffset, id: $id)';
-}
-
-
-}
-
-/// @nodoc
-abstract mixin class _$SyncTimeZoneCopyWith<$Res> implements $SyncTimeZoneCopyWith<$Res> {
-  factory _$SyncTimeZoneCopyWith(_SyncTimeZone value, $Res Function(_SyncTimeZone) _then) = __$SyncTimeZoneCopyWithImpl;
-@override @useResult
-$Res call({
- int offset, int dstOffset, String id
-});
-
-
-
-
-}
-/// @nodoc
-class __$SyncTimeZoneCopyWithImpl<$Res>
-    implements _$SyncTimeZoneCopyWith<$Res> {
-  __$SyncTimeZoneCopyWithImpl(this._self, this._then);
-
-  final _SyncTimeZone _self;
-  final $Res Function(_SyncTimeZone) _then;
-
-/// Create a copy of SyncTimeZone
-/// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? offset = null,Object? dstOffset = null,Object? id = null,}) {
-  return _then(_SyncTimeZone(
-offset: null == offset ? _self.offset : offset // ignore: cast_nullable_to_non_nullable
-as int,dstOffset: null == dstOffset ? _self.dstOffset : dstOffset // ignore: cast_nullable_to_non_nullable
-as int,id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as String,
-  ));
-}
-
-
-}
-
-// dart format on

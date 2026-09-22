@@ -463,6 +463,29 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
                     );
                   },
                 ),
+              // 鸿蒙端提示：手环需重新打开配对新设备。
+              if (defaultTargetPlatform == TargetPlatform.ohos &&
+                  state.pairedDevices.isNotEmpty)
+                SliverToBoxAdapter(
+                  child: PageContainer(
+                    safeArea: false,
+                    padding: const EdgeInsets.fromLTRB(
+                      StyleConstants.pagePadding,
+                      4,
+                      StyleConstants.pagePadding,
+                      0,
+                    ),
+                    child: Text(
+                      '鸿蒙可能需要在手环上面重新打开配对新设备',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurfaceVariant
+                            .withValues(alpha: 0.75),
+                      ),
+                    ),
+                  ),
+                ),
               SliverToBoxAdapter(
                 child: PageContainer(
                   safeArea: false,

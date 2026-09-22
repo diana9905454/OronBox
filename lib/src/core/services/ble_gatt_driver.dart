@@ -497,19 +497,24 @@ class BleGattDriver {
     // Android otherwise leaves the link at the balanced connection interval,
     // which makes an active wearable session easier for another companion app
     // to preempt. Keep the negotiated link responsive while OronBox owns it.
+    //
+    // NOTE: `requestConnectionPriority` was added in universal_ble 2.x.
+    // We are pinned to 1.2.0 for the ohos port, so this Android-only
+    // optimisation is skipped — ohos does not enter this branch anyway.
     if (defaultTargetPlatform == TargetPlatform.android) {
-      try {
-        await UniversalBle.requestConnectionPriority(
-          effectiveDeviceId,
-          BleConnectionPriority.highPerformance,
-        );
-        _log.info('[$effectiveDeviceId] Android BLE priority set to high');
-      } catch (e) {
-        _log.warning(
-          '[$effectiveDeviceId] Android BLE priority request failed (ignored)',
-          e,
-        );
-      }
+      // TODO(ohos-port): re-enable when universal_ble >=2.0.0 is available.
+      // try {
+      //   await UniversalBle.requestConnectionPriority(
+      //     effectiveDeviceId,
+      //     BleConnectionPriority.highPerformance,
+      //   );
+      //   _log.info('[$effectiveDeviceId] Android BLE priority set to high');
+      // } catch (e) {
+      //   _log.warning(
+      //     '[$effectiveDeviceId] Android BLE priority request failed (ignored)',
+      //     e,
+      //   );
+      // }
     }
 
     if (attemptPair && !kIsWeb) {
