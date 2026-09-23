@@ -675,12 +675,16 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        FilledButton.tonalIcon(
-                          style: _flatButtonStyle,
-                          onPressed: _busy ? null : _openDirectory,
-                          icon: const Icon(Icons.folder_open_outlined),
-                          label: Text(l10n.settingsAboutLogsOpen),
-                        ),
+                        // 鸿蒙是沙箱模型，应用私有目录无法交给系统文件管理器浏览，
+                        // 因此不提供「打开日志文件夹」；鸿蒙改用文件列表里的分享。
+                        if (!kIsWeb &&
+                            defaultTargetPlatform != TargetPlatform.ohos)
+                          FilledButton.tonalIcon(
+                            style: _flatButtonStyle,
+                            onPressed: _busy ? null : _openDirectory,
+                            icon: const Icon(Icons.folder_open_outlined),
+                            label: Text(l10n.settingsAboutLogsOpen),
+                          ),
                         FilledButton.tonalIcon(
                           style: _flatButtonStyle,
                           onPressed: _busy ? null : _export,
@@ -735,7 +739,10 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
                                 '${_fileSizeLabel(file.size)} · ${MaterialLocalizations.of(context).formatShortDate(file.modifiedAt)}',
                               ),
                               trailing: Icon(
-                                defaultTargetPlatform == TargetPlatform.android
+                                defaultTargetPlatform ==
+                                            TargetPlatform.android ||
+                                        defaultTargetPlatform ==
+                                            TargetPlatform.ohos
                                     ? Icons.share_outlined
                                     : Icons.folder_open_outlined,
                               ),

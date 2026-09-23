@@ -6,7 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:oronbox/src/core/services/build_info_service.dart';
 
-const _androidLogsChannel = MethodChannel('oronbox/logs');
+/// 日志打开/分享通道。
+/// - Android：DocumentsProvider + ACTION_SEND（MainActivity 实现）
+/// - 鸿蒙：LogsBridge.ets 用沙箱文件 URI + FLAG_AUTH_READ_URI_PERMISSION 拉起系统分享
+const _logsChannel = MethodChannel('oronbox/logs');
 
 bool _isManagedLogFile(File file) {
   final name = file.uri.pathSegments.last;
@@ -188,9 +191,9 @@ Future<File> _uniqueLogFile(File requested) async {
 }
 
 Future<bool> openLogFile(LogFileInfo file) async {
-  if (Platform.isAndroid) {
+  if (Platform.isAndroid || Platform.isOhos) {
     try {
-      return await _androidLogsChannel.invokeMethod<bool>('share', {
+      return await _logsChannel.invokeMethod<bool>('share', {
             'name': file.name,
           }) ??
           false;
@@ -254,7 +257,7 @@ Future<String?> exportLogsZip() async {
   await target.writeAsBytes(zipped);
   if (Platform.isAndroid) {
     try {
-      final exportedPath = await _androidLogsChannel.invokeMethod<String>(
+      final exportedPath = await _logsChannel.invokeMethod<String>(
         'export',
         {'name': target.uri.pathSegments.last},
       );
@@ -305,7 +308,7 @@ Future<String?> getLogDirectoryPath() async {
 Future<bool> openLogDirectory() async {
   if (Platform.isAndroid) {
     try {
-      return await _androidLogsChannel.invokeMethod<bool>('open') ?? false;
+      return await _logsChannel.invokeMethod<bool>('open') ?? false;
     } catch (_) {
       return false;
     }
