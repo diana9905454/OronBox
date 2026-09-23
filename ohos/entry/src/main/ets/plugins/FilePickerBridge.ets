@@ -24,6 +24,12 @@ const PICKER_POLICY = 0;
 
 export class FilePickerBridge {
   private context: common.UIAbilityContext;
+  /**
+   * 用户通过 pick / saveFile 明确授权过的 uri。
+   * readFile 只接受这些 uri 或应用自身沙箱内的路径，
+   * 避免该 channel 被当作任意文件读取的入口。
+   */
+  private grantedUris: Set<string> = new Set();
 
   constructor(context: common.UIAbilityContext) {
     this.context = context;
@@ -83,6 +89,9 @@ export class FilePickerBridge {
       };
       uris = await docPicker.select(options);
     }
+    for (const uri of uris) {
+      this.grantedUris.add(uri);
+    }
     result.success(uris);
   }
 
@@ -104,14 +113,32 @@ export class FilePickerBridge {
       const file = fs.openSync(target, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
       fs.writeSync(file.fd, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer);
       fs.closeSync(file);
+      this.grantedUris.add(target);
       result.success(target);
     } catch (e) {
       result.error('save_write_error', e instanceof Error ? e.message : String(e), null);
     }
   }
 
+  /**
+   * 是否允许读取该路径：用户通过 picker 授权过的 uri，或应用自身沙箱内的文件
+   * （Dart 侧会读取自己落盘/下载到 filesDir、tempDir、cacheDir 的内容）。
+   */
+  private isReadablePath(path: string): boolean {
+    if (path.length === 0) return false;
+    if (this.grantedUris.has(path)) return true;
+    return path.startsWith(this.context.filesDir) ||
+      path.startsWith(this.context.tempDir) ||
+      path.startsWith(this.context.cacheDir);
+  }
+
   private async readFile(call: MethodCall, result: MethodResult): Promise<void> {
     const path: string = call.argument('path');
+    if (!this.isReadablePath(path)) {
+      console.warn(TAG + ': readFile denied for non-granted path: ' + path);
+      result.error('read_denied', 'Path was not granted by the user picker', null);
+      return;
+    }
     try {
       const file = fs.openSync(path, fs.OpenMode.READ_ONLY);
       const stat = fs.statSync(path);

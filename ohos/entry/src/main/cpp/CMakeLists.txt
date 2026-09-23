@@ -47,13 +47,29 @@ set_target_properties(wasm3 PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+# Security hardening applied to both native libraries below.
+#
+# -fstack-protector-strong : canary on functions with local arrays/address-taken
+# -D_FORTIFY_SOURCE=2      : checked libc wrappers (needs -O1 or higher)
+# -Wl,-z,relro / -z,now    : full RELRO + immediate binding (GOT protection)
+# -Wl,-z,noexecstack       : non-executable stack
+#
+# NOTE: -fvisibility=hidden is deliberately NOT used. Both libraries are loaded
+# by dart:ffi, which resolves our bridge entry points BY SYMBOL NAME, so the
+# exported C ABI must keep default visibility.
+set(ORONBOX_HARDENING_COMPILE -fstack-protector-strong)
+set(ORONBOX_HARDENING_COMPILE_RELEASE -fstack-protector-strong -D_FORTIFY_SOURCE=2)
+set(ORONBOX_HARDENING_LINK -Wl,-z,relro -Wl,-z,now -Wl,-z,noexecstack)
+
 # wasm3 needs nothing beyond libc; the float ops and stack checks are
 # self-contained. Keep release flags lean.
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR NOT CMAKE_BUILD_TYPE)
-    target_compile_options(wasm3 PRIVATE -O2 -fno-strict-aliasing)
+    target_compile_options(wasm3 PRIVATE -O2 -fno-strict-aliasing ${ORONBOX_HARDENING_COMPILE_RELEASE})
 else()
-    target_compile_options(wasm3 PRIVATE -O0 -g)
+    target_compile_options(wasm3 PRIVATE -O0 -g ${ORONBOX_HARDENING_COMPILE})
 endif()
+
+target_link_options(wasm3 PRIVATE ${ORONBOX_HARDENING_LINK})
 
 # ---------------------------------------------------------------------------
 # Install to the entry module's native library dir so hvigor packs it.
@@ -113,9 +129,11 @@ set_target_properties(quickjs_c_bridge_plugin PROPERTIES
 target_link_libraries(quickjs_c_bridge_plugin PRIVATE m)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release" OR NOT CMAKE_BUILD_TYPE)
-    target_compile_options(quickjs_c_bridge_plugin PRIVATE -O2 -fno-strict-aliasing -include alloca.h)
+    target_compile_options(quickjs_c_bridge_plugin PRIVATE -O2 -fno-strict-aliasing -include alloca.h ${ORONBOX_HARDENING_COMPILE_RELEASE})
 else()
-    target_compile_options(quickjs_c_bridge_plugin PRIVATE -O0 -g -include alloca.h)
+    target_compile_options(quickjs_c_bridge_plugin PRIVATE -O0 -g -include alloca.h ${ORONBOX_HARDENING_COMPILE})
 endif()
+
+target_link_options(quickjs_c_bridge_plugin PRIVATE ${ORONBOX_HARDENING_LINK})
 
 install(TARGETS quickjs_c_bridge_plugin LIBRARY DESTINATION libs/${OHOS_ARCH})
