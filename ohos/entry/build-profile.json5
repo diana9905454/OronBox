@@ -10,7 +10,8 @@
         "arm64-v8a"
       ],
       "targets": [
-        "wasm3"
+        "wasm3",
+        "quickjs_c_bridge_plugin"
       ]
     }
   },

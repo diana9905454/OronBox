@@ -9,6 +9,7 @@ import { ClassicSppBridge } from '../plugins/ClassicSppBridge';
 import { FilePickerBridge } from '../plugins/FilePickerBridge';
 import { MiAccountTwoFactorBridge } from '../plugins/MiAccountTwoFactorBridge';
 import { ImageEncodeBridge } from '../plugins/ImageEncodeBridge';
+import { LogsBridge } from '../plugins/LogsBridge';
 import Want from '@ohos.app.ability.Want';
 import AbilityConstant from '@ohos.app.ability.AbilityConstant';
 
@@ -38,6 +39,8 @@ export default class EntryAbility extends FlutterAbility {
     new MiAccountTwoFactorBridge(this.context).register(flutterEngine)
     // 注册图片编码桥接（WebP 编码用鸿蒙原生 ImagePacker，替代 wasm3 跑 libwebp）。
     new ImageEncodeBridge(this.context).register(flutterEngine)
+    // 注册日志分享桥接（oronbox/logs：沙箱日志文件经系统分享面板导出）。
+    new LogsBridge(this.context).register(flutterEngine)
   }
 
   onCreate(want: Want, launchParam: AbilityConstant.LaunchParam): void {

@@ -969,10 +969,9 @@ packages:
   quickjs_engine:
     dependency: "direct main"
     description:
-      name: quickjs_engine
-      sha256: f0738189a6fc0c669b57e5bf8541b12fdfa9d02853611313d7198fe189f4cfa7
-      url: "https://pub.flutter-io.cn"
-    source: hosted
+      path: "packages/quickjs_engine"
+      relative: true
+    source: path
     version: "0.1.5"
   record_use:
     dependency: transitive

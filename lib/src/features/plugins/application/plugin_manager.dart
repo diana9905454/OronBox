@@ -441,8 +441,14 @@ class PluginManager {
         pluginVersion: plugin.manifest.version,
         runtimeVersion: BuildInfoService.appVersion,
         entryBytes: plugin.entryBytes,
+        // Legacy (AstroBox) plugins still need the host-driven operation
+        // helpers (__zbBeginOperation/__zbPollOperation/__zbSettleHostRequest/
+        // __zbRejectAllHostRequests) that the Dart runtime evaluates on every
+        // call, so the OronBox bootstrap is always injected first. The legacy
+        // adapter then overrides the five lifecycle entry points with legacy
+        // semantics and registers the global `AstroBox` API object.
         bootstrap: plugin.manifest.runtime == PluginRuntimeType.legacy
-            ? astroBoxLegacyBootstrap
+            ? '$oronBoxPluginBootstrap\n$astroBoxLegacyBootstrap'
             : oronBoxPluginBootstrap,
         hostCall: (method, arguments) =>
             _handleHostCall(plugin, method, arguments),

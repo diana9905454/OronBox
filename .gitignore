@@ -145,7 +145,10 @@ CONTEXT.md
 tmp/script.md
 
 # HarmonyOS port build/debug temp files
-HANDOFF.md
+# Handoff notes and store-submission drafts are local-only references:
+# keep them on disk but never push them to the fork.
+HANDOFF*.md
+上架清单*.md
 hvigor-env-dump.json
 lock_result.txt
 node-procs.txt
