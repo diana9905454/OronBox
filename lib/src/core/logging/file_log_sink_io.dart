@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ffi';
 
@@ -39,16 +40,34 @@ String? _currentLogPath;
 class SerialFileLogWriter {
   SerialFileLogWriter(this._sink);
 
+  /// Flushing after every single line costs one write syscall per log record,
+  /// which stacks up during chatty periods (device sync, plugin traffic).
+  /// Buffer instead and flush on whichever comes first: [_flushAfterLines]
+  /// lines, or [_flushInterval]. Crash exposure is bounded by that interval,
+  /// and [close] always flushes what is left.
+  static const _flushAfterLines = 64;
+  static const _flushInterval = Duration(milliseconds: 250);
+
   final IOSink _sink;
   Future<void> _pending = Future<void>.value();
   bool _closed = false;
+  Timer? _flushTimer;
+  int _bufferedLines = 0;
 
   void writeLine(String line) {
     if (_closed) return;
     _pending = _pending
         .then((_) async {
           _sink.writeln(line);
-          await _sink.flush();
+          _bufferedLines++;
+          if (_bufferedLines >= _flushAfterLines) {
+            await _flush();
+          } else {
+            _flushTimer ??= Timer(_flushInterval, () {
+              _flushTimer = null;
+              unawaited(_flush());
+            });
+          }
         })
         .catchError((Object _) {
           // Logging must never crash the application. A later line can still
@@ -56,11 +75,23 @@ class SerialFileLogWriter {
         });
   }
 
+  Future<void> _flush() async {
+    _flushTimer?.cancel();
+    _flushTimer = null;
+    _bufferedLines = 0;
+    try {
+      await _sink.flush();
+    } catch (_) {
+      // A failed flush must not surface as an application error; the next
+      // write or close() will try again.
+    }
+  }
+
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
     await _pending;
-    await _sink.flush();
+    await _flush();
     await _sink.close();
   }
 }

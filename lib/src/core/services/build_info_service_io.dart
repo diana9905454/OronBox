@@ -21,6 +21,14 @@ abstract final class BuildInfoService {
       return _definedCommit;
     }
 
+    // Only desktop builds can plausibly run inside a git checkout. Mobile
+    // targets (HarmonyOS / Android / iOS) ship no git binary, so calling
+    // Process.run('git', ...) there just burns startup time waiting for a
+    // process that can never succeed (up to the full 800 ms timeout).
+    if (!Platform.isWindows && !Platform.isMacOS && !Platform.isLinux) {
+      return _definedCommit;
+    }
+
     try {
       final result = await Process.run(
         'git',
