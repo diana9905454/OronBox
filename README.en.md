@@ -17,7 +17,7 @@
 
 ## Quick links
 
-- [Download the latest release](https://github.com/zxor-org/OronBox/releases)
+- [Download the latest release](https://github.com/diana9905454/OronBox/releases)
 - [User documentation](https://oronbox.zxor.org/user)
 - [Developer documentation](https://oronbox.zxor.org/developer)
 - [Report an issue](https://github.com/zxor-org/OronBox/issues)
@@ -38,6 +38,8 @@ OronBox is a cross-platform wearable device management tool that connects to and
 | macOS | ✅ Supported | macOS 12+ |
 | Windows | ✅ Supported | Windows 10+; Xiaomi account 2FA login requires WebView2 |
 | iOS | ❌ Not currently supported | No physical device is available for debugging or testing |
+| Harmonyos | ✅ supported | OH api23+ |
+
 
 ## Supported devices
 
