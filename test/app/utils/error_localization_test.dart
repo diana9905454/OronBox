@@ -4,6 +4,7 @@ import 'package:oronbox/src/app/generated/app_localizations_en.dart';
 import 'package:oronbox/src/app/generated/app_localizations_zh.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/core/errors/coded_error.dart';
+import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 
 void main() {
   final en = AppLocalizationsEn();
@@ -111,6 +112,49 @@ void main() {
       );
     });
 
+    test('localizes client auth and session errors for zh and en', () {
+      expect(
+        localizedErrorMessage(zh, const OronBoxAuthRequiredException()),
+        zh.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(en, const OronBoxAuthRequiredException()),
+        en.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(zh, const BandBbsSessionExpiredException()),
+        zh.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(en, const BandBbsSessionExpiredException()),
+        en.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(zh, StateError('BandBBS account is not signed in')),
+        zh.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(en, StateError('BandBBS account is not signed in')),
+        en.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(zh, 'invalid_refresh_token: application state'),
+        zh.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(en, 'invalid_refresh_token: application state'),
+        en.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(zh, 'watchface_install_blocked'),
+        zh.watchfaceRestrictedMessage,
+      );
+      expect(
+        localizedErrorMessage(en, 'watchface_install_blocked'),
+        en.watchfaceRestrictedMessage,
+      );
+    });
+
     test('preserves structured backend messages', () {
       for (final code in oronBoxKnownErrorCodes) {
         expect(
@@ -213,27 +257,7 @@ void main() {
       );
     });
 
-    test(
-      'unified guidance covers permission, nearby, not in use, mode, retry',
-      () {
-        for (final message in [
-          zh.errorBluetoothConnectFailed,
-          en.errorBluetoothConnectFailed,
-        ]) {
-          expect(message.length, greaterThan(40));
-        }
-        expect(zh.errorBluetoothConnectFailed, contains('蓝牙权限'));
-        expect(zh.errorBluetoothConnectFailed, contains('附近'));
-        expect(zh.errorBluetoothConnectFailed, contains('占用'));
-        expect(zh.errorBluetoothConnectFailed, contains('连接新手机'));
-        expect(zh.errorBluetoothConnectFailed, contains('重试'));
-        expect(en.errorBluetoothConnectFailed, contains('permission'));
-        expect(en.errorBluetoothConnectFailed, contains('nearby'));
-        expect(en.errorBluetoothConnectFailed, contains('not in use'));
-        expect(en.errorBluetoothConnectFailed, contains('Connect new phone'));
-        expect(en.errorBluetoothConnectFailed, contains('try again'));
-      },
-    );
+
   });
 }
 

@@ -84,3 +84,33 @@ flutter {
 dependencies {
     implementation(project(":xms-wearable-lib"))
 }
+
+val normalizeWasmRunReleaseNativeAssets = tasks.register("normalizeWasmRunReleaseNativeAssets") {
+    val nativeAssetsDir = layout.buildDirectory
+        .dir("intermediates/flutter/release/native_assets/jniLibs")
+        .get()
+        .asFile
+
+    dependsOn("compileFlutterBuildRelease")
+
+    doLast {
+        nativeAssetsDir
+            .walkTopDown()
+            .filter { it.isFile && it.name == "libwasm_run_dart.a" }
+            .forEach { archiveNamedLibrary ->
+                val dynamicLibrary = archiveNamedLibrary.resolveSibling("libwasm_run_dart.so")
+                if (dynamicLibrary.exists()) {
+                    dynamicLibrary.delete()
+                }
+                check(archiveNamedLibrary.renameTo(dynamicLibrary)) {
+                    "Unable to normalize ${archiveNamedLibrary.absolutePath}"
+                }
+            }
+    }
+}
+
+tasks.configureEach {
+    if (name == "copyJniLibsflutterBuildRelease") {
+        dependsOn(normalizeWasmRunReleaseNativeAssets)
+    }
+}

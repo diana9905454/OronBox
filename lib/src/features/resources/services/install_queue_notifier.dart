@@ -7,15 +7,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
-import 'package:oronbox/src/daemon/daemon_task_models.dart';
+import 'package:oronbox/src/host/tasks/task_models.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource_codec.dart';
-import 'package:oronbox/src/features/resources/services/daemon_task_feed.dart';
+import 'package:oronbox/src/features/resources/services/host_task_feed.dart';
 import 'package:oronbox/src/features/resources/services/resource_install_service.dart';
 import 'package:oronbox/src/features/resources/services/resource_payload_analyzer.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 export 'package:oronbox/src/features/resources/services/resource_install_service.dart'
     show LocalDeviceInstallType, ResourceTaskStatus;

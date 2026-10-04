@@ -88,6 +88,10 @@ dependencies:
   fl_chart: ^1.2.0
   flutter_timezone: ^5.1.0
   cupertino_ui: ^1.1.1
+  desktop_multi_window: ^0.3.1
+  flutter_map: ^8.3.2
+  latlong2: ^0.10.1
+  geolocator: ^14.1.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -110,6 +114,8 @@ dependency_overrides:
 hooks:
   user_defines:
     wasm_run:
+      buildMode: local
+      localPath: build/native_assets/macos/libwasm_run_dart.dylib
       assetName: wasm_run_dart-dynamic-$target
 
 flutter:

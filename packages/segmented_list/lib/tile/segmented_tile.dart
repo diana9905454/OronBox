@@ -142,6 +142,7 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
   @override
   Widget build(BuildContext context) {
     final settingsTileInfo = SegmentedTileInfo.of(context);
+    final radius = _cardRadius(context);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -149,8 +150,8 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(settingsTileInfo.isTopTile ? 20 : 3),
-            bottom: Radius.circular(settingsTileInfo.isBottomTile ? 20 : 3),
+            top: Radius.circular(settingsTileInfo.isTopTile ? radius : 3),
+            bottom: Radius.circular(settingsTileInfo.isBottomTile ? radius : 3),
           ),
           child: buildTileContent(context),
         ),
@@ -174,6 +175,7 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
   }
 
   Widget buildTitle(BuildContext context) {
+    final theme = Theme.of(context);
     final inheritedTextStyle = DefaultTextStyle.of(context).style;
 
     return Padding(
@@ -187,9 +189,8 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
         children: [
           DefaultTextStyle(
             style: inheritedTextStyle.merge(TextStyle(
-              color: enabled
-                  ? Theme.of(context).colorScheme.onSurface
-                  : Theme.of(context).disabledColor,
+              color:
+                  enabled ? theme.colorScheme.onSurface : theme.disabledColor,
               fontWeight: FontWeight.w600,
               fontSize: 15,
             )),
@@ -200,8 +201,8 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
             DefaultTextStyle(
               style: inheritedTextStyle.merge(TextStyle(
                 color: enabled
-                    ? Theme.of(context).hintColor
-                    : Theme.of(context).disabledColor,
+                    ? theme.colorScheme.onSurfaceVariant
+                    : theme.disabledColor,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               )),
@@ -214,6 +215,7 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
   }
 
   Widget buildTrailing(BuildContext context) {
+    final theme = Theme.of(context);
     final inheritedTextStyle = DefaultTextStyle.of(context).style;
 
     return Row(
@@ -251,9 +253,7 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
               groupValue == radioValue
                   ? Icons.radio_button_checked
                   : Icons.radio_button_unchecked,
-              color: enabled
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).disabledColor,
+              color: enabled ? theme.colorScheme.primary : theme.disabledColor,
             ),
           ),
         if (value != null)
@@ -262,8 +262,8 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
             child: DefaultTextStyle(
               style: inheritedTextStyle.merge(TextStyle(
                 color: enabled
-                    ? Theme.of(context).hintColor
-                    : Theme.of(context).disabledColor,
+                    ? theme.colorScheme.onSurfaceVariant
+                    : theme.disabledColor,
                 fontWeight: FontWeight.w500,
                 fontSize: 13,
               )),
@@ -315,5 +315,13 @@ class SegmentedTile<T> extends AbstractSegmentedTile {
         ),
       ),
     );
+  }
+
+  double _cardRadius(BuildContext context) {
+    final shape = Theme.of(context).cardTheme.shape;
+    if (shape is RoundedRectangleBorder) {
+      return shape.borderRadius.resolve(TextDirection.ltr).topLeft.x;
+    }
+    return Theme.of(context).useMaterial3 ? 16 : 10;
   }
 }

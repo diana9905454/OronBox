@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
@@ -352,7 +353,7 @@ class CreatorResourceCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       color: selected
-          ? colors.primaryContainer.withValues(alpha: .72)
+          ? context.appSelectionContainer.withValues(alpha: .72)
           : colors.surfaceContainerHighest.withValues(alpha: .5),
       margin: EdgeInsets.zero,
       child: InkWell(
@@ -475,9 +476,8 @@ class CreatorResourceCard extends StatelessWidget {
                     '${l10n.reviewNote}: $note',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colors.error),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: colors.error),
                   ),
                 ),
             ],

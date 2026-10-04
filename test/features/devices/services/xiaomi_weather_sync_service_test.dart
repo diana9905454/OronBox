@@ -3,11 +3,11 @@ import 'dart:ui' show Locale;
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/device/xiaomi/components/info_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
 import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart';
 import 'package:oronbox/src/features/devices/services/xiaomi_air_quality.dart';
 import 'package:oronbox/src/features/devices/services/xiaomi_weather_sync_service.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_common.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_common.pb.dart'
     as pb_common;
 
 void main() {

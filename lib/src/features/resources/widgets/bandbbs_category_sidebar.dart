@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/data/bandbbs/bandbbs_resource_provider.dart';
 import 'package:oronbox/src/features/resources/application/resource_catalog_providers.dart';
 import 'package:oronbox/src/features/resources/controllers/resource_filter_controller.dart';
@@ -164,7 +165,7 @@ class _CategoryTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 2),
       child: Material(
-        color: selected ? color.primaryContainer : Colors.transparent,
+        color: selected ? context.appSelectionContainer : Colors.transparent,
         borderRadius: BorderRadius.circular(8),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -185,7 +186,7 @@ class _CategoryTile extends StatelessWidget {
                             : Icons.chevron_right,
                         size: 18,
                         color: selected
-                            ? color.onPrimaryContainer
+                            ? context.appSelectionForeground
                             : color.onSurfaceVariant,
                       ),
                     ),
@@ -199,7 +200,7 @@ class _CategoryTile extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: selected
-                          ? color.onPrimaryContainer
+                          ? context.appSelectionForeground
                           : color.onSurface,
                       fontWeight: selected ? FontWeight.w700 : null,
                     ),
@@ -210,7 +211,7 @@ class _CategoryTile extends StatelessWidget {
                     _formatCount(count!),
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: selected
-                          ? color.onPrimaryContainer
+                          ? context.appSelectionForeground
                           : color.onSurfaceVariant,
                     ),
                   ),

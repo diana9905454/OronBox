@@ -8,6 +8,7 @@
 #include "classic_spp_channel.h"
 #include "file_open_channel.h"
 #include "flutter/generated_plugin_registrant.h"
+#include "desktop_multi_window/desktop_multi_window_plugin.h"
 #include "mi_account_2fa_channel.h"
 #include "window_setup.h"
 #include "zeppos_app_settings_channel.h"
@@ -100,6 +101,9 @@ static void my_application_activate(GApplication* application) {
   gtk_widget_realize(GTK_WIDGET(view));
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
+  desktop_multi_window_plugin_set_window_created_callback([](FlPluginRegistry* registry) {
+    fl_register_plugins(registry);
+  });
   classic_spp_channel_register(fl_engine_get_binary_messenger(fl_view_get_engine(view)));
   file_open_channel_register(fl_engine_get_binary_messenger(fl_view_get_engine(view)));
   mi_account_2fa_channel_register(

@@ -667,36 +667,32 @@ class _CreatorCreateWizardState extends ConsumerState<CreatorCreateWizard> {
                 .clamp(0, double.infinity)
                 .toDouble(),
           ),
-          child: SegmentedList(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            sections: [
-              SegmentedSection(
-                tiles: [
-                  SegmentedTile.navigation(
-                    leading: const Icon(Icons.add_box_outlined),
-                    title: Text(l10n.creatorNewResource),
-                    description: Text(l10n.creatorNewResourceDescription),
-                    trailing: const Icon(Icons.chevron_right),
-                    onPressed: (_) => _chooseAction(_WizardAction.resource),
-                  ),
-                  SegmentedTile.navigation(
-                    leading: const Icon(Icons.collections_bookmark_outlined),
-                    title: Text(l10n.creatorNewCollection),
-                    description: Text(l10n.creatorNewCollectionDescription),
-                    trailing: const Icon(Icons.chevron_right),
-                    onPressed: (_) => _chooseAction(_WizardAction.collection),
-                  ),
-                  SegmentedTile.navigation(
-                    leading: const Icon(Icons.input_outlined),
-                    title: Text(l10n.creatorImportExternal),
-                    description: Text(l10n.creatorImportExternalDescription),
-                    trailing: const Icon(Icons.chevron_right),
-                    onPressed: (_) => _chooseAction(_WizardAction.import),
-                  ),
-                ],
-              ),
-            ],
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _ActionCard(
+                  icon: Icons.add_box_outlined,
+                  title: l10n.creatorNewResource,
+                  description: l10n.creatorNewResourceDescription,
+                  onTap: () => _chooseAction(_WizardAction.resource),
+                ),
+                const SizedBox(height: 12),
+                _ActionCard(
+                  icon: Icons.collections_bookmark_outlined,
+                  title: l10n.creatorNewCollection,
+                  description: l10n.creatorNewCollectionDescription,
+                  onTap: () => _chooseAction(_WizardAction.collection),
+                ),
+                const SizedBox(height: 12),
+                _ActionCard(
+                  icon: Icons.input_outlined,
+                  title: l10n.creatorImportExternal,
+                  description: l10n.creatorImportExternalDescription,
+                  onTap: () => _chooseAction(_WizardAction.import),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -1145,4 +1141,55 @@ class _ImportLogEntry {
 
   final _ImportLogLevel level;
   final String message;
+}
+
+class _ActionCard extends StatelessWidget {
+  const _ActionCard({
+    required this.icon,
+    required this.title,
+    required this.description,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String description;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: colors.surfaceContainerHigh,
+      borderRadius: BorderRadius.circular(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Row(
+            children: [
+              Icon(icon, size: 28, color: colors.primary),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodyMedium
+                          ?.copyWith(color: colors.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: colors.onSurfaceVariant),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

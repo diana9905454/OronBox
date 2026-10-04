@@ -3,18 +3,14 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/oronbox_app.dart';
-import 'package:oronbox/src/app/window/desktop_window_bootstrap.dart';
-import 'package:oronbox/src/app/window/debug_window_preference.dart';
-import 'package:oronbox/src/app/window/window_launch_spec.dart';
-import 'package:oronbox/src/app/window/window_launcher.dart';
-import 'package:oronbox/src/cli/cli_entrypoint.dart';
+import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/logging/diagnostic_event.dart';
 import 'package:oronbox/src/core/services/license_registry_service.dart';
 import 'package:oronbox/src/core/services/bluetooth_permission_bootstrap.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/host/gui_host_overrides.dart';
-import 'package:oronbox/src/features/devices/widgets/device_deep_link_handler.dart';
+import 'package:oronbox/src/app/integrations/app_link_handler.dart';
 import 'package:oronbox/src/features/debug/pages/debug_window_app.dart';
 import 'package:oronbox/src/features/plugins/pages/plugin_window_app.dart';
 
@@ -25,17 +21,11 @@ void main(List<String> args) async {
   final process = switch (window.role) {
     OronBoxWindowRole.debug => DiagnosticProcess.debugWindow,
     OronBoxWindowRole.plugin => DiagnosticProcess.pluginWindow,
-    OronBoxWindowRole.main =>
-      args.contains('--nogui')
-          ? args.contains('daemon') && args.contains('run')
-                ? DiagnosticProcess.backend
-                : DiagnosticProcess.cli
-          : DiagnosticProcess.frontend,
+    OronBoxWindowRole.main => DiagnosticProcess.frontend,
   };
   await initLogging(arguments: args, process: process);
   installGlobalErrorLogging();
   await SharedPrefsService.instance.init();
-  await runCliIfRequested(args);
   if (!await initializeWindowCoordinator(window, launchArguments: args)) return;
   if (window.role == OronBoxWindowRole.main) {
     await requestBluetoothPermissionOnStartup();

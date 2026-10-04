@@ -962,6 +962,13 @@
   "settingsMiAccountLoginWindowClosed": "The login window was closed",
   "settingsMiAccountSyncedDevices": "Synced {count} Mi devices",
   "xiaomiAccountRequiredForEphemeris": "Sign in to your Xiaomi account before syncing ephemeris data",
+  "xiaomiWifiPasswordRequestTitle": "Wi-Fi connection request",
+  "xiaomiWifiPasswordRequestMessage": "The device is requesting a connection to “{ssid}”.",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "@settingsMiAccountSyncedDevices": {
     "placeholders": {
       "count": {
@@ -1012,6 +1019,11 @@
   "settingsOledDark": "OLED dark",
   "settingsThemeMode": "Theme mode",
   "settingsThemeModeDesc": "Change app theme appearance",
+  "settingsThemePreset": "Theme style",
+  "settingsThemePresetDesc": "Choose the app's visual style",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "Dynamic color",
   "settingsDynamicColorDesc": "Use system accent colors for the app theme",
   "settingsColorScheme": "Color scheme",
@@ -1208,6 +1220,8 @@
   "resourceTypeUnknownTitle": "Unrecognized resource type",
   "resourceTypeUnknownNoType": "OronBox cannot identify the resource type of this file; it may be corrupted",
   "resourceTypeUnknownCancel": "Cancel",
+  "watchfaceRestrictedTitle": "Cannot Install Resource",
+  "watchfaceRestrictedMessage": "To respect intellectual property and comply with relevant policies, at the request of Xiaomi,\nOronBox cannot install watchfaces suspected of being from the official watchface store.\nIf you believe this is a false positive, please have the watchface author contact us.",
   "resourceTypeMismatchMessage": "This appears to be a {detectedType} resource, but you selected {selectedType}. Choose how to install it",
   "@resourceTypeMismatchMessage": {
     "placeholders": {
@@ -1816,6 +1830,16 @@
   "deviceHealthSleepStages": "Sleep stages",
   "deviceHealthSleepHrv": "Sleep HRV",
   "deviceHealthSleepAwake": "Awake",
+  "deviceHealthSleepWakeCount": "{count, plural, =1{1 time} other{{count} times}}",
+  "@deviceHealthSleepWakeCount": {
+    "description": "Number of times woken up during sleep",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "Light",
   "deviceHealthSleepDeep": "Deep",
   "deviceHealthSleepRem": "REM",
@@ -2062,6 +2086,15 @@
   "deviceHealthWorkoutJumpRope": "Jump rope",
   "deviceHealthWorkoutHiking": "Hiking",
   "deviceHealthWorkoutGeneric": "Workout",
+  "deviceHealthWorkoutExport": "Export FIT",
+  "deviceHealthWorkoutExported": "FIT exported to {path}",
+  "deviceHealthWorkoutExportFailed": "Could not export FIT: {error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {"path": {}}
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {"error": {}}
+  },
   "deviceHealthStrokeMedley": "Medley",
   "deviceHealthStrokeBreaststroke": "Breaststroke",
   "deviceHealthStrokeFreestyle": "Freestyle",

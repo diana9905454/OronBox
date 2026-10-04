@@ -13,3 +13,11 @@ abstract final class StyleConstants {
   static const Radius imgRadius = Radius.circular(12);
   static const double aspectRatio = 16 / 10;
 }
+
+double cardRadiusFor(BuildContext context) {
+  final shape = Theme.of(context).cardTheme.shape;
+  if (shape is RoundedRectangleBorder) {
+    return shape.borderRadius.resolve(TextDirection.ltr).topLeft.x;
+  }
+  return StyleConstants.cardRadius;
+}

@@ -2004,6 +2004,14 @@ class AppLocalizationsJa extends AppLocalizations {
       'Xiaomiアカウントにサインインしてからエフェメリスデータを同期してください';
 
   @override
+  String get xiaomiWifiPasswordRequestTitle => 'Wi-Fi 接続リクエスト';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return 'デバイスが Wi-Fi ネットワーク「$ssid」への接続を要求しています。';
+  }
+
+  @override
   String get settingsHuamiAccount => 'Amazfitアカウント';
 
   @override
@@ -2134,6 +2142,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get settingsThemeModeDesc => 'アプリのテーマ表示を変更';
+
+  @override
+  String get settingsThemePreset => 'テーマスタイル';
+
+  @override
+  String get settingsThemePresetDesc => 'アプリのビジュアルスタイルを選択';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
 
   @override
   String get settingsDynamicColor => 'ダイナミックカラー';
@@ -2553,6 +2576,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get resourceTypeUnknownCancel => 'キャンセル';
+
+  @override
+  String get watchfaceRestrictedTitle => 'インストールできないリソース';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      '知的財産権の尊重および関連ポリシーの遵守のため、Xiaomi社からの要請に基づき、\nOronBoxは公式ウォッチフェイスストアからのものである可能性が高いウォッチフェイスをインストールできません。\nこれが誤検出と思われる場合は、ウォッチフェイスの作成者からご連絡ください。';
 
   @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
@@ -3785,6 +3815,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceHealthSleepAwake => '覚醒';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString 回';
+  }
+
+  @override
   String get deviceHealthSleepLight => '浅い睡眠';
 
   @override
@@ -4405,6 +4445,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deviceHealthWorkoutGeneric => 'ワークアウト';
+
+  @override
+  String get deviceHealthWorkoutExport => 'FITを書き出す';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FITを書き出しました：$path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return 'FITの書き出しに失敗しました：$error';
+  }
 
   @override
   String get deviceHealthStrokeMedley => 'メドレー';

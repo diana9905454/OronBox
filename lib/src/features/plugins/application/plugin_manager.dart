@@ -11,6 +11,7 @@ import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/services/build_info_service.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
+import 'package:oronbox/src/features/plugins/domain/plugin_execution_models.dart';
 import 'package:oronbox/src/features/plugins/domain/plugin_package.dart';
 import 'package:oronbox/src/features/plugins/domain/plugin_permission.dart';
 import 'package:oronbox/src/features/plugins/legacy/astrobox_legacy_adapter.dart';
@@ -23,6 +24,8 @@ import 'package:oronbox/src/features/plugins/runtime/plugin_wasm_host.dart';
 import 'package:oronbox/src/features/plugins/storage/plugin_storage.dart';
 import 'package:oronbox/src/features/plugins/storage/plugin_storage_factory.dart';
 import 'package:oronbox/src/features/resources/services/resource_install_service.dart';
+
+export 'package:oronbox/src/features/plugins/domain/plugin_execution_models.dart';
 
 class PluginManager {
   PluginManager({
@@ -2056,49 +2059,6 @@ class PluginManager {
     _dio.close(force: true);
     await (await _storage).close();
   }
-}
-
-class PluginExecutionFailure {
-  const PluginExecutionFailure({
-    required this.pluginId,
-    required this.pluginName,
-    required this.phase,
-    required this.message,
-    required this.occurredAt,
-  });
-
-  final String pluginId;
-  final String pluginName;
-  final String phase;
-  final String message;
-  final DateTime occurredAt;
-
-  Map<String, Object?> toJson() => {
-    'pluginId': pluginId,
-    'pluginName': pluginName,
-    'phase': phase,
-    'message': message,
-    'occurredAt': occurredAt.toIso8601String(),
-  };
-}
-
-class PluginExecutionException implements Exception {
-  const PluginExecutionException(this.pluginId, this.pluginName, this.message);
-
-  factory PluginExecutionException.fromFailure(
-    PluginExecutionFailure failure,
-  ) => PluginExecutionException(
-    failure.pluginId,
-    failure.pluginName,
-    failure.message,
-  );
-
-  final String pluginId;
-  final String pluginName;
-  final String message;
-
-  @override
-  String toString() => '$pluginName: $message';
 }
 
 class _PluginZmlAttachment {

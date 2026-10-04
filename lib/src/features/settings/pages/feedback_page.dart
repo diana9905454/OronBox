@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
@@ -460,7 +461,9 @@ class _MessageBubble extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(16, 5, 16, 5),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: mine ? colors.primaryContainer : colors.surfaceContainerHigh,
+          color: mine
+              ? context.appSelectionContainer
+              : colors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -500,7 +503,7 @@ class _TicketStatus extends StatelessWidget {
         l10n.feedbackReplied,
         Theme.of(context).colorScheme.secondary,
       ),
-      'resolved' => (l10n.feedbackResolved, Colors.green),
+      'resolved' => (l10n.feedbackResolved, context.appColors.success),
       'dismissed' => (
         l10n.feedbackDismissed,
         Theme.of(context).colorScheme.error,

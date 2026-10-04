@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/horizontal_scroller.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
@@ -280,9 +281,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: .5,
-                  ),
+                  color: context.appSelectionContainer.withValues(alpha: .5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -1095,7 +1094,7 @@ class _ActionsState extends ConsumerState<_Actions> {
             ? null
             : _formatResourceFileSize(preferredFileSize);
         final foreground = canInstall
-            ? color.onPrimaryContainer
+            ? context.appSelectionForeground
             : color.onSurface.withValues(alpha: .38);
         final buttonWidth = expand ? double.infinity : 200.0;
         final installButton = files.isEmpty
@@ -1126,7 +1125,7 @@ class _ActionsState extends ConsumerState<_Actions> {
                     borderRadius: BorderRadius.circular(16),
                     child: Material(
                       color: canInstall
-                          ? color.primaryContainer
+                          ? context.appSelectionContainer
                           : color.onSurface.withValues(alpha: .08),
                       child: SizedBox(
                         height: sizeLabel == null ? 48 : 58,
@@ -1188,10 +1187,10 @@ class _ActionsState extends ConsumerState<_Actions> {
                     minimumSize: const Size.fromHeight(48),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.centerLeft,
-                    backgroundColor: color.primaryContainer.withValues(
+                    backgroundColor: context.appSelectionContainer.withValues(
                       alpha: .58,
                     ),
-                    foregroundColor: color.onPrimaryContainer,
+                    foregroundColor: context.appSelectionForeground,
                   ),
                 ),
               );
@@ -1421,7 +1420,7 @@ class _Compatibility extends StatelessWidget {
         .where((value) => value.isNotEmpty)
         .toSet();
     final color = Theme.of(context).colorScheme;
-    final statusColor = compatible ? Colors.green : color.error;
+    final statusColor = compatible ? context.appColors.success : color.error;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1471,7 +1470,7 @@ class _Compatibility extends StatelessWidget {
                   ),
                 ),
                 backgroundColor: selected
-                    ? color.primaryContainer
+                    ? context.appSelectionContainer
                     : color.surfaceContainerHighest,
                 side: BorderSide.none,
                 visualDensity: VisualDensity.compact,

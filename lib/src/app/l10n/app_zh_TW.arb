@@ -1193,6 +1193,13 @@
   "settingsMiAccountLoginWindowClosed": "登入視窗已關閉",
   "settingsMiAccountSyncedDevices": "已同步 {count} 部 Mi 裝置",
   "xiaomiAccountRequiredForEphemeris": "尚未登入 Xiaomi 帳號，請先登入後再同步星曆",
+  "xiaomiWifiPasswordRequestTitle": "Wi-Fi 連線要求",
+  "xiaomiWifiPasswordRequestMessage": "裝置要求連線至 Wi-Fi 網路「{ssid}」",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "settingsHuamiAccount": "Amazfit帳號",
   "settingsHuamiAccountDesc": "登入並儲存存取 Zepp 商店所需的憑證",
   "settingsHuamiAccountSigningIn": "登入中",
@@ -1236,6 +1243,11 @@
   "settingsOledDark": "OLED 深色",
   "settingsThemeMode": "主題模式",
   "settingsThemeModeDesc": "變更應用程式主題外觀",
+  "settingsThemePreset": "主題風格",
+  "settingsThemePresetDesc": "選擇應用程式的視覺風格",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "動態色彩",
   "settingsDynamicColorDesc": "使用系統強調色作為應用程式主題色",
   "settingsColorScheme": "色彩配置",
@@ -1362,8 +1374,10 @@
   "devToolsOperationFailed": "無法變更 DevTools 狀態",
   "resourceTypeErrorTitle": "資源類型錯誤",
   "resourceTypeUnknownTitle": "無法辨識的資源類型",
-  "resourceTypeUnknownNoType": "OronBox 無法辨識此檔案的資源類型，此檔案似乎已損壞",
+  "resourceTypeUnknownNoType": "OronBox 無法辨識此檔案的資源類型\n此檔案似乎已損壞",
   "resourceTypeUnknownCancel": "取消",
+  "watchfaceRestrictedTitle": "無法安裝的資源",
+  "watchfaceRestrictedMessage": "為尊重智慧財產權及遵守相關政策，應小米方面要求\nOronBox 無法安裝疑似來自官方錶盤商城的錶盤\n如果你認為這是一個誤報，請讓錶盤作者聯繫我們",
   "resourceTypeMismatchMessage": "此檔案看起來是 {detectedType} 資源，但你選取了 {selectedType}。請選擇安裝方式",
   "resourcePlatformMismatchMessage": "此檔案看起來是適用於 {resourcePlatform} 裝置的 {resourceType} 資源，但目前連線的裝置是 {deviceName}（{devicePlatform}）。不支援此資源，強制安裝可能造成問題",
   "resourceTypeUnknownMessage": "OronBox 無法辨識實際的資源類型。仍要以 {selectedType} 安裝嗎？",
@@ -1714,6 +1728,16 @@
   "deviceHealthSleepStages": "睡眠階段",
   "deviceHealthSleepHrv": "睡眠 HRV",
   "deviceHealthSleepAwake": "清醒",
+  "deviceHealthSleepWakeCount": "{count} 次",
+  "@deviceHealthSleepWakeCount": {
+    "description": "睡眠清醒次數",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "淺睡",
   "deviceHealthSleepDeep": "深睡",
   "deviceHealthSleepRem": "REM",
@@ -1876,6 +1900,15 @@
   "deviceHealthWorkoutJumpRope": "跳繩",
   "deviceHealthWorkoutHiking": "徒步",
   "deviceHealthWorkoutGeneric": "運動",
+  "deviceHealthWorkoutExport": "匯出 FIT",
+  "deviceHealthWorkoutExported": "FIT 已匯出至 {path}",
+  "deviceHealthWorkoutExportFailed": "無法匯出 FIT：{error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {"path": {}}
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {"error": {}}
+  },
   "deviceHealthStrokeMedley": "混合泳",
   "deviceHealthStrokeBreaststroke": "蛙泳",
   "deviceHealthStrokeFreestyle": "自由泳",

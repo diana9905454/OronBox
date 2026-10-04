@@ -956,6 +956,13 @@
   "settingsMiAccountLoginWindowClosed": "登录窗口已关闭",
   "settingsMiAccountSyncedDevices": "已同步 {count} 台小米设备",
   "xiaomiAccountRequiredForEphemeris": "未登录小米账号，请先登录后再同步星历",
+  "xiaomiWifiPasswordRequestTitle": "Wi-Fi 连接请求",
+  "xiaomiWifiPasswordRequestMessage": "设备请求连接 Wi-Fi 网络“{ssid}”",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "@settingsMiAccountSyncedDevices": {
     "placeholders": {
       "count": {
@@ -1006,6 +1013,11 @@
   "settingsOledDark": "OLED 深色",
   "settingsThemeMode": "主题模式",
   "settingsThemeModeDesc": "更改应用主题外观",
+  "settingsThemePreset": "主题风格",
+  "settingsThemePresetDesc": "选择应用的视觉风格",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "动态取色",
   "settingsDynamicColorDesc": "使用系统主题色调整应用配色",
   "settingsColorScheme": "配色方案",
@@ -1200,8 +1212,10 @@
   "devToolsOperationFailed": "无法更改 DevTools 状态",
   "resourceTypeErrorTitle": "错误的资源类型",
   "resourceTypeUnknownTitle": "无法识别的资源类型",
-  "resourceTypeUnknownNoType": "OronBox 无法识别此文件的资源类型，该文件似乎已损坏",
+  "resourceTypeUnknownNoType": "OronBox 无法识别此文件的资源类型\n该文件似乎已损坏",
   "resourceTypeUnknownCancel": "取消",
+  "watchfaceRestrictedTitle": "无法安装的资源",
+  "watchfaceRestrictedMessage": "为尊重知识产权及遵守相关政策，应小米方面要求\nOronBox 无法安装疑似来自官方表盘商城的表盘\n如果你认为这是一个误报，请让表盘作者联系我们",
   "resourceTypeMismatchMessage": "这似乎是一个{detectedType}资源，但您选择的资源类型为{selectedType}，请选择安装方式",
   "@resourceTypeMismatchMessage": {
     "placeholders": {
@@ -1816,6 +1830,16 @@
   "deviceHealthSleepStages": "睡眠阶段",
   "deviceHealthSleepHrv": "睡眠 HRV",
   "deviceHealthSleepAwake": "清醒",
+  "deviceHealthSleepWakeCount": "{count} 次",
+  "@deviceHealthSleepWakeCount": {
+    "description": "睡眠清醒次数",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "浅睡",
   "deviceHealthSleepDeep": "深睡",
   "deviceHealthSleepRem": "REM",
@@ -2028,6 +2052,15 @@
   "deviceHealthWorkoutJumpRope": "跳绳",
   "deviceHealthWorkoutHiking": "徒步",
   "deviceHealthWorkoutGeneric": "运动",
+  "deviceHealthWorkoutExport": "导出 FIT",
+  "deviceHealthWorkoutExported": "FIT 已导出至 {path}",
+  "deviceHealthWorkoutExportFailed": "无法导出 FIT：{error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {"path": {}}
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {"error": {}}
+  },
   "deviceHealthStrokeMedley": "混合泳",
   "deviceHealthStrokeBreaststroke": "蛙泳",
   "deviceHealthStrokeFreestyle": "自由泳",

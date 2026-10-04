@@ -273,6 +273,8 @@
 	<string>This app uses Bluetooth to scan, connect, and communicate with wearable devices.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>This app uses Bluetooth to communicate with wearable devices.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>OronBox uses your location to assist the connected wearable device with faster GPS acquisition (GNSS assistance data).</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

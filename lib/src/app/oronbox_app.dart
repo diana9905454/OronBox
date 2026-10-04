@@ -2,15 +2,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:oronbox/src/app/router/app_router.dart';
-import 'package:oronbox/src/app/window/desktop_window_host.dart';
+import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/theme/system_accent_color.dart';
 import 'package:oronbox/src/app/app_localizations_delegates.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/core/providers/theme_locale_providers.dart';
 import 'package:oronbox/src/features/devices/services/xiaomi_automatic_sync_service.dart';
-import 'package:oronbox/src/features/devices/widgets/device_deep_link_handler.dart';
-import 'package:oronbox/src/features/devices/widgets/file_open_handler.dart';
+import 'package:oronbox/src/app/integrations/app_link_handler.dart';
+import 'package:oronbox/src/app/integrations/file_open_handler.dart';
 import 'package:oronbox/src/features/devices/widgets/xms_wearable_bridge.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_host_request_handler.dart';
 import 'package:oronbox/src/features/settings/services/update_check_service.dart';
@@ -67,7 +67,7 @@ class OronBoxApp extends ConsumerWidget {
                   child: UpdateCheckHandler(
                     child: FileOpenHandler(
                       child: XiaomiAutomaticSyncScheduler(
-                        child: DeviceDeepLinkHandler(
+                        child: AppLinkHandler(
                           child: child ?? const SizedBox.shrink(),
                         ),
                       ),

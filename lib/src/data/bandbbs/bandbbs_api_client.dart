@@ -183,7 +183,7 @@ class BandBbsApiClient {
   Future<Options> _authOptions() async {
     final token = await auth.refreshIfNeeded();
     if (token == null) {
-      throw StateError('BandBBS account is not signed in');
+      throw const OronBoxAuthRequiredException();
     }
     return Options(headers: {'Authorization': 'Bearer ${token.accessToken}'});
   }
@@ -204,8 +204,29 @@ class BandBbsApiClient {
       if (error.response?.statusCode != 401 || !expireSessionOnUnauthorized) {
         rethrow;
       }
-      // The token was rejected: the credential is dead everywhere, wipe it
-      // and propagate instead of leaving UI gated on a stale login.
+      // Access token was rejected (401). Try to refresh the token first!
+      try {
+        final refreshed = await auth.refreshIfNeeded(forceRefresh: true);
+        if (refreshed != null) {
+          try {
+            return await request();
+          } on DioException catch (retryError) {
+            if (retryError.response?.statusCode != 401) {
+              rethrow;
+            }
+          }
+        }
+      } catch (refreshError) {
+        try {
+          await auth.expireSession();
+        } catch (_) {}
+        try {
+          await onSessionExpired?.call();
+        } catch (_) {}
+        rethrow;
+      }
+      // The token was rejected and refresh failed: the credential is dead everywhere,
+      // wipe it and propagate instead of leaving UI gated on a stale login.
       try {
         await auth.expireSession();
       } catch (_) {}

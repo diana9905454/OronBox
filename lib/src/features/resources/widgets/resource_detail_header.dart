@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
@@ -107,7 +108,7 @@ class ResourceDetailHeader extends ConsumerWidget {
                         _Chip(
                           label: _paidLabel(l10n, resource.paidType),
                           color: resource.paidType == CommunityPaidType.free
-                              ? Colors.green
+                              ? context.appColors.success
                               : theme.colorScheme.tertiary,
                         ),
                       if (resource.ref.source == CommunitySourceId.bandbbs ||
@@ -190,9 +191,7 @@ class _Hero extends StatelessWidget {
       Positioned.fill(
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: Theme.of(
-              context,
-            ).colorScheme.primaryContainer.withValues(alpha: .22),
+            color: context.appSelectionContainer.withValues(alpha: .22),
           ),
         ),
       ),

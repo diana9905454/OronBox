@@ -1994,6 +1994,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get xiaomiAccountRequiredForEphemeris => '未登录小米账号，请先登录后再同步星历';
 
   @override
+  String get xiaomiWifiPasswordRequestTitle => 'Wi-Fi 连接请求';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return '设备请求连接 Wi-Fi 网络“$ssid”';
+  }
+
+  @override
   String get settingsHuamiAccount => '华米账号';
 
   @override
@@ -2121,6 +2129,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settingsThemeModeDesc => '更改应用主题外观';
+
+  @override
+  String get settingsThemePreset => '主题风格';
+
+  @override
+  String get settingsThemePresetDesc => '选择应用的视觉风格';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
 
   @override
   String get settingsDynamicColor => '动态取色';
@@ -2528,10 +2551,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get resourceTypeUnknownTitle => '无法识别的资源类型';
 
   @override
-  String get resourceTypeUnknownNoType => 'OronBox 无法识别此文件的资源类型，该文件似乎已损坏';
+  String get resourceTypeUnknownNoType => 'OronBox 无法识别此文件的资源类型\n该文件似乎已损坏';
 
   @override
   String get resourceTypeUnknownCancel => '取消';
+
+  @override
+  String get watchfaceRestrictedTitle => '无法安装的资源';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      '为尊重知识产权及遵守相关政策，应小米方面要求\nOronBox 无法安装疑似来自官方表盘商城的表盘\n如果你认为这是一个误报，请让表盘作者联系我们';
 
   @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
@@ -3754,6 +3784,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceHealthSleepAwake => '清醒';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString 次';
+  }
+
+  @override
   String get deviceHealthSleepLight => '浅睡';
 
   @override
@@ -4365,6 +4405,19 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get deviceHealthWorkoutGeneric => '运动';
+
+  @override
+  String get deviceHealthWorkoutExport => '导出 FIT';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FIT 已导出至 $path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return '无法导出 FIT：$error';
+  }
 
   @override
   String get deviceHealthStrokeMedley => '混合泳';
@@ -6627,6 +6680,14 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get xiaomiAccountRequiredForEphemeris => '尚未登入 Xiaomi 帳號，請先登入後再同步星曆';
 
   @override
+  String get xiaomiWifiPasswordRequestTitle => 'Wi-Fi 連線要求';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return '裝置要求連線至 Wi-Fi 網路「$ssid」';
+  }
+
+  @override
   String get settingsHuamiAccount => 'Amazfit帳號';
 
   @override
@@ -6754,6 +6815,21 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get settingsThemeModeDesc => '變更應用程式主題外觀';
+
+  @override
+  String get settingsThemePreset => '主題風格';
+
+  @override
+  String get settingsThemePresetDesc => '選擇應用程式的視覺風格';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
 
   @override
   String get settingsDynamicColor => '動態色彩';
@@ -7163,10 +7239,17 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get resourceTypeUnknownTitle => '無法辨識的資源類型';
 
   @override
-  String get resourceTypeUnknownNoType => 'OronBox 無法辨識此檔案的資源類型，此檔案似乎已損壞';
+  String get resourceTypeUnknownNoType => 'OronBox 無法辨識此檔案的資源類型\n此檔案似乎已損壞';
 
   @override
   String get resourceTypeUnknownCancel => '取消';
+
+  @override
+  String get watchfaceRestrictedTitle => '無法安裝的資源';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      '為尊重智慧財產權及遵守相關政策，應小米方面要求\nOronBox 無法安裝疑似來自官方錶盤商城的錶盤\n如果你認為這是一個誤報，請讓錶盤作者聯繫我們';
 
   @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
@@ -8322,6 +8405,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get deviceHealthSleepAwake => '清醒';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString 次';
+  }
+
+  @override
   String get deviceHealthSleepLight => '淺睡';
 
   @override
@@ -8677,6 +8770,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get deviceHealthWorkoutGeneric => '運動';
+
+  @override
+  String get deviceHealthWorkoutExport => '匯出 FIT';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FIT 已匯出至 $path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return '無法匯出 FIT：$error';
+  }
 
   @override
   String get deviceHealthStrokeMedley => '混合泳';

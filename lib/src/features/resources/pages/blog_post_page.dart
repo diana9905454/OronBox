@@ -15,9 +15,14 @@ import 'package:oronbox/src/data/oronbox/oronbox_home_api.dart';
 import 'package:oronbox/src/features/resources/application/home_providers.dart';
 import 'package:oronbox/src/features/resources/application/resource_catalog_providers.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
-import 'package:oronbox/src/features/resources/widgets/blog_labels.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_external_link.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_media_hero.dart';
+
+String blogTypeLabel(AppLocalizations l10n, String type) => switch (type) {
+  'recommendation' => l10n.blogTypeRecommendation,
+  'docs' => l10n.blogTypeDocs,
+  _ => l10n.blogTypeAnnouncement,
+};
 
 class BlogPostPage extends ConsumerWidget {
   const BlogPostPage({super.key, required this.slug, this.preview});

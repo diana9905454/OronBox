@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/core/logging/diagnostic_event.dart';
 
 class DebugConsole extends StatefulWidget {
@@ -61,7 +62,7 @@ class _DebugConsoleState extends State<DebugConsole> {
     for (final record in widget.records) {
       final color = switch (record.level.name) {
         'SEVERE' => scheme.error,
-        'WARNING' => Colors.orange,
+        'WARNING' => context.appColors.warning,
         _ => scheme.onSurface,
       };
       final line = StringBuffer()

@@ -1,7 +1,8 @@
-import 'dart:typed_data';
-
 import 'package:cross_file/cross_file.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
+
+bool get shouldLoadPickedFileData => kIsWeb;
 
 /// The small piece of file-picker state the app needs after selection.
 ///

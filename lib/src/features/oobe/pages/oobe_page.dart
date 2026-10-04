@@ -11,7 +11,6 @@ import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/app_icon.dart';
 import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
-import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
@@ -21,7 +20,6 @@ import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/accounts/services/mi_account_two_factor_resolver.dart';
 import 'package:oronbox/src/features/oobe/oobe_state.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
-import 'package:oronbox/src/host/application_host_provider.dart';
 
 /// First-run experience: welcome → terms → privacy → optional account sign-in
 /// → done. Uses PageView for smooth animated transitions and Material 3
@@ -68,11 +66,6 @@ class _OobePageState extends ConsumerState<OobePage> {
 
   Future<void> _decline() async {
     if (canExitApp) {
-      try {
-        await ref
-            .read(applicationHostProvider)
-            .execute(const OronBoxCommand(method: 'daemon.stop'));
-      } catch (_) {}
       exitApp();
       return;
     }

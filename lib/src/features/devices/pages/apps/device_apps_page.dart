@@ -8,8 +8,8 @@ import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/device/zeppos/app_side/zeppos_app_side_storage.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
-import 'package:oronbox/src/features/devices/pages/more/zeppos_setting_viewer_page.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/features/devices/pages/tools/zeppos_setting_viewer_page.dart';
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 class DeviceAppsPage extends ConsumerStatefulWidget {
   const DeviceAppsPage({super.key});

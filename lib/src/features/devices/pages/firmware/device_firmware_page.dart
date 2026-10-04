@@ -13,7 +13,6 @@ import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/device/core/device_kind.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
-import 'package:oronbox/src/features/devices/pages/install/local_file_picker_policy.dart';
 import 'package:oronbox/src/features/devices/services/firmware_catalog.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
 import 'package:oronbox/src/features/resources/services/download_queue_notifier.dart';

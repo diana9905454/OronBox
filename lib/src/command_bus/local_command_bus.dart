@@ -15,7 +15,7 @@ import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/device/core/connect_type.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/watchface_install_policy.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/data/bandbbs/bandbbs_resource_provider.dart';
 import 'package:oronbox/src/data/huami/huami_app_store_resource_provider.dart';
@@ -39,8 +39,8 @@ import 'package:oronbox/src/features/resources/domain/community_resource.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource_codec.dart';
 import 'package:oronbox/src/features/resources/domain/resource_catalog.dart';
 import 'package:oronbox/src/host/application_host.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_system.pb.dart'
+import 'package:oronbox/src/device/core/device_state.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
     as pb_system;
 
 class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
@@ -142,6 +142,19 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           CommandEvent(
             XiaomiGnssAccountRequired.commandEvent,
             data: {'deviceId': event.deviceId},
+          ),
+        );
+      }
+      if (event is XiaomiWifiPasswordRequested) {
+        _events.add(
+          CommandEvent(
+            XiaomiWifiPasswordRequested.commandEvent,
+            data: {
+              'deviceId': event.deviceId,
+              'ssid': event.ssid,
+              'authMode': event.authMode,
+              'frequency': event.frequency,
+            },
           ),
         );
       }
@@ -332,7 +345,11 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
   Future<CommandResult> _execute(OronBoxCommand command) async {
     try {
       final result = await _dispatch(command);
-      return CommandResult.success(_wireValue(result));
+      final wireValue = switch (command.method) {
+        'device.xiaomi.health.data' || 'device.xiaomi.health.sync' => result,
+        _ => _wireValue(result),
+      };
+      return CommandResult.success(wireValue);
     } on CommandFailure catch (error) {
       return CommandResult.failure(
         CommandError(error.code, error.message, details: error.details),
@@ -436,6 +453,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'device.xiaomi.health.snapshot.replay' => _replayXiaomiHealthSnapshot(
       command.params,
     ),
+    'device.xiaomi.wifi.respond' => _respondXiaomiWifi(command.params),
     'device.xiaomi.appLayout.get' => _getXiaomiAppLayout(),
     'device.xiaomi.appLayout.set' => _setXiaomiAppLayout(command.params),
     'device.xiaomi.recordings.download' => _downloadXiaomiRecordings(),
@@ -1226,7 +1244,12 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     }
     final target = requestedAddress == null || requestedAddress.isEmpty
         ? paired.first
-        : paired.where((device) => device.addr == requestedAddress).firstOrNull;
+        : paired
+            .where(
+              (device) =>
+                  device.addr.toLowerCase() == requestedAddress.toLowerCase(),
+            )
+            .firstOrNull;
     if (target == null) {
       throw CommandFailure(
         'no_device',
@@ -1234,7 +1257,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       );
     }
     if (_state.protocolState == ProtocolState.ready &&
-        _state.currentDevice?.addr == target.addr) {
+        _state.currentDevice?.addr.toLowerCase() == target.addr.toLowerCase()) {
       return _deviceJson(target);
     }
     final authKey = target.authkey ?? '';
@@ -1669,6 +1692,29 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     }
     final value = await _manager.replayXiaomiHealthSnapshot(deviceId, files);
     return value.toJson();
+  }
+
+  Future<Object?> _respondXiaomiWifi(Map<String, Object?> params) async {
+    final deviceId = params['deviceId']?.toString().trim() ?? '';
+    final ssid = params['ssid']?.toString() ?? '';
+    final password = params['password']?.toString() ?? '';
+    final authMode = (params['authMode'] as num?)?.toInt();
+    final frequency = (params['frequency'] as num?)?.toInt();
+    if (deviceId.isEmpty ||
+        ssid.trim().isEmpty ||
+        authMode == null ||
+        frequency == null) {
+      throw const CommandFailure('usage', 'Invalid Xiaomi Wi-Fi response');
+    }
+    await _manager.sendXiaomiWifiConfig(
+      deviceId: deviceId,
+      ssid: ssid,
+      authMode: authMode,
+      frequency: frequency,
+      password: password,
+      identity: params['identity']?.toString() ?? '',
+    );
+    return const {'sent': true};
   }
 
   Future<Object?> _uploadXiaomiMusic(Map<String, Object?> params) async {
@@ -2865,8 +2911,12 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
   }
 
   Future<void> _ensureConnected(String? address) async {
-    if (_state.protocolState == ProtocolState.ready &&
-        (address == null || _state.currentDevice?.addr == address)) {
+    final current = _state.currentDevice;
+    final isCurrent = address == null ||
+        address.isEmpty ||
+        (current != null &&
+            current.addr.toLowerCase() == address.toLowerCase());
+    if (_state.protocolState == ProtocolState.ready && isCurrent) {
       return;
     }
     await _connect(address);

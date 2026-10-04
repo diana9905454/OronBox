@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
@@ -26,7 +27,7 @@ import 'package:oronbox/src/features/devices/services/device_share_link.dart';
 import 'package:oronbox/src/features/devices/providers/pending_shared_device_provider.dart';
 import 'package:oronbox/src/features/settings/pages/about_software_page.dart';
 import 'package:oronbox/src/features/settings/pages/settings_page.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 List<BTDeviceInfo> _visibleScannedDevices(DeviceManagerState state) {
   final visible = <BTDeviceInfo>[];
@@ -1299,7 +1300,7 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
       elevation: 0,
       margin: EdgeInsets.zero,
       color: connected
-          ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+          ? context.appSelectionContainer.withValues(alpha: 0.3)
           : colorScheme.surfaceContainerHigh,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(StyleConstants.cardRadius),

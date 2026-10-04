@@ -100,7 +100,8 @@ class _FakeSessionAccess implements OronBoxSessionAccess {
   int expireCalls = 0;
 
   @override
-  Future<OronBoxSession?> sessionIfNeeded() async => session;
+  Future<OronBoxSession?> sessionIfNeeded({bool forceRefresh = false}) async =>
+      session;
 
   @override
   Future<void> expireSession() async {

@@ -2104,6 +2104,14 @@ class AppLocalizationsRu extends AppLocalizations {
       'Войдите в аккаунт Xiaomi перед синхронизацией эфемеридных данных';
 
   @override
+  String get xiaomiWifiPasswordRequestTitle => 'Запрос на подключение к Wi-Fi';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return 'Устройство запрашивает подключение к сети Wi-Fi «$ssid».';
+  }
+
+  @override
   String get settingsHuamiAccount => 'Аккаунт Amazfit';
 
   @override
@@ -2245,6 +2253,21 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get settingsThemeModeDesc => 'Изменить оформление приложения';
+
+  @override
+  String get settingsThemePreset => 'Стиль темы';
+
+  @override
+  String get settingsThemePresetDesc => 'Выберите визуальный стиль приложения';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
 
   @override
   String get settingsDynamicColor => 'Динамический цвет';
@@ -2682,6 +2705,13 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get resourceTypeUnknownCancel => 'Отмена';
+
+  @override
+  String get watchfaceRestrictedTitle => 'Невозможно установить ресурс';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      'В целях соблюдения прав интеллектуальной собственности и применимых правил, по требованию Xiaomi,\nOronBox не может устанавливать циферблаты, предположительно происходящие из официального магазина.\nЕсли вы считаете это ошибкой, попросите автора циферблата связаться с нами.';
 
   @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
@@ -3953,6 +3983,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get deviceHealthSleepAwake => 'Бодрствование';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString раз',
+      few: '$countString раза',
+      one: '$countString раз',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get deviceHealthSleepLight => 'Лёгкий сон';
 
   @override
@@ -4575,6 +4622,19 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get deviceHealthWorkoutGeneric => 'Тренировка';
+
+  @override
+  String get deviceHealthWorkoutExport => 'Экспорт FIT';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FIT экспортирован в $path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return 'Не удалось экспортировать FIT: $error';
+  }
 
   @override
   String get deviceHealthStrokeMedley => 'Комбинированный';

@@ -11,7 +11,7 @@ import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
-import 'package:oronbox/src/app/window/window_launcher.dart';
+import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_ui_tree.dart';
 
 import 'plugins_page.dart';

@@ -125,6 +125,7 @@ const oronBoxKnownErrorCodes = <String>{
   'usage',
   'unsupported',
   'validation',
+  'watchface_install_blocked',
 };
 
 String localizedErrorMessage(AppLocalizations l10n, Object? error) {
@@ -135,6 +136,8 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
   if (backendMessage != null) return backendMessage;
 
   switch (code) {
+    case 'watchface_install_blocked':
+      return l10n.watchfaceRestrictedMessage;
     case 'invalid_refresh_token':
     case 'session_expired':
     case 'http_401':
@@ -471,9 +474,17 @@ String _errorCode(Object? error, String normalized) {
     if (status != null) return 'http_$status';
   }
   if (normalized.contains('oronbox session expired')) return 'session_expired';
+  if (normalized.contains('bandbbs account is not signed in')) return 'auth_required';
   var text = normalized.trim();
   for (final prefix in const ['exception: ', 'bad state: ']) {
     if (text.startsWith(prefix)) text = text.substring(prefix.length);
+  }
+  final tokenMatch = RegExp(r'^[a-z0-9_]+').firstMatch(text);
+  if (tokenMatch != null && oronBoxKnownErrorCodes.contains(tokenMatch.group(0))) {
+    return tokenMatch.group(0)!;
+  }
+  for (final known in oronBoxKnownErrorCodes) {
+    if (text.startsWith(known)) return known;
   }
   final http = RegExp(
     r'\bhttp[_ ](400|401|403|404|409|413|422|429|500|502|503|504)\b',
@@ -495,6 +506,24 @@ String _flattenError(Object? error) {
   return error.toString();
 }
 
+bool _isGenericAuthOrSessionMessage(String message) {
+  final lower = message.trim().toLowerCase();
+  return lower == 'oronbox session expired' ||
+      lower == 'bandbbs account is not signed in' ||
+      lower == 'bad state: bandbbs account is not signed in' ||
+      lower == 'xiaomi account session expired' ||
+      lower == 'xiaomi_account_session_expired' ||
+      lower == 'auth_required' ||
+      lower == 'invalid_refresh_token' ||
+      lower == 'session_expired' ||
+      lower == 'unauthenticated' ||
+      lower == 'watchface_install_blocked' ||
+      lower == 'watchface file is corrupted and cannot be installed' ||
+      lower.contains('无法安装疑似来自官方表盘商城的表盘') ||
+      lower.contains('禁止安装疑似来自官方表盘商城的表盘') ||
+      lower.contains('suspected of being from the official watchface store');
+}
+
 String? _backendMessage(Object? error) {
   String? message;
   if (error is CodedError) {
@@ -513,7 +542,10 @@ String? _backendMessage(Object? error) {
   }
   if (message == null) return null;
   final visibleMessage = _firstErrorLine(message);
-  return visibleMessage.isEmpty ? null : visibleMessage;
+  if (visibleMessage.isEmpty || _isGenericAuthOrSessionMessage(visibleMessage)) {
+    return null;
+  }
+  return visibleMessage;
 }
 
 String _trimPlatformNoise(String raw) {

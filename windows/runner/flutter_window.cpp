@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "classic_spp_channel.h"
+#include "desktop_multi_window/desktop_multi_window_plugin.h"
 #include "file_open_channel.h"
 #include "flutter/generated_plugin_registrant.h"
 #include "mi_account_2fa_channel.h"
@@ -34,6 +35,12 @@ bool FlutterWindow::OnCreate() {
     return false;
   }
   RegisterPlugins(flutter_controller_->engine());
+  DesktopMultiWindowSetWindowCreatedCallback([](void *controller) {
+    auto *flutter_view_controller =
+        reinterpret_cast<flutter::FlutterViewController *>(controller);
+    auto *registry = flutter_view_controller->engine();
+    RegisterPlugins(registry);
+  });
   RegisterRfcommChannel(flutter_controller_->engine()->messenger());
   RegisterFileOpenChannel(flutter_controller_->engine()->messenger(),
                           initial_open_path_);

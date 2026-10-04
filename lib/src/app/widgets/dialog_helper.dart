@@ -80,12 +80,10 @@ class OronBoxDialog {
       await showDialog(
         context: ctx,
         barrierDismissible: barrierDismissible,
-        builder: (_) => Center(
+        builder: (context) => Center(
           child: Card(
             elevation: 8,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            shape: Theme.of(context).cardTheme.shape,
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Column(

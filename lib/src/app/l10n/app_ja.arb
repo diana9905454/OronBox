@@ -487,6 +487,16 @@
   "deviceHealthSleepStages": "睡眠ステージ",
   "deviceHealthSleepHrv": "睡眠 HRV",
   "deviceHealthSleepAwake": "覚醒",
+  "deviceHealthSleepWakeCount": "{count} 回",
+  "@deviceHealthSleepWakeCount": {
+    "description": "睡眠覚醒回数",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "浅い睡眠",
   "deviceHealthSleepDeep": "深い睡眠",
   "deviceHealthSleepRem": "REM",
@@ -679,6 +689,13 @@
   "settingsMiAccountLoginWindowClosed": "ログインウィンドウが閉じられました",
   "settingsMiAccountSyncedDevices": "小米デバイス {count} 台を同期しました",
   "xiaomiAccountRequiredForEphemeris": "Xiaomiアカウントにサインインしてからエフェメリスデータを同期してください",
+  "xiaomiWifiPasswordRequestTitle": "Wi-Fi 接続リクエスト",
+  "xiaomiWifiPasswordRequestMessage": "デバイスが Wi-Fi ネットワーク「{ssid}」への接続を要求しています。",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "settingsHuamiAccount": "Amazfitアカウント",
   "settingsHuamiAccountDesc": "Amazfitアカウントでアプリストアのリソースを利用",
   "settingsHuamiAccountSigningIn": "Amazfitアカウントにサインイン中…",
@@ -722,6 +739,11 @@
   "settingsOledDark": "OLEDダーク",
   "settingsThemeMode": "テーマモード",
   "settingsThemeModeDesc": "アプリのテーマ表示を変更",
+  "settingsThemePreset": "テーマスタイル",
+  "settingsThemePresetDesc": "アプリのビジュアルスタイルを選択",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "ダイナミックカラー",
   "settingsDynamicColorDesc": "システムのアクセント色をアプリテーマに使用",
   "settingsColorScheme": "配色",
@@ -850,6 +872,8 @@
   "resourceTypeUnknownTitle": "リソース種別を認識できません",
   "resourceTypeUnknownNoType": "OronBoxはこのファイルのリソース種別を判別できません。このファイルは破損している可能性があります",
   "resourceTypeUnknownCancel": "キャンセル",
+  "watchfaceRestrictedTitle": "インストールできないリソース",
+  "watchfaceRestrictedMessage": "知的財産権の尊重および関連ポリシーの遵守のため、Xiaomi社からの要請に基づき、\nOronBoxは公式ウォッチフェイスストアからのものである可能性が高いウォッチフェイスをインストールできません。\nこれが誤検出と思われる場合は、ウォッチフェイスの作成者からご連絡ください。",
   "resourceTypeMismatchMessage": "{detectedType}リソースのようですが、{selectedType}を選択しています。インストール方法を選択してください",
   "resourcePlatformMismatchMessage": "これは {resourcePlatform} デバイス向けの {resourceType} ですが、接続中のデバイスは {deviceName}（{devicePlatform}）です。未対応のため、強制インストールは予期しない問題を起こす可能性があります",
   "resourceTypeUnknownMessage": "実際のリソース種別を判別できません。{selectedType}としてインストールしますか？",
@@ -1876,6 +1900,15 @@
   "deviceHealthWorkoutJumpRope": "縄跳び",
   "deviceHealthWorkoutHiking": "ハイキング",
   "deviceHealthWorkoutGeneric": "ワークアウト",
+  "deviceHealthWorkoutExport": "FITを書き出す",
+  "deviceHealthWorkoutExported": "FITを書き出しました：{path}",
+  "deviceHealthWorkoutExportFailed": "FITの書き出しに失敗しました：{error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {"path": {}}
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {"error": {}}
+  },
   "deviceHealthStrokeMedley": "メドレー",
   "deviceHealthStrokeBreaststroke": "平泳ぎ",
   "deviceHealthStrokeFreestyle": "自由形",

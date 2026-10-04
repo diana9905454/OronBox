@@ -3787,6 +3787,18 @@ abstract class AppLocalizations {
   /// **'Sign in to your Xiaomi account before syncing ephemeris data'**
   String get xiaomiAccountRequiredForEphemeris;
 
+  /// No description provided for @xiaomiWifiPasswordRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi connection request'**
+  String get xiaomiWifiPasswordRequestTitle;
+
+  /// No description provided for @xiaomiWifiPasswordRequestMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The device is requesting a connection to “{ssid}”.'**
+  String xiaomiWifiPasswordRequestMessage(Object ssid);
+
   /// No description provided for @settingsHuamiAccount.
   ///
   /// In en, this message translates to:
@@ -4044,6 +4056,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change app theme appearance'**
   String get settingsThemeModeDesc;
+
+  /// No description provided for @settingsThemePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme style'**
+  String get settingsThemePreset;
+
+  /// No description provided for @settingsThemePresetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the app\'s visual style'**
+  String get settingsThemePresetDesc;
+
+  /// No description provided for @settingsThemePresetMaterial3.
+  ///
+  /// In en, this message translates to:
+  /// **'Material 3'**
+  String get settingsThemePresetMaterial3;
+
+  /// No description provided for @settingsThemePresetMaterial2.
+  ///
+  /// In en, this message translates to:
+  /// **'Material 2'**
+  String get settingsThemePresetMaterial2;
+
+  /// No description provided for @settingsThemePresetFluent.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluent'**
+  String get settingsThemePresetFluent;
 
   /// No description provided for @settingsDynamicColor.
   ///
@@ -4812,6 +4854,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cancel'**
   String get resourceTypeUnknownCancel;
+
+  /// No description provided for @watchfaceRestrictedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot Install Resource'**
+  String get watchfaceRestrictedTitle;
+
+  /// No description provided for @watchfaceRestrictedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'To respect intellectual property and comply with relevant policies, at the request of Xiaomi,\nOronBox cannot install watchfaces suspected of being from the official watchface store.\nIf you believe this is a false positive, please have the watchface author contact us.'**
+  String get watchfaceRestrictedMessage;
 
   /// No description provided for @resourceTypeMismatchMessage.
   ///
@@ -7086,6 +7140,12 @@ abstract class AppLocalizations {
   /// **'Awake'**
   String get deviceHealthSleepAwake;
 
+  /// Number of times woken up during sleep
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 time} other{{count} times}}'**
+  String deviceHealthSleepWakeCount(num count);
+
   /// No description provided for @deviceHealthSleepLight.
   ///
   /// In en, this message translates to:
@@ -8271,6 +8331,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Workout'**
   String get deviceHealthWorkoutGeneric;
+
+  /// No description provided for @deviceHealthWorkoutExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export FIT'**
+  String get deviceHealthWorkoutExport;
+
+  /// No description provided for @deviceHealthWorkoutExported.
+  ///
+  /// In en, this message translates to:
+  /// **'FIT exported to {path}'**
+  String deviceHealthWorkoutExported(Object path);
+
+  /// No description provided for @deviceHealthWorkoutExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export FIT: {error}'**
+  String deviceHealthWorkoutExportFailed(Object error);
 
   /// No description provided for @deviceHealthStrokeMedley.
   ///

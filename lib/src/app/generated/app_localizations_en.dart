@@ -2093,6 +2093,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sign in to your Xiaomi account before syncing ephemeris data';
 
   @override
+  String get xiaomiWifiPasswordRequestTitle => 'Wi-Fi connection request';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return 'The device is requesting a connection to “$ssid”.';
+  }
+
+  @override
   String get settingsHuamiAccount => 'Amazfit account';
 
   @override
@@ -2232,6 +2240,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsThemeModeDesc => 'Change app theme appearance';
+
+  @override
+  String get settingsThemePreset => 'Theme style';
+
+  @override
+  String get settingsThemePresetDesc => 'Choose the app\'s visual style';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
 
   @override
   String get settingsDynamicColor => 'Dynamic color';
@@ -2668,6 +2691,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get resourceTypeUnknownCancel => 'Cancel';
+
+  @override
+  String get watchfaceRestrictedTitle => 'Cannot Install Resource';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      'To respect intellectual property and comply with relevant policies, at the request of Xiaomi,\nOronBox cannot install watchfaces suspected of being from the official watchface store.\nIf you believe this is a false positive, please have the watchface author contact us.';
 
   @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
@@ -3932,6 +3962,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceHealthSleepAwake => 'Awake';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString times',
+      one: '1 time',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get deviceHealthSleepLight => 'Light';
 
   @override
@@ -4553,6 +4599,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deviceHealthWorkoutGeneric => 'Workout';
+
+  @override
+  String get deviceHealthWorkoutExport => 'Export FIT';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FIT exported to $path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return 'Could not export FIT: $error';
+  }
 
   @override
   String get deviceHealthStrokeMedley => 'Medley';

@@ -620,6 +620,16 @@
   "deviceHealthSleepStages": "Фазы сна",
   "deviceHealthSleepHrv": "HRV сна",
   "deviceHealthSleepAwake": "Бодрствование",
+  "deviceHealthSleepWakeCount": "{count, plural, one{{count} раз} few{{count} раза} other{{count} раз}}",
+  "@deviceHealthSleepWakeCount": {
+    "description": "Количество пробуждений во время сна",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "Лёгкий сон",
   "deviceHealthSleepDeep": "Глубокий сон",
   "deviceHealthSleepRem": "REM",
@@ -970,6 +980,13 @@
   "settingsMiAccountLoginWindowClosed": "Окно входа Xiaomi закрыто",
   "settingsMiAccountSyncedDevices": "Синхронизировано устройств: {count}",
   "xiaomiAccountRequiredForEphemeris": "Войдите в аккаунт Xiaomi перед синхронизацией эфемеридных данных",
+  "xiaomiWifiPasswordRequestTitle": "Запрос на подключение к Wi-Fi",
+  "xiaomiWifiPasswordRequestMessage": "Устройство запрашивает подключение к сети Wi-Fi «{ssid}».",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "@settingsMiAccountSyncedDevices": {
     "placeholders": {
       "count": {
@@ -1020,6 +1037,11 @@
   "settingsOledDark": "Тёмная OLED",
   "settingsThemeMode": "Тема",
   "settingsThemeModeDesc": "Изменить оформление приложения",
+  "settingsThemePreset": "Стиль темы",
+  "settingsThemePresetDesc": "Выберите визуальный стиль приложения",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "Динамический цвет",
   "settingsDynamicColorDesc": "Использовать системный акцентный цвет",
   "settingsColorScheme": "Цветовая схема",
@@ -1216,6 +1238,8 @@
   "resourceTypeUnknownTitle": "Неизвестный тип ресурса",
   "resourceTypeUnknownNoType": "OronBox не может определить тип этого файла; возможно, файл повреждён",
   "resourceTypeUnknownCancel": "Отмена",
+  "watchfaceRestrictedTitle": "Невозможно установить ресурс",
+  "watchfaceRestrictedMessage": "В целях соблюдения прав интеллектуальной собственности и применимых правил, по требованию Xiaomi,\nOronBox не может устанавливать циферблаты, предположительно происходящие из официального магазина.\nЕсли вы считаете это ошибкой, попросите автора циферблата связаться с нами.",
   "resourceTypeMismatchMessage": "Похоже, это ресурс типа {detectedType}, но выбран тип {selectedType}. Выберите способ установки",
   "@resourceTypeMismatchMessage": {
     "placeholders": {
@@ -1876,6 +1900,15 @@
   "deviceHealthWorkoutJumpRope": "Скакалка",
   "deviceHealthWorkoutHiking": "Поход",
   "deviceHealthWorkoutGeneric": "Тренировка",
+  "deviceHealthWorkoutExport": "Экспорт FIT",
+  "deviceHealthWorkoutExported": "FIT экспортирован в {path}",
+  "deviceHealthWorkoutExportFailed": "Не удалось экспортировать FIT: {error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {"path": {}}
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {"error": {}}
+  },
   "deviceHealthStrokeMedley": "Комбинированный",
   "deviceHealthStrokeBreaststroke": "Брасс",
   "deviceHealthStrokeFreestyle": "Кроль",

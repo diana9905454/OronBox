@@ -1,22 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:oronbox/src/core/errors/coded_error.dart';
 import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 
-class OronBoxAuthRequiredException implements CodedError {
-  const OronBoxAuthRequiredException();
-
-  @override
-  String get code => 'auth_required';
-
-  @override
-  String get message => 'BandBBS account is not signed in';
-
-  @override
-  Object? get details => null;
-
-  @override
-  String toString() => message;
-}
+export 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart'
+    show OronBoxAuthRequiredException;
 
 class OronBoxSessionClient {
   const OronBoxSessionClient(this._sessions);
@@ -34,6 +20,22 @@ class OronBoxSessionClient {
       );
     } on DioException catch (error) {
       if (error.response?.statusCode != 401) rethrow;
+
+      // Access token was rejected (401). Try to refresh it with the refresh token.
+      final refreshed = await _sessions.sessionIfNeeded(forceRefresh: true);
+      if (refreshed != null) {
+        try {
+          return await operation(
+            Options(
+              headers: {'Authorization': 'Bearer ${refreshed.accessToken}'},
+            ),
+          );
+        } on DioException catch (retryError) {
+          if (retryError.response?.statusCode != 401) rethrow;
+        }
+      }
+
+      // The refresh token itself is expired/invalid; now expire the session.
       try {
         await _sessions.expireSession();
       } catch (_) {

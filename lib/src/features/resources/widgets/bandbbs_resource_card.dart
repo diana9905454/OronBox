@@ -112,7 +112,6 @@ class BandBbsResourceCard extends ConsumerWidget {
                             ),
                           ),
                         ],
-                        _LazyPreviews(item: item),
                       ],
                     ),
                   ),
@@ -130,6 +129,7 @@ class BandBbsResourceCard extends ConsumerWidget {
                   ],
                 ],
               ),
+              _LazyPreviews(item: item),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,

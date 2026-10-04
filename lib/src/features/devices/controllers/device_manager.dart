@@ -10,7 +10,6 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/core/models/sync_models.dart';
-import 'package:oronbox/src/core/models/xiaomi_health_models.dart';
 import 'package:oronbox/src/core/providers/bluetooth_platform_provider.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/services/connection_keep_alive.dart';
@@ -29,20 +28,21 @@ import 'package:oronbox/src/device/core/runtime.dart';
 import 'package:oronbox/src/device/core/spp_transport.dart';
 import 'package:oronbox/src/device/core/transport.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
-import 'package:oronbox/src/device/xiaomi/components/auth_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/info_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/install_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/network_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/mass_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/media_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/report_system.dart';
-import 'package:oronbox/src/protocols/xiaomi/transport/mass_transfer.dart'
+import 'package:oronbox/src/device/xiaomi/systems/auth_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/install_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/network_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/wifi_config_handler.dart';
+import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/media_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/report_system.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/transport/mass_transfer.dart'
     show ReceiveMassCallbackData, ReverseMassReceiveResult;
-import 'package:oronbox/src/device/xiaomi/components/resource_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/thirdparty_app_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/sync_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/xiaomi_device_component.dart';
+import 'package:oronbox/src/device/xiaomi/systems/resource_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/thirdparty_app_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/sync_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_device_component.dart';
 import 'package:oronbox/src/device/xiaomi/xiaomi_device_factory.dart';
 import 'package:oronbox/src/device/xiaomi/xiaomi_time.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_auth_system.dart';
@@ -73,68 +73,23 @@ import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart'
 import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
 import 'package:oronbox/src/features/devices/domain/device_scan_results.dart';
 import 'package:oronbox/src/features/devices/utils/device_address.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart'
-    hide ChargeStatus, BatteryInfo, DeviceInfo;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_watch_face.pb.dart'
+import 'package:oronbox/src/device/core/device_state.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_watch_face.pb.dart'
     as pb_watchface;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_media.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pb.dart'
     as pb_media;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_media.pbenum.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pbenum.dart'
     as pb_media_enum;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_system.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
     as pb_system;
-import 'package:oronbox/src/protocols/xiaomi/packet/l2_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/l2_packet.dart';
 
-class DeviceLogPullResult {
-  const DeviceLogPullResult({
-    required this.fileName,
-    required this.data,
-    this.currentLog,
-  });
+import '../models/device_manager_state.dart';
+import '../models/device_transfer_models.dart';
 
-  final String fileName;
-  final Uint8List data;
-  final Uint8List? currentLog;
-}
-
-class DeviceLogPullProgress {
-  const DeviceLogPullProgress({
-    required this.progress,
-    required this.fileName,
-    required this.channel,
-    required this.currentPart,
-    required this.totalParts,
-  });
-
-  final double progress;
-  final String fileName;
-  final int channel;
-  final int currentPart;
-  final int totalParts;
-}
-
-class DeviceRecordingPullProgress {
-  const DeviceRecordingPullProgress({
-    required this.progress,
-    required this.currentIndex,
-    required this.totalFiles,
-    required this.fileName,
-    required this.currentPart,
-    required this.totalParts,
-    this.bytesDone,
-    this.bytesTotal,
-  });
-
-  final double progress;
-  final int currentIndex;
-  final int totalFiles;
-  final String fileName;
-  final int currentPart;
-  final int totalParts;
-  final int? bytesDone;
-  final int? bytesTotal;
-}
+export '../models/device_manager_state.dart';
+export '../models/device_transfer_models.dart';
 
 class _NoReverseMassActivity implements Exception {
   const _NoReverseMassActivity();
@@ -157,265 +112,7 @@ class _DeviceLogTransferTimeout implements Exception {
       '(elapsed=${elapsed.inSeconds}s progress=${(progress * 100).round()}%)';
 }
 
-class DeviceMusicSong {
-  const DeviceMusicSong({
-    required this.id,
-    required this.name,
-    required this.size,
-    required this.duration,
-    required this.album,
-    required this.artist,
-    this.playlistIds = const [],
-  });
 
-  final List<int> id;
-  final String name;
-  final int size;
-  final int duration;
-  final String album;
-  final String artist;
-  final List<int> playlistIds;
-
-  Map<String, Object?> toJson() => {
-    'id': id,
-    'name': name,
-    'size': size,
-    'duration': duration,
-    'album': album,
-    'artist': artist,
-    'playlistIds': playlistIds,
-  };
-
-  factory DeviceMusicSong.fromJson(Map<String, Object?> json) =>
-      DeviceMusicSong(
-        id: (json['id'] as List).cast<num>().map((e) => e.toInt()).toList(),
-        name: json['name']?.toString() ?? '',
-        size: (json['size'] as num?)?.toInt() ?? 0,
-        duration: (json['duration'] as num?)?.toInt() ?? 0,
-        album: json['album']?.toString() ?? '',
-        artist: json['artist']?.toString() ?? '',
-        playlistIds: (json['playlistIds'] as List? ?? const [])
-            .cast<num>()
-            .map((e) => e.toInt())
-            .toList(),
-      );
-}
-
-class DeviceMusicPlaylist {
-  const DeviceMusicPlaylist({
-    required this.id,
-    required this.name,
-    required this.songCount,
-  });
-
-  final int id;
-  final String name;
-  final int songCount;
-
-  Map<String, Object?> toJson() => {
-    'id': id,
-    'name': name,
-    'songCount': songCount,
-  };
-
-  factory DeviceMusicPlaylist.fromJson(Map<String, Object?> json) =>
-      DeviceMusicPlaylist(
-        id: (json['id'] as num).toInt(),
-        name: json['name']?.toString() ?? '',
-        songCount: (json['songCount'] as num?)?.toInt() ?? 0,
-      );
-}
-
-class DeviceMusicLibrary {
-  const DeviceMusicLibrary({
-    required this.songs,
-    required this.playlists,
-    required this.playlistLimit,
-  });
-
-  final List<DeviceMusicSong> songs;
-  final List<DeviceMusicPlaylist> playlists;
-  final int playlistLimit;
-
-  Map<String, Object?> toJson() => {
-    'songs': songs.map((e) => e.toJson()).toList(),
-    'playlists': playlists.map((e) => e.toJson()).toList(),
-    'playlistLimit': playlistLimit,
-  };
-
-  factory DeviceMusicLibrary.fromJson(Map<String, Object?> json) =>
-      DeviceMusicLibrary(
-        songs: (json['songs'] as List? ?? const [])
-            .map((e) => DeviceMusicSong.fromJson((e as Map).cast()))
-            .toList(),
-        playlists: (json['playlists'] as List? ?? const [])
-            .map((e) => DeviceMusicPlaylist.fromJson((e as Map).cast()))
-            .toList(),
-        playlistLimit: (json['playlistLimit'] as num?)?.toInt() ?? 0,
-      );
-}
-
-class DeviceRecording {
-  const DeviceRecording({
-    required this.fileName,
-    required this.data,
-    this.durationSeconds,
-    this.createdAt,
-  });
-
-  final String fileName;
-  final Uint8List data;
-  final int? durationSeconds;
-  final DateTime? createdAt;
-
-  Map<String, Object?> toJson() => {
-    'fileName': fileName,
-    'data': data.toList(growable: false),
-    'durationSeconds': durationSeconds,
-    'createdAt': createdAt?.millisecondsSinceEpoch,
-  };
-
-  factory DeviceRecording.fromJson(Map<String, Object?> json) =>
-      DeviceRecording(
-        fileName: json['fileName']?.toString() ?? 'recording.opus',
-        data: Uint8List.fromList(
-          (json['data'] as List? ?? const [])
-              .map((value) => (value as num).toInt())
-              .toList(),
-        ),
-        durationSeconds: (json['durationSeconds'] as num?)?.toInt(),
-        createdAt: json['createdAt'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(
-                (json['createdAt'] as num).toInt(),
-              ),
-      );
-}
-
-class DeviceManagerState {
-  const DeviceManagerState({
-    this.currentDevice,
-    this.pairedDevices = const [],
-    this.scannedDevices = const [],
-    this.scanning = false,
-    this.connecting = false,
-    this.connectionTargetAddr,
-    this.connectionTargetName,
-    this.connectionPhase,
-    this.connectStatus = 0,
-    this.protocolState = ProtocolState.disconnected,
-    this.battery,
-    this.health,
-    this.systemInfo,
-    this.apps = const [],
-    this.watchfaces = const [],
-    this.xiaoAiActive = false,
-    this.xiaoAiFrameCount = 0,
-    this.xiaoAiCapabilities = const {},
-    this.findingXiaomiWearable = false,
-    this.uploadBytesPerSecond = 0,
-    this.downloadBytesPerSecond = 0,
-    this.error,
-  });
-
-  final MiWearState? currentDevice;
-  final List<MiWearState> pairedDevices;
-  final List<BTDeviceInfo> scannedDevices;
-  final bool scanning;
-  final bool connecting;
-  final String? connectionTargetAddr;
-  final String? connectionTargetName;
-  final DeviceConnectionPhase? connectionPhase;
-  final int connectStatus;
-  final ProtocolState protocolState;
-  final BatteryStatus? battery;
-  final XiaomiHealthState? health;
-  final SystemInfo? systemInfo;
-  final List<AppInfo> apps;
-  final List<WatchfaceInfo> watchfaces;
-  final bool xiaoAiActive;
-  final int xiaoAiFrameCount;
-  final Map<String, Object?> xiaoAiCapabilities;
-  final bool findingXiaomiWearable;
-  final double uploadBytesPerSecond;
-  final double downloadBytesPerSecond;
-  final String? error;
-
-  DeviceManagerState copyWith({
-    MiWearState? currentDevice,
-    List<MiWearState>? pairedDevices,
-    List<BTDeviceInfo>? scannedDevices,
-    bool? scanning,
-    bool? connecting,
-    String? connectionTargetAddr,
-    String? connectionTargetName,
-    DeviceConnectionPhase? connectionPhase,
-    int? connectStatus,
-    ProtocolState? protocolState,
-    BatteryStatus? battery,
-    XiaomiHealthState? health,
-    SystemInfo? systemInfo,
-    List<AppInfo>? apps,
-    List<WatchfaceInfo>? watchfaces,
-    bool? xiaoAiActive,
-    int? xiaoAiFrameCount,
-    Map<String, Object?>? xiaoAiCapabilities,
-    bool? findingXiaomiWearable,
-    double? uploadBytesPerSecond,
-    double? downloadBytesPerSecond,
-    String? error,
-    bool clearCurrentDevice = false,
-    bool clearBattery = false,
-    bool clearHealth = false,
-    bool clearSystemInfo = false,
-    bool clearError = false,
-    bool clearConnectionTarget = false,
-    bool clearConnectionPhase = false,
-  }) {
-    return DeviceManagerState(
-      currentDevice: clearCurrentDevice
-          ? null
-          : (currentDevice ?? this.currentDevice),
-      pairedDevices: pairedDevices ?? this.pairedDevices,
-      scannedDevices: scannedDevices ?? this.scannedDevices,
-      scanning: scanning ?? this.scanning,
-      connecting: connecting ?? this.connecting,
-      connectionTargetAddr: clearConnectionTarget
-          ? null
-          : (connectionTargetAddr ?? this.connectionTargetAddr),
-      connectionTargetName: clearConnectionTarget
-          ? null
-          : (connectionTargetName ?? this.connectionTargetName),
-      connectionPhase: clearConnectionPhase
-          ? null
-          : (connectionPhase ?? this.connectionPhase),
-      connectStatus: connectStatus ?? this.connectStatus,
-      protocolState: protocolState ?? this.protocolState,
-      battery: clearBattery ? null : (battery ?? this.battery),
-      health: clearHealth ? null : (health ?? this.health),
-      systemInfo: clearSystemInfo ? null : (systemInfo ?? this.systemInfo),
-      apps: apps ?? this.apps,
-      watchfaces: watchfaces ?? this.watchfaces,
-      xiaoAiActive: xiaoAiActive ?? this.xiaoAiActive,
-      xiaoAiFrameCount: xiaoAiFrameCount ?? this.xiaoAiFrameCount,
-      xiaoAiCapabilities: xiaoAiCapabilities ?? this.xiaoAiCapabilities,
-      findingXiaomiWearable:
-          findingXiaomiWearable ?? this.findingXiaomiWearable,
-      uploadBytesPerSecond: uploadBytesPerSecond ?? this.uploadBytesPerSecond,
-      downloadBytesPerSecond:
-          downloadBytesPerSecond ?? this.downloadBytesPerSecond,
-      error: clearError ? null : (error ?? this.error),
-    );
-  }
-}
-
-enum DeviceConnectionPhase {
-  preparing,
-  connectingTransport,
-  initializingProtocol,
-  authenticating,
-  fetchingDeviceStatus,
-}
 
 class _DeviceConnectCancelled implements Exception {
   const _DeviceConnectCancelled();
@@ -598,8 +295,17 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
     required List<int> songId,
     required bool included,
   });
+  XiaomiHealthData? get cachedXiaomiHealthData;
   Future<XiaomiHealthData> loadXiaomiHealthData();
   Future<XiaomiHealthSyncResult> syncXiaomiHealth();
+  Future<void> sendXiaomiWifiConfig({
+    required String deviceId,
+    required String ssid,
+    required int authMode,
+    required int frequency,
+    required String password,
+    String identity = '',
+  });
   Future<XiaomiHealthData> replayXiaomiHealthSnapshot(
     String deviceId,
     List<XiaomiActivityRawFile> files,
@@ -685,6 +391,13 @@ class LocalDeviceManager extends DeviceManager {
       _currentEntity?.system<XiaomiHealthSystem>();
 
   @override
+  XiaomiHealthData? get cachedXiaomiHealthData {
+    final deviceId = _currentEntity?.id ?? state.currentDevice?.addr;
+    if (deviceId == null || deviceId.isEmpty) return null;
+    return HealthStore.getCached(deviceId);
+  }
+
+  @override
   Future<XiaomiHealthData> loadXiaomiHealthData() async {
     final deviceId = _currentEntity?.id ?? state.currentDevice?.addr;
     if (deviceId == null || deviceId.isEmpty) {
@@ -733,6 +446,34 @@ class LocalDeviceManager extends DeviceManager {
       },
     );
     return sync;
+  }
+
+  @override
+  Future<void> sendXiaomiWifiConfig({
+    required String deviceId,
+    required String ssid,
+    required int authMode,
+    required int frequency,
+    required String password,
+    String identity = '',
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null ||
+        entity.id != deviceId ||
+        state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final system = entity.system<XiaomiWifiConfigHandler>();
+    if (system == null) {
+      throw UnsupportedError('Xiaomi Wi-Fi configuration is unavailable');
+    }
+    await system.sendWifiConfig(
+      ssid: ssid,
+      authMode: authMode,
+      frequency: frequency,
+      password: password,
+      identity: identity,
+    );
   }
 
   @override
@@ -982,12 +723,15 @@ class LocalDeviceManager extends DeviceManager {
         .whereType<MiWearState>()
         .toList();
 
-    _log.info('loaded ${paired.length} paired devices');
+    final initialCurrent = paired.isEmpty ? null : paired.first;
+    if (initialCurrent != null) {
+      scheduleMicrotask(() => unawaited(loadXiaomiHealthData()));
+    }
     return DeviceManagerState(
       pairedDevices: paired,
       // Keep the most recently used device selected for the device overview,
       // while its process-local connection state starts offline.
-      currentDevice: paired.isEmpty ? null : paired.first,
+      currentDevice: initialCurrent,
       protocolState: ProtocolState.disconnected,
     );
   }
@@ -1748,6 +1492,7 @@ class LocalDeviceManager extends DeviceManager {
 
   Future<void> _loadInitialDeviceData(DeviceEntity entity) async {
     if (_currentEntity != entity) return;
+    unawaited(HealthStore().read(entity.id));
     try {
       await syncDevice();
     } catch (e, st) {
@@ -1806,7 +1551,12 @@ class LocalDeviceManager extends DeviceManager {
     XiaomiInfoSystem infoSystem,
   ) async {
     var info = await infoSystem.fetchDeviceInfo();
-    final storageInfo = state.systemInfo?.storageInfo;
+    final previousInfo = state.systemInfo;
+    final storageInfo = previousInfo?.storageInfo;
+    if (info.imei.trim().isEmpty &&
+        previousInfo?.imei.trim().isNotEmpty == true) {
+      info = info.copyWith(imei: previousInfo!.imei);
+    }
     if (storageInfo != null) {
       info = info.copyWith(storageInfo: storageInfo);
     }
@@ -1826,7 +1576,6 @@ class LocalDeviceManager extends DeviceManager {
         imei: imei,
         storageInfo: state.systemInfo?.storageInfo ?? info.storageInfo,
       );
-      state = state.copyWith(systemInfo: updatedInfo);
       _log.info(
         'device info ${state.currentDevice?.addr ?? info.model}: '
         'eUICC IMEI loaded',
@@ -1926,8 +1675,16 @@ class LocalDeviceManager extends DeviceManager {
           'device info ${event.deviceId}: model=${info.model}, '
           'fw=${info.firmwareVersion}',
         );
+        final previousInfo = state.systemInfo;
+        final mergedInfo =
+            info.imei.trim().isEmpty &&
+                previousInfo?.imei.trim().isNotEmpty == true
+            ? info.copyWith(imei: previousInfo!.imei)
+            : info;
         state = state.copyWith(
-          systemInfo: info.copyWith(storageInfo: state.systemInfo?.storageInfo),
+          systemInfo: mergedInfo.copyWith(
+            storageInfo: previousInfo?.storageInfo,
+          ),
         );
         final current = state.currentDevice;
         final identity = normalizeXiaomiWearableIdentity(info.model);

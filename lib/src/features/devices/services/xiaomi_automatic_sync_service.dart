@@ -6,10 +6,11 @@ import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/services/status_surface_bridge.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
+import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart';
 import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
 import 'package:oronbox/src/features/devices/services/xiaomi_weather_sync_service.dart';
 import 'package:oronbox/src/features/resources/services/install_queue_notifier.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 /// Runs the complete device synchronization workflow under the manager's
 /// single-flight lock.
@@ -71,6 +72,22 @@ class XiaomiAutomaticSyncService {
     final mode = automatic ? 'automatic' : 'manual';
     Object? deviceSyncError;
     StackTrace? deviceSyncStackTrace;
+
+    // Concurrently pre-fetch weather data over HTTP while device & health
+    // synchronize over Bluetooth, completely overlapping the network latency.
+    Future<XiaomiWeatherData>? weatherFetchTask;
+    final weatherEnabled = XiaomiSyncPreferences.weatherAutoSync;
+    final city = XiaomiSyncPreferences.weatherLastCity?.trim();
+    if (weatherEnabled && city != null && city.isNotEmpty) {
+      final systemInfo = manager.systemInfo;
+      _log.fine('starting concurrent weather fetch for city=$city');
+      weatherFetchTask = XiaomiWeatherSyncService().fetch(
+        city,
+        model: systemInfo?.model,
+        firmwareVersion: systemInfo?.firmwareVersion,
+      );
+    }
+
     try {
       await manager.syncDevice();
       _log.info('Xiaomi $mode device synchronization completed');
@@ -84,14 +101,16 @@ class XiaomiAutomaticSyncService {
       );
     }
 
-    await _syncEnabledXiaomiData();
+    await _syncEnabledXiaomiData(weatherFetchTask: weatherFetchTask);
 
     if (deviceSyncError != null) {
       Error.throwWithStackTrace(deviceSyncError, deviceSyncStackTrace!);
     }
   }
 
-  Future<void> _syncEnabledXiaomiData() async {
+  Future<void> _syncEnabledXiaomiData({
+    Future<XiaomiWeatherData>? weatherFetchTask,
+  }) async {
     final healthEnabled = XiaomiSyncPreferences.healthAutoSync;
     final weatherEnabled = XiaomiSyncPreferences.weatherAutoSync;
     _log.fine(
@@ -130,12 +149,12 @@ class XiaomiAutomaticSyncService {
     }
     _log.info('automatic Xiaomi weather synchronization started: city=$city');
     try {
-      final systemInfo = manager.systemInfo;
-      final weather = await XiaomiWeatherSyncService().fetch(
-        city,
-        model: systemInfo?.model,
-        firmwareVersion: systemInfo?.firmwareVersion,
-      );
+      final weather = await (weatherFetchTask ??
+          XiaomiWeatherSyncService().fetch(
+            city,
+            model: manager.systemInfo?.model,
+            firmwareVersion: manager.systemInfo?.firmwareVersion,
+          ));
       await manager.syncXiaomiWeather(weather);
       await XiaomiSyncPreferences.setWeatherLastCity(weather.cityName);
       await XiaomiSyncPreferences.setCachedWeather(weather, DateTime.now());

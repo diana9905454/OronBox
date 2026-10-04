@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 
 const stableFabAnimationDuration = Duration(milliseconds: 180);
 
@@ -42,8 +43,16 @@ class StableExtendedFab extends StatelessWidget {
     return FloatingActionButton.extended(
       heroTag: heroTag,
       onPressed: onPressed,
-      backgroundColor: secondary ? colors.secondaryContainer : null,
-      foregroundColor: secondary ? colors.onSecondaryContainer : null,
+      backgroundColor: secondary
+          ? Theme.of(context).useMaterial3
+                ? colors.secondaryContainer
+                : context.appSelectionContainer
+          : null,
+      foregroundColor: secondary
+          ? Theme.of(context).useMaterial3
+                ? colors.onSecondaryContainer
+                : context.appSelectionForeground
+          : null,
       icon: _StableFabContent(
         contentKey: ValueKey((animationKey, 'icon')),
         child: icon,

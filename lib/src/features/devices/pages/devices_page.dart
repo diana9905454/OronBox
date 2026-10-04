@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
@@ -24,8 +25,7 @@ import 'package:oronbox/src/features/devices/widgets/device_connection_text.dart
 import 'package:oronbox/src/features/devices/widgets/xiaomi_fitness_logo.dart';
 import 'package:oronbox/src/features/resources/services/install_queue_notifier.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_install_confirmation.dart';
-import 'package:oronbox/src/features/devices/pages/install/local_file_picker_policy.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 class DevicesPage extends ConsumerStatefulWidget {
   const DevicesPage({super.key});
@@ -457,10 +457,10 @@ class _DeviceInfoPanel extends StatelessWidget {
             child: _BatteryCard(
               battery: battery,
               borderRadius: isNarrow
-                  ? BorderRadius.circular(20)
-                  : const BorderRadiusDirectional.only(
-                      topStart: Radius.circular(20),
-                      bottomStart: Radius.circular(20),
+                  ? BorderRadius.circular(cardRadiusFor(context))
+                  : BorderRadiusDirectional.only(
+                      topStart: Radius.circular(cardRadiusFor(context)),
+                      bottomStart: Radius.circular(cardRadiusFor(context)),
                       topEnd: Radius.circular(3),
                       bottomEnd: Radius.circular(3),
                     ),
@@ -471,12 +471,12 @@ class _DeviceInfoPanel extends StatelessWidget {
             child: _StorageCard(
               storage: storage,
               borderRadius: isNarrow
-                  ? BorderRadius.circular(20)
-                  : const BorderRadiusDirectional.only(
+                  ? BorderRadius.circular(cardRadiusFor(context))
+                  : BorderRadiusDirectional.only(
                       topStart: Radius.circular(3),
                       bottomStart: Radius.circular(3),
-                      topEnd: Radius.circular(20),
-                      bottomEnd: Radius.circular(20),
+                      topEnd: Radius.circular(cardRadiusFor(context)),
+                      bottomEnd: Radius.circular(cardRadiusFor(context)),
                     ),
             ),
           ),
@@ -676,7 +676,8 @@ class _DeviceMetricCard extends StatelessWidget {
             elevation: 0,
             color: scheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(20),
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(cardRadiusFor(context)),
             ),
             clipBehavior: Clip.antiAlias,
             child: Padding(
@@ -1019,7 +1020,7 @@ class _DeviceStatusGrid extends StatelessWidget {
         installTooltip: l10n.deviceFeaturesInstallApp,
         onOpen: onManageApps,
         onInstall: onInstallApp,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadiusFor(context)),
       ),
       _InstallSummaryCard(
         enabled: enabled,
@@ -1030,7 +1031,7 @@ class _DeviceStatusGrid extends StatelessWidget {
         installTooltip: l10n.deviceFeaturesInstallWatchface,
         onOpen: onManageWatchfaces,
         onInstall: onInstallWatchface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadiusFor(context)),
       ),
     ];
 
@@ -1127,10 +1128,10 @@ class _InstallSection extends StatelessWidget {
                   onOpen: onManageApps,
                   onInstall: onInstallApp,
                   borderRadius: isNarrow
-                      ? BorderRadius.circular(20)
-                      : const BorderRadiusDirectional.only(
-                          topStart: Radius.circular(20),
-                          bottomStart: Radius.circular(20),
+                      ? BorderRadius.circular(cardRadiusFor(context))
+                      : BorderRadiusDirectional.only(
+                          topStart: Radius.circular(cardRadiusFor(context)),
+                          bottomStart: Radius.circular(cardRadiusFor(context)),
                           topEnd: Radius.circular(3),
                           bottomEnd: Radius.circular(3),
                         ),
@@ -1148,12 +1149,12 @@ class _InstallSection extends StatelessWidget {
                   onOpen: onManageWatchfaces,
                   onInstall: onInstallWatchface,
                   borderRadius: isNarrow
-                      ? BorderRadius.circular(20)
-                      : const BorderRadiusDirectional.only(
+                      ? BorderRadius.circular(cardRadiusFor(context))
+                      : BorderRadiusDirectional.only(
                           topStart: Radius.circular(3),
                           bottomStart: Radius.circular(3),
-                          topEnd: Radius.circular(20),
-                          bottomEnd: Radius.circular(20),
+                          topEnd: Radius.circular(cardRadiusFor(context)),
+                          bottomEnd: Radius.circular(cardRadiusFor(context)),
                         ),
                 ),
               ),
@@ -1261,7 +1262,9 @@ class _InstallSummaryCard extends StatelessWidget {
                   message: installTooltip,
                   child: Material(
                     color: enabled
-                        ? colors.secondaryContainer
+                        ? Theme.of(context).useMaterial3
+                              ? colors.secondaryContainer
+                              : context.appSelectionContainer
                         : colors.surfaceContainerHighest,
                     shape: const CircleBorder(),
                     clipBehavior: Clip.antiAlias,
@@ -1275,7 +1278,9 @@ class _InstallSummaryCard extends StatelessWidget {
                             Icons.add,
                             size: 20,
                             color: enabled
-                                ? colors.onSecondaryContainer
+                                ? Theme.of(context).useMaterial3
+                                      ? colors.onSecondaryContainer
+                                      : context.appSelectionForeground
                                 : theme.disabledColor,
                           ),
                         ),
