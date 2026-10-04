@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
 import 'package:oronbox/src/device/xiaomi/utils/auth_utils.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/spp_v1_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/spp_v1_packet.dart';
 
 void main() {
   test('routes Vela generations to the correct SPP protocol', () {

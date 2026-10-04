@@ -4,10 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/device/core/entity.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/transport.dart';
-import 'package:oronbox/src/device/xiaomi/components/gnss_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/xiaomi_device_component.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb_wear;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_gnss.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/systems/gnss_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_device_component.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb_wear;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_gnss.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/packet/spp_v1_packet.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -96,9 +97,109 @@ void main() {
     await entity.dispose();
     eventBus.dispose();
   });
+
+  test('calls gpsInfoProvider and sends SEND_GPS_INFO on REQUEST_GPS_INFO', () async {
+    SharedPreferences.setMockInitialValues({});
+    final eventBus = DeviceEventBus();
+    final sentPackets = <pb_wear.WearPacket>[];
+    final codec = XiaomiSppV1Codec();
+    final transport = _FakeTransport(
+      onSend: (data) {
+        final sppPackets = codec.add(data);
+        for (final spp in sppPackets) {
+          if (spp.channel == XiaomiSppV1Channel.protobuf) {
+            sentPackets.add(pb_wear.WearPacket.fromBuffer(spp.payload));
+          }
+        }
+      },
+    );
+    final entity = DeviceEntity(
+      id: 'test-device',
+      kind: 'xiaomi',
+      transport: transport,
+      eventBus: eventBus,
+    );
+    final component = XiaomiDeviceComponent(transport: transport, sppV1: true);
+
+    var providerCalled = false;
+
+    final system = XiaomiGnssSystem(
+      gpsInfoProvider: () async {
+        providerCalled = true;
+        return pb.GpsInfo(
+          timestamp: 1727000000,
+          latitude: 31.2304,
+          longitude: 121.4737,
+          altitude: 10.5,
+        );
+      },
+    );
+
+    entity.set(component);
+    entity.registerSystem(system);
+
+    system.onWearPacket(
+      pb_wear.WearPacket(
+        type: pb_wear.WearPacket_Type.GNSS,
+        id: pb.Gnss_GnssID.REQUEST_GPS_INFO.value,
+      ),
+    );
+
+    // Allow the async handler to complete.
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    expect(providerCalled, isTrue,
+        reason: 'gpsInfoProvider must be called on REQUEST_GPS_INFO');
+    expect(sentPackets, hasLength(1));
+    expect(sentPackets.first.id, pb.Gnss_GnssID.SEND_GPS_INFO.value);
+    final gpsInfo = sentPackets.first.gnss.gpsInfo;
+    expect(gpsInfo.latitude, closeTo(31.2304, 1e-6));
+    expect(gpsInfo.longitude, closeTo(121.4737, 1e-6));
+    expect(gpsInfo.timestamp, 1727000000);
+
+    await entity.dispose();
+    eventBus.dispose();
+  });
+
+  test('does not crash when gpsInfoProvider returns null', () async {
+    SharedPreferences.setMockInitialValues({});
+    final eventBus = DeviceEventBus();
+    final transport = _FakeTransport();
+    final entity = DeviceEntity(
+      id: 'test-device',
+      kind: 'xiaomi',
+      transport: transport,
+      eventBus: eventBus,
+    );
+    final component = XiaomiDeviceComponent(transport: transport, sppV1: true);
+
+    final system = XiaomiGnssSystem(
+      gpsInfoProvider: () async => null,
+    );
+    entity.set(component);
+    entity.registerSystem(system);
+
+    // Should not throw
+    system.onWearPacket(
+      pb_wear.WearPacket(
+        type: pb_wear.WearPacket_Type.GNSS,
+        id: pb.Gnss_GnssID.REQUEST_GPS_INFO.value,
+      ),
+    );
+
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    // No assertion needed beyond no exception being thrown.
+
+    await entity.dispose();
+    eventBus.dispose();
+  });
 }
 
 class _FakeTransport implements Transport {
+  _FakeTransport({this.onSend});
+
+  final void Function(Uint8List data)? onSend;
+
   @override
   String get deviceId => 'test-device';
 
@@ -112,7 +213,9 @@ class _FakeTransport implements Transport {
   Stream<bool> get connectionState => const Stream.empty();
 
   @override
-  Future<void> send(Uint8List data) async {}
+  Future<void> send(Uint8List data) async {
+    onSend?.call(data);
+  }
 
   @override
   Future<void> dispose() async {}

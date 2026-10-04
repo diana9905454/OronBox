@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/device/xiaomi/system/xiaomi_protocol_trace.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_gnss.pb.dart'
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_protocol_trace.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_gnss.pb.dart'
     as pb_gnss;
 
 void main() {

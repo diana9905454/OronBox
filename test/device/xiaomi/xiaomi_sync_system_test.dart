@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/device/core/entity.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/transport.dart';
-import 'package:oronbox/src/device/xiaomi/components/sync_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/sync_system.dart';
 import 'package:oronbox/src/device/xiaomi/xiaomi_time.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_common.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_common.pb.dart'
     as pb_common;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_system.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
     as pb_system;
 
 void main() {

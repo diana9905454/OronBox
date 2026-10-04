@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_account.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_account.pb.dart'
     as pb_account;
-import 'package:oronbox/src/protocols/xiaomi/crypto/miwear_crypto.dart';
-import 'package:oronbox/src/protocols/xiaomi/crypto/v2_l2_cipher.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/crypto/miwear_crypto.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/crypto/v2_l2_cipher.dart';
 
 class XiaomiAuthKeys {
   const XiaomiAuthKeys({

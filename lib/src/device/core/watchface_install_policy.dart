@@ -51,7 +51,8 @@ class WatchfaceInstallBlockedException implements CodedError {
   String get code => 'watchface_install_blocked';
 
   @override
-  String get message => 'Watchface file is corrupted and cannot be installed';
+  String get message =>
+      '为尊重知识产权及遵守相关政策，应小米方面要求\nOronBox 无法安装疑似来自官方表盘商城的表盘\n如果你认为这是一个误报，请让表盘作者联系我们';
 
   @override
   Object get details => {

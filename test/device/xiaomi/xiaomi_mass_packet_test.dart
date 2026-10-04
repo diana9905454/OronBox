@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/device/xiaomi/components/mass_system.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/mass_packet.dart';
-import 'package:oronbox/src/protocols/xiaomi/transport/mass_transfer.dart';
+import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/mass_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/transport/mass_transfer.dart';
 
 void main() {
   test('writes the remaining length when resuming a MASS transfer', () {

@@ -5,10 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/device/core/entity.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/transport.dart';
-import 'package:oronbox/src/device/xiaomi/components/screenshot_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/xiaomi_device_component.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/l2_packet.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/spp_v1_packet.dart';
+import 'package:oronbox/src/device/xiaomi/systems/screenshot_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_device_component.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/l2_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/spp_v1_packet.dart';
 
 void main() {
   test('registers the screenshot capability before wearable capture', () async {

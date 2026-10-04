@@ -106,6 +106,21 @@ final class XiaomiGnssAccountRequired extends DeviceEvent {
   static const commandEvent = 'device.xiaomi.gnss.account_required';
 }
 
+final class XiaomiWifiPasswordRequested extends DeviceEvent {
+  const XiaomiWifiPasswordRequested({
+    required super.deviceId,
+    required this.ssid,
+    required this.authMode,
+    required this.frequency,
+  });
+
+  static const commandEvent = 'device.xiaomi.wifi.password_requested';
+
+  final String ssid;
+  final int authMode;
+  final int frequency;
+}
+
 /// A structured protocol trace item emitted after a Xiaomi transport frame has
 /// been parsed.  This is intentionally separate from ordinary application
 /// logs so DevTools can inspect the protocol without scraping log strings.

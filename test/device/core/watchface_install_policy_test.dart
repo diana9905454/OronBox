@@ -40,13 +40,14 @@ void main() {
     expect(analysis?.identifier, '120912345678');
   });
 
-  test('reports a generic corrupted-file error without exposing the ID', () {
+  test('reports restricted watchface message without exposing the ID', () {
     final error = WatchfaceInstallBlockedException('120912345678');
 
     expect(
       error.message,
-      'Watchface file is corrupted and cannot be installed',
+      contains('OronBox 无法安装疑似来自官方表盘商城的表盘'),
     );
     expect(error.message, isNot(contains('1209')));
+    expect(error.message, isNot(contains('禁止')));
   });
 }
