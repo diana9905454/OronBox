@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
+import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 
@@ -30,9 +32,34 @@ class HealthStore {
   static const _maxWorkoutRecords = 90;
   static const _maxAbnormalHealthRecords = 90;
 
+  static final _memoryCache = <String, XiaomiHealthData>{};
+  static final _pendingPersist = <String, XiaomiHealthData>{};
+  static final _activePersists = <String, Future<void>>{};
+  static final _log = getLogger('HealthStore');
+
+  static XiaomiHealthData? getCached(String deviceId) => _memoryCache[deviceId];
+
+  @visibleForTesting
+  static void clearCache() {
+    _memoryCache.clear();
+    _pendingPersist.clear();
+    _activePersists.clear();
+  }
+
+  @visibleForTesting
+  static Future<void> flush() async {
+    final futures = _activePersists.values.toList();
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
+  }
+
   final _prefs = SharedPrefsService.instance;
 
   Future<XiaomiHealthData> read(String deviceId) async {
+    final cached = _memoryCache[deviceId];
+    if (cached != null) return cached;
+
     for (final prefix in _legacyKeyPrefixes) {
       final legacyKey = _keyFor(prefix, deviceId);
       if (_prefs.getString(legacyKey) != null) {
@@ -42,53 +69,149 @@ class HealthStore {
     final value = _prefs.getString(_key(deviceId));
     if (value == null || value.isEmpty) return const XiaomiHealthData();
     try {
-      return await compute(_decodeHealthData, value);
+      final decoded = await compute(_decodeHealthData, value);
+      _memoryCache[deviceId] = decoded;
+      return decoded;
     } catch (_) {
       return const XiaomiHealthData();
     }
   }
 
-  Future<void> write(String deviceId, XiaomiHealthData data) async {
-    // De-duplicate before sorting so the caller's merge order is preserved
-    // for equal keys. XiaomiHealthSyncService puts freshly received records
-    // before the cached records, which lets a repeated sync replace stale
-    // daily/sample values for the same date or timestamp.
-    final daily = [..._deduplicateDaily(data.daily)]
-      ..sort((a, b) => b.date.compareTo(a.date));
-    final samples = [..._deduplicateSamples(data.samples)]
-      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    final activitySamples = [
-      ..._deduplicateActivitySamples(data.activitySamples),
-    ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    final sleep = [..._deduplicateSleep(data.sleep)]
-      ..sort((a, b) {
-        final endComparison = b.endedAt.compareTo(a.endedAt);
-        if (endComparison != 0) return endComparison;
-        return b.startedAt.compareTo(a.startedAt);
-      });
-    final workouts = [..._deduplicateWorkouts(data.workouts)]
-      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
-    final abnormalHealthRecords = [
-      ..._deduplicateAbnormalHealthRecords(data.abnormalHealthRecords),
-    ]..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+  Future<XiaomiHealthData> write(
+    String deviceId,
+    XiaomiHealthData data, {
+    bool flushImmediately = false,
+  }) async {
+    final cached = _memoryCache[deviceId];
+
+    final bool samplesUnchanged =
+        cached != null && identical(data.samples, cached.samples);
+    final bool activityUnchanged =
+        cached != null &&
+        identical(data.activitySamples, cached.activitySamples);
+    final bool dailyUnchanged =
+        cached != null && identical(data.daily, cached.daily);
+    final bool sleepUnchanged =
+        cached != null && identical(data.sleep, cached.sleep);
+    final bool workoutsUnchanged =
+        cached != null && identical(data.workouts, cached.workouts);
+    final bool abnormalUnchanged =
+        cached != null &&
+        identical(data.abnormalHealthRecords, cached.abnormalHealthRecords);
+
+    // If absolutely nothing changed, no-op immediately
+    if (samplesUnchanged &&
+        activityUnchanged &&
+        dailyUnchanged &&
+        sleepUnchanged &&
+        workoutsUnchanged &&
+        abnormalUnchanged &&
+        cached.capabilities == data.capabilities &&
+        cached.lastSyncedAt == data.lastSyncedAt) {
+      return cached;
+    }
+
+    final daily = dailyUnchanged
+        ? cached.daily
+        : ([..._deduplicateDaily(data.daily)]
+            ..sort((a, b) => b.date.microsecondsSinceEpoch.compareTo(a.date.microsecondsSinceEpoch)))
+            .take(_maxDailyRecords)
+            .toList(growable: false);
+
+    final samples = samplesUnchanged
+        ? cached.samples
+        : _capSamplesPerMetric(
+            [..._deduplicateSamples(data.samples)]
+              ..sort((a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(a.timestamp.microsecondsSinceEpoch)),
+          );
+
+    final activitySamples = activityUnchanged
+        ? cached.activitySamples
+        : ([..._deduplicateActivitySamples(data.activitySamples)]
+            ..sort((a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(a.timestamp.microsecondsSinceEpoch)))
+            .take(_maxActivitySampleRecords)
+            .toList(growable: false);
+
+    final sleep = sleepUnchanged
+        ? cached.sleep
+        : ([..._deduplicateSleep(data.sleep)]
+            ..sort((a, b) {
+              final endComparison = b.endedAt.microsecondsSinceEpoch.compareTo(a.endedAt.microsecondsSinceEpoch);
+              if (endComparison != 0) return endComparison;
+              return b.startedAt.microsecondsSinceEpoch.compareTo(a.startedAt.microsecondsSinceEpoch);
+            }))
+            .take(_maxSleepRecords)
+            .toList(growable: false);
+
+    final workouts = workoutsUnchanged
+        ? cached.workouts
+        : [
+            for (final workout in ([..._deduplicateWorkouts(data.workouts)]
+                  ..sort((a, b) => b.startedAt.microsecondsSinceEpoch.compareTo(a.startedAt.microsecondsSinceEpoch)))
+                .take(_maxWorkoutRecords))
+              _capWorkoutPoints(workout),
+          ];
+
+    final abnormalHealthRecords = abnormalUnchanged
+        ? cached.abnormalHealthRecords
+        : ([..._deduplicateAbnormalHealthRecords(data.abnormalHealthRecords)]
+            ..sort((a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(a.timestamp.microsecondsSinceEpoch)))
+            .take(_maxAbnormalHealthRecords)
+            .toList(growable: false);
+
     final normalized = XiaomiHealthData(
-      daily: daily.take(_maxDailyRecords).toList(),
-      samples: _capSamplesPerMetric(samples),
-      activitySamples: activitySamples.take(_maxActivitySampleRecords).toList(),
-      sleep: sleep.take(_maxSleepRecords).toList(),
-      workouts: [
-        for (final workout in workouts.take(_maxWorkoutRecords))
-          _capWorkoutPoints(workout),
-      ],
-      abnormalHealthRecords: abnormalHealthRecords
-          .take(_maxAbnormalHealthRecords)
-          .toList(),
+      daily: daily,
+      samples: samples,
+      activitySamples: activitySamples,
+      sleep: sleep,
+      workouts: workouts,
+      abnormalHealthRecords: abnormalHealthRecords,
       capabilities: data.capabilities,
       lastSyncedAt: data.lastSyncedAt,
     );
-    final ok = await _prefs.setString(_key(deviceId), normalized.encode());
-    if (!ok) throw StateError('Unable to persist health data');
+    _memoryCache[deviceId] = normalized;
     healthDataRevision.value++;
+
+    final persistFuture = _schedulePersist(deviceId, normalized);
+    if (flushImmediately) {
+      await persistFuture;
+    } else {
+      unawaited(persistFuture);
+    }
+    return normalized;
+  }
+
+  Future<void> _schedulePersist(String deviceId, XiaomiHealthData data) {
+    _pendingPersist[deviceId] = data;
+    if (_activePersists.containsKey(deviceId)) {
+      return _activePersists[deviceId]!;
+    }
+    final future = _runPersistLoop(deviceId);
+    _activePersists[deviceId] = future;
+    return future;
+  }
+
+  Future<void> _runPersistLoop(String deviceId) async {
+    try {
+      while (_pendingPersist.containsKey(deviceId)) {
+        final toSave = _pendingPersist.remove(deviceId)!;
+        try {
+          final encoded = toSave.encode();
+          final ok = await _prefs.setString(_key(deviceId), encoded);
+          if (!ok) {
+            _log.warning('Unable to persist health data for $deviceId');
+          }
+        } catch (error, stackTrace) {
+          _log.warning(
+            'Failed to persist health data for $deviceId',
+            error,
+            stackTrace,
+          );
+        }
+      }
+    } finally {
+      _activePersists.remove(deviceId);
+    }
   }
 
   String _key(String deviceId) =>
@@ -98,7 +221,7 @@ class HealthStore {
       '$prefix${sha1.convert(utf8.encode(deviceId)).toString()}';
 
   List<HealthDailySummary> _deduplicateDaily(List<HealthDailySummary> values) {
-    final result = <String, HealthDailySummary>{};
+    final result = <int, HealthDailySummary>{};
     for (final value in values) {
       result[_dateKey(value.date)] ??= value;
     }
@@ -106,10 +229,11 @@ class HealthStore {
   }
 
   List<HealthSample> _deduplicateSamples(List<HealthSample> values) {
-    final result = <String, HealthSample>{};
+    final result = <int, HealthSample>{};
     for (final value in values) {
-      result['${value.metric.name}|${value.timestamp.toIso8601String()}'] ??=
-          value;
+      final key = (value.metric.index << 48) |
+          (value.timestamp.millisecondsSinceEpoch & 0xffffffffffff);
+      result[key] ??= value;
     }
     return result.values.toList(growable: false);
   }
@@ -122,9 +246,9 @@ class HealthStore {
   List<HealthActivitySample> _deduplicateActivitySamples(
     List<HealthActivitySample> values,
   ) {
-    final result = <String, HealthActivitySample>{};
+    final result = <int, HealthActivitySample>{};
     for (final value in values) {
-      final key = value.timestamp.toIso8601String();
+      final key = value.timestamp.millisecondsSinceEpoch;
       final existing = result[key];
       result[key] = existing == null
           ? value
@@ -155,14 +279,14 @@ class HealthStore {
   }
 
   List<HealthSleepSummary> _deduplicateSleep(List<HealthSleepSummary> values) {
-    final result = <String, HealthSleepSummary>{};
+    final result = <int, HealthSleepSummary>{};
     for (final value in values) {
       // Gadgetbridge keys Xiaomi sleep summaries by the exact bedtime. During
       // a night the watch may send that same bedtime repeatedly with
       // progressively later wake times; the later record replaces the
       // earlier one. Do not merge nearby bedtimes or contained intervals:
       // those can be legitimate separate sleep segments.
-      final key = value.startedAt.toIso8601String();
+      final key = value.startedAt.millisecondsSinceEpoch;
       final existing = result[key];
       if (existing == null ||
           value.endedAt.isAfter(existing.endedAt) ||
@@ -177,9 +301,10 @@ class HealthStore {
   List<HealthWorkoutSummary> _deduplicateWorkouts(
     List<HealthWorkoutSummary> values,
   ) {
-    final result = <String, HealthWorkoutSummary>{};
+    final result = <int, HealthWorkoutSummary>{};
     for (final value in values) {
-      final key = '${value.startedAt.toIso8601String()}|${value.activityType}';
+      final key = (value.activityType << 48) |
+          (value.startedAt.millisecondsSinceEpoch & 0xffffffffffff);
       final existing = result[key];
       if (existing == null ||
           _workoutRichness(value) > _workoutRichness(existing)) {
@@ -227,11 +352,9 @@ class HealthStore {
     return result.values.toList(growable: false);
   }
 
-  String _dateKey(DateTime value) {
+  int _dateKey(DateTime value) {
     final local = value.toLocal();
-    return '${local.year.toString().padLeft(4, '0')}-'
-        '${local.month.toString().padLeft(2, '0')}-'
-        '${local.day.toString().padLeft(2, '0')}';
+    return local.year * 10000 + local.month * 100 + local.day;
   }
 }
 

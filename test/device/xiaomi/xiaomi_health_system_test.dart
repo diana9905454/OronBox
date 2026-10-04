@@ -6,16 +6,16 @@ import 'package:oronbox/src/core/models/xiaomi_health_models.dart';
 import 'package:oronbox/src/device/core/entity.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/transport.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/request_pool_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/xiaomi_device_component.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_fitness.pb.dart'
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/request_pool_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_device_component.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_fitness.pb.dart'
     as pb_fitness;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_system.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
     as pb_system;
-import 'package:oronbox/src/protocols/xiaomi/packet/l2_packet.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/spp_v1_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/l2_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/spp_v1_packet.dart';
 
 void main() {
   test('keeps Xiaomi activity timestamps as local wall-clock values', () {
@@ -47,7 +47,7 @@ void main() {
     expect(utcDeviceTimestamp, DateTime(2026, 1, 15, 12, 34, 56));
   });
 
-  test('health state survives daemon JSON round trip', () {
+  test('health state survives JSON round trip', () {
     const original = XiaomiHealthState(
       isCharging: true,
       isWearing: false,
@@ -451,8 +451,8 @@ void main() {
       final fileRequestIndex = protobufPackets.indexWhere(
         (packet) =>
             packet.id ==
-                pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value &&
-            packet.fitness.hasId(),
+                pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_IDS.value &&
+            packet.fitness.hasIds(),
       );
       final historyRequestIndex = protobufPackets.indexWhere(
         (packet) =>
@@ -467,12 +467,12 @@ void main() {
           .where(
             (packet) =>
                 packet.id ==
-                pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value,
+                pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_IDS.value,
           )
           .toList(growable: false);
       expect(fileRequests, hasLength(1));
-      expect(fileRequests.single.fitness.hasId(), isTrue);
-      expect(fileRequests.single.fitness.id, orderedEquals(fileId));
+      expect(fileRequests.single.fitness.hasIds(), isTrue);
+      expect(fileRequests.single.fitness.ids, orderedEquals(fileId));
       expect(
         packets
             .where((packet) => packet.channel == XiaomiSppV1Channel.protobuf)
@@ -577,10 +577,13 @@ void main() {
         final requests = _protobufPackets(transport).where(
           (packet) =>
               packet.id ==
-                  pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value &&
-              packet.fitness.hasId(),
+                  pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_IDS.value &&
+              packet.fitness.hasIds() &&
+              packet.fitness.ids.length == 7,
         );
-        final fileId = Uint8List.fromList(requests.elementAt(index).fitness.id);
+        final fileId = Uint8List.fromList(
+          requests.elementAt(index).fitness.ids,
+        );
         requestedIds.add(
           fileId.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join(),
         );
@@ -639,6 +642,23 @@ void main() {
     // not in this ID list. Process and confirm it before retrying the still-
     // missing requested ID.
     await _waitFor(() => _activityFileRequestCount(transport) == 2);
+    final fileRequests = _protobufPackets(transport)
+        .where(
+          (packet) =>
+              (packet.id ==
+                      pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value &&
+                  packet.fitness.hasId()) ||
+              (packet.id ==
+                      pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_IDS.value &&
+                  packet.fitness.hasIds()),
+        )
+        .toList(growable: false);
+    expect(fileRequests, hasLength(2));
+    expect(
+      fileRequests.map((packet) => packet.id),
+      everyElement(pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_IDS.value),
+    );
+    expect(fileRequests[1].fitness.ids, orderedEquals(requestedId));
     final earlyConfirmations = _protobufPackets(transport)
         .where(
           (packet) =>
@@ -833,9 +853,15 @@ void main() {
           .map((packet) => pb.WearPacket.fromBuffer(packet.payload))
           .where(
             (packet) =>
-                packet.id ==
-                    pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value &&
-                packet.fitness.hasId(),
+                (packet.id ==
+                        pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value &&
+                    packet.fitness.hasId()) ||
+                (packet.id ==
+                        pb_fitness
+                            .Fitness_FitnessID
+                            .REQUEST_FITNESS_IDS
+                            .value &&
+                    packet.fitness.hasIds()),
           )
           .toList(growable: false);
       expect(fileRequests, isEmpty);
@@ -1019,9 +1045,9 @@ int _activityFileRequestCount(_RecordingTransport transport) =>
         .where(
           (packet) =>
               packet.id ==
-                  pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_ID.value &&
-              packet.fitness.hasId() &&
-              packet.fitness.id.length == 7,
+                  pb_fitness.Fitness_FitnessID.REQUEST_FITNESS_IDS.value &&
+              packet.fitness.hasIds() &&
+              packet.fitness.ids.length == 7,
         )
         .length;
 

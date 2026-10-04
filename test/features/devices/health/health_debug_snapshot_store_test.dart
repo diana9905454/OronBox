@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

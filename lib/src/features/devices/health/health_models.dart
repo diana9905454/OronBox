@@ -1353,13 +1353,17 @@ class XiaomiHealthData {
     // The synchronizer normally projects raw records into HealthSample. Keep
     // the raw activitySamples fallback here as well so old snapshots and
     // partial parsers can still derive a summary without inventing a total.
-    final byKey = <String, HealthSample>{};
+    final byKey = <int, HealthSample>{};
+    DateTime? latestTimestamp;
     void add(HealthSample sample) {
       if (!sample.isUsable) return;
-      byKey.putIfAbsent(
-        '${sample.metric.name}|${sample.timestamp.toIso8601String()}',
-        () => sample,
-      );
+      final key = (sample.metric.index << 48) |
+          (sample.timestamp.millisecondsSinceEpoch & 0xffffffffffff);
+      if (byKey.containsKey(key)) return;
+      byKey[key] = sample;
+      if (latestTimestamp == null || sample.timestamp.isAfter(latestTimestamp!)) {
+        latestTimestamp = sample.timestamp;
+      }
     }
 
     for (final metric in [
@@ -1390,17 +1394,8 @@ class XiaomiHealthData {
         );
       }
     }
-    final activitySamplesForSummary = byKey.values.toList(growable: false);
-    final sampleDate = activitySamplesForSummary.isEmpty
-        ? null
-        : _dateOnly(
-            activitySamplesForSummary
-                .reduce(
-                  (left, right) =>
-                      left.timestamp.isAfter(right.timestamp) ? left : right,
-                )
-                .timestamp,
-          );
+    final sampleDate =
+        latestTimestamp == null ? null : _dateOnly(latestTimestamp!);
     final day = latestDay;
     final referenceDate =
         day == null || (sampleDate != null && sampleDate.isAfter(day.date))
@@ -1412,23 +1407,33 @@ class XiaomiHealthData {
         ? day
         : null;
 
-    final daySamples = activitySamplesForSummary.where(
-      (sample) => _sameDate(sample.timestamp, referenceDate),
-    );
-    int? sum(XiaomiHealthMetric metric) {
-      final values = daySamples
-          .where((sample) => sample.metric == metric)
-          .map((sample) => sample.value)
-          .toList();
-      if (values.isEmpty) return null;
-      return values.fold<double>(0, (total, value) => total + value).round();
+    var stepSum = 0.0;
+    var hasSteps = false;
+    var calorieSum = 0.0;
+    var hasCalories = false;
+    var standingBitmap = daySummary?.standingBitmap;
+    var computedStandingBitmap = 0;
+    var foundStanding = false;
+
+    for (final sample in byKey.values) {
+      if (!_sameDate(sample.timestamp, referenceDate)) continue;
+      if (sample.metric == XiaomiHealthMetric.activity) {
+        stepSum += sample.value;
+        hasSteps = true;
+        if (standingBitmap == null && sample.value > 0) {
+          computedStandingBitmap |= 1 << sample.timestamp.toLocal().hour;
+          foundStanding = true;
+        }
+      } else if (sample.metric == XiaomiHealthMetric.activeCalories) {
+        calorieSum += sample.value;
+        hasCalories = true;
+      }
     }
 
-    final steps = daySummary?.steps ?? sum(XiaomiHealthMetric.activity);
+    standingBitmap ??= foundStanding ? computedStandingBitmap : null;
+    final steps = daySummary?.steps ?? (hasSteps ? stepSum.round() : null);
     final activeCalories =
-        daySummary?.activeCalories ?? sum(XiaomiHealthMetric.activeCalories);
-    final standingBitmap =
-        daySummary?.standingBitmap ?? _standingBitmap(daySamples);
+        daySummary?.activeCalories ?? (hasCalories ? calorieSum.round() : null);
     if (steps == null && activeCalories == null && standingBitmap == null) {
       return day;
     }
@@ -1532,21 +1537,33 @@ class XiaomiHealthData {
     );
   }
 
-  Map<String, Object?> toJson() => {
-    'schema': 2,
-    'daily': daily.map((value) => value.toJson()).toList(growable: false),
-    'samples': samples.map((value) => value.toJson()).toList(growable: false),
-    'activitySamples': activitySamples
-        .map((value) => value.toJson())
-        .toList(growable: false),
-    'sleep': sleep.map((value) => value.toJson()).toList(growable: false),
-    'workouts': workouts.map((value) => value.toJson()).toList(growable: false),
-    'abnormalHealthRecords': abnormalHealthRecords
-        .map((value) => value.toJson())
-        .toList(growable: false),
-    'capabilities': capabilities.toJson(),
-    'lastSyncedAt': lastSyncedAt?.toIso8601String(),
-  };
+  Map<String, Object?> toJson() {
+    List<Map<String, Object?>>? cachedSamples = _samplesJsonCache[samples];
+    if (cachedSamples == null) {
+      cachedSamples = samples.map((value) => value.toJson()).toList(growable: false);
+      _samplesJsonCache[samples] = cachedSamples;
+    }
+
+    List<Map<String, Object?>>? cachedActivity = _activitySamplesJsonCache[activitySamples];
+    if (cachedActivity == null) {
+      cachedActivity = activitySamples.map((value) => value.toJson()).toList(growable: false);
+      _activitySamplesJsonCache[activitySamples] = cachedActivity;
+    }
+
+    return {
+      'schema': 2,
+      'daily': daily.map((value) => value.toJson()).toList(growable: false),
+      'samples': cachedSamples,
+      'activitySamples': cachedActivity,
+      'sleep': sleep.map((value) => value.toJson()).toList(growable: false),
+      'workouts': workouts.map((value) => value.toJson()).toList(growable: false),
+      'abnormalHealthRecords': abnormalHealthRecords
+          .map((value) => value.toJson())
+          .toList(growable: false),
+      'capabilities': capabilities.toJson(),
+      'lastSyncedAt': lastSyncedAt?.toIso8601String(),
+    };
+  }
 
   String encode() => jsonEncode(toJson());
 
@@ -1586,23 +1603,12 @@ class XiaomiHealthData {
     final local = value.toLocal();
     return DateTime(local.year, local.month, local.day);
   }
-
-  static int? _standingBitmap(Iterable<HealthSample> values) {
-    var bitmap = 0;
-    var found = false;
-    for (final sample in values) {
-      if (sample.metric != XiaomiHealthMetric.activity || !sample.isUsable) {
-        continue;
-      }
-      if (sample.value <= 0) continue;
-      bitmap |= 1 << sample.timestamp.toLocal().hour;
-      found = true;
-    }
-    return found ? bitmap : null;
-  }
 }
 
 final _healthDataCaches = Expando<_XiaomiHealthDataCache>();
+final _samplesJsonCache = Expando<List<Map<String, Object?>>>();
+final _activitySamplesJsonCache = Expando<List<Map<String, Object?>>>();
+final _sampleListCaches = Expando<Map<XiaomiHealthMetric, List<HealthSample>>>();
 
 extension on XiaomiHealthData {
   _XiaomiHealthDataCache get _cache =>
@@ -1623,14 +1629,18 @@ class _XiaomiHealthDataCache {
 Map<XiaomiHealthMetric, List<HealthSample>> _indexSamples(
   List<HealthSample> samples,
 ) {
+  final cached = _sampleListCaches[samples];
+  if (cached != null) return cached;
   final indexed = <XiaomiHealthMetric, List<HealthSample>>{};
   for (final sample in samples) {
     indexed.putIfAbsent(sample.metric, () => <HealthSample>[]).add(sample);
   }
-  return {
+  final result = {
     for (final metric in XiaomiHealthMetric.values)
       metric: List<HealthSample>.unmodifiable(indexed[metric] ?? const []),
   };
+  _sampleListCaches[samples] = result;
+  return result;
 }
 
 class XiaomiHealthSyncResult {

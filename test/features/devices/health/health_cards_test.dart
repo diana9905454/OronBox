@@ -8,7 +8,7 @@ import 'package:oronbox/src/app/app_localizations_delegates.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/devices/health/health_cards.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
-import 'package:oronbox/src/features/devices/pages/more/xiaomi_health_detail_page.dart';
+import 'package:oronbox/src/features/devices/health/pages/xiaomi_health_detail_page.dart';
 
 void main() {
   setUpAll(() async {

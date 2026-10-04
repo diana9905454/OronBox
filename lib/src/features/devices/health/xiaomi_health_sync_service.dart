@@ -1,18 +1,15 @@
+import 'dart:async';
+
 import 'package:oronbox/src/core/logging/logging_service.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
 import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_fitness.pb.dart'
-    as pb_fitness;
 
 /// Xiaomi health synchronizer based on Xiaomi's activity-file protocol.
 ///
-/// Activity files remain the primary source because they carry the detailed
-/// samples and the v5/v6 sleep report. Some VelaOS devices expose only the
-/// summary response for sleep, however, so the protocol-level sleep result is
-/// used as a narrow fallback for start/end time and summary values.
+/// Activity files are the source for Xiaomi health history.
 class XiaomiHealthSyncService {
   factory XiaomiHealthSyncService({
     required XiaomiHealthSystem system,
@@ -49,60 +46,34 @@ class XiaomiHealthSyncService {
 
   Future<XiaomiHealthSyncResult> sync() async {
     _log.info('Xiaomi health synchronization started for $_deviceId');
-    final previous = await _store.read(_deviceId);
-    // Do not turn an activity-file transport failure into a second, unrelated
-    // sleep request. The file transfer is the source for all health metrics;
-    // its error must reach the caller so the UI can report the actual failure.
-    final files = await _system.syncActivityFiles();
+    final results = await Future.wait<Object?>([
+      _store.read(_deviceId),
+      _system.syncActivityFiles(),
+    ]);
+    final previous = results[0] as XiaomiHealthData;
+    final files = results[1] as XiaomiActivityFileSyncResult;
     _log.info(
       'Xiaomi health activity files received for $_deviceId: '
       'files=${files.filesReceived}, skipped=${files.filesSkipped}, '
       'failed=${files.failedFiles.length}',
     );
-    if (XiaomiSyncPreferences.healthDebugMode) {
-      try {
-        await _snapshotStore.add(
+    if (XiaomiSyncPreferences.healthDebugMode && files.rawFiles.isNotEmpty) {
+      unawaited(
+        _snapshotStore.add(
           deviceId: _deviceId,
           deviceCode: _deviceCode,
           files: files.rawFiles,
-        );
-      } catch (error, stackTrace) {
-        _log.warning(
-          'Xiaomi health raw snapshot could not be saved for $_deviceId',
-          error,
-          stackTrace,
-        );
-      }
-    }
-
-    var sleepResult = pb_fitness.SleepResult();
-    if (files.sleep.isEmpty) {
-      _log.fine(
-        'Xiaomi activity files contained no sleep summary; '
-        'requesting protocol sleep fallback for $_deviceId',
+        ).catchError((error, stackTrace) {
+          _log.warning(
+            'Xiaomi health raw snapshot could not be saved for $_deviceId',
+            error,
+            stackTrace,
+          );
+        }),
       );
-      try {
-        sleepResult = await _system.fetchSleepResult(
-          timeout: const Duration(seconds: 4),
-        );
-        _log.fine(
-          'Xiaomi protocol sleep fallback received for $_deviceId: '
-          'sections=${sleepResult.sectionList.length}',
-        );
-      } catch (error, stackTrace) {
-        _log.fine(
-          'Xiaomi protocol sleep fallback failed for $_deviceId',
-          error,
-          stackTrace,
-        );
-      }
     }
 
-    final mapped = _mapFiles(
-      files,
-      sleepResult: sleepResult,
-      previous: previous,
-    );
+    final mapped = _mapFiles(files, previous: previous);
     final daily = mapped.daily;
     final samples = mapped.samples;
     final activitySamples = mapped.activitySamples;
@@ -132,8 +103,7 @@ class XiaomiHealthSyncService {
               '${files.failedFiles.length} failed activity file(s)';
 
     final data = mapped.data;
-    await _store.write(_deviceId, data);
-    final saved = await _store.read(_deviceId);
+    final saved = await _store.write(_deviceId, data);
 
     _log.info(
       'Xiaomi health synchronization saved for $_deviceId: '
@@ -161,11 +131,7 @@ class XiaomiHealthSyncService {
     Iterable<XiaomiActivityRawFile> rawFiles,
   ) async {
     final files = _system.parseActivityFilesForDebug(rawFiles);
-    final mapped = _mapFiles(
-      files,
-      sleepResult: pb_fitness.SleepResult(),
-      previous: await _store.read(_deviceId),
-    );
+    final mapped = _mapFiles(files, previous: await _store.read(_deviceId));
     if (mapped.daily.isEmpty &&
         mapped.samples.isEmpty &&
         mapped.activitySamples.isEmpty &&
@@ -180,7 +146,6 @@ class XiaomiHealthSyncService {
 
   _MappedXiaomiHealthData _mapFiles(
     XiaomiActivityFileSyncResult files, {
-    required pb_fitness.SleepResult sleepResult,
     required XiaomiHealthData previous,
   }) {
     final daily = files.daily.map(_daily).toList(growable: false);
@@ -274,7 +239,7 @@ class XiaomiHealthSyncService {
           ),
         )
         .toList(growable: false);
-    final sleep = [...fileSleep, ..._sleepResultSummaries(sleepResult)];
+    final sleep = fileSleep;
     final workouts = files.workouts
         .map(
           (value) => HealthWorkoutSummary(
@@ -421,18 +386,26 @@ class XiaomiHealthSyncService {
         .toList(growable: false);
     // Put this sync's records first. HealthStore de-duplicates equal keys
     // using first-wins semantics, so a replay can replace stale values.
-    final mergedDaily = [...daily, ...previous.daily];
-    final mergedSamples = [...samples, ...previous.samples];
-    final mergedActivitySamples = [
-      ...activitySamples,
-      ...previous.activitySamples,
-    ];
-    final mergedSleep = [...sleep, ...previous.sleep];
-    final mergedWorkouts = [...workouts, ...previous.workouts];
-    final mergedAbnormalHealthRecords = [
-      ...abnormalHealthRecords,
-      ...previous.abnormalHealthRecords,
-    ];
+    // If incoming sub-lists are empty, preserve the previous list reference
+    // so HealthStore can recognize unchanged lists in O(1) and skip deduplication/sorting.
+    final mergedDaily = daily.isEmpty
+        ? previous.daily
+        : [...daily, ...previous.daily];
+    final mergedSamples = samples.isEmpty
+        ? previous.samples
+        : [...samples, ...previous.samples];
+    final mergedActivitySamples = activitySamples.isEmpty
+        ? previous.activitySamples
+        : [...activitySamples, ...previous.activitySamples];
+    final mergedSleep = sleep.isEmpty
+        ? previous.sleep
+        : [...sleep, ...previous.sleep];
+    final mergedWorkouts = workouts.isEmpty
+        ? previous.workouts
+        : [...workouts, ...previous.workouts];
+    final mergedAbnormalHealthRecords = abnormalHealthRecords.isEmpty
+        ? previous.abnormalHealthRecords
+        : [...abnormalHealthRecords, ...previous.abnormalHealthRecords];
     return _MappedXiaomiHealthData(
       daily: daily,
       samples: samples,
@@ -460,69 +433,6 @@ class XiaomiHealthSyncService {
         lastSyncedAt: DateTime.now(),
       ),
     );
-  }
-
-  /// Converts the device's summary-only sleep response into the same model as
-  /// the activity-file parser. This response does not contain stage packets or
-  /// HRV series, so it must never replace a detailed activity-file record.
-  List<HealthSleepSummary> _sleepResultSummaries(
-    pb_fitness.SleepResult result,
-  ) {
-    final summaries = <HealthSleepSummary>[];
-    for (final section in result.sectionList) {
-      if (!section.hasSleepTimestamp() || !section.hasWakeupTimestamp()) {
-        continue;
-      }
-      final startedSeconds = section.sleepTimestamp;
-      final endedSeconds = section.wakeupTimestamp;
-      if (startedSeconds <= 0 || endedSeconds <= startedSeconds) continue;
-
-      final elapsedSeconds = endedSeconds - startedSeconds;
-      final reportedDuration = section.hasValidSleepTime()
-          ? section.validSleepTime
-          : 0;
-      final durationSeconds =
-          reportedDuration > 0 && reportedDuration <= elapsedSeconds
-          ? reportedDuration
-          : elapsedSeconds;
-      if (durationSeconds <= 0) continue;
-
-      // The direct sleep-result response carries the same device timezone
-      // metadata as an activity-file ID. Its timestamps are device-local
-      // wall-clock values, so apply device offset + DST before exposing them
-      // as the phone's local DateTime. Older firmwares omit the field; keep
-      // the historical wall-clock fallback for those responses.
-      final timezoneOffset15Min = section.hasTimezone()
-          ? section.timezone.offset + section.timezone.dstSaving
-          : null;
-      final extra = section.hasExtraData() ? section.extraData : null;
-      summaries.add(
-        HealthSleepSummary(
-          startedAt: xiaomiActivityTimestamp(
-            startedSeconds,
-            timezoneOffset15Min: timezoneOffset15Min,
-          ),
-          endedAt: xiaomiActivityTimestamp(
-            endedSeconds,
-            timezoneOffset15Min: timezoneOffset15Min,
-          ),
-          durationSeconds: durationSeconds,
-          averageHeartRate: section.hasAverageHeartRate()
-              ? section.averageHeartRate
-              : null,
-          averageBloodOxygen: section.hasAverageBloodOxygen()
-              ? section.averageBloodOxygen
-              : null,
-          quality: extra?.hasSleepQuality() == true
-              ? extra!.sleepQuality
-              : null,
-          sleepEfficiency: extra?.hasSleepEfficiency() == true
-              ? extra!.sleepEfficiency
-              : null,
-        ),
-      );
-    }
-    return summaries;
   }
 
   HealthDailySummary _daily(XiaomiActivityDailyRecord value) =>

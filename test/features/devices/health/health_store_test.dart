@@ -9,6 +9,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    HealthStore.clearCache();
     SharedPreferences.setMockInitialValues({});
     await SharedPrefsService.instance.init();
     await SharedPrefsService.instance.reload();
@@ -96,6 +97,14 @@ void main() {
       expect(saved.latestSample(XiaomiHealthMetric.heartRate)?.value, 82);
       expect(saved.abnormalHealthRecords, hasLength(1));
       expect(saved.abnormalHealthRecords.single.value, 132);
+
+      await HealthStore.flush();
+      HealthStore.clearCache();
+      final fromDisk = await store.read(deviceId);
+      expect(fromDisk.daily.single.steps, 250);
+      expect(fromDisk.latestSample(XiaomiHealthMetric.heartRate)?.value, 82);
+      expect(fromDisk.abnormalHealthRecords, hasLength(1));
+      expect(fromDisk.abnormalHealthRecords.single.value, 132);
     },
   );
 

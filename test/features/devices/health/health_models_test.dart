@@ -1,14 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/features/devices/health/xiaomi_health_sync_service.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_common.pb.dart'
-    as pb_common;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_fitness.pb.dart'
-    as pb_fitness;
 
 void main() {
   test('Xiaomi activity timestamps stay in local wall-clock semantics', () {
@@ -659,6 +655,39 @@ void main() {
       abnormalHealthRecords[5].endedAt,
       xiaomiActivityTimestamp(startedSeconds + 45 * 60),
     );
+  });
+
+  test('parses Vela v2 daily-type-9 abnormal heart-rate records with 1-byte threshold', () {
+    const startedSeconds = 1_790_933_297;
+    const endedSeconds = 1_790_933_897;
+    final body = BytesBuilder()
+      ..add(_u32(startedSeconds))
+      ..add(_u32(endedSeconds))
+      ..addByte(1) // HR_HIGH
+      ..addByte(100) // 1-byte threshold
+      ..add(_u16(2)) // count: 2
+      ..add(_u32(startedSeconds + 16))
+      ..addByte(107)
+      ..add(_u32(startedSeconds + 17))
+      ..addByte(109);
+
+    final prefix = <int>[
+      ..._u32(startedSeconds),
+      32,
+      2, // version 2
+      9 << 2,
+      0, // padding
+      ...body.toBytes(),
+    ];
+    final file = _activityFile(prefix);
+    final records = XiaomiHealthSystem()
+        .parseActivityAbnormalHeartRateFileForTesting(file);
+
+    expect(records, hasLength(2));
+    expect(records[0].kind, XiaomiActivityAbnormalHeartRateKind.high);
+    expect(records[0].threshold, 100);
+    expect(records[0].value, 107);
+    expect(records[1].value, 109);
   });
 
   test('parses the Mi Fitness v5 sleep record and stage packets', () {
@@ -1601,68 +1630,27 @@ void main() {
     },
   );
 
-  test(
-    'uses the protocol sleep summary when no sleep activity file exists',
-    () async {
-      const startedSeconds = 1_787_472_000;
-      const endedSeconds = startedSeconds + 8 * 60 * 60;
-      final store = _MemoryHealthStore(const XiaomiHealthData());
-      final service = XiaomiHealthSyncService(
-        system: _FakeHealthSystem(
-          const XiaomiActivityFileSyncResult(
-            daily: [],
-            samples: [],
-            sleep: [],
-            workouts: [],
-            filesReceived: 1,
-          ),
-          sleepResult: pb_fitness.SleepResult(
-            sectionList: [
-              pb_fitness.SleepResult_Section(
-                timezone: pb_common.Timezone(
-                  offset: 32,
-                  dstSaving: 0,
-                  id: 'Asia/Shanghai',
-                  idSpec: '',
-                ),
-                sleepTimestamp: startedSeconds,
-                wakeupTimestamp: endedSeconds,
-                validSleepTime: 7 * 60 * 60,
-                averageHeartRate: 61,
-                averageBloodOxygen: 96,
-                extraData: pb_fitness.SleepResult_ExtraData(
-                  sleepQuality: 82,
-                  sleepEfficiency: 91,
-                ),
-              ),
-            ],
-          ),
-        ),
-        deviceId: 'test-device',
-        store: store,
-      );
+  test('does not request an unverified protocol sleep summary', () async {
+    final store = _MemoryHealthStore(const XiaomiHealthData());
+    final system = _FakeHealthSystem(
+      const XiaomiActivityFileSyncResult(
+        daily: [],
+        samples: [],
+        sleep: [],
+        workouts: [],
+        filesReceived: 1,
+      ),
+    );
+    final service = XiaomiHealthSyncService(
+      system: system,
+      deviceId: 'test-device',
+      store: store,
+    );
 
-      final result = await service.sync();
-      final sleep = result.data.latestSleep;
-
-      expect(sleep, isNotNull);
-      expect(
-        sleep!.startedAt,
-        xiaomiActivityTimestamp(startedSeconds, timezoneOffset15Min: 32),
-      );
-      expect(
-        sleep.endedAt,
-        xiaomiActivityTimestamp(endedSeconds, timezoneOffset15Min: 32),
-      );
-      expect(sleep.durationSeconds, 7 * 60 * 60);
-      expect(sleep.averageHeartRate, 61);
-      expect(sleep.averageBloodOxygen, 96);
-      expect(sleep.quality, 82);
-      expect(sleep.sleepEfficiency, 91);
-      expect(sleep.stages, isEmpty);
-      expect(sleep.hrvPoints, isEmpty);
-    },
-  );
+    final result = await service.sync();
+    expect(system.sleepRequests, 0);
+    expect(result.data.latestSleep, isNull);
+  });
 }
 
 List<int> _u32(int value) {
@@ -1712,16 +1700,20 @@ class _MemoryHealthStore extends HealthStore {
   Future<XiaomiHealthData> read(String deviceId) async => value;
 
   @override
-  Future<void> write(String deviceId, XiaomiHealthData data) async {
+  Future<XiaomiHealthData> write(
+    String deviceId,
+    XiaomiHealthData data, {
+    bool flushImmediately = false,
+  }) async {
     value = data;
+    return data;
   }
 }
 
 class _FakeHealthSystem extends XiaomiHealthSystem {
-  _FakeHealthSystem(this.result, {this.sleepResult, this.activityError});
+  _FakeHealthSystem(this.result, {this.activityError});
 
   final XiaomiActivityFileSyncResult result;
-  final pb_fitness.SleepResult? sleepResult;
   final Object? activityError;
   var sleepRequests = 0;
 
@@ -1729,11 +1721,5 @@ class _FakeHealthSystem extends XiaomiHealthSystem {
   Future<XiaomiActivityFileSyncResult> syncActivityFiles() async {
     if (activityError != null) throw activityError!;
     return result;
-  }
-
-  @override
-  Future<pb_fitness.SleepResult> fetchSleepResult({Duration? timeout}) async {
-    sleepRequests++;
-    return sleepResult ?? pb_fitness.SleepResult();
   }
 }
