@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -22,8 +23,8 @@ import 'package:oronbox/src/features/resources/widgets/resource_media_hero.dart'
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_external_link.dart';
-import 'package:oronbox/src/features/resources/pages/resources_page.dart' show resourceRouteObserver;
-
+import 'package:oronbox/src/features/resources/pages/resources_page.dart'
+    show resourceRouteObserver;
 
 typedef _ResourceCard = ResourceCard;
 typedef _ResourceLabel = ResourceLabel;
@@ -83,7 +84,6 @@ Future<HomeFeed?> _tryLoadHomeFeed(Ref ref) async {
     return null;
   }
 }
-
 
 class ResourceHomeView extends ConsumerStatefulWidget {
   const ResourceHomeView({super.key});
@@ -300,7 +300,12 @@ class _ResourceHomeViewState extends ConsumerState<ResourceHomeView>
                           .read(resourceModeControllerProvider.notifier)
                           .setMode(ResourceMode.library),
                     ),
-                  const SizedBox(height: StyleConstants.pagePadding),
+                  SizedBox(
+                    height: bottomContentPadding(
+                      context,
+                      extra: StyleConstants.pagePadding,
+                    ),
+                  ),
                 ],
               ),
           ],
@@ -475,56 +480,29 @@ class _HomeEmpty extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(StyleConstants.pagePadding * 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              error != null ? Icons.cloud_off_outlined : Icons.home_outlined,
-              size: 64,
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              error != null
-                  ? localizedErrorMessage(l10n, error!)
-                  : l10n.resourceHomeEmptyTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.resourceHomeEmptySubtitle,
-              style: Theme.of(context).textTheme.bodyMedium
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            if (error != null)
-              FilledButton.icon(
-                onPressed: () {
-                  ref.invalidate(homeFeedProvider);
-                  ref.invalidate(_featuredFeedProvider);
-                  ref.invalidate(_homeFeedProvider);
-                },
-                icon: const Icon(Icons.refresh),
-                label: Text(l10n.retry),
-              )
-            else
-              FilledButton.icon(
-                onPressed: () {
-                  ref
-                      .read(resourceModeControllerProvider.notifier)
-                      .setMode(ResourceMode.library);
-                },
-                icon: const Icon(Icons.library_books_outlined),
-                label: Text(l10n.openResourceLibrary),
-              ),
-          ],
-        ),
+    if (error != null) {
+      return ErrorStateView(
+        icon: Icons.cloud_off_outlined,
+        message: localizedErrorMessage(l10n, error!),
+        onRetry: () {
+          ref.invalidate(homeFeedProvider);
+          ref.invalidate(_featuredFeedProvider);
+          ref.invalidate(_homeFeedProvider);
+        },
+      );
+    }
+    return EmptyStateView(
+      icon: Icons.home_outlined,
+      title: l10n.resourceHomeEmptyTitle,
+      message: l10n.resourceHomeEmptySubtitle,
+      action: FilledButton.icon(
+        onPressed: () {
+          ref
+              .read(resourceModeControllerProvider.notifier)
+              .setMode(ResourceMode.library);
+        },
+        icon: const Icon(Icons.library_books_outlined),
+        label: Text(l10n.openResourceLibrary),
       ),
     );
   }
@@ -1154,4 +1132,3 @@ class _HomeBlogCard extends StatelessWidget {
     );
   }
 }
-

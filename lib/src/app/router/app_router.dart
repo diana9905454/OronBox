@@ -1,3 +1,5 @@
+import 'package:oronbox/src/features/devices/pages/tools/phone_location_page.dart';
+import 'package:oronbox/src/features/devices/pages/tools/xiaomi_app_arrangement_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,7 +19,8 @@ import 'package:oronbox/src/features/devices/pages/firmware/device_firmware_page
 import 'package:oronbox/src/features/devices/pages/info/device_info_page.dart';
 import 'package:oronbox/src/features/devices/pages/install/install_local_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_more_features_page.dart';
-import 'package:oronbox/src/features/devices/pages/tools/zeppos_xiao_ai_page.dart';
+import 'package:oronbox/src/features/settings/pages/labs/voice_assistant_page.dart';
+import 'package:oronbox/src/features/settings/pages/labs/feature_lab_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_app_side_debug_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_app_settings_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_setting_viewer_page.dart';
@@ -28,7 +31,6 @@ import 'package:oronbox/src/features/devices/health/pages/xiaomi_health_detail_p
 import 'package:oronbox/src/features/devices/health/pages/xiaomi_health_debug_page.dart';
 import 'package:oronbox/src/features/devices/health/pages/xiaomi_health_workout_page.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
-import 'package:oronbox/src/features/devices/pages/tools/xiaomi_device_settings_pages.dart';
 import 'package:oronbox/src/features/devices/pages/tools/xiaomi_device_feature_pages.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_voice_memos_page.dart';
 import 'package:oronbox/src/features/devices/pages/switch/device_switch_page.dart';
@@ -53,6 +55,7 @@ import 'package:oronbox/src/features/settings/pages/acknowledgements_page.dart';
 import 'package:oronbox/src/features/settings/pages/about_software_page.dart';
 import 'package:oronbox/src/features/settings/pages/settings_page.dart';
 import 'package:oronbox/src/features/settings/pages/clean_mode_page.dart';
+import 'package:oronbox/src/features/settings/pages/app_data_page.dart';
 import 'package:oronbox/src/features/settings/pages/bandbbs_account_page.dart';
 import 'package:oronbox/src/features/settings/pages/feedback_page.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
@@ -94,18 +97,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             !clean.creatorEnabled) {
           return '/resources';
         }
+        if (uri.path.startsWith('/resources/comment') &&
+            (!clean.commentsEnabled || !clean.resourceLibraryEnabled)) {
+          return '/resources';
+        }
         if (uri.path.startsWith('/resources/detail') &&
             !clean.resourceLibraryEnabled) {
           return '/resources';
         }
       }
-      final isDeviceShareLink =
-          (uri.scheme == 'oronbox' && uri.host == 'open') ||
-          ((uri.scheme == 'https' || uri.scheme == 'http') &&
-              uri.host == 'oronbox.zxor.org' &&
-              uri.path == '/open');
-      if (!isDeviceShareLink) return null;
-
       final device = DeviceShareLink.parse(uri.toString());
       if (device != null) {
         ref.read(pendingSharedDeviceProvider.notifier).set(device);
@@ -133,6 +133,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) =>
                     const PrimaryBranchScaffold(child: ResourcesPage()),
                 routes: [
+                  GoRoute(
+                    path: 'comment/:id',
+                    builder: (context, state) => CommentThreadPage(
+                      commentId: state.pathParameters['id']!,
+                    ),
+                  ),
                   GoRoute(
                     path: 'detail/:id',
                     pageBuilder: (context, state) {
@@ -266,19 +272,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         ],
                       ),
                       GoRoute(
-                        path: 'manage',
-                        pageBuilder: (context, state) =>
-                            CustomTransitionPage<void>(
-                              key: state.pageKey,
-                              transitionsBuilder:
-                                  AppTheme.buildPlatformPageTransition,
-                              child: const CreatorCenterPage(initialTab: 3),
-                            ),
+                        path: 'collections/new',
+                        builder: (context, state) => CreatorCollectionPage(
+                          collectionId: 'new',
+                          initialName: state.uri.queryParameters['name'] ?? '',
+                          initialSummary:
+                              state.uri.queryParameters['summary'] ?? '',
+                          initialKind:
+                              state.uri.queryParameters['kind'] ?? 'quickapp',
+                        ),
                       ),
                       GoRoute(
                         path: 'collection/:id',
                         builder: (context, state) => CreatorCollectionPage(
                           collectionId: state.pathParameters['id']!,
+                          initialName: state.uri.queryParameters['name'] ?? '',
+                          initialSummary:
+                              state.uri.queryParameters['summary'] ?? '',
+                          initialKind:
+                              state.uri.queryParameters['kind'] ?? 'quickapp',
+                          revisionId:
+                              state.uri.queryParameters['revision'] ??
+                              state.uri.queryParameters['revision_id'],
                           item: state.extra is Map<String, Object?>
                               ? state.extra! as Map<String, Object?>
                               : null,
@@ -431,6 +446,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                                   child: XiaomiHealthWorkoutPage(
                                     workoutId: state.pathParameters['id']!,
                                     preview: preview,
+                                    deviceId:
+                                        extra is XiaomiHealthWorkoutRouteArgs
+                                        ? extra.health.deviceId
+                                        : null,
                                   ),
                                 ),
                                 transitionsBuilder:
@@ -461,16 +480,27 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     ],
                   ),
                   GoRoute(
+                    path: 'velaos-app-arrangement',
+                    builder: (context, state) =>
+                        const XiaomiAppArrangementPage(),
+                  ),
+                  GoRoute(
                     path: 'velaos-app-layout',
-                    builder: (context, state) => const XiaomiAppLayoutPage(),
+                    redirect: (context, state) =>
+                        '/devices/velaos-app-arrangement',
                   ),
                   GoRoute(
                     path: 'velaos-app-order',
-                    builder: (context, state) => const XiaomiAppOrderPage(),
+                    redirect: (context, state) =>
+                        '/devices/velaos-app-arrangement',
                   ),
                   GoRoute(
                     path: 'velaos-alarms',
                     builder: (context, state) => const XiaomiAlarmsPage(),
+                  ),
+                  GoRoute(
+                    path: 'velaos-phone-location',
+                    redirect: (context, state) => '/settings/permissions',
                   ),
                   GoRoute(
                     path: 'velaos-weather',
@@ -482,7 +512,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'xiao-ai',
-                        builder: (context, state) => const ZeppOsXiaoAiPage(),
+                        redirect: (context, state) =>
+                            '/settings/labs/voice-assistant',
                       ),
                       GoRoute(
                         path: 'voice-memos',
@@ -523,8 +554,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/plugins',
-                builder: (context, state) =>
-                    const PrimaryBranchScaffold(child: PluginsPage()),
+                builder: (context, state) => PrimaryBranchScaffold(
+                  child: PluginsPage(
+                    key: ValueKey(state.uri.queryParameters['plugin'] ?? ''),
+                    targetPluginId: state.uri.queryParameters['plugin'] ?? '',
+                  ),
+                ),
                 routes: [
                   GoRoute(
                     path: ':id',
@@ -578,12 +613,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                           SettingsPage(category: category),
                     ),
                   GoRoute(
+                    path: 'data',
+                    builder: (context, state) => const AppDataPage(),
+                  ),
+                  GoRoute(
                     path: 'clean-mode',
                     builder: (context, state) => const CleanModePage(),
                   ),
                   GoRoute(
                     path: 'about',
                     builder: (context, state) => const AboutSoftwarePage(),
+                  ),
+                  GoRoute(
+                    path: 'permissions',
+                    builder: (context, state) => const PhoneLocationPage(),
                   ),
                   GoRoute(
                     path: 'legal/:id',
@@ -595,6 +638,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'logs',
                     builder: (context, state) => const RuntimeLogsPage(),
+                  ),
+                  GoRoute(
+                    path: 'labs',
+                    builder: (context, state) => const FeatureLabPage(),
+                    routes: [
+                      GoRoute(
+                        path: 'voice-assistant',
+                        builder: (context, state) => const VoiceAssistantPage(),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'debug-server',
@@ -624,9 +677,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'ticket',
-                        builder: (context, state) => FeedbackTicketPage(
-                          ticket: state.extra! as FeedbackTicket,
-                        ),
+                        builder: (context, state) =>
+                            state.extra is FeedbackTicket
+                            ? FeedbackTicketPage(
+                                ticket: state.extra! as FeedbackTicket,
+                              )
+                            : FeedbackTicketLinkPage(
+                                ticketId: state.uri.queryParameters['id'] ?? '',
+                              ),
                       ),
                     ],
                   ),

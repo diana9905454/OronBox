@@ -1,3 +1,5 @@
+import 'package:oronbox/src/core/services/phone_location_sessions.dart';
+import 'package:oronbox/src/features/accounts/services/activity_reporter.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
@@ -12,9 +14,11 @@ import 'package:oronbox/src/features/devices/services/xiaomi_automatic_sync_serv
 import 'package:oronbox/src/app/integrations/app_link_handler.dart';
 import 'package:oronbox/src/app/integrations/file_open_handler.dart';
 import 'package:oronbox/src/features/devices/widgets/xms_wearable_bridge.dart';
+import 'package:oronbox/src/features/devices/widgets/xiaomi_screenshot_handler.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_host_request_handler.dart';
 import 'package:oronbox/src/features/settings/services/update_check_service.dart';
 import 'package:oronbox/src/app/widgets/app_error_gate.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 
 final _desktopAccentColorProvider = FutureProvider<Color?>((ref) {
   final source = ref.watch(
@@ -33,6 +37,7 @@ class OronBoxApp extends ConsumerWidget {
     final router = ref.watch(appRouterProvider);
     final themeSettings = ref.watch(themeSettingsProvider);
     final localeSettings = ref.watch(localeSettingsProvider);
+    PhoneLocationSessions.instance.locale = localeSettings.materialLocale;
     final desktopAccentColor = ref
         .watch(_desktopAccentColorProvider)
         .maybeWhen(data: (color) => color, orElse: () => null);
@@ -60,15 +65,21 @@ class OronBoxApp extends ConsumerWidget {
           localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           routerConfig: router,
-          builder: (context, child) => DesktopWindowHost(
-            child: AppErrorGate(
-              child: PluginHostRequestHandler(
-                child: XmsWearableBridge(
-                  child: UpdateCheckHandler(
-                    child: FileOpenHandler(
-                      child: XiaomiAutomaticSyncScheduler(
-                        child: AppLinkHandler(
-                          child: child ?? const SizedBox.shrink(),
+          builder: (context, child) => OronBoxScaffoldMessenger(
+            child: DesktopWindowHost(
+              child: AppErrorGate(
+                child: XiaomiScreenshotHandler(
+                  child: PluginHostRequestHandler(
+                    child: XmsWearableBridge(
+                      child: UpdateCheckHandler(
+                        child: FileOpenHandler(
+                          child: XiaomiAutomaticSyncScheduler(
+                            child: AppLinkHandler(
+                              child: ActivityReportHandler(
+                                child: child ?? const SizedBox.shrink(),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ),

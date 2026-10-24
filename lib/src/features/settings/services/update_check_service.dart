@@ -1,6 +1,10 @@
 import 'dart:io';
 
+import 'package:oronbox/src/core/network/app_http_transport.dart';
+import 'package:oronbox/src/features/settings/services/app_release_assets.dart';
+
 import 'package:material_ui/material_ui.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -120,7 +124,7 @@ class UpdateAvailableDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final isAndroid = Platform.isAndroid;
+    final isAndroid = !kIsWeb && Platform.isAndroid;
     return AlertDialog(
       title: Text(l10n.newVersionAvailable(release.latestVersion)),
       content: SizedBox(
@@ -174,14 +178,30 @@ class UpdateAvailableDialog extends ConsumerWidget {
           ),
         ] else
           FilledButton(
-            onPressed: () {
-              final isEn = Localizations.localeOf(context).languageCode == 'en';
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
               Navigator.of(context).pop();
-              _openUrl(
-                isEn
-                    ? '${AppConstants.websiteUrl}/en/download'
-                    : '${AppConstants.websiteUrl}/download',
-              );
+              if (kIsWeb) {
+                await _openUrl(release.sourceUrl);
+                return;
+              }
+              final dio = createAppHttpTransport();
+              try {
+                final url = await resolveCurrentDesktopAppReleaseAsset(
+                  dio,
+                  release.tag,
+                );
+                if (url == null) throw StateError(l10n.updateAssetUnavailable);
+                await _openUrl(url);
+              } catch (error) {
+                if (messenger.mounted) {
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(error.toString())),
+                  );
+                }
+              } finally {
+                dio.close(force: true);
+              }
             },
             child: Text(l10n.updateGoToPage),
           ),

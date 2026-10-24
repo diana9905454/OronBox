@@ -58,6 +58,10 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     if (!mounted || event is! PassiveReconnectStatus) return;
     if (ModalRoute.of(context)?.isCurrent != true) return;
     final l10n = AppLocalizations.of(context)!;
+    if (event.phase == PassiveReconnectPhase.failed) {
+      _showFrequentDisconnectDialog(event.deviceId);
+      return;
+    }
     final message = switch (event.phase) {
       PassiveReconnectPhase.attempt => l10n.deviceReconnectAttempting,
       PassiveReconnectPhase.success => l10n.deviceReconnectSucceeded,
@@ -65,6 +69,42 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
         '${l10n.deviceReconnectFailedPrefix}${l10n.errorBluetoothConnectFailed}',
     };
     _showDeviceStatusSnackBar(message, replaceCurrent: true);
+  }
+
+  Future<void> _showFrequentDisconnectDialog(String deviceId) async {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+    final l10n = AppLocalizations.of(context)!;
+    final rePair = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deviceConnectionAbnormalTitle),
+        content: Text(l10n.deviceConnectionAbnormalMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.deviceRePair),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || rePair != true) return;
+    final devices = ref.read(deviceManagerProvider).pairedDevices;
+    final device = devices.where((item) => item.addr == deviceId).isEmpty
+        ? null
+        : devices.firstWhere((item) => item.addr == deviceId);
+    if (device == null || device.authkey == null) return;
+    await ref
+        .read(deviceManagerProvider.notifier)
+        .connect(
+          device.addr,
+          device.name,
+          device.authkey!,
+          connectType: device.connectType,
+        );
   }
 
   void _showDeviceStatusSnackBar(
@@ -189,7 +229,9 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           );
 
           return ListView(
-            padding: EdgeInsets.zero,
+            padding: EdgeInsets.only(
+              bottom: bottomContentPadding(context, extra: 24),
+            ),
             children: [
               PageContainer(
                 padding: EdgeInsets.zero,
@@ -835,21 +877,43 @@ class _DeviceFeaturesPanelState extends ConsumerState<_DeviceFeaturesPanel> {
               bottom: 16,
             ),
             tiles: [
-              if (widget.isZeppOs)
+              if (widget.isZeppOs) ...[
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/devices/zeppos-more'),
                   enabled: widget.enabled,
                   leading: const Icon(Icons.functions),
                   title: Text(l10n.zeppOsMoreFeatures),
                   description: Text(l10n.zeppOsMoreFeaturesDescription),
-                )
-              else ...[
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/devices/zeppos-more/music'),
+                  enabled: widget.enabled,
+                  leading: const Icon(Icons.music_note_outlined),
+                  title: Text(l10n.deviceMusicSync),
+                  description: Text(l10n.deviceMusicSyncDescription),
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) =>
+                      context.push('/devices/zeppos-more/voice-memos'),
+                  enabled: widget.enabled,
+                  leading: const Icon(Icons.mic_none),
+                  title: Text(l10n.deviceRecordingsTitle),
+                  description: Text(l10n.deviceRecordingsDescription),
+                ),
+              ] else ...[
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/devices/velaos-health'),
                   enabled: widget.enabled,
                   leading: const XiaomiFitnessLogo(),
                   title: Text(l10n.deviceHealthTitle),
                   description: Text(l10n.deviceHealthFeatureDescription),
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/devices/velaos-weather'),
+                  enabled: widget.enabled,
+                  leading: const Icon(Icons.cloud_outlined),
+                  title: Text(l10n.weatherSyncTitle),
+                  description: Text(l10n.weatherSyncDescription),
                 ),
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/devices/velaos-music'),
@@ -866,73 +930,22 @@ class _DeviceFeaturesPanelState extends ConsumerState<_DeviceFeaturesPanel> {
                   description: Text(l10n.deviceRecordingsDescription),
                 ),
                 SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-weather'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: Text(l10n.weatherSyncTitle),
-                  description: Text(l10n.weatherSyncDescription),
-                ),
-                SegmentedTile.navigation(
                   onPressed: (_) => context.push('/devices/velaos-alarms'),
                   enabled: widget.enabled,
                   leading: const Icon(Icons.alarm_outlined),
                   title: Text(l10n.alarmManagementTitle),
                   description: Text(l10n.alarmManagementDescription),
                 ),
-                SegmentedTile.switchTile(
-                  leading: const Icon(Icons.vibration),
-                  title: Text(l10n.zeppOsFindDevice),
-                  description: Text(l10n.findDeviceDescription),
-                  initialValue: state.findingXiaomiWearable,
-                  enabled: widget.enabled && !_findingBusy,
-                  onToggle: (value) => _setFinding(value ?? false),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-app-order'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.swap_vert_outlined),
-                  title: Text(l10n.appOrderTitle),
-                  description: Text(l10n.appOrderDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-app-layout'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.grid_view_outlined),
-                  title: Text(l10n.appLayoutTitle),
-                  description: Text(l10n.appLayoutDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/firmware'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.memory_outlined),
-                  title: Text(l10n.deviceFeaturesInstallFirmware),
-                  description: Text(l10n.firmwareUpdateDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/info'),
-                  enabled: widget.hasDevice,
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(l10n.deviceAboutTitle),
-                  description: Text(l10n.deviceAboutDescription),
-                ),
               ],
-              if (widget.isZeppOs) ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/zeppos-more/music'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.music_note_outlined),
-                  title: Text(l10n.deviceMusicSync),
-                  description: Text(l10n.deviceMusicSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) =>
-                      context.push('/devices/zeppos-more/voice-memos'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.mic_none),
-                  title: Text(l10n.deviceRecordingsTitle),
-                  description: Text(l10n.deviceRecordingsDescription),
-                ),
-              ],
+            ],
+          ),
+          SegmentedSection(
+            margin: const EdgeInsetsDirectional.only(
+              start: 16,
+              end: 16,
+              bottom: 16,
+            ),
+            tiles: [
               if (widget.isZeppOs) ...[
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/devices/firmware'),
@@ -947,6 +960,37 @@ class _DeviceFeaturesPanelState extends ConsumerState<_DeviceFeaturesPanel> {
                   leading: const Icon(Icons.info_outline),
                   title: Text(l10n.deviceFeaturesDeviceInfo),
                   description: Text(l10n.deviceFeaturesDeviceInfoDesc),
+                ),
+              ] else ...[
+                SegmentedTile.switchTile(
+                  leading: const Icon(Icons.vibration),
+                  title: Text(l10n.zeppOsFindDevice),
+                  description: Text(l10n.findDeviceDescription),
+                  initialValue: state.findingXiaomiWearable,
+                  enabled: widget.enabled && !_findingBusy,
+                  onToggle: (value) => _setFinding(value ?? false),
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) =>
+                      context.push('/devices/velaos-app-arrangement'),
+                  enabled: widget.enabled,
+                  leading: const Icon(Icons.dashboard_customize_outlined),
+                  title: Text(l10n.appArrangementTitle),
+                  description: Text(l10n.appArrangementDescription),
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/devices/firmware'),
+                  enabled: widget.enabled,
+                  leading: const Icon(Icons.memory_outlined),
+                  title: Text(l10n.deviceFeaturesInstallFirmware),
+                  description: Text(l10n.firmwareUpdateDescription),
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/devices/info'),
+                  enabled: widget.hasDevice,
+                  leading: const Icon(Icons.info_outline),
+                  title: Text(l10n.deviceAboutTitle),
+                  description: Text(l10n.deviceAboutDescription),
                 ),
               ],
             ],

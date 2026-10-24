@@ -1,3 +1,5 @@
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -344,6 +346,11 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
 
   Future<CommandResult> _execute(OronBoxCommand command) async {
     try {
+      if (_pluginManager.maintainingData &&
+          (command.method.startsWith('plugin.') ||
+              command.method.startsWith('device.zeppos.appside.'))) {
+        throw StateError('Data maintenance is active');
+      }
       final result = await _dispatch(command);
       final wireValue = switch (command.method) {
         'device.xiaomi.health.data' || 'device.xiaomi.health.sync' => result,
@@ -488,6 +495,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'device.zeppos.xiaoai.reply' => _sendXiaoAiReply(
       command.params['text']?.toString(),
+      command.params['recognizedText']?.toString(),
     ),
     'device.zeppos.xiaoai.continuous' => _setXiaoAiContinuousCapture(
       command.params['enabled'] == true,
@@ -536,14 +544,14 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'resource.huami.publisher' => _huamiPublisher(command.params),
     'resource.download' => _resourceDownload(command.params, install: false),
     'resource.install' => _resourceDownload(command.params, install: true),
-    'support.feedback.list' => _creatorRequest('GET', '/api/feedback'),
+    'support.feedback.list' => _creatorRequest('GET', '/api/v1/feedback'),
     'support.feedback.get' => _creatorRequest(
       'GET',
-      '/api/feedback/${_requiredCreatorId(command.params, 'ticket')}',
+      '/api/v1/feedback/${_requiredCreatorId(command.params, 'ticket')}',
     ),
     'support.feedback.create' => _creatorRequest(
       'POST',
-      '/api/feedback',
+      '/api/v1/feedback',
       data: {
         'kind': command.params['kind'],
         'subject': command.params['subject'],
@@ -555,34 +563,47 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'support.feedback.reply' => _creatorRequest(
       'POST',
-      '/api/feedback/${_requiredCreatorId(command.params, 'ticket')}/replies',
+      '/api/v1/feedback/${_requiredCreatorId(command.params, 'ticket')}/replies',
       data: {'message': command.params['message']},
     ),
-    'account.grants' => _creatorRequest('GET', '/api/me/grants'),
+    'account.grants' => _creatorRequest('GET', '/api/v1/me/grants'),
+    'account.credentials.reload' =>
+      container
+          .read(bandBbsAuthProvider.notifier)
+          .reloadCredentials(clearWhenMissing: true),
     'account.session.expire' =>
       container.read(bandBbsAuthProvider.notifier).expireSession(),
-    'coins.account' => _creatorRequest('GET', '/api/coins'),
-    'coins.checkin' => _creatorRequest('POST', '/api/coins/checkin'),
+    'coins.account' => _creatorRequest('GET', '/api/v1/coins'),
+    'coins.checkin' => _creatorRequest('POST', '/api/v1/coins/checkin'),
     'coins.resource' => _creatorRequest(
       'POST',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
       data: {'coins': command.params['coins']},
     ),
     'coins.resource.status' => _creatorRequest(
       'GET',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
     ),
     'comment.list' => _creatorApi.publicRequest(
       'GET',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
       query: {
+        if (command.params['size'] != null) 'size': command.params['size'],
         if (command.params['before'] != null)
           'before': command.params['before'],
       },
     ),
+    'comment.thread' => _creatorApi.publicRequest(
+      'GET',
+      '/api/v1/comments/${_requiredCreatorId(command.params, 'comment')}',
+      query: {
+        for (final key in ['before', 'after', 'size'])
+          if (command.params[key] != null) key: command.params[key],
+      },
+    ),
     'comment.create' => _creatorRequest(
       'POST',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
       data: {
         'body': command.params['body'],
         'parent_id': command.params['parentId'] ?? '',
@@ -590,23 +611,30 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'comment.delete' => _creatorRequest(
       'DELETE',
-      '/api/comments/${_requiredCreatorId(command.params, 'comment')}',
+      '/api/v1/comments/${_requiredCreatorId(command.params, 'comment')}',
     ),
-    'message.list' => _creatorRequest('GET', '/api/messages'),
-    'message.clear' => _creatorRequest('DELETE', '/api/messages'),
+    'message.list' => _creatorRequest(
+      'GET',
+      '/api/v1/messages',
+      query: command.params,
+    ),
+    'message.clear' => _creatorRequest('DELETE', '/api/v1/messages'),
     'message.read' => _creatorRequest(
       'POST',
-      '/api/messages/${_requiredCreatorId(command.params, 'message')}/read',
+      '/api/v1/messages/${_requiredCreatorId(command.params, 'message')}/read',
     ),
     'announcement.unread' => _creatorRequest(
       'GET',
-      '/api/announcements/unread',
+      '/api/v1/announcements/unread',
     ),
-    'announcement.read' => _creatorRequest('POST', '/api/announcements/read'),
-    'creator.list' => _creatorRequest('GET', '/api/creator/resources'),
+    'announcement.read' => _creatorRequest(
+      'POST',
+      '/api/v1/announcements/read',
+    ),
+    'creator.list' => _creatorRequest('GET', '/api/v1/creator/resources'),
     'creator.reviews' => _creatorRequest(
       'GET',
-      '/api/creator/reviews',
+      '/api/v1/creator/reviews',
       query: {
         'limit': command.params['limit'] ?? 30,
         if (command.params['cursor'] != null &&
@@ -616,57 +644,65 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.review' => _creatorRequest(
       'GET',
-      '/api/creator/reviews/${_requiredCreatorId(command.params, 'review')}',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}',
     ),
     'creator.review.astrobox' => _creatorRequest(
       'GET',
-      '/api/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox',
     ),
     'creator.review.astrobox.comments' => _creatorRequest(
       'GET',
-      '/api/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments',
     ),
     'creator.review.astrobox.comment.create' => _creatorRequest(
       'POST',
-      '/api/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments',
       data: {'body': command.params['body']},
     ),
     'creator.review.astrobox.comment.update' => _creatorRequest(
       'PATCH',
-      '/api/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments/${_requiredCreatorId(command.params, 'comment')}',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments/${_requiredCreatorId(command.params, 'comment')}',
       data: {'body': command.params['body']},
     ),
     'creator.review.astrobox.comment.delete' => _creatorRequest(
       'DELETE',
-      '/api/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments/${_requiredCreatorId(command.params, 'comment')}',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments/${_requiredCreatorId(command.params, 'comment')}',
     ),
-    'creator.devices' => _creatorRequest('GET', '/api/devices'),
-    'creator.grants' => _creatorRequest('GET', '/api/me/grants'),
+    'creator.devices' => _creatorRequest('GET', '/api/v1/devices'),
+    'creator.grants' => _creatorRequest('GET', '/api/v1/me/grants'),
     'creator.github.start' => _creatorRequest(
       'POST',
-      '/api/oauth/github/web/start',
+      '/api/v1/oauth/github/web/start',
     ),
     'creator.github.status' => _creatorRequest(
       'POST',
-      '/api/oauth/github/web/status',
+      '/api/v1/oauth/github/web/status',
       data: {'flow_id': command.params['flowId']},
     ),
     'creator.github.disconnect' => _creatorRequest(
       'DELETE',
-      '/api/oauth/github/grant',
+      '/api/v1/oauth/github/grant',
     ),
     'creator.get' => _creatorRequest(
       'GET',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
     ),
     'creator.create' => _creatorRequest(
       'POST',
-      '/api/creator/resources',
+      '/api/v1/creator/resources',
       data: {
         'slug': command.params['slug'],
         'name': command.params['name'],
         'kind': command.params['kind'],
       },
+    ),
+    'creator.publicationOptions' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/publication-options',
+    ),
+    'creator.publication.retry' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/publications/${_requiredCreatorId(command.params, 'publication')}/retry',
     ),
     'creator.publish' => _creatorPublish(command.params),
     'creator.draft' => _creatorDraft(command.params),
@@ -684,19 +720,19 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'creator.blob' => _creatorBlob(command.params),
     'creator.relationships' => _creatorRequest(
       'GET',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}/relationships',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}/relationships',
     ),
     'creator.takedown' => _creatorRequest(
       'POST',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}/takedown',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}/takedown',
     ),
     'creator.restore' => _creatorRequest(
       'POST',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}/restore',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}/restore',
     ),
     'creator.delete' => _creatorRequest(
       'DELETE',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
       query: {
         if ((command.params['deleteExternal'] as List? ?? const []).isNotEmpty)
           'delete_external': (command.params['deleteExternal'] as List).join(
@@ -704,13 +740,37 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           ),
       },
     ),
+    'creator.collection.get' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
+      query: {
+        if (command.params['revision'] != null)
+          'revision': command.params['revision'],
+      },
+    ),
+    'creator.collection.submit' => _creatorRequest(
+      'POST',
+      (command.params['collection']?.toString() ?? '').isEmpty
+          ? '/api/v1/creator/collections'
+          : '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}/submit',
+      data: command.params['snapshot'],
+    ),
+    'creator.media.upload' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/media',
+      data: base64Decode(command.params['bytes'].toString()),
+    ),
+    'creator.media.get' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/media/${_requiredCreatorId(command.params, 'sha')}',
+    ),
     'creator.collections.list' => _creatorRequest(
       'GET',
-      '/api/creator/collections',
+      '/api/v1/creator/collections',
     ),
     'creator.collections.create' => _creatorRequest(
       'POST',
-      '/api/creator/collections',
+      '/api/v1/creator/collections',
       data: {
         'slug': command.params['slug'],
         'name': command.params['name'],
@@ -720,7 +780,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.collections.resources' => _creatorRequest(
       'PUT',
-      '/api/creator/collections/${_requiredCreatorId(command.params, 'collection')}/resources',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}/resources',
       data: {
         'resource_ids': command.params['resourceIds'],
         'representative_resource_id':
@@ -729,7 +789,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.collections.update' => _creatorRequest(
       'PATCH',
-      '/api/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
       data: {
         'name': command.params['name'],
         'summary': command.params['summary'],
@@ -737,7 +797,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.collections.delete' => _creatorRequest(
       'DELETE',
-      '/api/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
     ),
     'account.list' => _accountList(),
     'account.status' => _freshAccountStatus(
@@ -792,6 +852,15 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'debug.storage.roots' => debugHostStorageRoots(),
     'debug.storage.list' => _debugStorageList(command.params),
     'debug.storage.read' => _debugStorageRead(command.params),
+    'appdata.maintenance.begin' => _pluginManager.dataMaintenance.begin(),
+    'appdata.maintenance.validate' => Future.value(
+      _pluginManager.dataMaintenance.owns(
+        command.params['token']?.toString() ?? '',
+      ),
+    ),
+    'appdata.maintenance.end' => _pluginManager.dataMaintenance.end(
+      command.params['token']?.toString() ?? '',
+    ),
     'plugin.list' => _pluginManager.list(
       includeIcons: command.params['includeIcons'] != false,
     ),
@@ -883,8 +952,15 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     final bundle = base64Decode(encoded);
     final operationId = params['operationId']?.toString() ?? '';
     return _creatorApi.publish(
+      expectedEditVersion: (params['editVersion'] as num?)?.toInt(),
       resourceId: params['resource']?.toString() ?? '',
       bundle: bundle,
+      onDraftSaved: (workspace) => _events.add(
+        CommandEvent(
+          'creator.publish.draftSaved',
+          data: {'operationId': operationId, 'workspace': workspace},
+        ),
+      ),
       onProgress: (progress) => _events.add(
         CommandEvent(
           'creator.publish.progress',
@@ -900,6 +976,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       throw const CommandFailure('usage', 'Missing draft bundle');
     }
     return _creatorApi.saveDraft(
+      expectedEditVersion: (params['editVersion'] as num?)?.toInt(),
       resourceId: params['resource']?.toString() ?? '',
       bundle: base64Decode(encoded),
     );
@@ -1245,11 +1322,11 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     final target = requestedAddress == null || requestedAddress.isEmpty
         ? paired.first
         : paired
-            .where(
-              (device) =>
-                  device.addr.toLowerCase() == requestedAddress.toLowerCase(),
-            )
-            .firstOrNull;
+              .where(
+                (device) =>
+                    device.addr.toLowerCase() == requestedAddress.toLowerCase(),
+              )
+              .firstOrNull;
     if (target == null) {
       throw CommandFailure(
         'no_device',
@@ -1895,12 +1972,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     return {'appId': id, 'bytes': payload.length};
   }
 
-  Future<Object?> _sendXiaoAiReply(String? text) async {
+  Future<Object?> _sendXiaoAiReply(String? text, String? recognizedText) async {
     await _ensureConnected(null);
     if (text == null || text.trim().isEmpty) {
       throw const CommandFailure('invalid_argument', 'Reply cannot be empty');
     }
-    await _manager.sendXiaoAiReply(text);
+    if (recognizedText == null || recognizedText.trim().isEmpty) {
+      throw const CommandFailure(
+        'invalid_argument',
+        'Recognition cannot be empty',
+      );
+    }
+    await _manager.sendXiaoAiReply(text, recognizedText: recognizedText);
     return const {'sent': true};
   }
 
@@ -2327,7 +2410,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           params['deleteAfter'] == true &&
           file != null &&
           await file.exists()) {
-        await file.delete();
+        await ManagedTemporaryFiles.release(file.path);
+        if (await file.exists()) await file.delete();
       }
     }
   }
@@ -2912,7 +2996,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
 
   Future<void> _ensureConnected(String? address) async {
     final current = _state.currentDevice;
-    final isCurrent = address == null ||
+    final isCurrent =
+        address == null ||
         address.isEmpty ||
         (current != null &&
             current.addr.toLowerCase() == address.toLowerCase());

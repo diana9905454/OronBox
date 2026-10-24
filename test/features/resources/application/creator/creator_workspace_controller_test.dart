@@ -46,26 +46,21 @@ void main() {
     },
   );
 
-  test(
-    'workspace refresh trusts the authenticated host instead of frontend credentials',
-    () async {
-      final host = _CreatorHost();
-      final container = ProviderContainer(
-        overrides: [applicationHostProvider.overrideWithValue(host)],
-      );
-      addTearDown(container.dispose);
+  test('workspace refresh trusts the authenticated host instead of frontend credentials', () async {
+    final host = _CreatorHost();
+    final container = ProviderContainer(
+      overrides: [applicationHostProvider.overrideWithValue(host)],
+    );
+    addTearDown(container.dispose);
 
-      container.read(creatorWorkspaceProvider);
-      await _eventually(
-        () => !container.read(creatorWorkspaceProvider).loading,
-      );
+    container.read(creatorWorkspaceProvider);
+    await _eventually(() => !container.read(creatorWorkspaceProvider).loading);
 
-      expect(host.methods, contains('creator.list'));
-      expect(host.methods, contains('creator.devices'));
-      expect(host.methods, contains('creator.grants'));
-      expect(host.methods, contains('creator.collections.list'));
-    },
-  );
+    expect(host.methods, contains('creator.list'));
+    expect(host.methods, contains('creator.devices'));
+    expect(host.methods, contains('creator.grants'));
+    expect(host.methods, contains('creator.collections.list'));
+  });
 
   test(
     'workspace refresh starts primary and secondary requests together',
@@ -176,6 +171,33 @@ void main() {
       expect(container.read(creatorWorkspaceProvider).publishProgress, isNull);
     },
   );
+  test('keeps the saved draft edit version when submission fails', () async {
+    final host = _CreatorHost(
+      draftSavedBeforeFailure: true,
+      publishFailure: const CommandError('upstream_unavailable', 'Try again'),
+    );
+    final container = ProviderContainer(
+      overrides: [applicationHostProvider.overrideWithValue(host)],
+    );
+    addTearDown(container.dispose);
+    container.read(creatorWorkspaceProvider);
+    await _eventually(() => !container.read(creatorWorkspaceProvider).loading);
+    final controller = container.read(creatorWorkspaceProvider.notifier);
+    await controller.create(
+      'demo-resource',
+      'Demo',
+      CreatorResourceKind.quickApp,
+    );
+    await expectLater(
+      controller.publish(bundle: Uint8List.fromList([1])),
+      throwsA(isA<CreatorCommandException>()),
+    );
+    expect(
+      container.read(creatorWorkspaceProvider).selected?.resource.editVersion,
+      7,
+    );
+    expect(container.read(creatorWorkspaceProvider).error, 'Try again');
+  });
 }
 
 Future<void> _eventually(bool Function() predicate) async {
@@ -193,9 +215,11 @@ class _CreatorHost implements OronBoxCommandBus {
     this.collectionsFailure = false,
     this.includeResource = false,
     this.listGate,
+    this.draftSavedBeforeFailure = false,
   });
 
   final CommandError? publishFailure;
+  final bool draftSavedBeforeFailure;
   final bool grantsFailure;
   final bool collectionsFailure;
   final bool includeResource;
@@ -264,6 +288,29 @@ class _CreatorHost implements OronBoxCommandBus {
       return const CommandResult.success(<String, Object?>{});
     }
     if (command.method == 'creator.publish') {
+      if (draftSavedBeforeFailure) {
+        _events.add(
+          CommandEvent(
+            'creator.publish.draftSaved',
+            data: {
+              'operationId': command.params['operationId'],
+              'workspace': {
+                'resource': {
+                  'id': 'resource-1',
+                  'slug': 'demo-resource',
+                  'kind': 'quickapp',
+                  'edit_version': 7,
+                },
+                'revisions': <Object?>[],
+                'media': <Object?>[],
+                'artifacts': <Object?>[],
+                'publications': <Object?>[],
+              },
+            },
+          ),
+        );
+        await Future<void>.delayed(Duration.zero);
+      }
       return publishFailure == null
           ? CommandResult.success({
               'resource': {

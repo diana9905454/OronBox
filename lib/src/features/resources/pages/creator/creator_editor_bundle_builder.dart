@@ -123,6 +123,11 @@ extension _CreatorEditorBundleBuilder on _CreatorEditorViewState {
             : 'quickapp',
         'name': _name.text.trim(),
         'summary': _summary.text.trim(),
+        'description': _description.text,
+        'description_format':
+            _description.text == widget.workspace.latestRevision?.description
+            ? widget.workspace.latestRevision!.descriptionFormat
+            : 'markdown',
         'paid_type': communityPaidTypeToWire(_paidType),
         if (_externalPurchaseEnabled) ...{
           'purchase_link': _externalPurchaseLink.text.trim(),
@@ -153,6 +158,4 @@ extension _CreatorEditorBundleBuilder on _CreatorEditorViewState {
     for (final publication in publications)
       if (publication['target'] != 'oronbox') publication,
   ];
-
-
 }

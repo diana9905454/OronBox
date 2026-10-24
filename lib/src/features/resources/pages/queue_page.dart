@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
@@ -49,9 +50,8 @@ class QueuePage extends ConsumerWidget {
                       Container(
                         width: 1,
                         margin: const EdgeInsets.symmetric(vertical: 12),
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        color: Theme.of(context).colorScheme.outlineVariant
+                            .withValues(alpha: 0.5),
                       ),
                       Expanded(child: _PanelWrapper(child: installList)),
                     ],
@@ -157,9 +157,7 @@ class _InstallQueuePanel extends ConsumerWidget {
             IconButton(
               onPressed: () {
                 notifier.clearTerminal();
-                for (final task in hostTasks.where(
-                  (task) => task.isTerminal,
-                )) {
+                for (final task in hostTasks.where((task) => task.isTerminal)) {
                   unawaited(
                     removeHostTask(ref.read(applicationHostProvider), task.id),
                   );
@@ -332,8 +330,15 @@ class _QueuePanel extends StatelessWidget {
         ),
         Expanded(
           child: children.isEmpty
-              ? Center(child: Text(emptyText))
+              ? EmptyStateView(
+                  compact: true,
+                  icon: Icons.checklist_outlined,
+                  title: emptyText,
+                )
               : ListView.separated(
+                  padding: EdgeInsets.only(
+                    bottom: bottomContentPadding(context, extra: 16),
+                  ),
                   itemCount: children.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 8),

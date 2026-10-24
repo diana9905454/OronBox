@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
+
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
@@ -114,6 +117,9 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
   late final TextEditingController _summary = TextEditingController(
     text: widget.workspace.latestRevision?.summary ?? '',
   );
+  late final _description = TextEditingController(
+    text: widget.workspace.latestRevision?.description ?? '',
+  );
   final _astroItemId = TextEditingController();
   final _astroRepository = TextEditingController();
   final _astroTags = TextEditingController();
@@ -130,6 +136,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
   String _astroPaidType = '';
   CommunityPaidType _paidType = CommunityPaidType.free;
   List<Map<String, Object?>>? _publicationCategories;
+  Map<String, Object?>? _publicationOptions;
   CreatorPublicationPlan? _publicationPlan;
   bool _loadingPublicationPlan = false;
   String? _processingMediaRole;
@@ -210,11 +217,15 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
           _astroBindABAccount = config['bind_ab_account'] != false;
       }
     }
+    final importedIdentities = [
+      ...widget.workspace.bindings,
+      ...?draft?.bindingClaims,
+    ];
     // No publish intent recorded (fresh import, or an empty one): derive it
     // from the imported external identities so their targets start enabled.
     if ((draftPlan == null || draftPlan.isEmpty) &&
         widget.workspace.publications.isEmpty) {
-      for (final binding in widget.workspace.bindings) {
+      for (final binding in importedIdentities) {
         switch (binding['provider']) {
           case 'bandbbs':
             _publishBandBbs = true;
@@ -225,7 +236,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
     }
     // Imported resources carry their existing external identity; prefill the
     // publish form from it so a publication updates in place.
-    for (final binding in widget.workspace.bindings) {
+    for (final binding in importedIdentities) {
       if (binding['provider'] != 'astrobox') continue;
       if (_astroItemId.text.isEmpty) {
         _astroItemId.text = binding['external_id']?.toString() ?? '';
@@ -278,7 +289,9 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
 
   Future<void> _loadAttributes() async {
     try {
-      final definitions = await OronBoxResourceAttributeCatalog().load();
+      final definitions = await OronBoxResourceAttributeCatalog().load(
+        forCreator: true,
+      );
       if (mounted) setState(() => _attributeDefinitions = definitions);
     } catch (error) {
       if (mounted) showCreatorFailure(context, error);
@@ -383,6 +396,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
   void dispose() {
     _name.dispose();
     _summary.dispose();
+    _description.dispose();
     _astroItemId.dispose();
     _astroRepository.dispose();
     _astroTags.dispose();
@@ -511,6 +525,15 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
                               onChanged: (_) => setState(() {}),
                               decoration: InputDecoration(
                                 labelText: l10n.creatorResourceSummary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            TextField(
+                              controller: _description,
+                              minLines: 6,
+                              maxLines: 16,
+                              decoration: InputDecoration(
+                                labelText: l10n.description,
                               ),
                             ),
                             if (_name.text.trim().isEmpty ||
@@ -1262,8 +1285,8 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
     if (_loadingPublicationPlan) return;
     setState(() => _loadingPublicationPlan = true);
     try {
-      _publicationCategories ??= await widget.controller
-          .bandBbsPublicationCategories();
+      _publicationOptions = await widget.controller.publicationOptions();
+      _publicationCategories = const [];
       _rebuildPlan();
     } catch (error) {
       if (mounted) showCreatorFailure(context, error);
@@ -1294,6 +1317,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
       workspace: synthetic,
       devices: widget.state.devices,
       bandBbsCategories: categories,
+      publicationOptions: _publicationOptions,
     );
     if (mounted) setState(() => _publicationPlan = plan);
   }
@@ -1334,6 +1358,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
   ];
 
   Future<void> _publish() async {
+    if (!await ensurePublishingAgreement(context) || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final issues = _publishValidationIssues(l10n);
     if (issues.isNotEmpty) {
@@ -1610,7 +1635,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
 
   Future<void> _saveDraft() {
     final l10n = AppLocalizations.of(context)!;
-    if (_name.text.trim().isEmpty || _summary.text.trim().isEmpty) {
+    if (_name.text.trim().isEmpty) {
       _showFailure(l10n.creatorResourceMetadataRequired);
       return Future<void>.value();
     }
@@ -1638,17 +1663,14 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
     });
   }
 
-
-
   void _update(VoidCallback fn) {
     if (mounted) setState(fn);
   }
 
   void _showFailure(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<bool> _confirmTargetTerms(String target) async {

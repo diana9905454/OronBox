@@ -11,6 +11,7 @@ import 'package:oronbox/src/features/resources/pages/creator/creator_create_wiza
 import 'package:oronbox/src/features/resources/pages/creator/creator_shared.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 
 void main() {
   setUpAll(() async {
@@ -25,7 +26,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [applicationHostProvider.overrideWithValue(_WizardHost())],
+        overrides: [
+          applicationHostProvider.overrideWithValue(_WizardHost()),
+          bandBbsAuthProvider.overrideWith(_WizardSignedOutAuth.new),
+        ],
         child: const MaterialApp(
           localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -67,7 +71,10 @@ void main() {
       final host = _RacingWizardHost();
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [applicationHostProvider.overrideWithValue(host)],
+          overrides: [
+            applicationHostProvider.overrideWithValue(host),
+            bandBbsAuthProvider.overrideWith(_WizardSignedOutAuth.new),
+          ],
           child: const MaterialApp(
             localizationsDelegates: appLocalizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
@@ -208,3 +215,13 @@ const CommandResult _astroBoxListResult = CommandResult.success({
     },
   ],
 });
+
+// These widget tests exercise import navigation, not the native keyring.
+class _WizardSignedOutAuth extends BandBbsAuthNotifier {
+  @override
+  BandBbsAuthState build() => BandBbsAuthState.empty;
+  @override
+  Future<void> restoreCredentials() async {}
+  @override
+  Future<void> reloadCredentials({bool clearWhenMissing = false}) async {}
+}

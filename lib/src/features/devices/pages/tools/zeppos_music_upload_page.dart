@@ -8,6 +8,7 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
@@ -288,11 +289,11 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
           padding: EdgeInsets.zero,
           children: [
             PageContainer(
-              padding: const EdgeInsets.fromLTRB(
+              padding: EdgeInsets.fromLTRB(
                 StyleConstants.pagePadding,
                 8,
                 StyleConstants.pagePadding,
-                0,
+                bottomContentPadding(context, extra: 24),
               ),
               child: Column(
                 children: [
@@ -754,16 +755,8 @@ class _EmptyMusicState extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 24),
-    child: Column(
-      children: [
-        Icon(icon, size: 40, color: Theme.of(context).colorScheme.outline),
-        const SizedBox(height: 8),
-        Text(label),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) =>
+      EmptyStateView(compact: true, icon: icon, title: label);
 }
 
 class _PendingMusicFile {

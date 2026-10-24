@@ -73,6 +73,10 @@ OronBox is a cross-platform wearable device management tool that connects to and
 | Sync and export device recordings | Retrieve and save recordings from the device |
 | Receive and save watch screenshots | Save screenshots to the user's Pictures directory |
 | Sync city weather to the device | Update weather information for the selected city |
+| Xiaomi wearable eSIM management | Download, enable, disable, and delete GSMA LPA eSIM profiles |
+| XiaoAI voice integration & ASR | Listen to wearable XiaoAI trigger and audio streams with local/cloud ASR |
+| Wi-Fi credential synchronization | Respond to watch Wi-Fi scan and auth requests for quick network setup |
+| Assisted phone location sync | Stream real-time location fixes from the phone for watches without standalone GPS |
 | Sign in to Xiaomi accounts with 2FA | Download GNSS ephemeris data and obtain the device authkey |
 | Read authkey from Xiaomi Fitness logs | Parse local Xiaomi Fitness app logs to retrieve the device authkey |
 | Sync Xiaomi device GNSS ephemeris | Support watch-initiated ephemeris updates; Xiaomi account required |
@@ -117,7 +121,7 @@ Android / Web: no extra dependencies
 
 ### Build everything
 
-```bash
+```sh
 tool/build_all.sh [--dev]
 ```
 
@@ -125,27 +129,47 @@ Builds Android + Web + the desktop platform of the current host. Artifacts land 
 
 ### Per-platform builds
 
-```bash
-# Android
+#### Android
+
+```sh
 tool/build_android.sh [--format apk|appbundle|all] [--abi arm64-v8a|armeabi-v7a|x86_64]
-
-# Linux
-tool/build_linux.sh [--format tar.gz|deb|rpm|arch|appimage|flatpak|all] [--abi x86_64|aarch64]
-
-# macOS (macOS hosts only)
-tool/build_macos.sh
-
-# Windows (either one)
-tool\build_windows.bat [--dev]
-powershell -File tool/build_windows.ps1 [-Dev] [-SkipWebView2Sdk] [-WebView2SdkVersion <version>]
-
-# Web
-tool/build_web.sh
 ```
 
-- Without `--format` / `--abi`, every format / ABI is built; on Linux `--abi` defaults to the host architecture
+- Without `--format` / `--abi`, every format / ABI is built
 - Android release signing is configured through environment variables: `ORONBOX_KEYSTORE_PATH`, `ORONBOX_KEYSTORE_PASSWORD`, `ORONBOX_KEY_ALIAS`, `ORONBOX_KEY_PASSWORD`; without them the debug signing config is used
+
+#### Linux
+
+```sh
+tool/build_linux.sh [--format tar.gz|deb|rpm|arch|appimage|flatpak|all] [--abi x86_64|aarch64]
+```
+
+- By default builds all available formats; `--abi` defaults to the host architecture
 - Cross-building Linux aarch64 from an x86_64 host requires `ORONBOX_LINUX_ARM64_SYSROOT` pointing to an arm64 sysroot with the gtk3/webkit2gtk/alsa/flac/ogg/opus/vorbis development packages; cross mode only produces tar.gz / deb / rpm / arch packages
+
+#### macOS (macOS hosts only)
+
+```sh
+tool/build_macos.sh
+```
+
+#### Windows
+
+```powershell
+powershell -File tool/build_windows.ps1 [-Dev] [-SkipWebView2Sdk] [-WebView2SdkVersion <version>]
+```
+
+Or run the batch script in CMD:
+
+```bat
+tool\build_windows.bat [--dev]
+```
+
+#### Web
+
+```sh
+tool/build_web.sh
+```
 
 ## AI development disclosure
 

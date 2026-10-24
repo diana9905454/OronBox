@@ -77,18 +77,18 @@ class CreatorWorkspace {
       revisions.isEmpty ? null : revisions.first;
 
   factory CreatorWorkspace.fromJson(Map<String, Object?> json) {
-    final revisions = _maps(
-      json['revisions'],
-    ).map(CreatorRevision.fromJson).toList();
+    final revisions = _maps(json['revisions'])
+        .map(CreatorRevision.fromJson)
+        .toList();
     return CreatorWorkspace(
       resource: CreatorResource.fromJson(_map(json['resource'])),
       currentRevision: json['current_revision'] is Map
           ? CreatorRevision.fromJson(_map(json['current_revision']))
           : null,
       revisions: revisions,
-      artifacts: _maps(
-        json['artifacts'],
-      ).map(CreatorArtifact.fromJson).toList(),
+      artifacts: _maps(json['artifacts'])
+          .map(CreatorArtifact.fromJson)
+          .toList(),
       media: _maps(json['media']).map(CreatorMedia.fromJson).toList(),
       links: _maps(json['links']).map(CreatorLink.fromJson).toList(),
       review: json['review'] is Map ? _map(json['review']) : null,
@@ -115,6 +115,7 @@ class CreatorResource {
     required this.id,
     required this.slug,
     required this.kind,
+    this.editVersion = 0,
     this.draftName = '',
     this.moderationState = 'visible',
     this.moderationBy = '',
@@ -126,6 +127,7 @@ class CreatorResource {
   });
   final String id;
   final String slug;
+  final int editVersion;
   final String draftName;
   final CreatorResourceKind kind;
   final String moderationState;
@@ -144,6 +146,7 @@ class CreatorResource {
       CreatorResource(
         id: json['id']?.toString() ?? '',
         slug: json['slug']?.toString() ?? '',
+        editVersion: (json['edit_version'] as num?)?.toInt() ?? 0,
         draftName: json['draft_name']?.toString() ?? '',
         kind: json['kind'] == 'watchface'
             ? CreatorResourceKind.watchface
@@ -164,6 +167,8 @@ class CreatorRevision {
     required this.number,
     required this.name,
     required this.summary,
+    this.description = '',
+    this.descriptionFormat = 'plain',
     required this.state,
     this.paidType = CommunityPaidType.free,
     this.purchaseLink = '',
@@ -171,11 +176,15 @@ class CreatorRevision {
     this.purchaseCurrency = '',
     this.attributes = const [],
     this.publicationPlan,
+    this.bindingClaims = const [],
   });
+  final List<Map<String, Object?>> bindingClaims;
   final String id;
   final int number;
   final String name;
   final String summary;
+  final String description;
+  final String descriptionFormat;
   final String state;
   final CommunityPaidType paidType;
   final String purchaseLink;
@@ -190,10 +199,13 @@ class CreatorRevision {
 
   factory CreatorRevision.fromJson(Map<String, Object?> json) =>
       CreatorRevision(
+        bindingClaims: _maps(json['binding_claims']),
         id: json['id']?.toString() ?? '',
         number: (json['number'] as num?)?.toInt() ?? 0,
         name: json['name']?.toString() ?? '',
         summary: json['summary']?.toString() ?? '',
+        description: json['description']?.toString() ?? '',
+        descriptionFormat: json['description_format']?.toString() ?? 'plain',
         state: json['state']?.toString() ?? '',
         paidType: communityPaidTypeFromWire(json['paid_type']),
         purchaseLink: json['purchase_link']?.toString() ?? '',

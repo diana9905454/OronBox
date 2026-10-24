@@ -9,6 +9,8 @@ import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 /// Keep this list in sync with the server's `errorBody` codes. It is also
 /// used when a code is embedded in a plain exception string.
 const oronBoxKnownErrorCodes = <String>{
+  'private_state_read_failed',
+  'private_state_write_failed',
   'admin_coin_failed',
   'already_exists',
   'announcement_read_failed',
@@ -17,6 +19,13 @@ const oronBoxKnownErrorCodes = <String>{
   'auth_required',
   'bandbbs_grant_invalid',
   'bandbbs_refresh_failed',
+  'bandbbs_reauthorization_required',
+  'bandbbs_refresh_unavailable',
+  'github_reauthorization_required',
+  'github_revoke_unavailable',
+  'session_unavailable',
+  'refresh_unavailable',
+  'revoke_unavailable',
   'bandbbs_scope_forbidden',
   'banned',
   'blob_failed',
@@ -69,6 +78,8 @@ const oronBoxKnownErrorCodes = <String>{
   'home_failed',
   'host_unavailable',
   'import_failed',
+  'image_read_failed',
+  'image_process_failed',
   'internal',
   'invalid_app',
   'invalid_argument',
@@ -87,12 +98,14 @@ const oronBoxKnownErrorCodes = <String>{
   'invalid_upload',
   'invalid_url',
   'list_failed',
+  'legal_document_unavailable',
   'message_read_failed',
   'messages_clear_failed',
   'messages_read_failed',
   'moderation_settings_failed',
   'moderation_unavailable',
   'network_error',
+  'request_timeout',
   'not_found',
   'not_installed',
   'oauth_start_failed',
@@ -133,21 +146,44 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
   final normalized = raw.toLowerCase();
   final code = _errorCode(error, normalized);
   final backendMessage = _backendMessage(error);
+  if (code == 'comment_blocked') return l10n.commentBlocked;
   if (backendMessage != null) return backendMessage;
 
   switch (code) {
+    case 'private_state_read_failed':
+      return l10n.privateStateLoadFailed;
+    case 'private_state_write_failed':
+      return l10n.privateStateSaveFailed;
+    case 'legal_document_unavailable':
+      return l10n.legalDocumentUnavailable;
+    case 'image_read_failed':
+      return l10n.creatorImageReadFailed;
+    case 'image_process_failed':
+      return l10n.creatorImageProcessFailed;
+    case 'request_timeout':
+      return l10n.errorRequestTimeout;
+    case 'comment_create_failed':
+      return l10n.commentCreateFailed;
+    case 'comments_read_failed':
+      return l10n.commentsReadFailed;
+    case 'comment_delete_failed':
+      return l10n.commentDeleteFailed;
     case 'watchface_install_blocked':
       return l10n.watchfaceRestrictedMessage;
     case 'invalid_refresh_token':
     case 'session_expired':
-    case 'http_401':
       return l10n.errorOronBoxSessionExpired;
     case 'xiaomi_account_session_expired':
       return l10n.errorXiaomiAccountSessionExpired;
     case 'auth_required':
     case 'unauthenticated':
     case 'bandbbs_grant_invalid':
+    case 'bandbbs_reauthorization_required':
       return l10n.settingsBandBbsAccountRequired;
+    case 'github_reauthorization_required':
+      return l10n.creatorImportGitHubConnect;
+    case 'unauthorized':
+    case 'http_401':
     case 'forbidden':
     case 'banned':
     case 'creator_frozen':
@@ -248,6 +284,11 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'release_read_failed':
     case 'grants_failed':
     case 'r2_unavailable':
+    case 'bandbbs_refresh_unavailable':
+    case 'github_revoke_unavailable':
+    case 'session_unavailable':
+    case 'refresh_unavailable':
+    case 'revoke_unavailable':
     case 'http_500':
     case 'http_502':
     case 'http_503':
@@ -257,15 +298,13 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
       return l10n.errorOperationCancelled;
     case 'github_not_configured':
       return l10n.errorGitHubNotConfigured;
+    case 'moderation_settings_failed':
     case 'moderation_unavailable':
       return l10n.commentModerationUnavailable;
     case 'bandbbs_refresh_failed':
     case 'blob_failed':
     case 'collaborations_failed':
     case 'collection_review_failed':
-    case 'comment_create_failed':
-    case 'comment_delete_failed':
-    case 'comments_read_failed':
     case 'feedback_create_failed':
     case 'feedback_list_failed':
     case 'feedback_read_failed':
@@ -289,13 +328,6 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'publish_failed':
     case 'internal':
       return l10n.errorOperationFailed;
-  }
-
-  if (code == 'unauthorized' &&
-      (normalized.contains('expired') ||
-          normalized.contains('invalid') ||
-          normalized.contains('token'))) {
-    return l10n.errorOronBoxSessionExpired;
   }
 
   // Raw Dio calls (resource catalogs, home feed, update checks, and similar
@@ -465,7 +497,12 @@ String _errorCode(Object? error, String normalized) {
   if (error is DioException) {
     final data = error.response?.data;
     if (data is Map) {
-      final responseCode = data['code']?.toString().trim().toLowerCase();
+      final nested = data['error'];
+      final responseCode =
+          (nested is Map ? nested['code'] : nested ?? data['code'])
+              ?.toString()
+              .trim()
+              .toLowerCase();
       if (responseCode != null && responseCode.isNotEmpty) {
         return responseCode;
       }
@@ -474,13 +511,16 @@ String _errorCode(Object? error, String normalized) {
     if (status != null) return 'http_$status';
   }
   if (normalized.contains('oronbox session expired')) return 'session_expired';
-  if (normalized.contains('bandbbs account is not signed in')) return 'auth_required';
+  if (normalized.contains('bandbbs account is not signed in')) {
+    return 'auth_required';
+  }
   var text = normalized.trim();
   for (final prefix in const ['exception: ', 'bad state: ']) {
     if (text.startsWith(prefix)) text = text.substring(prefix.length);
   }
   final tokenMatch = RegExp(r'^[a-z0-9_]+').firstMatch(text);
-  if (tokenMatch != null && oronBoxKnownErrorCodes.contains(tokenMatch.group(0))) {
+  if (tokenMatch != null &&
+      oronBoxKnownErrorCodes.contains(tokenMatch.group(0))) {
     return tokenMatch.group(0)!;
   }
   for (final known in oronBoxKnownErrorCodes) {
@@ -508,7 +548,14 @@ String _flattenError(Object? error) {
 
 bool _isGenericAuthOrSessionMessage(String message) {
   final lower = message.trim().toLowerCase();
-  return lower == 'oronbox session expired' ||
+  return lower == 'the server could not complete the request' ||
+      lower == 'http request failed' ||
+      lower == 'the request to the oronbox server failed' ||
+      lower.startsWith('the oronbox server returned http ') ||
+      lower == 'moderation service is unavailable' ||
+      lower == 'the server did not respond in time' ||
+      lower == 'unable to connect to the oronbox server' ||
+      lower == 'oronbox session expired' ||
       lower == 'bandbbs account is not signed in' ||
       lower == 'bad state: bandbbs account is not signed in' ||
       lower == 'xiaomi account session expired' ||
@@ -542,7 +589,8 @@ String? _backendMessage(Object? error) {
   }
   if (message == null) return null;
   final visibleMessage = _firstErrorLine(message);
-  if (visibleMessage.isEmpty || _isGenericAuthOrSessionMessage(visibleMessage)) {
+  if (visibleMessage.isEmpty ||
+      _isGenericAuthOrSessionMessage(visibleMessage)) {
     return null;
   }
   return visibleMessage;

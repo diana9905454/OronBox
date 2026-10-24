@@ -6,6 +6,7 @@ import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/data/bandbbs/bandbbs_resource_provider.dart';
+import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/messages/application/message_center.dart';
 import 'package:oronbox/src/features/resources/application/resource_catalog_providers.dart';
 import 'package:oronbox/src/features/resources/controllers/resource_filter_controller.dart';
@@ -56,10 +57,14 @@ class ResourcesPage extends ConsumerWidget {
               ref.read(resourceRefreshProvider.notifier).refresh();
             },
           ),
-          if (clean.inboxEnabled)
-            _InboxAction(
-              unread: ref.watch(messageCenterProvider).value?.unread ?? 0,
-            ),
+          if (clean.inboxEnabled) ...[
+            if (ref.watch(
+              hostAccountsProvider.select((s) => s.bandbbs.isSignedIn),
+            ))
+              _InboxAction(
+                unread: ref.watch(messageCenterProvider).value?.unread ?? 0,
+              ),
+          ],
         ],
       ),
       body: Column(
@@ -84,9 +89,10 @@ class ResourcesPage extends ConsumerWidget {
                       if (states.contains(WidgetState.selected)) {
                         return Theme.of(context).colorScheme.secondaryContainer;
                       }
-                      return Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
+                      return Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.5);
                     }),
                   ),
                   segments: [

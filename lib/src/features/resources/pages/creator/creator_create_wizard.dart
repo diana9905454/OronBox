@@ -7,6 +7,8 @@ import 'package:segmented_list/segmented_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -549,12 +551,19 @@ class _CreatorCreateWizardState extends ConsumerState<CreatorCreateWizard> {
     final controller = ref.read(creatorWorkspaceProvider.notifier);
     try {
       if (action == _WizardAction.collection) {
-        await controller.createCollection(
-          slug: 'collection-${DateTime.now().microsecondsSinceEpoch}',
-          name: name,
-          summary: _summary.text.trim(),
-          kind: _kind,
+        context.go(
+          Uri(
+            path: '/resources/creator/collections/new',
+            queryParameters: {
+              'name': name,
+              'summary': summary,
+              'kind': _kind == CreatorResourceKind.watchface
+                  ? 'watchface'
+                  : 'quickapp',
+            },
+          ).toString(),
         );
+        return;
       } else {
         const rulesSeenKey = 'creator.reviewRules.seen';
         final rulesSeen =
@@ -830,23 +839,25 @@ class _CreatorCreateWizardState extends ConsumerState<CreatorCreateWizard> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               : _listError != null
-              ? Center(child: Text(localizedErrorMessage(l10n, _listError)))
+              ? ErrorStateView(
+                  compact: true,
+                  message: localizedErrorMessage(l10n, _listError),
+                  onRetry: _loadExternalItems,
+                )
               : _items.isEmpty
-              ? Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 48),
-                  child: Center(
-                    child: Text(
-                      l10n.communityImportPickerEmpty,
-                      style: TextStyle(color: colors.onSurfaceVariant),
-                    ),
-                  ),
+              ? EmptyStateView(
+                  compact: true,
+                  icon: Icons.download_done_outlined,
+                  title: l10n.communityImportPickerEmpty,
                 )
               : RefreshIndicator(
                   onRefresh: _loadExternalItems,
                   child: SegmentedList(
                     maxWidth: StyleConstants.pageMaxWidth,
                     physics: const AlwaysScrollableScrollPhysics(),
-                    contentPadding: const EdgeInsets.only(bottom: 16),
+                    contentPadding: EdgeInsets.only(
+                      bottom: bottomContentPadding(context, extra: 16),
+                    ),
                     sections: [
                       SegmentedSection(
                         tiles: [

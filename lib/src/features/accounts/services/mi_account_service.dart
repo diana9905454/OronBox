@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/network/dio_provider.dart';
-import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
 
 /// Extracts bound-device credentials from a Xiaomi Fitness wearable-log ZIP.
@@ -207,8 +207,7 @@ class MiAccountService {
   static final _log = getLogger('MiAccountService');
   final Dio _dio;
 
-  static const _sessionKey = 'mi.account.token';
-  static const _legacySessionKey = 'mi_account.session';
+  static const _sessionKey = PrivateAppState.miToken;
   static const _sdkVersion = 'accountsdk-18.8.15';
   static const _healthSid = 'miothealth';
   static const _serviceLoginUrl =
@@ -223,10 +222,9 @@ class MiAccountService {
       '(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36';
 
   Future<MiAccountToken?> loadStoredToken() async {
-    final prefs = SharedPrefsService.instance;
-    if (!prefs.isInitialized) await prefs.init();
-    final raw =
-        prefs.getString(_sessionKey) ?? prefs.getString(_legacySessionKey);
+    final store = PrivateAppState.instance;
+    await store.reload(key: _sessionKey);
+    final raw = store.readString(_sessionKey);
     if (raw == null || raw.isEmpty) return null;
     try {
       final value = jsonDecode(raw);
@@ -235,10 +233,6 @@ class MiAccountService {
           : value is Map
           ? MiAccountToken.fromJson(value.cast<String, Object?>())
           : null;
-      if (token != null && prefs.getString(_sessionKey) == null) {
-        await prefs.setString(_sessionKey, jsonEncode(token.toJson()));
-        await prefs.remove(_legacySessionKey);
-      }
       return token;
     } catch (_) {
       // Treat a malformed session as signed out.
@@ -250,17 +244,13 @@ class MiAccountService {
     if (!token.isValid) {
       throw StateError('Cannot persist an invalid Xiaomi session');
     }
-    final prefs = SharedPrefsService.instance;
-    if (!prefs.isInitialized) await prefs.init();
-    await prefs.setString(_sessionKey, jsonEncode(token.toJson()));
-    await prefs.remove(_legacySessionKey);
+    await PrivateAppState.instance.update({
+      _sessionKey: jsonEncode(token.toJson()),
+    });
   }
 
   Future<void> clearStoredToken() async {
-    final prefs = SharedPrefsService.instance;
-    if (!prefs.isInitialized) await prefs.init();
-    await prefs.remove(_sessionKey);
-    await prefs.remove(_legacySessionKey);
+    await PrivateAppState.instance.update({_sessionKey: null});
   }
 
   /// Renews the short-lived Xiaomi service session with the stored pass token.
@@ -347,9 +337,22 @@ class MiAccountService {
   /// failed. A login started concurrently must not be removed by an older
   /// request completing later.
   Future<void> invalidateStoredToken(MiAccountToken token) async {
-    final stored = await loadStoredToken();
-    if (stored == null || !_sameSession(stored, token)) return;
-    await clearStoredToken();
+    final removed = await PrivateAppState.instance.update(
+      {_sessionKey: null},
+      when: (current) {
+        final raw = current[_sessionKey] as String?;
+        if (raw == null) return false;
+        try {
+          final stored = MiAccountToken.fromJson(
+            (jsonDecode(raw) as Map).cast(),
+          );
+          return stored != null && _sameSession(stored, token);
+        } catch (_) {
+          return false;
+        }
+      },
+    );
+    if (!removed) return;
     _log.warning(
       'Xiaomi account session invalidated after authentication failure',
     );

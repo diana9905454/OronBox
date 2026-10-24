@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -134,7 +137,13 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
         child: SegmentedList(
           maxWidth: StyleConstants.pageMaxWidth,
           physics: const AlwaysScrollableScrollPhysics(),
-          contentPadding: const EdgeInsets.only(top: 8, bottom: 32),
+          contentPadding: EdgeInsets.only(
+            top: 8,
+            bottom: bottomContentPadding(
+              context,
+              extra: widget.embedded ? 80 : 24,
+            ),
+          ),
           sections: [
             CustomSegmentedSection(
               child: Padding(
@@ -173,10 +182,10 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
                 child: SizedBox(
                   height: _stateSectionHeight(context),
                   child: Center(
-                    child: TextButton.icon(
-                      onPressed: _load,
-                      icon: const Icon(Icons.refresh),
-                      label: Text(l10n.retry),
+                    child: ErrorStateView(
+                      compact: true,
+                      message: localizedErrorMessage(l10n, _error),
+                      onRetry: _load,
                     ),
                   ),
                 ),
@@ -186,8 +195,9 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
                 child: SizedBox(
                   height: _stateSectionHeight(context),
                   child: Center(
-                    child: Text(
-                      _filter == 'active'
+                    child: EmptyStateView(
+                      compact: true,
+                      title: _filter == 'active'
                           ? l10n.creatorNoPendingReviews
                           : l10n.creatorNoReviews,
                     ),

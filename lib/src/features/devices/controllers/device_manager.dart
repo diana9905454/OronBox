@@ -15,6 +15,7 @@ import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/services/connection_keep_alive.dart';
 import 'package:oronbox/src/core/services/rfcomm_driver.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/core/services/status_surface_bridge.dart';
 import 'package:oronbox/src/device/core/ble_requirement.dart';
 import 'package:oronbox/src/device/core/ble_transport.dart';
@@ -32,6 +33,7 @@ import 'package:oronbox/src/device/xiaomi/systems/auth_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/install_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/lpa_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/network_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/wifi_config_handler.dart';
 import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
@@ -60,6 +62,7 @@ import 'package:oronbox/src/device/zeppos/systems/zeppos_services_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_screenshot_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_time_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_xiao_ai_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_voice_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_watchface_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_voice_memos_system.dart';
 import 'package:oronbox/src/device/zeppos/zeppos_btbr_transport.dart';
@@ -74,7 +77,8 @@ import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.da
 import 'package:oronbox/src/features/devices/domain/device_scan_results.dart';
 import 'package:oronbox/src/features/devices/utils/device_address.dart';
 import 'package:oronbox/src/device/core/device_state.dart';
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_watch_face.pb.dart'
     as pb_watchface;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pb.dart'
@@ -111,8 +115,6 @@ class _DeviceLogTransferTimeout implements Exception {
       'Device log transfer stopped after ${idle.inSeconds}s without data '
       '(elapsed=${elapsed.inSeconds}s progress=${(progress * 100).round()}%)';
 }
-
-
 
 class _DeviceConnectCancelled implements Exception {
   const _DeviceConnectCancelled();
@@ -259,7 +261,13 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
   Future<void> setFindingZeppOsDevice(bool finding);
   Future<void> setFindingXiaomiPhone(bool finding);
   Future<void> setFindingXiaomiWearable(bool finding);
-  Future<void> sendXiaoAiReply(String text);
+  void setVoiceLabEnabled(bool enabled) {}
+  Future<void> sendXiaoAiReply(String text, {required String recognizedText});
+  Future<void> sendXiaoAiRecognitionPartial(String text);
+  Future<void> sendXiaoAiRecognitionResult(
+    String text, {
+    required bool isFinal,
+  });
   Future<void> setXiaoAiContinuousCapture(bool enabled);
   Future<void> setXiaoAiEndpoint(int endpoint);
   Future<Uint8List> requestZeppOsScreenshot();
@@ -298,6 +306,8 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
   XiaomiHealthData? get cachedXiaomiHealthData;
   Future<XiaomiHealthData> loadXiaomiHealthData();
   Future<XiaomiHealthSyncResult> syncXiaomiHealth();
+  Future<void> waitForHealthSync();
+  Future<void> reloadSavedDevices();
   Future<void> sendXiaomiWifiConfig({
     required String deviceId,
     required String ssid,
@@ -375,6 +385,10 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
     void Function(double progress)? onProgress,
   });
   Future<void> importSharedDevice(MiWearState device);
+  Future<void> downloadXiaomiEsimProfile(
+    String activationCode, {
+    String confirmationCode = '',
+  });
   Future<int> importMiCloudDevices(List<MiCloudDevice> devices);
   Set<String> get connectedAddresses;
 }
@@ -407,7 +421,39 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
+  Future<void> reloadSavedDevices() async {
+    await PrivateAppState.instance.reload(key: PrivateAppState.pairedDevices);
+    final saved = _loadStateSync().pairedDevices;
+    final current = state.currentDevice;
+    final restored = current == null
+        ? null
+        : saved.where((d) => d.addr == current.addr).firstOrNull;
+    state = state.copyWith(
+      pairedDevices: saved
+          .map(
+            (d) => d.addr == current?.addr
+                ? d.copyWith(disconnected: current!.disconnected)
+                : d,
+          )
+          .toList(),
+      currentDevice:
+          restored?.copyWith(disconnected: current!.disconnected) ?? current,
+    );
+  }
+
+  @override
+  Future<void> waitForHealthSync() async {
+    await _xiaomiHealthSyncFuture?.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+  }
+
+  @override
   Future<XiaomiHealthSyncResult> syncXiaomiHealth() {
+    if (HealthStore.maintenanceRequested) {
+      return Future.error(StateError('Health data maintenance is active'));
+    }
     final active = _xiaomiHealthSyncFuture;
     if (active != null) {
       _log.fine('joining active Xiaomi health synchronization');
@@ -701,14 +747,14 @@ class LocalDeviceManager extends DeviceManager {
   ConnectType? _pendingConnectType;
   var _passiveReconnectInProgress = false;
 
-  static const String _keyPairedDevices = 'paired_devices';
+  static const String _keyPairedDevices = PrivateAppState.pairedDevices;
   static const String _keyAutoReconnect = 'auto_reconnect';
   static const String _keyAutoReconnectOnDisconnect =
       'auto_reconnect_on_disconnect';
 
   DeviceManagerState _loadStateSync() {
-    final prefs = SharedPrefsService.instance;
-    final saved = prefs.getStringList(_keyPairedDevices) ?? [];
+    final saved =
+        PrivateAppState.instance.readStringList(_keyPairedDevices) ?? [];
     final paired = saved
         .map((e) {
           try {
@@ -716,7 +762,7 @@ class LocalDeviceManager extends DeviceManager {
               MiWearState.fromJson(jsonDecode(e) as Map<String, dynamic>),
             ).copyWith(disconnected: true);
           } catch (e, st) {
-            _log.warning('failed to parse paired device', e, st);
+            _log.warning('Invalid saved device record', null, st);
             return null;
           }
         })
@@ -724,9 +770,6 @@ class LocalDeviceManager extends DeviceManager {
         .toList();
 
     final initialCurrent = paired.isEmpty ? null : paired.first;
-    if (initialCurrent != null) {
-      scheduleMicrotask(() => unawaited(loadXiaomiHealthData()));
-    }
     return DeviceManagerState(
       pairedDevices: paired,
       // Keep the most recently used device selected for the device overview,
@@ -761,14 +804,8 @@ class LocalDeviceManager extends DeviceManager {
         // device identity and credentials, never a stale online marker.
         .map((d) => jsonEncode(d.copyWith(disconnected: true).toJson()))
         .toList();
-    final saved = await SharedPrefsService.instance.setStringList(
-      _keyPairedDevices,
-      jsonList,
-    );
-    _log.info(
-      'saved ${jsonList.length} paired devices '
-      'to $_keyPairedDevices result=$saved',
-    );
+    await PrivateAppState.instance.update({_keyPairedDevices: jsonList});
+    _log.info('Saved ${jsonList.length} paired devices');
   }
 
   @override
@@ -1492,7 +1529,6 @@ class LocalDeviceManager extends DeviceManager {
 
   Future<void> _loadInitialDeviceData(DeviceEntity entity) async {
     if (_currentEntity != entity) return;
-    unawaited(HealthStore().read(entity.id));
     try {
       await syncDevice();
     } catch (e, st) {
@@ -2377,16 +2413,50 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
-  Future<void> sendXiaoAiReply(String text) async {
+  void setVoiceLabEnabled(bool enabled) {
+    _currentEntity?.system<XiaomiVoiceSystem>()?.setEnabled(enabled);
+  }
+
+  @override
+  Future<void> sendXiaoAiRecognitionPartial(String text) async {
+    await sendXiaoAiRecognitionResult(text, isFinal: false);
+  }
+
+  @override
+  Future<void> sendXiaoAiRecognitionResult(
+    String text, {
+    required bool isFinal,
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) return;
+    final xiaomi = entity.system<XiaomiVoiceSystem>();
+    if (xiaomi != null) {
+      await xiaomi.sendRecognitionResult(text, isFinal: isFinal);
+    } else {
+      await entity.system<ZeppOsXiaoAiSystem>()?.sendRecognitionResult(
+        text,
+        isFinal: isFinal,
+      );
+    }
+  }
+
+  @override
+  Future<void> sendXiaoAiReply(
+    String text, {
+    required String recognizedText,
+  }) async {
     final entity = _currentEntity;
     if (entity == null || state.protocolState != ProtocolState.ready) {
       throw ProtocolException('Device not ready');
     }
-    final system = entity.system<ZeppOsXiaoAiSystem>();
-    if (system == null) {
-      throw UnsupportedError('XiaoAI is only available for ZeppOS');
+    final xiaomi = entity.system<XiaomiVoiceSystem>();
+    if (xiaomi != null) {
+      await xiaomi.sendTextReply(text, recognizedText: recognizedText);
+      return;
     }
-    await system.sendTextReply(text);
+    final system = entity.system<ZeppOsXiaoAiSystem>();
+    if (system == null) throw UnsupportedError('Voice assistant unavailable');
+    await system.sendTextReply(text, recognizedText: recognizedText);
   }
 
   @override
@@ -2408,9 +2478,12 @@ class LocalDeviceManager extends DeviceManager {
     if (entity == null || state.protocolState != ProtocolState.ready) {
       throw ProtocolException('Device not ready');
     }
+    if (entity.system<XiaomiVoiceSystem>() != null && endpoint == 0x0010) {
+      return;
+    }
     final system = entity.system<ZeppOsXiaoAiSystem>();
     if (system == null) {
-      throw UnsupportedError('Assistant is only available for ZeppOS');
+      throw UnsupportedError('Assistant unavailable');
     }
     system.selectEndpoint(endpoint);
   }
@@ -3876,23 +3949,61 @@ class LocalDeviceManager extends DeviceManager {
     );
     final updatedPaired = List<MiWearState>.from(state.pairedDevices);
     final existingIndex = updatedPaired.indexWhere(
-      (d) => d.addr == normalized.addr,
+      (d) => deviceAddressEquals(d.addr, normalized.addr),
+    );
+    final current = state.currentDevice;
+    final isCurrent =
+        current != null && deviceAddressEquals(current.addr, normalized.addr);
+    final existing = isCurrent
+        ? current
+        : (existingIndex >= 0 ? updatedPaired[existingIndex] : null);
+    final imported = normalized.copyWith(
+      addr: existing?.addr ?? normalized.addr,
+      connectType: existing?.connectType ?? normalized.connectType,
+      codename: normalized.codename ?? existing?.codename,
+      authkey: normalized.authkey?.trim().isNotEmpty == true
+          ? normalized.authkey!.trim()
+          : existing?.authkey,
+      disconnected: isCurrent && state.protocolState == ProtocolState.ready
+          ? false
+          : (existing?.disconnected ?? true),
     );
     if (existingIndex >= 0) {
-      updatedPaired[existingIndex] = normalized;
+      updatedPaired[existingIndex] = imported;
+      for (var index = updatedPaired.length - 1; index >= 0; index--) {
+        if (index != existingIndex &&
+            deviceAddressEquals(updatedPaired[index].addr, imported.addr)) {
+          updatedPaired.removeAt(index);
+        }
+      }
     } else {
-      updatedPaired.add(normalized);
+      updatedPaired.add(imported);
     }
     state = state.copyWith(
-      currentDevice:
-          state.currentDevice == null ||
-              state.currentDevice?.addr == normalized.addr
-          ? normalized
-          : state.currentDevice,
+      currentDevice: current == null || isCurrent ? imported : current,
       pairedDevices: updatedPaired,
       clearError: true,
     );
     await _savePairedDevices();
+  }
+
+  @override
+  Future<void> downloadXiaomiEsimProfile(
+    String activationCode, {
+    String confirmationCode = '',
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final system = entity.system<XiaomiLpaSystem>();
+    if (system == null) {
+      throw UnsupportedError('eSIM LPA is unavailable for this device');
+    }
+    await system.downloadProfile(
+      activationCode,
+      confirmationCode: confirmationCode,
+    );
   }
 
   @override
@@ -3934,17 +4045,31 @@ class LocalDeviceManager extends DeviceManager {
         ),
       );
       final existingIndex = updatedPaired.indexWhere(
-        (d) => d.addr == importedRaw.addr,
+        (d) => deviceAddressEquals(d.addr, importedRaw.addr),
       );
-      final existing = existingIndex >= 0 ? updatedPaired[existingIndex] : null;
+      final current = state.currentDevice;
+      final isCurrent =
+          current != null &&
+          deviceAddressEquals(current.addr, importedRaw.addr);
+      final existing = isCurrent
+          ? current
+          : (existingIndex >= 0 ? updatedPaired[existingIndex] : null);
       final isCurrentReady =
-          state.currentDevice?.addr == importedRaw.addr &&
-          state.protocolState == ProtocolState.ready;
+          isCurrent && state.protocolState == ProtocolState.ready;
       final imported = importedRaw.copyWith(
+        addr: existing?.addr ?? importedRaw.addr,
+        connectType: existing?.connectType ?? importedRaw.connectType,
+        codename: importedRaw.codename ?? existing?.codename,
         disconnected: isCurrentReady ? false : (existing?.disconnected ?? true),
       );
       if (existingIndex >= 0) {
         updatedPaired[existingIndex] = imported;
+        for (var index = updatedPaired.length - 1; index >= 0; index--) {
+          if (index != existingIndex &&
+              deviceAddressEquals(updatedPaired[index].addr, imported.addr)) {
+            updatedPaired.removeAt(index);
+          }
+        }
       } else {
         updatedPaired.add(imported);
       }
@@ -3954,10 +4079,10 @@ class LocalDeviceManager extends DeviceManager {
     state = state.copyWith(
       currentDevice: current == null
           ? updatedPaired.firstWhere(
-              (d) => d.addr == importable.first.mac.trim(),
+              (d) => deviceAddressEquals(d.addr, importable.first.mac.trim()),
             )
           : updatedPaired.firstWhere(
-              (d) => d.addr == current.addr,
+              (d) => deviceAddressEquals(d.addr, current.addr),
               orElse: () => current,
             ),
       pairedDevices: updatedPaired,

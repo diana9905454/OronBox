@@ -74,6 +74,10 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 | 同步并导出设备录音 | 从设备取回录音并保存 |
 | 接收并保存手表截图 | 保存到用户图片目录 |
 | 同步城市天气数据到设备 | 为设备更新选定城市的天气信息 |
+| 小米设备 eSIM 管理 | 支持标准 GSMA LPA eSIM 配置文件下载、启用、停用与删除 |
+| 小爱同学语音协同与语音转文字 | 监听设备小爱语音唤醒与音频流，支持本地与云端 ASR 接管解析 |
+| Wi-Fi 凭据协同同步 | 响应手表 Wi-Fi 扫描与网络认证请求，完成设备 Wi-Fi 快速配网 |
+| 手机辅助定位协同 | 手机后台为无独立 GPS 设备实时下发定位数据，辅助轨迹记录 |
 | 登录小米账号并支持 2FA | 提供 GNSS 星历数据下载和设备 authkey 获取能力 |
 | 从小米运动健康日志读取 authkey | 从本地小米运动健康应用日志中解析并读取设备 authkey |
 | 同步小米设备 GNSS 星历 | 支持手表发起星历更新请求，需要登录小米账号 |
@@ -118,7 +122,7 @@ Android / Web：无额外依赖
 
 ### 一键构建
 
-```bash
+```sh
 tool/build_all.sh [--dev]
 ```
 
@@ -126,27 +130,47 @@ tool/build_all.sh [--dev]
 
 ### 分平台构建
 
-```bash
-# Android
+#### Android
+
+```sh
 tool/build_android.sh [--format apk|appbundle|all] [--abi arm64-v8a|armeabi-v7a|x86_64]
-
-# Linux
-tool/build_linux.sh [--format tar.gz|deb|rpm|arch|appimage|flatpak|all] [--abi x86_64|aarch64]
-
-# macOS（仅 macOS 主机）
-tool/build_macos.sh
-
-# Windows（任选其一）
-tool\build_windows.bat [--dev]
-powershell -File tool/build_windows.ps1 [-Dev] [-SkipWebView2Sdk] [-WebView2SdkVersion <版本>]
-
-# Web
-tool/build_web.sh
 ```
 
-- `--format` / `--abi` 缺省时构建全部格式 / 全部 ABI；Linux `--abi` 缺省取宿主架构
-- Android 发布签名通过环境变量配置：`ORONBOX_KEYSTORE_PATH`、`ORONBOX_KEYSTORE_PASSWORD`、`ORONBOX_KEY_ALIAS`、`ORONBOX_KEY_PASSWORD`；未设置时使用 debug 签名
-- Linux 交叉编译 aarch64（x86_64 宿主）需将 `ORONBOX_LINUX_ARM64_SYSROOT` 指向包含 gtk3/webkit2gtk/alsa/flac/ogg/opus/vorbis 等开发包的 arm64 sysroot；交叉模式只产出 tar.gz / deb / rpm / arch
+- `--format` / `--abi` 缺省时构建全部格式 / 全部 ABI
+- 发布签名通过环境变量配置：`ORONBOX_KEYSTORE_PATH`、`ORONBOX_KEYSTORE_PASSWORD`、`ORONBOX_KEY_ALIAS`、`ORONBOX_KEY_PASSWORD`；未设置时使用 debug 签名
+
+#### Linux
+
+```sh
+tool/build_linux.sh [--format tar.gz|deb|rpm|arch|appimage|flatpak|all] [--abi x86_64|aarch64]
+```
+
+- 缺省时打包全部可用格式，`--abi` 缺省取宿主架构
+- 交叉编译 aarch64（x86_64 宿主）需将 `ORONBOX_LINUX_ARM64_SYSROOT` 指向包含 gtk3/webkit2gtk/alsa/flac/ogg/opus/vorbis 等开发包的 arm64 sysroot；交叉模式产出 tar.gz / deb / rpm / arch
+
+#### macOS（仅 macOS 宿主）
+
+```sh
+tool/build_macos.sh
+```
+
+#### Windows
+
+```powershell
+powershell -File tool/build_windows.ps1 [-Dev] [-SkipWebView2Sdk] [-WebView2SdkVersion <版本>]
+```
+
+或在 CMD 中执行批处理：
+
+```bat
+tool\build_windows.bat [--dev]
+```
+
+#### Web
+
+```sh
+tool/build_web.sh
+```
 
 ## AI 开发声明
 

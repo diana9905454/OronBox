@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:oronbox/src/core/storage/app_data_directory_io.dart';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,11 +16,20 @@ void main() {
     await SharedPrefsService.instance.init();
   });
 
-  setUp(() => SharedPrefsService.instance.remove('daemon.tasks'));
+  late Directory root;
+  late IoAppDataDirectory storage;
+  setUp(() async {
+    await SharedPrefsService.instance.remove('daemon.tasks');
+    root = await Directory.systemTemp.createTemp('oronbox-tasks-test-');
+    storage = IoAppDataDirectory(root);
+  });
+  tearDown(() async {
+    await root.delete(recursive: true);
+  });
 
   test('runs queued commands strictly one at a time', () async {
     final bus = _DelayedBus();
-    final queue = DaemonTaskQueue(bus);
+    final queue = DaemonTaskQueue(bus, storage: storage);
     final first = queue.enqueue(const OronBoxCommand(method: 'first'));
     final second = queue.enqueue(const OronBoxCommand(method: 'second'));
 
@@ -31,7 +43,11 @@ void main() {
   test('cancelling a running task invokes the cancellation hook', () async {
     final bus = _BlockingBus();
     late final DaemonTaskQueue queue;
-    queue = DaemonTaskQueue(bus, onCancelRunning: () async => bus.release());
+    queue = DaemonTaskQueue(
+      bus,
+      storage: storage,
+      onCancelRunning: () async => bus.release(),
+    );
     final id = queue.enqueue(const OronBoxCommand(method: 'install.local'));
     await bus.started.future;
 
@@ -46,6 +62,7 @@ void main() {
     var activeLeases = 0;
     final queue = DaemonTaskQueue(
       bus,
+      storage: storage,
       beginExecution: (_) async {
         activeLeases += 1;
         return () async {
@@ -66,7 +83,7 @@ void main() {
       const _ProgressEvent(.02, path: '/tmp/resource.bin'),
       const _ProgressEvent(.03, path: '/tmp/resource.bin'),
     ]);
-    final queue = DaemonTaskQueue(bus);
+    final queue = DaemonTaskQueue(bus, storage: storage);
     final progress = <double>[];
     final subscription = queue.events.listen((event) {
       if (event.event != 'task') return;
@@ -100,7 +117,7 @@ void main() {
       const _ProgressEvent(.2, path: '/tmp/current.bin'),
       const _ProgressEvent(.7, path: '/tmp/current.bin'),
     ]);
-    final queue = DaemonTaskQueue(bus);
+    final queue = DaemonTaskQueue(bus, storage: storage);
     final progress = <double>[];
     final subscription = queue.events.listen((event) {
       if (event.event != 'task') return;
@@ -136,7 +153,7 @@ void main() {
       jsonEncode(task.toJson()),
     ]);
     final bus = _DelayedBus();
-    final queue = DaemonTaskQueue(bus);
+    final queue = DaemonTaskQueue(bus, storage: storage);
 
     final recovered = await queue.wait('recovered');
     expect(recovered?.status, 'completed');
@@ -158,8 +175,9 @@ void main() {
       jsonEncode(task('download', 'resource.download', 'held').toJson()),
     ]);
     final bus = _DelayedBus();
-    final queue = DaemonTaskQueue(bus);
+    final queue = DaemonTaskQueue(bus, storage: storage);
 
+    await queue.ready;
     expect(queue.get('install-pending'), isNull);
     expect(queue.get('install-running'), isNull);
     expect(queue.get('install-failed'), isNull);
@@ -167,7 +185,9 @@ void main() {
     await queue.close();
 
     // The purge is also written back, so a second restart stays clean.
-    final stored = SharedPrefsService.instance.getStringList('daemon.tasks')!;
+    final stored = (jsonDecode(
+      utf8.decode((await storage.read('state.json'))!),
+    ) as List).cast<String>();
     expect(stored, hasLength(1));
     expect(stored.single, contains('resource.download'));
   });

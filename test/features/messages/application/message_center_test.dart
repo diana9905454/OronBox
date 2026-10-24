@@ -9,6 +9,11 @@ import 'package:oronbox/src/features/messages/application/message_presentation.d
 import 'package:oronbox/src/host/application_host_provider.dart';
 
 void main() {
+  test('empty read_at remains unread', () {
+    final message = UserMessage.fromJson({'id': 'm', 'read_at': ''});
+    expect(message.read, isFalse);
+  });
+
   test(
     'opening a target marks the message read without waiting for network',
     () async {

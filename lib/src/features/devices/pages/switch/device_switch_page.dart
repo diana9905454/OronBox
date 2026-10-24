@@ -1,3 +1,4 @@
+import 'package:oronbox/src/features/devices/widgets/device_import_dialog.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -8,14 +9,18 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
+import 'package:oronbox/src/app/widgets/qr_scanner_page.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/core/models/device.dart';
 import 'package:oronbox/src/core/utils/layout.dart';
 import 'package:oronbox/src/device/core/connect_type.dart';
+import 'package:oronbox/src/device/core/device_kind.dart';
 import 'package:oronbox/src/device/core/device_profile.dart';
+import 'package:oronbox/src/device/xiaomi/esim/esim_activation_code.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
 import 'package:oronbox/src/device/zeppos/zeppos_device_catalog.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
@@ -25,7 +30,6 @@ import 'package:oronbox/src/features/devices/widgets/device_connection_text.dart
 import 'package:oronbox/src/features/devices/widgets/xiaomi_fitness_logo.dart';
 import 'package:oronbox/src/features/devices/services/device_share_link.dart';
 import 'package:oronbox/src/features/devices/providers/pending_shared_device_provider.dart';
-import 'package:oronbox/src/features/settings/pages/about_software_page.dart';
 import 'package:oronbox/src/features/settings/pages/settings_page.dart';
 import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
@@ -109,38 +113,95 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
     }
   }
 
-  Future<void> _showPendingDeviceDialog(MiWearState device) async {
-    final l10n = AppLocalizations.of(context)!;
-    await ref.read(deviceManagerProvider.notifier).importSharedDevice(device);
+  Future<void> _showPendingDeviceDialog(MiWearState device) =>
+      showSharedDeviceImportDialog(context, ref, device);
+
+  Future<void> _scanQrCode() async {
     if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.deviceActionsShareQR),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(device.name),
-            const SizedBox(height: 4),
-            Text(
-              device.addr,
-              style: Theme.of(dialogContext).textTheme.bodySmall,
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+    final value = await showQrScannerPage(context, title: l10n.scanQrCode);
+    if (!mounted || value == null) return;
+
+    final sharedDevice = DeviceShareLink.parse(value);
+    if (sharedDevice != null) {
+      await _showPendingDeviceDialog(sharedDevice);
+      return;
+    }
+
+    final activationCode = XiaomiEsimActivationCode.parse(value);
+    if (activationCode == null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.errorContentNotFound)));
+      return;
+    }
+    await _downloadEsimProfile(activationCode);
+  }
+
+  Future<void> _downloadEsimProfile(
+    XiaomiEsimActivationCode activationCode,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final state = ref.read(deviceManagerProvider);
+    final current = state.currentDevice;
+    final profile = current == null
+        ? DeviceRegistry.unknown
+        : DeviceRegistry.resolveIdentity(
+            name: current.name,
+            codename: current.codename,
+          );
+    if (current == null ||
+        state.protocolState != proto.ProtocolState.ready ||
+        profile.kind != DeviceKind.xiaomi) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.errorDeviceNotReady)));
+      return;
+    }
+
+    final confirmationController = TextEditingController();
+    try {
+      final confirmationCode = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('eSIM'),
+          content: TextField(
+            controller: confirmationController,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Confirmation Code (optional)',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.of(dialogContext)
+                      .pop(confirmationController.text.trim()),
+              child: Text(l10n.save),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.close),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.deviceConnect),
-          ),
-        ],
-      ),
-    );
+      );
+      if (!mounted || confirmationCode == null) return;
+      await ref
+          .read(deviceManagerProvider.notifier)
+          .downloadXiaomiEsimProfile(
+            activationCode.value,
+            confirmationCode: confirmationCode,
+          );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.downloadStarted)));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.toString())));
+    } finally {
+      confirmationController.dispose();
+    }
   }
 
   @override
@@ -210,6 +271,7 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
           onMiAccountLogin: () =>
               SettingsPage.showMiAccountLoginDialog(context, ref),
           onWearableLogImport: () => showWearableLogSyncDialog(context, ref),
+          onQrScan: _supportsQrScanner ? _scanQrCode : null,
         );
         final scanList = _ScanDeviceList(
           onComplete: () {
@@ -294,6 +356,7 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
                                 ),
                             onWearableLogImport: () =>
                                 showWearableLogSyncDialog(context, ref),
+                            onQrScan: _supportsQrScanner ? _scanQrCode : null,
                           ),
                   ),
                 ),
@@ -307,6 +370,7 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
                     SettingsPage.showMiAccountLoginDialog(context, ref),
                 onWearableLogImport: () =>
                     showWearableLogSyncDialog(context, ref),
+                onQrScan: _supportsQrScanner ? _scanQrCode : null,
               ),
               SliverToBoxAdapter(
                 child: PageContainer(
@@ -360,6 +424,7 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
           onMiAccountLogin: () =>
               SettingsPage.showMiAccountLoginDialog(context, ref),
           onWearableLogImport: () => showWearableLogSyncDialog(context, ref),
+          onQrScan: null,
         );
 
         if (isWide) {
@@ -437,7 +502,10 @@ class _DeviceSwitchPageState extends ConsumerState<DeviceSwitchPage> {
                         ),
                         const SizedBox(
                           height: 96,
-                          child: _EmptyState(message: ''),
+                          child: EmptyStateView(
+                            icon: Icons.devices_other,
+                            compact: true,
+                          ),
                         ),
                       ],
                     ),
@@ -627,10 +695,12 @@ class _DeviceImportActions extends StatelessWidget {
   const _DeviceImportActions({
     required this.onMiAccountLogin,
     required this.onWearableLogImport,
+    this.onQrScan,
   });
 
   final VoidCallback onMiAccountLogin;
   final VoidCallback onWearableLogImport;
+  final VoidCallback? onQrScan;
 
   @override
   Widget build(BuildContext context) {
@@ -640,6 +710,12 @@ class _DeviceImportActions extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (onQrScan != null)
+            _DeviceImportActionCard(
+              leading: const Icon(Icons.qr_code_scanner),
+              title: l10n.deviceSwitchQrImport,
+              onTap: onQrScan!,
+            ),
           if (_supportsMiAccountDeviceImport)
             _DeviceImportActionCard(
               leading: const MiLogo(),
@@ -671,14 +747,25 @@ bool get _supportsMiAccountDeviceImport =>
 bool get _supportsWearableLogDeviceImport =>
     !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+bool get _supportsQrScanner =>
+    !kIsWeb &&
+    switch (defaultTargetPlatform) {
+      TargetPlatform.android ||
+      TargetPlatform.iOS ||
+      TargetPlatform.macOS => true,
+      _ => false,
+    };
+
 class _DeviceImportButton extends StatelessWidget {
   const _DeviceImportButton({
     required this.onMiAccountLogin,
     required this.onWearableLogImport,
+    this.onQrScan,
   });
 
   final VoidCallback onMiAccountLogin;
   final VoidCallback onWearableLogImport;
+  final VoidCallback? onQrScan;
 
   @override
   Widget build(BuildContext context) {
@@ -693,6 +780,7 @@ class _DeviceImportButton extends StatelessWidget {
         context,
         onMiAccountLogin: onMiAccountLogin,
         onWearableLogImport: onWearableLogImport,
+        onQrScan: onQrScan,
       ),
     );
   }
@@ -702,9 +790,27 @@ Future<void> _showDeviceImportSheet(
   BuildContext context, {
   required VoidCallback onMiAccountLogin,
   required VoidCallback onWearableLogImport,
+  VoidCallback? onQrScan,
 }) {
-  final l10n = AppLocalizations.of(context)!;
-  return showModalBottomSheet<void>(
+  final l10n = AppLocalizations.of(context);
+  if (l10n == null) return Future<void>.value();
+  return _showDeviceImportSheetWithResult(
+    context,
+    l10n: l10n,
+    onMiAccountLogin: onMiAccountLogin,
+    onWearableLogImport: onWearableLogImport,
+    onQrScan: onQrScan,
+  );
+}
+
+Future<void> _showDeviceImportSheetWithResult(
+  BuildContext context, {
+  required AppLocalizations l10n,
+  required VoidCallback onMiAccountLogin,
+  required VoidCallback onWearableLogImport,
+  required VoidCallback? onQrScan,
+}) async {
+  final result = await showModalBottomSheet<String>(
     context: context,
     showDragHandle: true,
     builder: (sheetContext) {
@@ -729,6 +835,9 @@ Future<void> _showDeviceImportSheet(
                   Navigator.of(sheetContext).pop();
                   onWearableLogImport();
                 },
+                onQrScan: onQrScan == null
+                    ? null
+                    : () => Navigator.of(sheetContext).pop('qr'),
               ),
             ],
           ),
@@ -736,6 +845,9 @@ Future<void> _showDeviceImportSheet(
       );
     },
   );
+  if (result != 'qr' || onQrScan == null || !context.mounted) return;
+  await Future<void>.delayed(const Duration(milliseconds: 200));
+  if (context.mounted) onQrScan();
 }
 
 class _DeviceImportActionCard extends StatelessWidget {
@@ -776,12 +888,14 @@ class _SavedDeviceList extends ConsumerWidget {
     required this.onComplete,
     required this.onMiAccountLogin,
     required this.onWearableLogImport,
+    this.onQrScan,
   });
 
   final String? selectedAddr;
   final VoidCallback onComplete;
   final VoidCallback onMiAccountLogin;
   final VoidCallback onWearableLogImport;
+  final VoidCallback? onQrScan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -806,15 +920,20 @@ class _SavedDeviceList extends ConsumerWidget {
               : _DeviceImportButton(
                   onMiAccountLogin: onMiAccountLogin,
                   onWearableLogImport: onWearableLogImport,
+                  onQrScan: onQrScan,
                 ),
         ),
         if (sorted.isEmpty) ...[
           _DeviceImportActions(
             onMiAccountLogin: onMiAccountLogin,
             onWearableLogImport: onWearableLogImport,
+            onQrScan: onQrScan,
           ),
           const Flexible(
-            child: SizedBox(height: 240, child: _EmptyState(message: '')),
+            child: SizedBox(
+              height: 240,
+              child: EmptyStateView(icon: Icons.devices_other, compact: true),
+            ),
           ),
         ] else
           Expanded(
@@ -877,7 +996,13 @@ class _ScanDeviceListState extends ConsumerState<_ScanDeviceList> {
         ),
         if (!state.scanning && visibleDevices.isEmpty)
           const Flexible(
-            child: SizedBox(height: 240, child: _EmptyState(message: '')),
+            child: SizedBox(
+              height: 240,
+              child: EmptyStateView(
+                icon: Icons.bluetooth_searching,
+                compact: true,
+              ),
+            ),
           )
         else if (state.scanning && visibleDevices.isEmpty)
           const Flexible(
@@ -920,12 +1045,14 @@ class _SliverSavedDeviceList extends ConsumerWidget {
     required this.onComplete,
     required this.onMiAccountLogin,
     required this.onWearableLogImport,
+    this.onQrScan,
   });
 
   final String? selectedAddr;
   final VoidCallback onComplete;
   final VoidCallback onMiAccountLogin;
   final VoidCallback onWearableLogImport;
+  final VoidCallback? onQrScan;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -950,8 +1077,12 @@ class _SliverSavedDeviceList extends ConsumerWidget {
               _DeviceImportActions(
                 onMiAccountLogin: onMiAccountLogin,
                 onWearableLogImport: onWearableLogImport,
+                onQrScan: onQrScan,
               ),
-              const SizedBox(height: 240, child: _EmptyState(message: '')),
+              const SizedBox(
+                height: 240,
+                child: EmptyStateView(icon: Icons.devices_other, compact: true),
+              ),
             ],
           ),
         ),
@@ -1032,7 +1163,13 @@ class _SliverScanDeviceListState extends ConsumerState<_SliverScanDeviceList> {
           padding: const EdgeInsets.symmetric(
             horizontal: StyleConstants.pagePadding,
           ),
-          child: const SizedBox(height: 240, child: _EmptyState(message: '')),
+          child: const SizedBox(
+            height: 240,
+            child: EmptyStateView(
+              icon: Icons.bluetooth_searching,
+              compact: true,
+            ),
+          ),
         ),
       );
     }
@@ -1190,6 +1327,7 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
       _showMissingEndpoint(_connectType);
       return;
     }
+
     setState(() {
       _showInput = false;
       _showConnectionError = false;
@@ -1656,35 +1794,6 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
             ],
           );
         },
-      ),
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  const _EmptyState({this.message});
-
-  final String? message;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.bluetooth_searching,
-            size: 48,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          if (message != null && message!.isNotEmpty)
-            Text(
-              message!,
-              style: TextStyle(color: colorScheme.onSurfaceVariant),
-            ),
-        ],
       ),
     );
   }

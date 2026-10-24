@@ -118,3 +118,10 @@ class SectionHeader extends StatelessWidget {
     );
   }
 }
+
+/// 计算可滚动列表或页面的底部安全边距，自适应全面屏系统手势横条与安全区
+double bottomContentPadding(BuildContext context, {double extra = 16}) {
+  final viewPaddingBottom = MediaQuery.paddingOf(context).bottom;
+  return viewPaddingBottom + extra;
+}
+

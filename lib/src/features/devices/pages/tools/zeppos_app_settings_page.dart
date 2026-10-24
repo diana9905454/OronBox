@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -303,8 +304,15 @@ class _StorageEditorDialogState extends State<_StorageEditorDialog> {
             const SizedBox(height: 12),
             Expanded(
               child: _entries.isEmpty
-                  ? Center(child: Text(l10n.zeppOsStorageEmpty))
+                  ? EmptyStateView(
+                      compact: true,
+                      icon: Icons.storage_outlined,
+                      title: l10n.zeppOsStorageEmpty,
+                    )
                   : ListView.separated(
+                      padding: EdgeInsets.only(
+                        bottom: bottomContentPadding(context, extra: 16),
+                      ),
                       itemCount: _entries.length,
                       separatorBuilder: (_, _) => const SizedBox(height: 8),
                       itemBuilder: (context, index) {

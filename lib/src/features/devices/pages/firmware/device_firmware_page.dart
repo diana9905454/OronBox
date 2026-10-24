@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/release_notes_view.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
@@ -187,11 +188,11 @@ class _DeviceFirmwarePageState extends ConsumerState<DeviceFirmwarePage> {
         padding: EdgeInsets.zero,
         children: [
           PageContainer(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               StyleConstants.pagePadding,
               8,
               StyleConstants.pagePadding,
-              0,
+              bottomContentPadding(context, extra: 24),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -247,9 +248,10 @@ class _DeviceFirmwarePageState extends ConsumerState<DeviceFirmwarePage> {
                 SectionCard(
                   margin: EdgeInsets.zero,
                   child: latest == null
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Center(child: Text(_emptyText(l10n))),
+                      ? EmptyStateView(
+                          compact: true,
+                          icon: Icons.system_update_alt,
+                          title: _emptyText(l10n),
                         )
                       : Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

@@ -10,27 +10,48 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/wasm/wasm_opus_decoder.dart';
+import 'package:oronbox/src/core/asr/asr.dart';
+import 'package:oronbox/src/features/voice/application/voice_recognition_controller.dart';
+
+import 'voice_recognition_controls.dart';
+import 'voice_replay_panel.dart';
+
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/device/core/device_state.dart' as proto;
+import 'package:oronbox/src/device/core/event_bus.dart';
+import 'package:oronbox/src/device/core/device_kind.dart';
 
-class ZeppOsXiaoAiPage extends ConsumerStatefulWidget {
-  const ZeppOsXiaoAiPage({super.key});
+class VoiceAssistantPage extends ConsumerStatefulWidget {
+  const VoiceAssistantPage({super.key});
 
   @override
-  ConsumerState<ZeppOsXiaoAiPage> createState() => _ZeppOsXiaoAiPageState();
+  ConsumerState<VoiceAssistantPage> createState() => _VoiceAssistantPageState();
 }
 
-class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
+class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
+    with WidgetsBindingObserver {
   final _audio = SoLoud.instance;
   final _replyController = TextEditingController();
+  final _recognitionController = TextEditingController();
   final _opusFrames = <Uint8List>[];
   final _opusDurations = <int>[];
   final _pcmBytes = BytesBuilder(copy: false);
   final _waveform = <double>[];
-  StreamSubscription<Uint8List>? _frameSubscription;
+  StreamSubscription<DeviceEvent>? _frameSubscription;
+  Timer? _refreshTimer;
+  Timer? _recognitionTimer;
+  bool _ownsAudio = false;
+  bool _captureFull = false;
+  bool _foreground = true;
+  bool _hasSession = false;
+  bool _sendingReply = false;
+  bool _manualOverride = false;
+  int _sessionGeneration = 0;
+  late DeviceManager _manager;
   WasmOpusDecoder? _decoder;
   AudioSource? _audioSource;
   bool _playback = true;
@@ -45,10 +66,47 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
   @override
   void initState() {
     super.initState();
-    _frameSubscription = ref
-        .read(deviceManagerProvider.notifier)
-        .xiaoAiOpusFrames
-        .listen(_onFrame);
+    WidgetsBinding.instance.addObserver(this);
+    _manager = ref.read(deviceManagerProvider.notifier);
+    _frameSubscription = _manager.deviceEvents.listen((event) {
+      if (!mounted ||
+          event.deviceId !=
+              ref.read(deviceManagerProvider).currentDevice?.addr) {
+        return;
+      }
+      if (event is XiaoAiSessionStarted) {
+        _recognitionTimer?.cancel();
+        _sessionGeneration++;
+        _hasSession = true;
+        _manualOverride = false;
+        if (ref.read(voiceRecognitionProvider).backend != AsrBackend.manual) {
+          _recognitionController.clear();
+        }
+        ref.read(voiceRecognitionProvider.notifier).startRound();
+        try {
+          _decoder?.reset();
+          _clearCapture();
+        } catch (error) {
+          setState(
+            () => _error = localizedErrorMessage(
+              AppLocalizations.of(context)!,
+              error,
+            ),
+          );
+        }
+      } else if (event is XiaoAiSessionEnded) {
+        final recognition = ref.read(voiceRecognitionProvider.notifier);
+        if (event.cancelled) {
+          _recognitionTimer?.cancel();
+          setState(() => _hasSession = false);
+        }
+        unawaited(
+          event.cancelled ? recognition.cancel() : recognition.finishRound(),
+        );
+      } else if (event is XiaoAiOpusFrameReceived) {
+        _onFrame(event.frame);
+      }
+    });
     unawaited(_initializeAudio());
   }
 
@@ -61,10 +119,13 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         decoder.dispose();
         return;
       }
-      await _audio.init(channels: Channels.mono);
+      if (!_audio.isInitialized) {
+        await _audio.init(channels: Channels.mono);
+        _ownsAudio = true;
+      }
       if (!mounted) {
         decoder.dispose();
-        _audio.deinit();
+        if (_ownsAudio) _audio.deinit();
         return;
       }
       final source = _audio.setBufferStream(
@@ -75,30 +136,70 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         channels: Channels.mono,
         format: BufferType.f32le,
       );
+      _audioSource = source;
       _audio.play(source);
       if (!mounted) {
         decoder.dispose();
-        _audio.deinit();
+        if (_ownsAudio) _audio.deinit();
         return;
       }
       _decoder = decoder;
-      _audioSource = source;
       setState(() => _ready = true);
+      _activateInput();
     } catch (error) {
       decoder?.dispose();
-      if (_audio.isInitialized) _audio.deinit();
+      if (_audio.isInitialized) {
+        final source = _audioSource;
+        if (source != null) unawaited(_audio.disposeSource(source));
+      }
       if (mounted) {
         setState(() => _error = localizedErrorMessage(l10n, error));
       }
     }
   }
 
+  void _activateInput() {
+    final ready =
+        ref.read(deviceManagerProvider).protocolState ==
+        proto.ProtocolState.ready;
+    _manager.setVoiceLabEnabled(
+      _ready &&
+          _foreground &&
+          ready &&
+          !ref.read(voiceRecognitionProvider).preparing,
+    );
+    if (ready && _manager.currentDeviceKind == DeviceKind.zepp) {
+      unawaited(
+        _manager.setXiaoAiEndpoint(_assistantEndpoint).catchError((
+          Object error,
+        ) {
+          if (mounted) {
+            setState(
+              () => _error = localizedErrorMessage(
+                AppLocalizations.of(context)!,
+                error,
+              ),
+            );
+          }
+        }),
+      );
+    }
+  }
+
   void _onFrame(Uint8List frame) {
     final l10n = AppLocalizations.of(context)!;
     final decoder = _decoder;
-    if (decoder == null) return;
+    if (decoder == null || _captureFull || !_foreground) return;
+    if (_pcmSamples >= 16000 * 60 ||
+        _opusBytes + frame.length > 4 * 1024 * 1024) {
+      _captureFull = true;
+      _manager.setVoiceLabEnabled(false);
+      setState(() => _error = l10n.voiceLabCaptureLimit);
+      return;
+    }
     try {
       final pcm = decoder.decode(frame);
+      ref.read(voiceRecognitionProvider.notifier).addAudio(pcm, frame);
       final bytes = ByteData(pcm.length * 2);
       for (var i = 0; i < pcm.length; i += 1) {
         final sample = (pcm[i].clamp(-1.0, 1.0) * 32767).round();
@@ -132,14 +233,16 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         );
       }
       if (!mounted) return;
-      setState(() {
-        _frames += 1;
-        _opusBytes += frame.length;
-        _pcmSamples += pcm.length;
-        if (_error?.startsWith(l10n.voiceLabAudioProcessingFailedPrefix) ==
-            true) {
-          _error = null;
-        }
+      _frames += 1;
+      _opusBytes += frame.length;
+      _pcmSamples += pcm.length;
+      if (_error?.startsWith(l10n.voiceLabAudioProcessingFailedPrefix) ==
+          true) {
+        _error = null;
+      }
+      _refreshTimer ??= Timer(const Duration(milliseconds: 80), () {
+        _refreshTimer = null;
+        if (mounted) setState(() {});
       });
     } catch (error) {
       if (mounted) {
@@ -152,29 +255,110 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
     }
   }
 
-  Future<void> _sendReply() async {
-    final l10n = AppLocalizations.of(context)!;
+  Future<void> _takeManualControl() async {
+    _manualOverride = true;
+    await ref.read(voiceRecognitionProvider.notifier).cancel();
+  }
+
+  void _editRecognition(String text) {
+    unawaited(_takeManualControl());
+    _recognitionChanged(text);
+  }
+
+  Future<void> _sendManualRecognition() async {
+    final generation = _sessionGeneration;
+    await _takeManualControl();
+    if (!mounted || generation != _sessionGeneration) return;
+    await _sendRecognitionFinal(_recognitionController.text);
+  }
+
+  void _recognitionChanged(String text) {
+    setState(() {});
+    if (!_hasSession || !_foreground || _sendingReply) {
+      return;
+    }
+    if (_recognitionTimer?.isActive == true) return;
+    final generation = _sessionGeneration;
+    _recognitionTimer = Timer(const Duration(milliseconds: 120), () async {
+      _recognitionTimer = null;
+      final text = _recognitionController.text;
+      if (!mounted ||
+          !_foreground ||
+          generation != _sessionGeneration ||
+          _sendingReply) {
+        return;
+      }
+      try {
+        await _manager.sendXiaoAiRecognitionPartial(text);
+      } catch (error) {
+        if (mounted && generation == _sessionGeneration) {
+          setState(
+            () => _error = AppLocalizations.of(context)!.sendFailed(
+              localizedErrorMessage(AppLocalizations.of(context)!, error),
+            ),
+          );
+        }
+      }
+    });
+  }
+
+  Future<void> _sendRecognitionFinal(String text) async {
+    final generation = _sessionGeneration;
     try {
+      if (!_hasSession || !_foreground || !mounted) return;
+      await _manager.sendXiaoAiRecognitionResult(text, isFinal: true);
+    } catch (error) {
+      if (mounted && generation == _sessionGeneration) {
+        setState(
+          () => _error = AppLocalizations.of(context)!.sendFailed(
+            localizedErrorMessage(AppLocalizations.of(context)!, error),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _sendReply() async {
+    if (_sendingReply) return;
+    _recognitionTimer?.cancel();
+    final l10n = AppLocalizations.of(context)!;
+    final generation = _sessionGeneration;
+    setState(() => _sendingReply = true);
+    try {
+      await _takeManualControl();
+      if (!mounted || generation != _sessionGeneration || !_foreground) return;
       final manager = ref.read(deviceManagerProvider.notifier);
       await manager.setXiaoAiEndpoint(_assistantEndpoint);
-      await manager.sendXiaoAiReply(_replyController.text);
+      if (!mounted || generation != _sessionGeneration || !_foreground) return;
+      if (_manager.currentDeviceKind == DeviceKind.xiaomi &&
+          _replyController.text.trim().length > 300) {
+        setState(() => _error = l10n.voiceLabReplyTooLong);
+        return;
+      }
+      await manager.sendXiaoAiReply(
+        _replyController.text,
+        recognizedText: _recognitionController.text,
+      );
+      if (!mounted || generation != _sessionGeneration) return;
+      final queued = ref.read(deviceManagerProvider).xiaoAiActive;
+      setState(() => _hasSession = queued);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        appScaffoldMessengerOf(context).showSnackBar(
           SnackBar(
             content: Text(
-              ref.read(deviceManagerProvider).xiaoAiActive
-                  ? l10n.voiceLabReplyQueued
-                  : l10n.voiceLabReplySent,
+              queued ? l10n.voiceLabReplyQueued : l10n.voiceLabReplySent,
             ),
           ),
         );
       }
     } catch (error) {
-      if (mounted) {
+      if (mounted && generation == _sessionGeneration) {
         setState(
           () => _error = l10n.sendFailed(localizedErrorMessage(l10n, error)),
         );
       }
+    } finally {
+      if (mounted) setState(() => _sendingReply = false);
     }
   }
 
@@ -275,6 +459,18 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
   }
 
   void _clearCapture() {
+    _captureFull = false;
+    _manager.setVoiceLabEnabled(
+      _ready &&
+          _foreground &&
+          !ref.read(voiceRecognitionProvider).preparing &&
+          ref.read(deviceManagerProvider).protocolState ==
+              proto.ProtocolState.ready,
+    );
+    final source = _audioSource;
+    if (source != null && _audio.isInitialized) {
+      _audio.resetBufferStream(source);
+    }
     _opusFrames.clear();
     _opusDurations.clear();
     _pcmBytes.clear();
@@ -287,33 +483,113 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
   }
 
   @override
-  void dispose() {
-    if (_continuousCapture) {
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    _manager.setVoiceLabEnabled(false);
+    if (!_foreground) {
+      _recognitionTimer?.cancel();
+      _sessionGeneration++;
+      unawaited(ref.read(voiceRecognitionProvider.notifier).suspend());
+      setState(() => _hasSession = false);
+      final source = _audioSource;
+      if (source != null && _audio.isInitialized) {
+        _audio.resetBufferStream(source);
+      }
+    }
+    if (_foreground) {
       unawaited(
         ref
-            .read(deviceManagerProvider.notifier)
-            .setXiaoAiContinuousCapture(false)
-            .catchError((_) {}),
+            .read(voiceRecognitionProvider.notifier)
+            .select(ref.read(voiceRecognitionProvider).backend),
       );
+    }
+    if (state != AppLifecycleState.resumed && _continuousCapture) {
+      unawaited(_manager.setXiaoAiContinuousCapture(false).catchError((_) {}));
+      setState(() => _continuousCapture = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _manager.setVoiceLabEnabled(false);
+    _refreshTimer?.cancel();
+    _recognitionTimer?.cancel();
+    if (_continuousCapture) {
+      unawaited(_manager.setXiaoAiContinuousCapture(false).catchError((_) {}));
     }
     unawaited(_frameSubscription?.cancel());
     _replyController.dispose();
+    _recognitionController.dispose();
     _decoder?.dispose();
-    if (_audio.isInitialized) _audio.deinit();
+    if (_audio.isInitialized) {
+      final source = _audioSource;
+      if (source != null) unawaited(_audio.disposeSource(source));
+    }
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final state = ref.watch(deviceManagerProvider);
+    ref.watch(
+      deviceManagerProvider.select(
+        (value) => (
+          value.currentDevice?.addr,
+          value.protocolState,
+          value.xiaoAiActive,
+        ),
+      ),
+    );
+    ref.listen(voiceRecognitionProvider, (previous, next) {
+      if (previous?.preparing != next.preparing) _activateInput();
+      if (!_hasSession ||
+          !_foreground ||
+          _manualOverride ||
+          _sendingReply ||
+          next.backend == AsrBackend.manual ||
+          next.text.isEmpty ||
+          (previous?.text == next.text &&
+              previous?.completed == next.completed)) {
+        return;
+      }
+      _recognitionController.text = next.text;
+      if (next.completed) {
+        _recognitionTimer?.cancel();
+        unawaited(_sendRecognitionFinal(next.text));
+      } else {
+        _recognitionChanged(next.text);
+      }
+    });
+    final state = ref.read(deviceManagerProvider);
+    ref.listen(
+      deviceManagerProvider.select(
+        (value) => (value.currentDevice?.addr, value.protocolState),
+      ),
+      (_, next) {
+        _continuousCapture = false;
+        _assistantEndpoint = 0x0010;
+        _sessionGeneration++;
+        _hasSession = false;
+        unawaited(ref.read(voiceRecognitionProvider.notifier).cancel());
+        _activateInput();
+        try {
+          _decoder?.reset();
+          _clearCapture();
+        } catch (error) {
+          setState(() => _error = localizedErrorMessage(l10n, error));
+        }
+      },
+    );
     final assistantName = _assistantEndpoint == 0x004a
         ? 'Zepp Flow'
         : l10n.voiceLabXiaoAi;
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(l10n.voiceLabTitle)),
       body: ListView(
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.paddingOf(context).bottom + 24,
+        ),
         children: [
           PageContainer(
             padding: const EdgeInsets.fromLTRB(
@@ -361,9 +637,15 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         .toRadixString(16)
         .padLeft(4, '0')
         .toUpperCase();
+    final zepp = _manager.currentDeviceKind == DeviceKind.zepp;
+    final ready = state.protocolState == proto.ProtocolState.ready;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (!ready) ...[
+          Text(l10n.voiceLabConnectDevice),
+          const SizedBox(height: 16),
+        ],
         Row(
           children: [
             CircleAvatar(
@@ -395,29 +677,32 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
           ],
         ),
         const SizedBox(height: 20),
-        SegmentedButton<int>(
-          segments: [
-            ButtonSegment(
-              value: 0x0010,
-              icon: Icon(Icons.watch),
-              label: Text(l10n.voiceLabXiaoAi),
-            ),
-            ButtonSegment(
-              value: 0x004a,
-              icon: Icon(Icons.auto_awesome),
-              label: Text('Zepp Flow'),
-            ),
-          ],
-          selected: {_assistantEndpoint},
-          onSelectionChanged: state.protocolState == proto.ProtocolState.ready
-              ? (values) => _setAssistantEndpoint(values.first)
-              : null,
-        ),
+        if (zepp)
+          SegmentedButton<int>(
+            segments: [
+              ButtonSegment(
+                value: 0x0010,
+                icon: Icon(Icons.watch),
+                label: Text(l10n.voiceLabXiaoAi),
+              ),
+              ButtonSegment(
+                value: 0x004a,
+                icon: Icon(Icons.auto_awesome),
+                label: Text('Zepp Flow'),
+              ),
+            ],
+            selected: {_assistantEndpoint},
+            onSelectionChanged: state.protocolState == proto.ProtocolState.ready
+                ? (values) => _setAssistantEndpoint(values.first)
+                : null,
+          ),
         const SizedBox(height: 12),
         Text(
-          'Endpoint 0x$endpoint · Opus 16 kHz Mono',
+          zepp ? 'Endpoint 0x$endpoint · Opus 16 kHz Mono' : 'Opus 16 kHz Mono',
           style: theme.textTheme.labelMedium,
         ),
+        const SizedBox(height: 20),
+        const VoiceRecognitionControls(),
         const SizedBox(height: 20),
         Container(
           height: 156,
@@ -437,17 +722,18 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: SwitchListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(l10n.voiceLabContinuousCapture),
-                subtitle: Text(l10n.voiceLabContinuousCaptureDescription),
-                value: _continuousCapture,
-                onChanged: state.protocolState == proto.ProtocolState.ready
-                    ? _setContinuousCapture
-                    : null,
+            if (zepp)
+              Expanded(
+                child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(l10n.voiceLabContinuousCapture),
+                  subtitle: Text(l10n.voiceLabContinuousCaptureDescription),
+                  value: _continuousCapture,
+                  onChanged: state.protocolState == proto.ProtocolState.ready
+                      ? _setContinuousCapture
+                      : null,
+                ),
               ),
-            ),
             IconButton.filledTonal(
               tooltip: _playback
                   ? l10n.voiceLabDisableMonitoring
@@ -461,7 +747,26 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         ),
         const SizedBox(height: 8),
         TextField(
+          controller: _recognitionController,
+          decoration: InputDecoration(
+            labelText: l10n.voiceLabRecognitionLabel,
+            hintText: l10n.voiceLabRecognitionHint,
+            filled: true,
+            suffixIcon: IconButton(
+              tooltip: l10n.voiceAsrSendRecognition,
+              icon: const Icon(Icons.send),
+              onPressed:
+                  !_hasSession || _recognitionController.text.trim().isEmpty
+                  ? null
+                  : _sendManualRecognition,
+            ),
+          ),
+          onChanged: _editRecognition,
+        ),
+        const SizedBox(height: 12),
+        TextField(
           controller: _replyController,
+          onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
             labelText: l10n.voiceLabReplyLabel,
             hintText: l10n.voiceLabReplyHint,
@@ -469,10 +774,26 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
             suffixIcon: IconButton(
               tooltip: l10n.send,
               icon: const Icon(Icons.send),
-              onPressed: _sendReply,
+              onPressed:
+                  ready &&
+                      _ready &&
+                      _hasSession &&
+                      !_sendingReply &&
+                      _recognitionController.text.trim().isNotEmpty &&
+                      _replyController.text.trim().isNotEmpty
+                  ? _sendReply
+                  : null,
             ),
           ),
-          onSubmitted: (_) => _sendReply(),
+          onSubmitted:
+              ready &&
+                  _ready &&
+                  _hasSession &&
+                  !_sendingReply &&
+                  _recognitionController.text.trim().isNotEmpty &&
+                  _replyController.text.trim().isNotEmpty
+              ? (_) => _sendReply()
+              : null,
         ),
         if (_error != null) ...[
           const SizedBox(height: 12),
@@ -510,6 +831,11 @@ class _ZeppOsXiaoAiPageState extends ConsumerState<ZeppOsXiaoAiPage> {
         _StatRow(label: l10n.voiceLabOpusFrames, value: '$_frames'),
         _StatRow(label: l10n.voiceLabDataSize, value: _formatBytes(_opusBytes)),
         _StatRow(label: l10n.voiceLabPcmSamples, value: '$_pcmSamples'),
+        const SizedBox(height: 12),
+        VoiceReplayPanel(
+          recording: _pcmBytes.toBytes,
+          opus: () => List<Uint8List>.of(_opusFrames),
+        ),
         const SizedBox(height: 20),
         SizedBox(
           width: double.infinity,

@@ -78,10 +78,12 @@ class _BlogPostBody extends StatelessWidget {
       h3: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
       h3Padding: const EdgeInsets.only(top: 12, bottom: 6),
     );
-    final body = post.body.replaceAll(
-      '](/api/blobs/',
-      ']($oronBoxServerBaseUrl/api/blobs/',
-    );
+    final body = post.body
+        .replaceAll("](/api/blobs/", "](/api/v1/blobs/")
+        .replaceAll(
+          '](/api/v1/blobs/',
+          ']($oronBoxServerBaseUrl/api/v1/blobs/',
+        );
     final segments = <Widget>[];
     var cursor = 0;
     for (final match in _directivePattern.allMatches(body)) {

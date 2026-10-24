@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
@@ -410,11 +411,19 @@ class _PluginUiPageState extends ConsumerState<PluginUiPage> {
     final body = _nodes == null && _error == null
         ? const Center(child: CircularProgressIndicator())
         : _error != null && _nodes == null
-        ? Center(child: Text(localizedErrorMessage(l10n, _error)))
+        ? ErrorStateView(
+            message: localizedErrorMessage(l10n, _error),
+            onRetry: _load,
+          )
         : PluginUITree(
             root: _nodes,
             onInvoke: _invoke,
-            contentPadding: const EdgeInsets.all(StyleConstants.pagePadding),
+            contentPadding: EdgeInsets.fromLTRB(
+              StyleConstants.pagePadding,
+              StyleConstants.pagePadding,
+              StyleConstants.pagePadding,
+              bottomContentPadding(context, extra: StyleConstants.pagePadding),
+            ),
           );
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(title)),

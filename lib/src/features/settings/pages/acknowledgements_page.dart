@@ -28,34 +28,39 @@ class AcknowledgementsPage extends StatelessWidget {
         url: 'https://github.com/Predidit/Kazumi',
       ),
       AcknowledgementItem(
-        name: 'AstroBox-Public',
+        name: 'AstralSightStudios/AstroBox-Public',
         description: l10n.acknowledgementsAstroBoxPublic,
         url: 'https://github.com/AstralSightStudios/AstroBox-Public',
       ),
       AcknowledgementItem(
-        name: 'AstroBox-NG-Module-Core',
+        name: 'AstralSightStudios/AstroBox-NG-Module-Core',
         description: l10n.acknowledgementsAstroBoxNgCore,
         url: 'https://github.com/AstralSightStudios/AstroBox-NG-Module-Core',
       ),
       AcknowledgementItem(
-        name: 'AstroBox-NG-Module-Bluetooth',
+        name: 'AstralSightStudios/AstroBox-NG-Module-Pb',
+        description: l10n.acknowledgementsAstroBoxNgPb,
+        url: 'https://github.com/AstralSightStudios/AstroBox-NG-Module-Pb',
+      ),
+      AcknowledgementItem(
+        name: 'AstralSightStudios/AstroBox-NG-Module-Bluetooth',
         description: l10n.acknowledgementsAstroBoxNgBluetooth,
         url:
             'https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth',
       ),
       AcknowledgementItem(
-        name: 'AstroBox-NG-Module-Account',
+        name: 'AstralSightStudios/AstroBox-NG-Module-Account',
         description: l10n.acknowledgementsAstroBoxNgAccount,
         url: 'https://github.com/AstralSightStudios/AstroBox-NG-Module-Account',
       ),
       AcknowledgementItem(
-        name: 'AstroBox-NG-Module-Provider',
+        name: 'AstralSightStudios/AstroBox-NG-Module-Provider',
         description: l10n.acknowledgementsAstroBoxNgProvider,
         url:
             'https://github.com/AstralSightStudios/AstroBox-NG-Module-Provider',
       ),
       AcknowledgementItem(
-        name: 'AstroBox-NG-Module-AppWasm',
+        name: 'AstralSightStudios/AstroBox-NG-Module-AppWasm',
         description: l10n.acknowledgementsAstroBoxNgAppWasm,
         url: 'https://github.com/AstralSightStudios/AstroBox-NG-Module-AppWasm',
       ),

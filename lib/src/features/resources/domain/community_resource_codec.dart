@@ -181,9 +181,9 @@ CommunityResourceDetail communityResourceDetailFromJson(
       value: content['value']?.toString() ?? '',
       baseUri: _uri(content['baseUri']),
     ),
-    files: _list(
-      json['files'],
-    ).map((row) => communityResourceFileFromJson(_map(row))).toList(),
+    files: _list(json['files'])
+        .map((row) => communityResourceFileFromJson(_map(row)))
+        .toList(),
     previews: _strings(json['previews']).map(Uri.parse).toList(),
     previewImages: _list(json['previewImages']).map((row) {
       final image = _map(row);

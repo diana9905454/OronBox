@@ -8,7 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
-import 'package:oronbox/src/core/constants/app_constants.dart';
+import 'package:oronbox/src/features/settings/services/app_release_assets.dart';
 import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/features/settings/services/oronbox_support_api.dart';
@@ -28,13 +28,6 @@ class UpdateDownloadDialog extends ConsumerStatefulWidget {
 class _UpdateDownloadDialogState extends ConsumerState<UpdateDownloadDialog> {
   static const _channel = MethodChannel('oronbox/installer');
 
-  /// Maps an Android ABI to the asset name suffix of the matching APK.
-  static const _apkSuffix = <String, String>{
-    'arm64-v8a': '-android-arm64-v8a.apk',
-    'armeabi-v7a': '-android-armeabi-v7a.apk',
-    'x86_64': '-android-x86_64.apk',
-  };
-
   double _progress = 0;
   String? _error;
 
@@ -51,9 +44,9 @@ class _UpdateDownloadDialogState extends ConsumerState<UpdateDownloadDialog> {
       if (url == null) {
         if (mounted) {
           setState(
-            () => _error = AppLocalizations.of(
-              context,
-            )!.updateNoApkForAbi(abi ?? '-'),
+            () =>
+                _error = AppLocalizations.of(context)!
+                    .updateNoApkForAbi(abi ?? '-'),
           );
         }
         return;
@@ -64,17 +57,26 @@ class _UpdateDownloadDialogState extends ConsumerState<UpdateDownloadDialog> {
       final apkDir = Directory('${dir.path}/apk');
       await apkDir.create(recursive: true);
       final path = '${apkDir.path}/oronbox.apk';
-      await Dio().download(
-        downloadUrl,
-        path,
-        onReceiveProgress: (received, total) {
-          if (total > 0 && mounted) {
-            setState(() => _progress = received / total);
-          }
-        },
-      );
-      if (!mounted) return;
-      setState(() => _progress = 1);
+      Future<void> download(String source) async {
+        await Dio().download(
+          source,
+          path,
+          onReceiveProgress: (received, total) {
+            if (total > 0 && mounted) {
+              setState(() => _progress = received / total);
+            }
+          },
+        );
+        if (!mounted) return;
+        setState(() => _progress = 1);
+      }
+
+      try {
+        await download(downloadUrl);
+      } on DioException {
+        if (downloadUrl == url) rethrow;
+        await download(url);
+      }
       await _channel.invokeMethod('installApk', {'path': path});
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
@@ -87,29 +89,12 @@ class _UpdateDownloadDialogState extends ConsumerState<UpdateDownloadDialog> {
     }
   }
 
-  Future<String?> _resolveApkUrl(String? abi) async {
-    final response = await Dio().get<List<dynamic>>(
-      '${AppConstants.githubRepoApiUrl}/releases?per_page=1',
-      options: Options(headers: {'Accept': 'application/vnd.github+json'}),
-    );
-    final releases = response.data;
-    if (releases == null || releases.isEmpty) return null;
-    final release = releases.first as Map<String, dynamic>;
-    final assets =
-        (release['assets'] as List?)?.cast<Map<String, dynamic>>() ??
-        const <Map<String, dynamic>>[];
-    final suffix = _apkSuffix[abi];
-    for (final asset in assets) {
-      final name = asset['name']?.toString() ?? '';
-      final matches = suffix != null
-          ? name.endsWith(suffix)
-          : name.contains('-android-') && name.endsWith('.apk');
-      if (matches) {
-        return asset['browser_download_url']?.toString();
-      }
-    }
-    return null;
-  }
+  Future<String?> _resolveApkUrl(String? abi) => resolveAppReleaseAsset(
+    Dio(),
+    tag: widget.release.tag,
+    platform: 'android',
+    arch: abi ?? '',
+  );
 
   @override
   Widget build(BuildContext context) {

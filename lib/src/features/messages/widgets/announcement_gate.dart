@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
+import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 
 class AnnouncementGate extends ConsumerStatefulWidget {
@@ -39,6 +40,8 @@ class _AnnouncementGateState extends ConsumerState<AnnouncementGate>
     if (_checking || !mounted) return;
     final clean = ref.read(appSettingsProvider).clean;
     if (!clean.announcementsEnabled) return;
+    final isSignedIn = ref.read(hostAccountsProvider).bandbbs.isSignedIn;
+    if (!isSignedIn) return;
     _checking = true;
     try {
       final host = ref.read(applicationHostProvider);

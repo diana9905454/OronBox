@@ -1,5 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 
+final appScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
+ScaffoldMessengerState appScaffoldMessengerOf(BuildContext context) =>
+    appScaffoldMessengerKey.currentState ?? ScaffoldMessenger.of(context);
+
 const appSnackBarDuration = Duration(seconds: 2);
 
 /// Applies the app-wide SnackBar duration without requiring every call site to

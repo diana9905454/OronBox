@@ -1,9 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
+
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/storage/app_data_directory.dart';
+
+import 'dart:typed_data';
 
 class HostTaskQueue {
   HostTaskQueue(
@@ -12,8 +17,18 @@ class HostTaskQueue {
     this.beginExecution,
     this.onCompleted,
     this.shouldRemoveCompleted,
+    AppDataDirectory? storage,
   }) {
-    _restore();
+    _storage = storage == null
+        ? openAppDataDirectory('tasks')
+        : Future.value(storage);
+    ready = _restore();
+    unawaited(
+      ready.catchError((Object error, StackTrace stack) {
+        getLogger('HostTaskQueue')
+            .warning('Task state restore failed', error, stack);
+      }),
+    );
   }
 
   static const _storageKey = 'daemon.tasks';
@@ -23,6 +38,8 @@ class HostTaskQueue {
   final Future<void> Function(HostTask, CommandResult)? onCompleted;
   final Future<bool> Function(HostTask, CommandResult)? shouldRemoveCompleted;
   final _tasks = <String, HostTask>{};
+  late final Future<AppDataDirectory> _storage;
+  late final Future<void> ready;
   final _waiters = <String, List<Completer<HostTask>>>{};
   final _events = StreamController<CommandEvent>.broadcast();
   String? _runningId;
@@ -59,6 +76,11 @@ class HostTaskQueue {
   }
 
   Future<void> _pump() async {
+    try {
+      await ready;
+    } catch (_) {
+      return;
+    }
     if (_runningId != null) return;
     final next = _tasks.values
         .where((task) => task.status == 'pending')
@@ -236,6 +258,7 @@ class HostTaskQueue {
   HostTask? get(String id) => _tasks[id];
 
   Future<HostTask?> wait(String id) async {
+    await ready;
     final task = _tasks[id];
     if (task == null) return null;
     if (_isTerminal(task.status)) return task;
@@ -249,9 +272,9 @@ class HostTaskQueue {
         .where((task) => _isTerminal(task.status))
         .map((task) => task.id)
         .toList();
-    _tasks.removeWhere(
-      (_, task) => {'completed', 'failed', 'cancelled'}.contains(task.status),
-    );
+    for (final id in removed) {
+      _releaseFiles(_tasks.remove(id)!);
+    }
     _persist();
     for (final id in removed) {
       _events.add(CommandEvent('task.removed', data: {'id': id}));
@@ -262,9 +285,30 @@ class HostTaskQueue {
     final task = _tasks[id];
     if (task == null || !_isTerminal(task.status)) return false;
     _tasks.remove(id);
+    _releaseFiles(task);
     _persist();
     _events.add(CommandEvent('task.removed', data: {'id': id}));
     return true;
+  }
+
+  void _releaseFiles(HostTask task) {
+    final result = task.result?['result'];
+    final candidates = {
+      if (task.command.params['path'] is String)
+        task.command.params['path'] as String,
+      if (result is Map && result['path'] is String) result['path'] as String,
+    };
+    for (final path in candidates) {
+      unawaited(
+        ManagedTemporaryFiles.release(path, delete: false).catchError((
+          Object error,
+          StackTrace stack,
+        ) {
+          getLogger('HostTasks')
+              .warning('Temporary file lease release failed', error, stack);
+        }),
+      );
+    }
   }
 
   void _notify(HostTask task, {bool persist = true}) {
@@ -281,9 +325,21 @@ class HostTaskQueue {
     }
   }
 
-  void _restore() {
-    final rows =
-        SharedPrefsService.instance.getStringList(_storageKey) ?? const [];
+  Future<void> _restore() async {
+    final storage = await _storage;
+    final bytes = await storage.read('state.json');
+    final legacy =
+        SharedPrefsService.instance.getStringList(_storageKey) ??
+        const <String>[];
+    final rows = bytes == null
+        ? legacy
+        : (jsonDecode(utf8.decode(bytes)) as List).cast<String>();
+    if (bytes == null && legacy.isNotEmpty) {
+      await storage.write(
+        'legacy.json',
+        Uint8List.fromList(utf8.encode(jsonEncode(legacy))),
+      );
+    }
     var droppedInstallTasks = false;
     for (final row in rows) {
       try {
@@ -296,30 +352,49 @@ class HostTaskQueue {
           droppedInstallTasks = true;
           continue;
         }
-        _tasks[task.id] = task.status == 'running'
-            ? task.copyWith(
-                status: 'pending',
-                progress: 0,
-                cancelRequested: false,
-                clearStartedAt: true,
-                clearFinishedAt: true,
-                clearResult: true,
-              )
-            : task;
+        _tasks.putIfAbsent(
+          task.id,
+          () => task.status == 'running'
+              ? task.copyWith(
+                  status: 'pending',
+                  progress: 0,
+                  cancelRequested: false,
+                  clearStartedAt: true,
+                  clearFinishedAt: true,
+                  clearResult: true,
+                )
+              : task,
+        );
       } catch (_) {}
     }
-    if (droppedInstallTasks) _persist();
+    if (droppedInstallTasks || bytes == null) _persist();
     _schedulePump();
   }
 
-  Future<void> _persist() => _persistTail = _persistTail.then(
-    (_) => SharedPrefsService.instance.setStringList(
-      _storageKey,
-      _tasks.values.map((task) => jsonEncode(task.toJson())).toList(),
-    ),
-  );
+  Future<void> _persist() => _persistTail = _persistTail
+      .then((_) async {
+        await ready;
+        final terminal =
+            _tasks.values.where((task) => _isTerminal(task.status)).toList()
+              ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        final keep = terminal.take(100).map((task) => task.id).toSet();
+        final rows = _tasks.values
+            .where(
+              (task) => !_isTerminal(task.status) || keep.contains(task.id),
+            )
+            .map((task) => jsonEncode(task.toJson()))
+            .toList();
+        final bytes = Uint8List.fromList(utf8.encode(jsonEncode(rows)));
+        final storage = await _storage;
+        await storage.exclusive(() => storage.write('state.json', bytes));
+      })
+      .catchError((Object error, StackTrace stack) {
+        getLogger('HostTaskQueue')
+            .warning('Task state write failed', error, stack);
+      });
 
   Future<void> close() async {
+    await ready;
     for (final waiters in _waiters.values) {
       for (final waiter in waiters) {
         if (!waiter.isCompleted) {

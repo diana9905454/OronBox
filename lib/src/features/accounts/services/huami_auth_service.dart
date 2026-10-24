@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
-import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 
 class HuamiTokenInfo {
   const HuamiTokenInfo({
@@ -102,8 +102,8 @@ class HuamiAuthState {
 class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
   HuamiAuthNotifier({Dio? dio}) : _dio = dio ?? createAppHttpTransport();
 
-  static const _keyToken = 'huami.account.token';
-  static const _keyUsername = 'huami.account.username';
+  static const _keyToken = PrivateAppState.huamiToken;
+  static const _keyUsername = PrivateAppState.huamiUsername;
 
   static const countryCode = 'CN';
   static const appName = 'com.huami.zeppos.cli';
@@ -119,8 +119,8 @@ class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
 
   @override
   HuamiAuthState build() {
-    final prefs = SharedPrefsService.instance;
-    final raw = prefs.getString(_keyToken);
+    final store = PrivateAppState.instance;
+    final raw = store.readString(_keyToken);
     HuamiTokenInfo? token;
     if (raw != null) {
       try {
@@ -136,7 +136,7 @@ class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
     }
     return HuamiAuthState.empty.copyWith(
       token: token,
-      username: prefs.getString(_keyUsername),
+      username: store.readString(_keyUsername),
     );
   }
 
@@ -204,9 +204,8 @@ class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
   }
 
   Future<void> signOut() async {
-    final prefs = SharedPrefsService.instance;
-    await prefs.remove(_keyToken);
-    await prefs.remove(_keyUsername);
+    final store = PrivateAppState.instance;
+    await store.update({_keyToken: null, _keyUsername: null});
     state = HuamiAuthState.empty;
   }
 
@@ -222,8 +221,7 @@ class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
         'json_response': 'true',
         'name': username,
         'password': password,
-        'redirect_uri':
-            'https://s3-us-west-2.amazonaws.com/hm-registration/successsignin.html',
+        'redirect_uri': 'https://s3-us-west-2.amazonaws.com/hm-registration/successsignin.html',
         'state': 'REDIRECTION',
         'token': 'access',
       },
@@ -251,8 +249,7 @@ class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
         'country_code': access['country_code']?.toString() ?? countryCode,
         'device_id': '02:00:00:00:00:00',
         'device_model': 'web',
-        'dn':
-            'account.huami.com,api-user.huami.com,auth.huami.com,api-mifit.huami.com,api-open.huami.com',
+        'dn': 'account.huami.com,api-user.huami.com,auth.huami.com,api-mifit.huami.com,api-open.huami.com',
         'grant_type': 'access_token',
         'third_name': 'huami',
       },
@@ -274,9 +271,11 @@ class HuamiAuthNotifier extends Notifier<HuamiAuthState> {
     HuamiTokenInfo token, {
     required String username,
   }) async {
-    final prefs = SharedPrefsService.instance;
-    await prefs.setString(_keyToken, jsonEncode(token.toJson()));
-    await prefs.setString(_keyUsername, username);
+    final store = PrivateAppState.instance;
+    await store.update({
+      _keyToken: jsonEncode(token.toJson()),
+      _keyUsername: username,
+    });
   }
 
   Map<String, Object?> _objectMap(Object? value) {

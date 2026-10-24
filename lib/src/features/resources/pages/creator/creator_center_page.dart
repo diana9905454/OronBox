@@ -1,17 +1,19 @@
 import 'dart:async';
 
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:segmented_list/segmented_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/stable_fab.dart';
 import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
-import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
 import 'package:oronbox/src/features/resources/pages/creator/creator_resource_list.dart';
@@ -22,7 +24,7 @@ import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
 class CreatorCenterPage extends ConsumerStatefulWidget {
   const CreatorCenterPage({
     super.key,
-    this.initialTab = 0,
+    this.initialTab = 1,
     this.initialReviewFilter,
   });
   final int initialTab;
@@ -68,22 +70,22 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
   }
 
   void _handleBack() {
-    if (widget.initialTab == 0) {
+    if (_tab == 1) {
       unawaited(_confirmExit());
     } else {
-      context.replace('/resources/creator');
+      context.replace('/resources/creator/resources');
     }
   }
 
   void _switchTab(int index, {String? reviewFilter}) {
-    if (index == _tab && reviewFilter == null) return;
+    final targetTab = index == 0 ? 1 : 2;
+    if (targetTab == _tab && reviewFilter == null) return;
     final location = switch (index) {
-      1 => '/resources/creator/resources',
-      2 =>
+      0 => '/resources/creator/resources',
+      1 =>
         '/resources/creator/reviews'
             '${reviewFilter == null ? '' : '?filter=${Uri.encodeComponent(reviewFilter)}'}',
-      3 => '/resources/creator/manage',
-      _ => '/resources/creator',
+      _ => '/resources/creator/resources',
     };
     context.replace(location);
   }
@@ -93,18 +95,7 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     final state = ref.watch(creatorWorkspaceProvider);
     final controller = ref.read(creatorWorkspaceProvider.notifier);
     final bandBbs = ref.watch(hostAccountsProvider).bandbbs;
-    final roleState = ref.watch(currentUserRoleProvider);
-    final isAdmin = roleState.value == 'admin';
     final l10n = AppLocalizations.of(context)!;
-    if (widget.initialTab == 3 && !roleState.hasValue) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (widget.initialTab == 3 && !isAdmin) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.replace('/resources/creator');
-      });
-      return const SizedBox.shrink();
-    }
     ref.listen(
       hostAccountsProvider.select((value) => value.bandbbs.isSignedIn),
       (previous, current) {
@@ -139,14 +130,9 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
           ],
         ),
         bottomNavigationBar: NavigationBar(
-          selectedIndex: _tab,
+          selectedIndex: _tab == 2 ? 1 : 0,
           onDestinationSelected: _switchTab,
           destinations: [
-            NavigationDestination(
-              icon: const Icon(Icons.grid_view_outlined),
-              selectedIcon: const Icon(Icons.grid_view),
-              label: l10n.creatorOverview,
-            ),
             NavigationDestination(
               icon: const Icon(Icons.apps_outlined),
               selectedIcon: const Icon(Icons.apps),
@@ -157,34 +143,14 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
               selectedIcon: const Icon(Icons.edit),
               label: l10n.creatorReviewTab,
             ),
-            if (isAdmin)
-              NavigationDestination(
-                icon: const Icon(Icons.person_outline),
-                selectedIcon: const Icon(Icons.person),
-                label: l10n.creatorManage,
-              ),
           ],
         ),
         body: state.governance != null
             ? _CreatorGovernanceGate(code: state.governance!)
-            : _tab == 3 && isAdmin
-            ? const _CreatorManagePage()
             : _tab == 2
             ? CreatorReviewListPage(
                 embedded: true,
                 initialFilter: widget.initialReviewFilter,
-              )
-            : _tab == 0
-            ? _CreatorOverviewPage(
-                state: state,
-                bandBbs: bandBbs,
-                onRefresh: () => _refresh(controller),
-                onAuthorizeBandBbs: () => _authorizeBandBbs(controller),
-                onConnectGitHub: () => _authorizeGitHub(controller),
-                bandBbsBusy: _authorizingBandBbs,
-                githubBusy: _authorizingGitHub,
-                onOpenReviews: (filter) => _switchTab(2, reviewFilter: filter),
-                onOpenResources: () => _switchTab(1),
               )
             : _CreatorTermsGate(
                 loading: state.loading,
@@ -198,6 +164,18 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
                   collections: state.collections,
                   collectionsLoading: false,
                   onRefresh: () => _refresh(controller),
+                  topContent: SegmentedSection(
+                    margin: const EdgeInsetsDirectional.only(bottom: 12),
+                    tiles: _accountTiles(
+                      l10n: l10n,
+                      state: state,
+                      bandBbs: bandBbs,
+                      onAuthorizeBandBbs: () => _authorizeBandBbs(controller),
+                      onConnectGitHub: () => _authorizeGitHub(controller),
+                      bandBbsBusy: _authorizingBandBbs,
+                      githubBusy: _authorizingGitHub,
+                    ),
+                  ),
                   onOpenCollection: (item) => context.push(
                     '/resources/creator/collection/${item['id']}',
                     extra: item,
@@ -213,7 +191,7 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
                       setState(() => _selectedResourceIds = value),
                   onDissolveCollection: (item) =>
                       _dissolveCollection(item, controller),
-                  bottomPadding: 96,
+                  bottomPadding: bottomContentPadding(context, extra: 96),
                 ),
               ),
       ),
@@ -261,6 +239,61 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     } finally {
       if (mounted) setState(() => _authorizingGitHub = false);
     }
+  }
+
+  List<AbstractSegmentedTile> _accountTiles({
+    required AppLocalizations l10n,
+    required CreatorWorkspaceState state,
+    required HostAccount bandBbs,
+    required VoidCallback onAuthorizeBandBbs,
+    required VoidCallback onConnectGitHub,
+    required bool bandBbsBusy,
+    required bool githubBusy,
+  }) {
+    final bandBbsReady = state.grants['bandbbs_publish'] == true;
+    final github = state.grants['github_login']?.toString() ?? '';
+    return [
+      SegmentedTile.navigation(
+        leading: const CreatorBrandLogo(
+          asset: 'assets/images/brands/github.svg',
+          label: 'GitHub',
+        ),
+        title: const Text('GitHub'),
+        description: Text(
+          github.isNotEmpty
+              ? l10n.creatorGitHubOwnPublishReady
+              : l10n.creatorGitHubOwnPublishMissing,
+        ),
+        value: githubBusy
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : (github.isEmpty ? Text(l10n.creatorConnect) : null),
+        onPressed: githubBusy ? null : (_) => onConnectGitHub(),
+        enabled: !githubBusy,
+      ),
+      SegmentedTile.navigation(
+        leading: const CreatorBrandLogo(
+          asset: 'assets/images/brands/bandbbs.svg',
+          label: 'BandBBS',
+        ),
+        title: Text(l10n.bandbbs),
+        description: Text(
+          bandBbsReady
+              ? l10n.creatorBandBbsWriteReady
+              : l10n.creatorBandBbsWriteMissing,
+        ),
+        value: bandBbsBusy
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : (!bandBbsReady ? Text(l10n.creatorAuthorize) : null),
+        onPressed: bandBbsBusy ? null : (_) => onAuthorizeBandBbs(),
+        enabled: !bandBbsBusy,
+      ),
+    ];
   }
 
   Future<void> _moveSelection(
@@ -370,184 +403,6 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
   }
 }
 
-class _CreatorManagePage extends StatelessWidget {
-  const _CreatorManagePage();
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Center(child: Text(l10n.creatorManageUnavailable));
-  }
-}
-
-class _CreatorOverviewPage extends StatelessWidget {
-  const _CreatorOverviewPage({
-    required this.state,
-    required this.bandBbs,
-    required this.onRefresh,
-    required this.onAuthorizeBandBbs,
-    required this.onConnectGitHub,
-    required this.bandBbsBusy,
-    required this.githubBusy,
-    required this.onOpenReviews,
-    required this.onOpenResources,
-  });
-
-  final CreatorWorkspaceState state;
-  final HostAccount bandBbs;
-  final Future<void> Function() onRefresh;
-  final VoidCallback onAuthorizeBandBbs;
-  final VoidCallback onConnectGitHub;
-  final bool bandBbsBusy;
-  final bool githubBusy;
-  final ValueChanged<String?> onOpenReviews;
-  final VoidCallback onOpenResources;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final github = state.grants['github_login']?.toString() ?? '';
-    final states = <String, int>{};
-    for (final workspace in state.resources) {
-      final value = creatorWorkspaceState(workspace);
-      states[value] = (states[value] ?? 0) + 1;
-    }
-    final needsChanges = state.resources.where((item) {
-      final review = item.review?['state']?.toString();
-      return review == 'needs_changes' || review == 'changes_requested';
-    }).length;
-    final waiting = state.resources.where((item) {
-      final review = item.review?['state']?.toString();
-      return review == 'pending' ||
-          review == 'reviewing' ||
-          review == 'fixed_pending_review';
-    }).length;
-    final failed = states['failed'] ?? 0;
-    final accountTiles = <AbstractSegmentedTile>[
-      SegmentedTile.navigation(
-        leading: const CreatorBrandLogo(
-          asset: 'assets/images/brands/github.svg',
-          label: 'GitHub',
-        ),
-        title: const Text('GitHub'),
-        description: Text(github.isEmpty ? l10n.creatorNotConnected : github),
-        value: githubBusy
-            ? const SizedBox.square(
-                dimension: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Text(
-                github.isEmpty
-                    ? l10n.creatorNotConnected
-                    : l10n.creatorConnected,
-              ),
-        onPressed: githubBusy ? null : (_) => onConnectGitHub(),
-        enabled: !githubBusy,
-      ),
-      SegmentedTile.navigation(
-        leading: const CreatorBrandLogo(
-          asset: 'assets/images/brands/bandbbs.svg',
-          label: 'BandBBS',
-        ),
-        title: Text(l10n.bandbbs),
-        description: Text(
-          bandBbs.isSignedIn
-              ? (bandBbs.username ?? l10n.creatorConnected)
-              : l10n.creatorNotConnected,
-        ),
-        value: bandBbsBusy
-            ? const SizedBox.square(
-                dimension: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Text(
-                bandBbs.isSignedIn
-                    ? l10n.creatorConnected
-                    : l10n.creatorNotConnected,
-              ),
-        onPressed: bandBbsBusy ? null : (_) => onAuthorizeBandBbs(),
-        enabled: !bandBbsBusy,
-      ),
-    ];
-    final pendingTiles = <AbstractSegmentedTile>[
-      if (needsChanges > 0)
-        _countTile(
-          icon: Icons.edit_outlined,
-          label: l10n.creatorNeedsChanges,
-          count: needsChanges,
-          onTap: () => onOpenReviews('needs_changes'),
-        ),
-      if (waiting > 0)
-        _countTile(
-          icon: Icons.hourglass_empty,
-          label: l10n.pendingReview,
-          count: waiting,
-          onTap: () => onOpenReviews('pending'),
-        ),
-      if (failed > 0)
-        _countTile(
-          icon: Icons.error_outline,
-          label: l10n.creatorStateFailed,
-          count: failed,
-          onTap: onOpenResources,
-        ),
-    ];
-    final statusTiles = <AbstractSegmentedTile>[
-      for (final status in const [
-        'draft',
-        'pending',
-        'approved',
-        'rejected',
-        'failed',
-        'published',
-      ])
-        if ((states[status] ?? 0) > 0)
-          _countTile(
-            label: creatorStateLabel(l10n, status),
-            count: states[status] ?? 0,
-            onTap: onOpenResources,
-          ),
-    ];
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: SegmentedList(
-        maxWidth: StyleConstants.pageMaxWidth,
-        physics: const AlwaysScrollableScrollPhysics(),
-        contentPadding: const EdgeInsets.only(top: 8, bottom: 32),
-        sections: [
-          SegmentedSection(
-            title: Text(l10n.creatorAccounts),
-            tiles: accountTiles,
-          ),
-          if (pendingTiles.isNotEmpty)
-            SegmentedSection(
-              title: Text(l10n.creatorPendingItems),
-              tiles: pendingTiles,
-            ),
-          if (statusTiles.isNotEmpty)
-            SegmentedSection(
-              title: Text(l10n.creatorResourceStatus),
-              tiles: statusTiles,
-            ),
-        ],
-      ),
-    );
-  }
-
-  AbstractSegmentedTile _countTile({
-    IconData? icon,
-    required String label,
-    required int count,
-    required VoidCallback onTap,
-  }) => SegmentedTile.navigation(
-    leading: icon == null ? null : Icon(icon),
-    title: Text(label),
-    value: Text('$count'),
-    enabled: count > 0,
-    onPressed: count > 0 ? (_) => onTap() : null,
-  );
-}
-
 class _CreatorGovernanceGate extends StatelessWidget {
   const _CreatorGovernanceGate({required this.code});
   final String code;
@@ -628,7 +483,7 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
   @override
   void initState() {
     super.initState();
-    _accepted = SharedPrefsService.instance.getBool(keyAccepted) ?? false;
+    _accepted = LegalAgreements.accepted('resource-publishing');
     _termsScrollController.addListener(_markBottomReached);
   }
 
@@ -647,6 +502,7 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
   }
 
   Future<void> _continue() async {
+    if (!await LegalAgreements.acceptShown('resource-publishing')) return;
     await SharedPrefsService.instance.setBool(keyAccepted, true);
     if (mounted) setState(() => _accepted = true);
   }
@@ -726,6 +582,20 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
                               language,
                             ),
                             builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(l10n.creatorTermsLoadFailed),
+                                      TextButton(
+                                        onPressed: () => setState(() {}),
+                                        child: Text(l10n.retry),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                               if (!snapshot.hasData) {
                                 return const Center(
                                   child: CircularProgressIndicator(),

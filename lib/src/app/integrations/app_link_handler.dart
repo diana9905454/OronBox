@@ -1,4 +1,8 @@
+import 'package:oronbox/src/features/devices/widgets/device_import_dialog.dart';
+
 import 'dart:async';
+
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 
 import 'package:app_links/app_links.dart';
 import 'package:material_ui/material_ui.dart';
@@ -9,7 +13,6 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
-import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/devices/services/device_share_link.dart';
 
 final initialDeepLinksProvider = Provider<List<String>>((ref) => const []);
@@ -96,7 +99,7 @@ class _AppLinkHandlerState extends ConsumerState<AppLinkHandler> {
       }
       final l10n = AppLocalizations.of(context)!;
       final state = ref.read(hostAccountsProvider).bandbbs;
-      ScaffoldMessenger.of(context).showSnackBar(
+      appScaffoldMessengerOf(context).showSnackBar(
         SnackBar(
           content: Text(
             state.isSignedIn
@@ -109,53 +112,15 @@ class _AppLinkHandlerState extends ConsumerState<AppLinkHandler> {
     } catch (_) {
       if (!mounted) return true;
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
+      appScaffoldMessengerOf(context).showSnackBar(
         SnackBar(content: Text(l10n.settingsAccountBandBbsLoginFailed)),
       );
       return true;
     }
   }
 
-  Future<void> _showDeviceDialog(MiWearState device) async {
-    final l10n = AppLocalizations.of(context)!;
-    await ref.read(deviceManagerProvider.notifier).importSharedDevice(device);
-    if (!mounted) return;
-
-    await showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deviceActionsShareQR),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(device.name),
-            const SizedBox(height: 4),
-            Text(device.addr, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.close),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              context.go('/devices/switch');
-            },
-            child: Text(l10n.deviceConnect),
-          ),
-        ],
-      ),
-    );
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.settingsWearableLogImportedDevice(device.name)),
-      ),
-    );
-  }
+  Future<void> _showDeviceDialog(MiWearState device) =>
+      showSharedDeviceImportDialog(context, ref, device);
 
   @override
   Widget build(BuildContext context) => widget.child;

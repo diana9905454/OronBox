@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:uuid/uuid.dart';
+import 'package:oronbox/src/core/services/oauth_credential_store.dart';
+import 'package:oronbox/src/features/accounts/services/oronbox_session_client.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -86,10 +89,16 @@ class OronBoxSession {
     required this.accessToken,
     required this.refreshToken,
     required this.expiresAt,
+    this.rotationId = '',
+    this.user = const {},
+    this.refreshExpiresAt,
   });
 
   final String accessToken;
   final String refreshToken;
+  final String rotationId;
+  final Map<String, Object?> user;
+  final DateTime? refreshExpiresAt;
   final DateTime expiresAt;
 
   bool get isExpired => DateTime.now().toUtc().isAfter(
@@ -99,20 +108,36 @@ class OronBoxSession {
   Map<String, Object?> toJson() => {
     'access_token': accessToken,
     'refresh_token': refreshToken,
+    'rotation_id': rotationId,
+    'user': user,
+    if (refreshExpiresAt != null)
+      'refresh_expires_at': refreshExpiresAt!.toIso8601String(),
     'expires_at': expiresAt.toIso8601String(),
   };
 
   static OronBoxSession fromTokenResponse(Map<String, Object?> json) {
     final expiresIn = BandBbsToken._asInt(json['expires_in']);
+    final serverExpiry = DateTime.tryParse(
+      json['expires_at']?.toString() ?? '',
+    );
     final accessToken = json['access_token']?.toString().trim() ?? '';
     final refreshToken = json['refresh_token']?.toString().trim() ?? '';
     if (accessToken.isEmpty || refreshToken.isEmpty || expiresIn <= 0) {
       throw const FormatException('Invalid OronBox session response');
     }
     return OronBoxSession(
+      rotationId: json['rotation_id']?.toString() ?? const Uuid().v4(),
+      user: json['user'] is Map
+          ? (json['user'] as Map).cast<String, Object?>()
+          : const {},
+      refreshExpiresAt: DateTime.tryParse(
+        json['refresh_expires_at']?.toString() ?? '',
+      ),
       accessToken: accessToken,
       refreshToken: refreshToken,
-      expiresAt: DateTime.now().toUtc().add(Duration(seconds: expiresIn)),
+      expiresAt:
+          serverExpiry?.toUtc() ??
+          DateTime.now().toUtc().add(Duration(seconds: expiresIn)),
     );
   }
 
@@ -125,6 +150,13 @@ class OronBoxSession {
       return null;
     }
     return OronBoxSession(
+      rotationId: json['rotation_id']?.toString() ?? const Uuid().v4(),
+      user: json['user'] is Map
+          ? (json['user'] as Map).cast<String, Object?>()
+          : const {},
+      refreshExpiresAt: DateTime.tryParse(
+        json['refresh_expires_at']?.toString() ?? '',
+      ),
       accessToken: accessToken,
       refreshToken: refreshToken,
       expiresAt: expiresAt.toUtc(),
@@ -246,13 +278,17 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
   StreamSubscription<CommandEvent>? _hostEvents;
   int _credentialRevision = 0;
 
-  final Dio _dio = createAppHttpTransport(
-    options: BaseOptions(
-      baseUrl: oronBoxServerBaseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 20),
-    ),
-  );
+  BandBbsAuthNotifier({Dio? dio})
+    : _dio =
+          dio ??
+          createAppHttpTransport(
+            options: BaseOptions(
+              baseUrl: oronBoxServerBaseUrl,
+              connectTimeout: const Duration(seconds: 10),
+              receiveTimeout: const Duration(seconds: 20),
+            ),
+          );
+  final Dio _dio;
 
   @override
   BandBbsAuthState build() {
@@ -293,18 +329,32 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
   Future<void> _restoreCredentials() async {
     final revision = _credentialRevision;
     try {
-      final prefs = SharedPrefsService.instance;
-      final tokenRaw = prefs.getString(_keyToken);
-      final sessionRaw = prefs.getString(_keySession);
+      final credentials = await OAuthCredentialStore.locked(
+        () async => (
+          await OAuthCredentialStore.read(_keyToken),
+          await OAuthCredentialStore.read(_keySession),
+        ),
+      );
+      final tokenRaw = credentials.$1;
+      final sessionRaw = credentials.$2;
       if (!ref.mounted || revision != _credentialRevision) return;
       final token = _restore(tokenRaw, BandBbsToken.fromJson);
       final session = _restore(sessionRaw, OronBoxSession.fromJson);
       state = state.copyWith(token: token, session: session);
+      if (session != null && session.user.isNotEmpty) {
+        await _applyUser(session.user);
+      }
       if (session != null && state.username == null) {
-        final validSession = await sessionIfNeeded();
-        if (validSession != null) {
-          await _fetchCurrentUser(validSession);
-        }
+        unawaited(
+          Future<void>(() async {
+            try {
+              final validSession = await sessionIfNeeded();
+              if (validSession != null) await _fetchCurrentUser(validSession);
+            } catch (error) {
+              _log.warning('Unable to refresh restored session', error);
+            }
+          }),
+        );
       }
     } catch (error) {
       _log.warning('Unable to restore persisted credentials', error);
@@ -318,35 +368,43 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
   /// Reload credentials written by the daemon process after an OAuth flow.
   Future<void> reloadCredentials({bool clearWhenMissing = false}) async {
     await _credentialRestore;
-    final revision = ++_credentialRevision;
-    _sessionRefresh = null;
-    _tokenRefresh = null;
+    final revision = _credentialRevision;
     final prefs = SharedPrefsService.instance;
     if (prefs.isInitialized) await prefs.reload();
-    final tokenRaw = prefs.isInitialized ? prefs.getString(_keyToken) : null;
-    final sessionRaw = prefs.isInitialized
-        ? prefs.getString(_keySession)
-        : null;
+    final credentials = await OAuthCredentialStore.locked(
+      () async => (
+        await OAuthCredentialStore.read(_keyToken),
+        await OAuthCredentialStore.read(_keySession),
+      ),
+    );
+    final tokenRaw = credentials.$1;
+    final sessionRaw = credentials.$2;
     if (!ref.mounted || revision != _credentialRevision) return;
     if (sessionRaw == null && !clearWhenMissing) return;
-    final userId = prefs.isInitialized ? prefs.getString(_keyUserId) : null;
-    final username = prefs.isInitialized ? prefs.getString(_keyUsername) : null;
-    final avatarUrl = prefs.isInitialized
-        ? prefs.getString(_keyAvatarUrl)
-        : null;
+    final session = _restore(sessionRaw, OronBoxSession.fromJson);
+    final token = _restore(tokenRaw, BandBbsToken.fromJson);
+    final storedUser = session?.user;
+    final userId = storedUser?.isNotEmpty == true
+        ? storedUser!['bandbbs_user_id']?.toString()
+        : (prefs.isInitialized ? prefs.getString(_keyUserId) : null);
+    if (state.session != null &&
+        (session == null ||
+            (userId != null &&
+                state.userId != null &&
+                userId != state.userId))) {
+      ++_credentialRevision;
+    }
     state = state.copyWith(
-      token: _restore(tokenRaw, BandBbsToken.fromJson),
-      clearToken: clearWhenMissing && tokenRaw == null,
-      session: _restore(sessionRaw, OronBoxSession.fromJson),
-      clearSession: clearWhenMissing && sessionRaw == null,
+      token: token,
+      clearToken: token == null,
+      session: session,
+      clearSession: session == null,
       userId: userId,
-      clearUserId: clearWhenMissing && userId == null,
-      username: username,
-      clearUsername: clearWhenMissing && username == null,
-      avatarUrl: avatarUrl,
-      clearAvatarUrl: clearWhenMissing && avatarUrl == null,
-      clearLastError: true,
+      clearUserId: session == null,
+      clearUsername: session == null,
+      clearAvatarUrl: session == null,
     );
+    if (storedUser?.isNotEmpty == true) await _applyUser(storedUser!);
   }
 
   static T? _restore<T>(String? raw, T? Function(Map<String, Object?>) parse) {
@@ -385,30 +443,26 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
         if (session == null) {
           throw StateError('BandBBS account is not signed in');
         }
-        final response = await _send<Object?>(
-          () async => _dio.post<Object?>(
-            '/api/oauth/bandbbs/publish/start',
+        final response = await OronBoxSessionClient(this).send<Object?>(
+          (authorization) => _dio.post<Object?>(
+            '/api/v1/oauth/bandbbs/publish/start',
             data: {'return_uri': returnUri},
-            options: Options(
-              headers: {
-                ...await _clientHeaders(),
-                'Authorization': 'Bearer ${session.accessToken}',
-              },
-            ),
+            options: authorization,
           ),
         );
         uri = Uri.parse(
           _objectMap(response.data)['authorization_url']!.toString(),
         );
       } else {
-        uri = Uri.parse('$oronBoxServerBaseUrl/oauth2/bandbbs/start').replace(
-          queryParameters: {
-            'app_id': _clientAppId,
-            'app_version': BuildInfoService.appVersion,
-            'app_build': await BuildInfoService.resolveCommitHash(),
-            'platform': _platformName(),
-            'return_uri': returnUri,
-          },
+        final response = await _send<Object?>(
+          () async => _dio.post<Object?>(
+            '/api/v1/oauth/bandbbs/start',
+            data: {'return_uri': returnUri},
+            options: Options(headers: await _clientHeaders()),
+          ),
+        );
+        uri = Uri.parse(
+          _objectMap(response.data)['authorization_url']!.toString(),
         );
       }
       _log.info(
@@ -451,12 +505,15 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
     return true;
   }
 
-  Future<void> exchangeTicket(String ticket) async {
+  Future<void> exchangeTicket(String ticket) =>
+      OAuthCredentialStore.locked(() => _exchangeTicket(ticket));
+
+  Future<void> _exchangeTicket(String ticket) async {
     state = state.copyWith(isBusy: true, clearLastError: true);
     try {
       final response = await _send<Object?>(
         () async => _dio.post<Object?>(
-          '/api/oauth/bandbbs/exchange',
+          '/api/v1/oauth/bandbbs/exchange',
           data: {'ticket': ticket},
           options: Options(headers: await _clientHeaders()),
         ),
@@ -466,15 +523,19 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
       ++_credentialRevision;
       _sessionRefresh = null;
       _tokenRefresh = null;
-      await _saveSession(session);
       // Login tickets carry the read-only BandBBS access token; publish
       // authorization tickets do not, so the existing read token survives.
       final bandbbs = payload['bandbbs'];
       BandBbsToken? token;
       if (bandbbs is Map) {
         token = BandBbsToken.fromTokenResponse(bandbbs.cast<String, Object?>());
-        await _saveToken(token);
       }
+      await OAuthCredentialStore.writePair(
+        jsonEncode(session.toJson()),
+        token != null
+            ? jsonEncode(token.toJson())
+            : await OAuthCredentialStore.read(_keyToken),
+      );
       await _applyUser(_objectMap(payload['user']));
       state = state.copyWith(
         token: token,
@@ -509,6 +570,7 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
   /// expired (the refresh token never leaves the server).
   Future<BandBbsToken?> refreshIfNeeded({bool forceRefresh = false}) async {
     await _credentialRestore;
+    await reloadCredentials(clearWhenMissing: true);
     var token = state.token;
     if (token == null) {
       await reloadCredentials();
@@ -532,89 +594,60 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
     BandBbsToken? token,
     int revision,
   ) async {
-    var session = await sessionIfNeeded();
-    if (session == null) {
-      throw const OronBoxAuthRequiredException();
-    }
-    Response<Object?> response;
     try {
-      response = await _send<Object?>(
-        () async => _dio.post<Object?>(
-          '/api/oauth/bandbbs/token/refresh',
-          options: Options(
-            headers: {
-              ...await _clientHeaders(),
-              'Authorization': 'Bearer ${session.accessToken}',
-            },
-          ),
+      final response = await OronBoxSessionClient(this).send<Object?>(
+        (authorization) async => _dio.post<Object?>(
+          '/api/v1/oauth/bandbbs/token/refresh',
+          data: {'rejected_access_token': token?.accessToken ?? ''},
+          options: authorization,
         ),
       );
+      final refreshed = BandBbsToken.fromTokenResponse(
+        _objectMap(response.data),
+      );
+      return await OAuthCredentialStore.locked(() async {
+        if (revision != _credentialRevision) return state.token;
+        final current = _restore(
+          await OAuthCredentialStore.read(_keySession),
+          OronBoxSession.fromJson,
+        );
+        if (current == null ||
+            current.refreshToken != state.session?.refreshToken) {
+          return state.token;
+        }
+        await _saveToken(refreshed);
+        state = state.copyWith(token: refreshed, clearLastError: true);
+        return refreshed;
+      });
     } on DioException catch (error) {
-      if (error.response?.statusCode != 401) rethrow;
-
-      // Access token was rejected (401). Try to refresh the session token with the refresh token.
-      final refreshedSession = await sessionIfNeeded(forceRefresh: true);
-      if (refreshedSession != null) {
-        try {
-          response = await _send<Object?>(
-            () async => _dio.post<Object?>(
-              '/api/oauth/bandbbs/token/refresh',
-              options: Options(
-                headers: {
-                  ...await _clientHeaders(),
-                  'Authorization': 'Bearer ${refreshedSession.accessToken}',
-                },
-              ),
-            ),
+      final data = error.response?.data;
+      if (data is Map &&
+          (data['error'] ?? data['code']) ==
+              'bandbbs_reauthorization_required') {
+        await OAuthCredentialStore.locked(() async {
+          if (revision != _credentialRevision) return;
+          final current = _restore(
+            await OAuthCredentialStore.read(_keySession),
+            OronBoxSession.fromJson,
           );
-        } on DioException catch (retryError) {
-          if (retryError.response?.statusCode != 401) rethrow;
-          if (revision == _credentialRevision &&
-              (token == null || state.token?.accessToken == token.accessToken)) {
-            await _forgetExpiredCredentials();
-          }
-          throw const BandBbsSessionExpiredException();
-        }
-      } else {
-        if (revision == _credentialRevision &&
-            (token == null || state.token?.accessToken == token.accessToken)) {
-          await _forgetExpiredCredentials();
-        }
-        throw const BandBbsSessionExpiredException();
+          if (current?.refreshToken != state.session?.refreshToken) return;
+          await OAuthCredentialStore.remove(_keyToken);
+          state = state.copyWith(
+            clearToken: true,
+            lastError: 'bandbbs_reauthorization_required',
+          );
+        });
       }
+      rethrow;
     }
-    final refreshed = BandBbsToken.fromTokenResponse(_objectMap(response.data));
-    if (revision != _credentialRevision ||
-        (token != null && state.token?.accessToken != token.accessToken)) {
-      return state.token;
-    }
-    await _saveToken(refreshed);
-    state = state.copyWith(token: refreshed, clearLastError: true);
-    return refreshed;
   }
 
   /// OronBox session for ob-api endpoints, rotated when expired.
   @override
   Future<OronBoxSession?> sessionIfNeeded({bool forceRefresh = false}) async {
     await _credentialRestore;
-    var session = state.session;
-    // On desktop the OAuth callback may land on the daemon process, which
-    // writes the session to SharedPrefs without notifying this (frontend)
-    // Notifier. When our in-memory state is empty, try the persisted key
-    // once more so the frontend picks up a login that happened in the
-    // background.
-    if (session == null) {
-      final prefs = SharedPrefsService.instance;
-      if (prefs.isInitialized) await prefs.reload();
-      final raw = prefs.getString(_keySession);
-      if (raw != null) {
-        final restored = _restore(raw, OronBoxSession.fromJson);
-        if (restored != null) {
-          session = restored;
-          state = state.copyWith(session: session);
-        }
-      }
-    }
+    await reloadCredentials(clearWhenMissing: true);
+    final session = state.session;
     if (session == null) return null;
     if (!session.isExpired && !forceRefresh) return session;
     final existing = _sessionRefresh;
@@ -628,89 +661,126 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
     return refresh;
   }
 
-  Future<OronBoxSession> _refreshSession(
+  Future<OronBoxSession?> _refreshSession(
     OronBoxSession session,
     int revision,
-  ) async {
+  ) => OAuthCredentialStore.locked(() async {
+    final current = _restore(
+      await OAuthCredentialStore.read(_keySession),
+      OronBoxSession.fromJson,
+    );
+    if (revision != _credentialRevision) return state.session;
+    if (current == null) {
+      state = BandBbsAuthState.empty;
+      return null;
+    }
+    if (current.refreshToken != session.refreshToken) {
+      final readToken = _restore(
+        await OAuthCredentialStore.read(_keyToken),
+        BandBbsToken.fromJson,
+      );
+      state = state.copyWith(
+        session: current,
+        token: readToken,
+        clearToken: readToken == null,
+      );
+      if (current.user.isNotEmpty) await _applyUser(current.user);
+      return current;
+    }
+    final rotationId = current.rotationId.isEmpty
+        ? const Uuid().v4()
+        : current.rotationId;
+    // Save the id before sending so a lost response can retry the same rotation.
+    await OAuthCredentialStore.write(
+      _keySession,
+      jsonEncode({...current.toJson(), 'rotation_id': rotationId}),
+    );
     try {
       final response = await _send<Object?>(
         () async => _dio.post<Object?>(
-          '/api/oauth/bandbbs/refresh',
-          data: {'refresh_token': session.refreshToken},
+          '/api/v1/oauth/bandbbs/refresh',
+          data: {
+            'refresh_token': current.refreshToken,
+            'rotation_id': rotationId,
+          },
           options: Options(headers: await _clientHeaders()),
         ),
       );
       final payload = _objectMap(response.data);
       final refreshed = OronBoxSession.fromTokenResponse(payload);
-      if (revision != _credentialRevision ||
-          state.session?.refreshToken != session.refreshToken) {
-        return state.session ?? refreshed;
-      }
+      if (revision != _credentialRevision) return state.session;
       await _saveSession(refreshed);
       await _applyUser(_objectMap(payload['user']));
       state = state.copyWith(session: refreshed, clearLastError: true);
       return refreshed;
     } on DioException catch (error) {
-      if (!_isInvalidRefreshToken(error)) rethrow;
-      if (revision == _credentialRevision &&
-          state.session?.refreshToken == session.refreshToken) {
-        await _forgetExpiredCredentials();
+      final data = error.response?.data;
+      final code = data is Map ? data['error'] ?? data['code'] : null;
+      if (error.response?.statusCode != 401 ||
+          code != 'invalid_refresh_token') {
+        rethrow;
       }
+      if (revision != _credentialRevision) return state.session;
+      await _forgetExpiredCredentials();
       throw const BandBbsSessionExpiredException();
     }
-  }
+  });
 
-  // Any 401 from the refresh endpoint is terminal for this credential; the
-  // specific body code only exists for older server versions.
-  bool _isInvalidRefreshToken(DioException error) =>
-      error.response?.statusCode == 401;
-
-  Future<void> _forgetExpiredCredentials() async {
+  Future<void> _forgetExpiredCredentials({bool expired = true}) async {
     ++_credentialRevision;
     _sessionRefresh = null;
     _tokenRefresh = null;
-    state = BandBbsAuthState.empty.copyWith(lastError: 'invalid_refresh_token');
+    state = expired
+        ? BandBbsAuthState.empty.copyWith(lastError: 'invalid_refresh_token')
+        : BandBbsAuthState.empty;
     final prefs = SharedPrefsService.instance;
     await Future.wait([
-      prefs.remove(_keyToken),
-      prefs.remove(_keySession),
+      OAuthCredentialStore.clear(),
       prefs.remove(_keyUserId),
       prefs.remove(_keyUsername),
       prefs.remove(_keyAvatarUrl),
     ]);
+    // The frontend and daemon may each cache account state. Ask the host to
+    // reread the now-cleared record; never instruct it to infer RT expiry.
+    unawaited(
+      ref
+          .read(applicationHostProvider)
+          .execute(const OronBoxCommand(method: 'account.credentials.reload'))
+          .then<void>(
+            (_) {},
+            onError: (Object error, StackTrace stack) {
+              _log.warning('Unable to notify host of credential change', error);
+            },
+          ),
+    );
   }
 
   @override
-  Future<void> expireSession() => _forgetExpiredCredentials();
+  Future<void> expireSession() =>
+      OAuthCredentialStore.locked(_forgetExpiredCredentials);
 
-  Future<void> signOut() async {
-    ++_credentialRevision;
-    _sessionRefresh = null;
-    _tokenRefresh = null;
-    final session = state.session;
+  Future<void> signOut() => OAuthCredentialStore.locked(() async {
+    final session = _restore(
+      await OAuthCredentialStore.read(_keySession),
+      OronBoxSession.fromJson,
+    );
     if (session != null) {
-      try {
-        await _dio.post<Object?>(
-          '/api/session/revoke',
-          options: Options(
-            headers: {
-              ...await _clientHeaders(),
-              'Authorization': 'Bearer ${session.accessToken}',
-            },
-          ),
-        );
-      } catch (_) {
-        _log.warning('OronBox session revoke failed');
-      }
+      // Keep the login and report failure if the server cannot confirm logout.
+      // An expired AT can revoke; the RT also covers a lost rotation response.
+      await _dio.post<Object?>(
+        '/api/v1/session/revoke',
+        data: {'refresh_token': session.refreshToken},
+        options: Options(
+          headers: {
+            ...await _clientHeaders(),
+            'Authorization': 'Bearer ${session.accessToken}',
+          },
+        ),
+      );
     }
-    final prefs = SharedPrefsService.instance;
-    await prefs.remove(_keyToken);
-    await prefs.remove(_keySession);
-    await prefs.remove(_keyUserId);
-    await prefs.remove(_keyUsername);
-    await prefs.remove(_keyAvatarUrl);
+    await _forgetExpiredCredentials(expired: false);
     state = BandBbsAuthState.empty;
-  }
+  });
 
   Future<Map<String, String>> _clientHeaders() async {
     return {
@@ -722,24 +792,18 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
   }
 
   Future<void> _saveToken(BandBbsToken token) async {
-    await SharedPrefsService.instance.setString(
-      _keyToken,
-      jsonEncode(token.toJson()),
-    );
+    await OAuthCredentialStore.write(_keyToken, jsonEncode(token.toJson()));
   }
 
   Future<void> _saveSession(OronBoxSession session) async {
-    await SharedPrefsService.instance.setString(
-      _keySession,
-      jsonEncode(session.toJson()),
-    );
+    await OAuthCredentialStore.write(_keySession, jsonEncode(session.toJson()));
   }
 
   Future<void> _fetchCurrentUser(OronBoxSession session) async {
     try {
       final response = await _send<Object?>(
         () async => _dio.get<Object?>(
-          '/api/me',
+          '/api/v1/me',
           options: Options(
             headers: {'Authorization': 'Bearer ${session.accessToken}'},
           ),
@@ -756,13 +820,13 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
     final userId = user['bandbbs_user_id']?.toString() ?? '';
     final username = user['username']?.toString() ?? '';
     final avatarUrl = user['avatar_url']?.toString() ?? '';
-    if (userId.isNotEmpty) await prefs.setString(_keyUserId, userId);
-    if (username.isNotEmpty) await prefs.setString(_keyUsername, username);
-    if (avatarUrl.isNotEmpty) await prefs.setString(_keyAvatarUrl, avatarUrl);
+    await prefs.setString(_keyUserId, userId);
+    await prefs.setString(_keyUsername, username);
+    await prefs.setString(_keyAvatarUrl, avatarUrl);
     state = state.copyWith(
-      userId: userId.isNotEmpty ? userId : null,
-      username: username.isNotEmpty ? username : null,
-      avatarUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+      userId: userId,
+      username: username,
+      avatarUrl: avatarUrl,
     );
   }
 
@@ -836,16 +900,16 @@ class BandBbsAuthNotifier extends Notifier<BandBbsAuthState>
 
   Map<String, Object?> _responseSummary(String path, Object? data) {
     final root = _objectMap(data);
-    if (path == '/api/me') {
+    if (path == '/api/v1/me') {
       final me = _objectMap(root['me']);
       return {
         if (me['user_id'] != null) 'userId': me['user_id'],
         if (me['username'] != null) 'username': me['username'],
       };
     }
-    if (path == '/api/oauth/bandbbs/exchange' ||
-        path == '/api/oauth/bandbbs/refresh' ||
-        path == '/api/oauth/bandbbs/token/refresh') {
+    if (path == '/api/v1/oauth/bandbbs/exchange' ||
+        path == '/api/v1/oauth/bandbbs/refresh' ||
+        path == '/api/v1/oauth/bandbbs/token/refresh') {
       return {
         if (root['token_type'] != null) 'tokenType': root['token_type'],
         if (root['expires_in'] != null) 'expiresIn': root['expires_in'],
@@ -864,3 +928,11 @@ final bandBbsAuthProvider =
     NotifierProvider<BandBbsAuthNotifier, BandBbsAuthState>(
       BandBbsAuthNotifier.new,
     );
+
+/// Build signature/clock failures must never discard account credentials.
+bool isSessionAuthenticationFailure(DioException error) {
+  if (error.response?.statusCode != 401) return false;
+  final data = error.response?.data;
+  final code = data is Map ? data['error'] ?? data['code'] : null;
+  return code == 'unauthorized';
+}

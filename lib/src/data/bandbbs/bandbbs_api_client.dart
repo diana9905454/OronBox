@@ -2,18 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 
 class BandBbsApiClient {
-  BandBbsApiClient({
-    required this.dio,
-    required this.auth,
-    this.onSessionExpired,
-  });
+  BandBbsApiClient({required this.dio, required this.auth});
 
   final Dio dio;
   final BandBbsAuthNotifier auth;
-
-  /// Runs after a 401 wiped the local credentials; lets the wiring propagate
-  /// the expiry to the daemon so every login gate observes it.
-  final Future<void> Function()? onSessionExpired;
 
   static const _baseUrl = 'https://www.bandbbs.cn';
   static const _developerApiBaseUrl = 'https://api.bandbbs.cn';
@@ -204,36 +196,11 @@ class BandBbsApiClient {
       if (error.response?.statusCode != 401 || !expireSessionOnUnauthorized) {
         rethrow;
       }
-      // Access token was rejected (401). Try to refresh the token first!
-      try {
-        final refreshed = await auth.refreshIfNeeded(forceRefresh: true);
-        if (refreshed != null) {
-          try {
-            return await request();
-          } on DioException catch (retryError) {
-            if (retryError.response?.statusCode != 401) {
-              rethrow;
-            }
-          }
-        }
-      } catch (refreshError) {
-        try {
-          await auth.expireSession();
-        } catch (_) {}
-        try {
-          await onSessionExpired?.call();
-        } catch (_) {}
-        rethrow;
-      }
-      // The token was rejected and refresh failed: the credential is dead everywhere,
-      // wipe it and propagate instead of leaving UI gated on a stale login.
-      try {
-        await auth.expireSession();
-      } catch (_) {}
-      try {
-        await onSessionExpired?.call();
-      } catch (_) {}
-      throw const BandBbsSessionExpiredException();
+      // Only refresh this platform's AT. Neither an upstream 401 nor a
+      // transient refresh failure establishes that the OronBox RT is invalid.
+      final refreshed = await auth.refreshIfNeeded(forceRefresh: true);
+      if (refreshed == null) throw const OronBoxAuthRequiredException();
+      return request();
     }
   }
 }

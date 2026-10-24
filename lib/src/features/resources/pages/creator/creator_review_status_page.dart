@@ -72,7 +72,15 @@ class _CreatorReviewStatusPageState
         params: {'review': widget.reviewId},
       ),
     );
-    if (comments.ok) root['astroboxComments'] = comments.value;
+    if (comments.ok) {
+      root['astroboxComments'] = comments.value;
+      if (comments.value is Map && root['astrobox'] is Map) {
+        (root['astrobox'] as Map)['review_items'] =
+            (comments.value as Map)['review_items'];
+        (root['astrobox'] as Map)['review_state'] =
+            (comments.value as Map)['review_state'];
+      }
+    }
     return root;
   }
 
@@ -233,7 +241,12 @@ class _CreatorReviewStatusPageState
     final resource =
         (root['resource'] as Map?)?.cast<String, Object?>() ??
         const <String, Object?>{};
+    final reviewedRevision = (root['revisions'] as List? ?? const [])
+        .whereType<Map>()
+        .where((r) => r['id']?.toString() == review['revision_id']?.toString())
+        .firstOrNull;
     final name =
+        reviewedRevision?['name']?.toString() ??
         resource['draft_name']?.toString() ??
         resource['name']?.toString() ??
         review['resource_name']?.toString() ??
@@ -391,6 +404,35 @@ class _CreatorReviewStatusPageState
                 label: Text(l10n.creatorModifyResource),
               ),
             ),
+          ),
+        if ((astro['review_items'] as List? ?? []).isNotEmpty)
+          SegmentedSection(
+            title: Text(l10n.creatorReviewItems),
+            tiles: [
+              for (final raw in astro['review_items'] as List)
+                SegmentedTile(
+                  leading: Icon(
+                    (raw as Map)['fixed'] == true
+                        ? Icons.check_circle_outline
+                        : Icons.build_outlined,
+                  ),
+                  title: Text(raw['message']?.toString() ?? ''),
+                  trailing: raw['fixed'] == true
+                      ? Text(l10n.creatorReviewFixReplied)
+                      : TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _replyTo = raw['id'].toString();
+                              _composer.text = '[ABCC_FIXED_${raw['id']}] ';
+                              _composer.selection = TextSelection.collapsed(
+                                offset: _composer.text.length,
+                              );
+                            });
+                          },
+                          child: Text(l10n.creatorReviewReplyFix),
+                        ),
+                ),
+            ],
           ),
         SegmentedSection(
           title: Text(l10n.comments),

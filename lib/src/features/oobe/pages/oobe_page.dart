@@ -1,7 +1,6 @@
 import 'package:segmented_list/segmented_list.dart';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -19,6 +18,7 @@ import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/accounts/services/mi_account_two_factor_resolver.dart';
 import 'package:oronbox/src/features/oobe/oobe_state.dart';
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
 
 /// First-run experience: welcome → terms → privacy → optional account sign-in
@@ -51,6 +51,14 @@ class _OobePageState extends ConsumerState<OobePage> {
   }
 
   Future<void> _next() async {
+    if (!_preAccepted &&
+        (_currentStep == _termsStep || _currentStep == _privacyStep)) {
+      if (!await LegalAgreements.acceptShown(
+        _currentStep == _termsStep ? 'terms' : 'privacy',
+      )) {
+        return;
+      }
+    }
     if (_currentStep == _privacyStep && !_preAccepted) {
       await markLegalAccepted();
     }
@@ -377,6 +385,7 @@ class _AgreementStep extends StatefulWidget {
 class _AgreementStepState extends State<_AgreementStep> {
   final _scrollController = ScrollController();
   String? _data;
+  String? _loadError;
   bool _bottomReached = false;
 
   @override
@@ -399,13 +408,22 @@ class _AgreementStepState extends State<_AgreementStep> {
 
   Future<void> _load() async {
     final language = legalDocumentLanguage(Localizations.localeOf(context));
-    final data = await rootBundle.loadString(
-      'assets/legal/${widget.documentId}.$language.md',
-      // Widget tests hang on the second cached load of the same asset key.
-      cache: false,
-    );
-    if (!mounted) return;
-    setState(() => _data = data);
+    setState(() => _loadError = null);
+    try {
+      final data = await LegalAgreements.read(widget.documentId, language);
+      if (!mounted) return;
+      setState(() => _data = data);
+    } catch (error) {
+      if (mounted) {
+        setState(
+          () => _loadError = localizedErrorMessage(
+            AppLocalizations.of(context)!,
+            error,
+          ),
+        );
+      }
+      return;
+    }
     // A document that fits the viewport without scrolling counts as read.
     WidgetsBinding.instance.addPostFrameCallback((_) => _markBottomReached());
   }
@@ -443,7 +461,22 @@ class _AgreementStepState extends State<_AgreementStep> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: data == null
-                        ? const SizedBox.shrink()
+                        ? Center(
+                            child: _loadError == null
+                                ? const CircularProgressIndicator()
+                                : Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(_loadError!),
+                                      TextButton(
+                                        onPressed: _load,
+                                        child: Text(
+                                          AppLocalizations.of(context)!.retry,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          )
                         : Markdown(
                             data: data,
                             controller: _scrollController,

@@ -11,7 +11,6 @@ import 'package:oronbox/src/core/utils/layout.dart';
 import 'package:oronbox/src/features/resources/services/download_queue_notifier.dart';
 import 'package:oronbox/src/features/resources/services/install_queue_notifier.dart';
 import 'package:oronbox/src/features/messages/widgets/announcement_gate.dart';
-import 'package:oronbox/src/app/widgets/app_error_gate.dart';
 import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 
 bool _hasPending(List<ResourceTask> dl, List<InstallTask> il) =>

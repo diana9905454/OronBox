@@ -134,13 +134,6 @@ class _ZeppOsMoreFeaturesPageState
             title: Text(l10n.zeppOsDeviceFeaturesSection),
             tiles: [
               SegmentedTile.navigation(
-                leading: const Icon(Icons.record_voice_over),
-                title: Text(l10n.zeppOsAssistant),
-                description: Text(l10n.zeppOsAssistantDescription),
-                enabled: ready,
-                onPressed: (_) => context.push('/devices/zeppos-more/xiao-ai'),
-              ),
-              SegmentedTile.navigation(
                 leading: const Icon(Icons.watch_outlined),
                 title: Text(l10n.zeppOsScreenMirror),
                 description: Column(

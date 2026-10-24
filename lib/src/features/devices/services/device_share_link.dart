@@ -8,13 +8,7 @@ class DeviceShareLink {
       scheme: 'https',
       host: 'oronbox.zxor.org',
       path: '/open',
-      queryParameters: {
-        'source': 'deviceQr',
-        'name': device.name,
-        'mac': device.addr.replaceAll(':', ''),
-        if (device.authkey case final authkey? when authkey.isNotEmpty)
-          'authkey': authkey,
-      },
+      queryParameters: _parameters(device),
     );
   }
 
@@ -38,49 +32,60 @@ class DeviceShareLink {
   static Map<String, String> _parameters(MiWearState device) => {
     'source': 'deviceQr',
     'name': device.name,
-    'mac': device.addr.replaceAll(':', ''),
+    'mac': (_formatMac(device.addr) ?? device.addr).replaceAll(':', ''),
     if (device.authkey case final authkey? when authkey.isNotEmpty)
       'authkey': authkey,
   };
 
   static MiWearState? parse(String value) {
-    final uri = Uri.tryParse(value.trim());
-    if (uri == null) return null;
-
-    final isOronBox = uri.scheme == 'oronbox' && uri.host == 'open';
-    final isOronBoxWeb =
-        (uri.scheme == 'https' || uri.scheme == 'http') &&
-        uri.host == 'oronbox.zxor.org' &&
-        uri.path == '/open';
-    final isAstroBox =
-        (uri.scheme == 'https' || uri.scheme == 'http') &&
-        uri.host == 'astrobox.online' &&
-        uri.path == '/open';
-    if (!isOronBox && !isOronBoxWeb && !isAstroBox) return null;
-
-    if (uri.queryParameters['source'] != 'deviceQr') return null;
-    final name = uri.queryParameters['name'];
-    final mac = uri.queryParameters['mac'];
-    if (name == null || name.isEmpty || mac == null || mac.isEmpty) {
+    final raw = value.trim();
+    final question = raw.indexOf('?');
+    final query = (question >= 0 ? raw.substring(question + 1) : raw)
+        .split('#')
+        .first;
+    if (RegExp(r'%(?![0-9a-fA-F]{2})').hasMatch(query)) return null;
+    try {
+      final parameters = Uri.parse('?$query').queryParametersAll;
+      for (final key in ['name', 'addr', 'mac', 'authkey']) {
+        if ((parameters[key]?.length ?? 0) > 1) return null;
+      }
+      final name = parameters['name']?.single.trim() ?? '';
+      final addresses = <String>{};
+      for (final field in ['addr', 'mac']) {
+        final value = parameters[field]?.single;
+        if (value == null) continue;
+        final address = _formatMac(value);
+        if (address == null) return null;
+        addresses.add(address);
+      }
+      if (addresses.length != 1) return null;
+      final addr = addresses.single;
+      final authkey = parameters['authkey']?.single.trim() ?? '';
+      if (name.isEmpty ||
+          (authkey.isNotEmpty &&
+              !RegExp(r'^[0-9a-fA-F]{32}$').hasMatch(authkey))) {
+        return null;
+      }
+      return MiWearState(
+        name: name,
+        addr: addr,
+        connectType: 'spp',
+        authkey: authkey,
+        disconnected: true,
+      );
+    } on FormatException {
       return null;
     }
-
-    final addr = _formatMac(mac);
-    if (addr == null) return null;
-
-    return MiWearState(
-      name: name,
-      addr: addr,
-      connectType: 'spp',
-      authkey: uri.queryParameters['authkey'] ?? '',
-      disconnected: true,
-    );
   }
 
   static String? _formatMac(String value) {
-    final compact = value.replaceAll(':', '').toUpperCase();
-    final valid = RegExp(r'^[0-9A-F]{12}$').hasMatch(compact);
-    if (!valid) return null;
+    final raw = value.trim();
+    if (!RegExp(
+      r'^(?:[0-9a-fA-F]{12}|(?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}|(?:[0-9a-fA-F]{2}-){5}[0-9a-fA-F]{2})$',
+    ).hasMatch(raw)) {
+      return null;
+    }
+    final compact = raw.replaceAll(RegExp('[:-]'), '').toUpperCase();
     return List.generate(
       6,
       (index) => compact.substring(index * 2, index * 2 + 2),

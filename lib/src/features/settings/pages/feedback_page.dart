@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -236,18 +237,9 @@ class _TicketList extends StatelessWidget {
     }
     if (error != null && tickets.isEmpty) {
       return PageContainer(
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                localizedErrorMessage(l10n, error),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              FilledButton.tonal(onPressed: onRetry, child: Text(l10n.retry)),
-            ],
-          ),
+        child: ErrorStateView(
+          message: localizedErrorMessage(l10n, error),
+          onRetry: onRetry,
         ),
       );
     }
@@ -258,7 +250,9 @@ class _TicketList extends StatelessWidget {
       onRefresh: () async => onRetry(),
       child: ListView.separated(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         itemCount: 1,
         separatorBuilder: (_, _) => const SizedBox.shrink(),
         itemBuilder: (context, _) => PageContainer(
@@ -536,24 +530,13 @@ class _TicketPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.forum_outlined,
-            size: 56,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          Text(l10n.noFeedback),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: onCreate,
-            icon: const Icon(Icons.add),
-            label: Text(l10n.feedbackNewTicket),
-          ),
-        ],
+    return EmptyStateView(
+      icon: Icons.forum_outlined,
+      title: l10n.noFeedback,
+      action: FilledButton.icon(
+        onPressed: onCreate,
+        icon: const Icon(Icons.add),
+        label: Text(l10n.feedbackNewTicket),
       ),
     );
   }
@@ -677,4 +660,48 @@ class _FeedbackComposerState extends ConsumerState<_FeedbackComposer> {
       ],
     );
   }
+}
+
+class FeedbackTicketLinkPage extends ConsumerStatefulWidget {
+  const FeedbackTicketLinkPage({super.key, required this.ticketId});
+  final String ticketId;
+  @override
+  ConsumerState<FeedbackTicketLinkPage> createState() =>
+      _FeedbackTicketLinkPageState();
+}
+
+class _FeedbackTicketLinkPageState
+    extends ConsumerState<FeedbackTicketLinkPage> {
+  late Future<FeedbackTicket> _future = ref
+      .read(oronBoxSupportApiProvider)
+      .feedbackDetail(widget.ticketId);
+  @override
+  Widget build(BuildContext context) => FutureBuilder<FeedbackTicket>(
+    future: _future,
+    builder: (context, snapshot) {
+      if (snapshot.hasData) return FeedbackTicketPage(ticket: snapshot.data!);
+      final l10n = AppLocalizations.of(context)!;
+      return Scaffold(
+        appBar: SysAppBar(secondary: true, title: Text(l10n.feedbackTitle)),
+        body: Center(
+          child: snapshot.hasError
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(localizedErrorMessage(l10n, snapshot.error!)),
+                    TextButton(
+                      onPressed: () => setState(
+                        () => _future = ref
+                            .read(oronBoxSupportApiProvider)
+                            .feedbackDetail(widget.ticketId),
+                      ),
+                      child: Text(l10n.retry),
+                    ),
+                  ],
+                )
+              : const CircularProgressIndicator(),
+        ),
+      );
+    },
+  );
 }

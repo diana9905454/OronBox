@@ -11,6 +11,32 @@ void main() {
   final zh = AppLocalizationsZh();
 
   group('localizedErrorMessage', () {
+    test('comment rejection never displays raw AI reasoning', () {
+      expect(
+        localizedErrorMessage(
+          zh,
+          const _TestCodedError(
+            'comment_blocked',
+            'Model classified this as spam',
+          ),
+        ),
+        '评论未通过社区规范',
+      );
+    });
+
+    test('localizes redacted server failures by their stable code', () {
+      expect(
+        localizedErrorMessage(
+          zh,
+          const _TestCodedError(
+            'moderation_unavailable',
+            'The server could not complete the request',
+          ),
+        ),
+        zh.commentModerationUnavailable,
+      );
+    });
+
     test('maps every connection failure shape to one unified message', () {
       const shapes = [
         // BLE link-establishment timeout (daemon wrapper included).
@@ -66,14 +92,8 @@ void main() {
       const raw =
           'SPP bond removal failed: removeBond() was rejected; bondState=12';
 
-      expect(
-        localizedErrorMessage(en, raw),
-        en.errorSppBondRemovalFailed,
-      );
-      expect(
-        localizedErrorMessage(zh, raw),
-        zh.errorSppBondRemovalFailed,
-      );
+      expect(localizedErrorMessage(en, raw), en.errorSppBondRemovalFailed);
+      expect(localizedErrorMessage(zh, raw), zh.errorSppBondRemovalFailed);
     });
 
     test('does not swallow generic timeouts', () {
@@ -130,11 +150,17 @@ void main() {
         en.errorOronBoxSessionExpired,
       );
       expect(
-        localizedErrorMessage(zh, StateError('BandBBS account is not signed in')),
+        localizedErrorMessage(
+          zh,
+          StateError('BandBBS account is not signed in'),
+        ),
         zh.settingsBandBbsAccountRequired,
       );
       expect(
-        localizedErrorMessage(en, StateError('BandBBS account is not signed in')),
+        localizedErrorMessage(
+          en,
+          StateError('BandBBS account is not signed in'),
+        ),
         en.settingsBandBbsAccountRequired,
       );
       expect(
@@ -162,7 +188,9 @@ void main() {
             en,
             _TestCodedError(code, 'actual backend message'),
           ),
-          'actual backend message',
+          code == 'comment_blocked'
+              ? en.commentBlocked
+              : 'actual backend message',
           reason: code,
         );
       }
@@ -205,7 +233,7 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             type: DioExceptionType.connectionError,
           ),
         ),
@@ -215,9 +243,9 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             response: Response<Object?>(
-              requestOptions: RequestOptions(path: '/api/resources'),
+              requestOptions: RequestOptions(path: '/api/v1/resources'),
               statusCode: 429,
             ),
             type: DioExceptionType.badResponse,
@@ -229,9 +257,9 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             response: Response<Object?>(
-              requestOptions: RequestOptions(path: '/api/resources'),
+              requestOptions: RequestOptions(path: '/api/v1/resources'),
               statusCode: 400,
               data: {'code': 'coin_balance_insufficient'},
             ),
@@ -244,9 +272,9 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             response: Response<Object?>(
-              requestOptions: RequestOptions(path: '/api/resources'),
+              requestOptions: RequestOptions(path: '/api/v1/resources'),
               statusCode: 400,
               data: {'code': 'future_server_code', 'detail': 'secret'},
             ),
@@ -256,8 +284,6 @@ void main() {
         'secret',
       );
     });
-
-
   });
 }
 

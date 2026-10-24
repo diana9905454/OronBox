@@ -1,3 +1,5 @@
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
+
 import 'dart:async';
 
 import 'package:dynamic_color/dynamic_color.dart';
@@ -58,8 +60,10 @@ class DebugWindowApp extends ConsumerWidget {
               : AppTheme.buildDarkTheme(colorScheme: darkColorScheme),
           themeMode: themeSettings.materialThemeMode,
           locale: localeSettings.materialLocale,
-              localizationsDelegates: appLocalizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) =>
+              OronBoxScaffoldMessenger(child: child ?? const SizedBox.shrink()),
           home: const SecondaryWindowHost(
             role: 'debug',
             child: DebugWindowPage(),

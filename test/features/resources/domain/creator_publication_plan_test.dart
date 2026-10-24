@@ -3,6 +3,37 @@ import 'package:oronbox/src/features/resources/domain/creator_publication_plan.d
 import 'package:oronbox/src/features/resources/domain/creator_workspace.dart';
 
 void main() {
+  test(
+    'uses server publication mapping instead of hardcoded category guesses',
+    () {
+      final plan = buildCreatorPublicationPlan(
+        workspace: _workspace(
+          artifacts: {
+            'artifact': ['device-n67'],
+          },
+        ),
+        devices: const [
+          CreatorDevice(
+            id: 'device-n67',
+            codename: 'n67',
+            name: 'Band 9 Pro',
+            astroBoxId: 'xmb9p',
+          ),
+        ],
+        bandBbsCategories: const [],
+        publicationOptions: const {
+          'resource_prefixes': {'quickapp': 912},
+          'bandbbs': {
+            'n67': {'category_id': 991},
+          },
+        },
+      );
+      expect(plan.bandBbsTargets.single.categoryId, 991);
+      expect(plan.bandBbsTargets.single.prefixId, 912);
+      expect(plan.astroBoxDeviceIds, ['xmb9p']);
+    },
+  );
+
   test('maps OronBox devices to BandBBS and AstroBox identities', () {
     final plan = buildCreatorPublicationPlan(
       workspace: _workspace(

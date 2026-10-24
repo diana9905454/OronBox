@@ -1,15 +1,21 @@
+import 'package:oronbox/src/features/devices/widgets/device_import_dialog.dart';
+
 import 'dart:async';
 import 'dart:io';
 
+import 'package:oronbox/src/core/network/app_http_transport.dart';
+import 'package:oronbox/src/features/settings/services/app_release_assets.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:segmented_list/segmented_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/app_icon.dart';
@@ -18,13 +24,11 @@ import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
 import 'package:oronbox/src/core/constants/app_constants.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/logging/file_log_sink.dart';
+import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/services/build_info_service.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/host/application_host.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
-import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
-import 'package:oronbox/src/features/accounts/services/mi_account_service.dart';
-import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/settings/services/oronbox_support_api.dart';
 import 'package:oronbox/src/features/settings/services/update_check_service.dart';
 
@@ -152,9 +156,8 @@ class _ChangelogSection extends ConsumerWidget {
         children: [
           Text(
             'v${value.latestVersion}',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 4),
           ReleaseNotesView(data: value.releaseNotes),
@@ -162,9 +165,8 @@ class _ChangelogSection extends ConsumerWidget {
       ),
       AsyncData() || AsyncError() => Text(
         l10n.changelogUnavailable,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
+        style: Theme.of(context).textTheme.bodyMedium
+            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
       _ => const SizedBox(
         height: 40,
@@ -208,18 +210,15 @@ class _AboutHeader extends ConsumerWidget {
         const SizedBox(height: 16),
         Text(
           'OronBox',
-          style: Theme.of(
-            context,
-          ).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+          style: Theme.of(context).textTheme.headlineMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
         Text(
           l10n.settingsAboutSoftwareTagline,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurfaceVariant,
-            height: 1.35,
-          ),
+          style: Theme.of(context).textTheme.bodyMedium
+              ?.copyWith(color: colorScheme.onSurfaceVariant, height: 1.35),
         ),
         const SizedBox(height: 16),
         const _UpdatePill(),
@@ -270,21 +269,37 @@ class _UpdatePillState extends ConsumerState<_UpdatePill> {
   var _newest = false;
 
   Future<void> _check() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_checking) return;
     if (_found != null) {
+      if (kIsWeb) {
+        await _openUrl(_found!.sourceUrl);
+        return;
+      }
       if (Platform.isAndroid) {
         showDialog<void>(
           context: context,
           builder: (_) => UpdateAvailableDialog(release: _found!),
         );
       } else {
-        // Jump to the website download page instead of the release link.
-        final isEn = Localizations.localeOf(context).languageCode == 'en';
-        await _openUrl(
-          isEn
-              ? '${AppConstants.websiteUrl}/en/download'
-              : '${AppConstants.websiteUrl}/download',
-        );
+        setState(() => _checking = true);
+        final dio = createAppHttpTransport();
+        try {
+          final url = await resolveCurrentDesktopAppReleaseAsset(
+            dio,
+            _found!.tag,
+          );
+          if (url == null) throw StateError(l10n.updateAssetUnavailable);
+          await _openUrl(url);
+        } catch (error) {
+          if (mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(error.toString())));
+          }
+        } finally {
+          dio.close(force: true);
+          if (mounted) setState(() => _checking = false);
+        }
       }
       return;
     }
@@ -377,7 +392,6 @@ int _compareVersions(String a, String b) {
   return 0;
 }
 
-const _wearableLogChannel = MethodChannel('oronbox/wearable_log');
 const _flatButtonStyle = ButtonStyle(
   elevation: WidgetStatePropertyAll(0),
   shadowColor: WidgetStatePropertyAll(Colors.transparent),
@@ -391,6 +405,7 @@ class RuntimeLogsPage extends ConsumerStatefulWidget {
 }
 
 class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
+  final _log = getLogger('RuntimeLogsPage');
   var _size = 0;
   var _busy = false;
   var _files = const <LogFileInfo>[];
@@ -433,6 +448,9 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
     setState(() => _busy = true);
     final path = await exportLogsZip();
     if (!mounted) return;
+    if (path != null) {
+      _log.info('Exported runtime logs to $path');
+    }
     setState(() => _busy = false);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -466,6 +484,7 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
     );
     if (confirmed != true) return;
     await clearLogFiles();
+    _log.info('Cleared runtime logs');
     await _reload();
   }
 
@@ -557,6 +576,7 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
         }
       }
       await _reload();
+      _log.info('Pulled device logs: ${value['name']}');
       if (mounted && !cancelRequested) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -625,281 +645,99 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: SysAppBar(secondary: true, title: Text(l10n.settingsAboutLogs)),
-      body: SingleChildScrollView(
-        child: PageContainer(
-          padding: const EdgeInsets.all(StyleConstants.pagePadding),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _Section(
-                icon: Icons.folder_outlined,
-                title: l10n.settingsAboutLogsSize(_sizeLabel),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      l10n.settingsAboutLogsDescription,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        FilledButton.tonalIcon(
-                          style: _flatButtonStyle,
-                          onPressed: _busy ? null : _openDirectory,
-                          icon: const Icon(Icons.folder_open_outlined),
-                          label: Text(l10n.settingsAboutLogsOpen),
-                        ),
-                        FilledButton.tonalIcon(
-                          style: _flatButtonStyle,
-                          onPressed: _busy ? null : _export,
-                          icon: const Icon(Icons.archive_outlined),
-                          label: Text(l10n.settingsAboutLogsExport),
-                        ),
-                        FilledButton.tonalIcon(
-                          style: _flatButtonStyle,
-                          onPressed: _busy ? null : _pullDeviceLogs,
-                          icon: const Icon(Icons.watch_outlined),
-                          label: Text(l10n.settingsDeviceLogsPull),
-                        ),
-                        if (!kIsWeb &&
-                            defaultTargetPlatform == TargetPlatform.android)
-                          FilledButton.tonalIcon(
-                            style: _flatButtonStyle,
-                            onPressed: _busy ? null : _syncFromWearableLog,
-                            icon: const Icon(Icons.folder_zip_outlined),
-                            label: Text(l10n.settingsWearableLogSync),
-                          ),
-                        OutlinedButton.icon(
-                          style: _flatButtonStyle,
-                          onPressed: _busy ? null : _clear,
-                          icon: const Icon(Icons.delete_outline),
-                          label: Text(l10n.settingsAboutLogsClear),
-                        ),
-                      ],
-                    ),
-                  ],
+      appBar: SysAppBar(
+        secondary: true,
+        title: Text(l10n.settingsAboutLogs),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: l10n.settingsAboutLogsClear,
+            onPressed: _busy || _files.isEmpty ? null : _clear,
+          ),
+        ],
+      ),
+      body: SegmentedList(
+        maxWidth: StyleConstants.pageMaxWidth,
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
+        sections: [
+          SegmentedSection(
+            tiles: [
+              SegmentedTile(
+                leading: const Icon(Icons.archive_outlined),
+                title: Text(l10n.settingsAboutLogsExport),
+                description: Text(l10n.settingsAboutLogsSize(_sizeLabel)),
+                enabled: !_busy && _files.isNotEmpty,
+                onPressed: (_) => _export(),
+              ),
+              SegmentedTile(
+                leading: const Icon(Icons.watch_outlined),
+                title: Text(l10n.settingsDeviceLogsPull),
+                enabled: !_busy,
+                onPressed: (_) => _pullDeviceLogs(),
+              ),
+              if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+                SegmentedTile(
+                  leading: const Icon(Icons.folder_zip_outlined),
+                  title: Text(l10n.settingsWearableLogSync),
+                  enabled: !_busy,
+                  onPressed: (_) => _syncFromWearableLog(),
                 ),
-              ),
-              _Section(
-                icon: Icons.list_alt_outlined,
-                title: l10n.settingsLogsFileList,
-                child: _files.isEmpty
-                    ? Text(
-                        l10n.settingsAboutLogsEmpty,
-                        style: TextStyle(color: colors.onSurfaceVariant),
-                      )
-                    : Column(
-                        children: [
-                          for (final file in _files)
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: const Icon(Icons.description_outlined),
-                              title: Text(
-                                file.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              subtitle: Text(
-                                '${_fileSizeLabel(file.size)} · ${MaterialLocalizations.of(context).formatShortDate(file.modifiedAt)}',
-                              ),
-                              trailing: Icon(
-                                defaultTargetPlatform == TargetPlatform.android
-                                    ? Icons.share_outlined
-                                    : Icons.folder_open_outlined,
-                              ),
-                              onTap: () => _openFile(file),
-                            ),
-                        ],
-                      ),
-              ),
+              if (!kIsWeb)
+                SegmentedTile(
+                  leading: const Icon(Icons.folder_open_outlined),
+                  title: Text(l10n.settingsAboutLogsOpen),
+                  enabled: !_busy,
+                  onPressed: (_) => _openDirectory(),
+                ),
             ],
           ),
-        ),
+          SegmentedSection(
+            title: Text(l10n.settingsLogsFileList),
+            tiles: _files.isEmpty
+                ? [
+                    CustomSegmentedTile(
+                      child: (_) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: EmptyStateView(
+                          compact: true,
+                          icon: Icons.article_outlined,
+                          title: l10n.settingsAboutLogsEmpty,
+                          message: l10n.settingsAboutLogsDescription,
+                        ),
+                      ),
+                    ),
+                  ]
+                : _files.map(_fileTile).toList(growable: false),
+          ),
+        ],
       ),
     );
   }
-}
 
-Future<void> showWearableLogSyncDialog(
-  BuildContext context,
-  WidgetRef ref,
-) async {
-  final l10n = AppLocalizations.of(context)!;
-  List<MiCloudDevice>? devices;
-  var scanning = false;
-  String? error;
-
-  await showDialog<void>(
-    context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (context, setDialogState) {
-        Future<void> scan() async {
-          setDialogState(() {
-            scanning = true;
-            error = null;
-          });
-          try {
-            final value = await _wearableLogChannel
-                .invokeMapMethod<String, Object?>('scanLatest');
-            final rawBytes = value?['bytes'];
-            final bytes = switch (rawBytes) {
-              Uint8List value => value,
-              List value => Uint8List.fromList(
-                value.whereType<num>().map((item) => item.toInt()).toList(),
-              ),
-              _ => null,
-            };
-            if (bytes == null) {
-              throw const FormatException('Missing wearable log data');
-            }
-            final found = await compute(
-              extractMiDevicesFromWearableLogZip,
-              bytes,
-            );
-            found.sort((a, b) => a.name.compareTo(b.name));
-            if (!dialogContext.mounted) return;
-            setDialogState(() {
-              scanning = false;
-              devices = found;
-              error = found.isEmpty ? l10n.settingsMiAccountLogNoDevices : null;
-            });
-          } on PlatformException catch (exception) {
-            if (!dialogContext.mounted) return;
-            setDialogState(() {
-              scanning = false;
-              if (exception.code != 'CANCELLED') {
-                error = l10n.settingsMiAccountLogInvalid;
-              }
-            });
-          } catch (_) {
-            if (!dialogContext.mounted) return;
-            setDialogState(() {
-              scanning = false;
-              error = l10n.settingsMiAccountLogInvalid;
-            });
-          }
-        }
-
-        Future<void> importDevice(MiCloudDevice device) async {
-          final count = await ref
-              .read(deviceManagerProvider.notifier)
-              .importMiCloudDevices([device]);
-          if (!dialogContext.mounted || count == 0) return;
-          ScaffoldMessenger.of(dialogContext).showSnackBar(
-            SnackBar(
-              content: Text(
-                l10n.settingsWearableLogImportedDevice(
-                  device.name.isEmpty ? device.model : device.name,
-                ),
-              ),
-            ),
-          );
-        }
-
-        return AlertDialog(
-          title: Text(l10n.settingsWearableLogSync),
-          content: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxWidth: 460,
-              maxHeight: MediaQuery.sizeOf(context).height * 0.6,
-            ),
-            child: devices == null
-                ? SingleChildScrollView(
-                    child: Text(
-                      error ?? l10n.settingsWearableLogGuide,
-                      style: error == null
-                          ? null
-                          : TextStyle(
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                    ),
-                  )
-                : Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(l10n.settingsWearableLogFound(devices!.length)),
-                      const SizedBox(height: 12),
-                      if (devices!.isEmpty)
-                        Text(
-                          error ?? l10n.settingsMiAccountLogNoDevices,
-                          style: TextStyle(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                        )
-                      else
-                        Flexible(
-                          child: ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: devices!.length,
-                            separatorBuilder: (_, _) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final device = devices![index];
-                              return InkWell(
-                                onTap: () => importDevice(device),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        device.name.isEmpty
-                                            ? device.model
-                                            : device.name,
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        [
-                                          if (device.model.isNotEmpty)
-                                            device.model,
-                                          device.mac,
-                                        ].join('\n'),
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: scanning ? null : () => Navigator.pop(dialogContext),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              style: _flatButtonStyle,
-              onPressed: scanning ? null : scan,
-              child: scanning
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.scan),
-            ),
-          ],
-        );
-      },
-    ),
-  );
+  AbstractSegmentedTile _fileTile(LogFileInfo file) {
+    final l10n = AppLocalizations.of(context)!;
+    return SegmentedTile(
+      leading: const Icon(Icons.description_outlined),
+      title: Text(file.name),
+      description: Text(
+        '${_fileSizeLabel(file.size)} · ${MaterialLocalizations.of(context).formatShortDate(file.modifiedAt)}',
+      ),
+      trailing: IconButton(
+        icon: Icon(
+          defaultTargetPlatform == TargetPlatform.android
+              ? Icons.share_outlined
+              : Icons.open_in_new,
+        ),
+        tooltip: l10n.open,
+        onPressed: () => _openFile(file),
+      ),
+      onPressed: (_) => _openFile(file),
+    );
+  }
 }
 
 class _DeviceLogProgressDialog extends StatelessWidget {
@@ -1016,9 +854,8 @@ class _Section extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                style: Theme.of(context).textTheme.titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w700),
               ),
             ],
           ),
@@ -1061,16 +898,14 @@ class _TeamMemberTile extends StatelessWidget {
                 children: [
                   Text(
                     member.name,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     _roleLabel(l10n, member.role),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: colors.onSurfaceVariant),
                   ),
                 ],
               ),

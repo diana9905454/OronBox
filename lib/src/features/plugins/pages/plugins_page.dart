@@ -11,6 +11,7 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/window/desktop_window.dart';
@@ -25,7 +26,8 @@ import 'package:oronbox/src/host/application_host_provider.dart';
 import 'plugin_detail_page.dart';
 
 class PluginsPage extends ConsumerStatefulWidget {
-  const PluginsPage({super.key});
+  const PluginsPage({super.key, this.targetPluginId = ''});
+  final String targetPluginId;
 
   @override
   ConsumerState<PluginsPage> createState() => _PluginsPageState();
@@ -52,7 +54,14 @@ class _PluginsPageState extends ConsumerState<PluginsPage> {
     _events = ref.read(applicationHostProvider).events.listen((event) {
       if (event.event == 'plugin.state') unawaited(_load());
     });
-    _load();
+    if (widget.targetPluginId.isNotEmpty) {
+      _section = 1;
+      _query = widget.targetPluginId;
+      _marketSource = 'oronbox';
+    }
+    _load().then((_) {
+      if (mounted && widget.targetPluginId.isNotEmpty) _loadMarket(force: true);
+    });
   }
 
   @override
@@ -486,6 +495,7 @@ class _PluginsPageState extends ConsumerState<PluginsPage> {
         : _marketEntries
               .where(
                 (entry) => matches([
+                  entry['id'],
                   entry['name'],
                   entry['description'],
                   entry['author'],
@@ -902,9 +912,7 @@ class _PluginCatalog extends StatelessWidget {
               if (states.contains(WidgetState.selected)) {
                 return Theme.of(context).colorScheme.secondaryContainer;
               }
-              return Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHighest
+              return Theme.of(context).colorScheme.surfaceContainerHighest
                   .withValues(alpha: 0.5);
             }),
           ),
@@ -1128,29 +1136,20 @@ class _PluginMarket extends StatelessWidget {
       return const Center(child: CircularProgressIndicator());
     }
     if (error != null && entries.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              localizedErrorMessage(AppLocalizations.of(context)!, error),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
-              onPressed: onRefresh,
-              icon: const Icon(Icons.refresh),
-              label: Text(AppLocalizations.of(context)!.refresh),
-            ),
-          ],
-        ),
+      return ErrorStateView(
+        message: localizedErrorMessage(AppLocalizations.of(context)!, error),
+        onRetry: onRefresh,
       );
     }
-    if (entries.isEmpty) return Center(child: Text(emptyText));
+    if (entries.isEmpty) {
+      return EmptyStateView(icon: Icons.extension_outlined, title: emptyText);
+    }
     return RefreshIndicator(
       onRefresh: () async => onRefresh(),
       child: ListView.separated(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: EdgeInsets.only(
+          bottom: bottomContentPadding(context, extra: 16),
+        ),
         itemCount: entries.length,
         separatorBuilder: (_, _) => const SizedBox(height: 8),
         itemBuilder: (context, index) {

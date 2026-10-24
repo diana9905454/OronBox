@@ -67,6 +67,12 @@ class _CollectionHost implements OronBoxCommandBus {
         },
       ],
     }),
+    'creator.collection.get' => const CommandResult.success({
+      'id': 'collection-1',
+      'kind': 'quickapp',
+      'edit_version': 0,
+      'pending_revision': {'name': 'Collection', 'summary': 'Summary'},
+    }),
     'creator.devices' => const CommandResult.success({'devices': <Object?>[]}),
     'creator.grants' => const CommandResult.success(<String, Object?>{}),
     _ => CommandResult.failure(CommandError('unexpected', command.method)),

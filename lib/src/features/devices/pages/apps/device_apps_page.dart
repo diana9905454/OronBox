@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -79,21 +80,30 @@ class _DeviceAppsPageState extends ConsumerState<DeviceAppsPage> {
         ],
       ),
       body: !ready
-          ? Center(child: Text(l10n.deviceNotConnected))
+          ? EmptyStateView(
+              icon: Icons.bluetooth_disabled_outlined,
+              title: l10n.deviceNotConnected,
+            )
           : _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text(localizedErrorMessage(l10n, _error)))
+          ? ErrorStateView(
+              message: localizedErrorMessage(l10n, _error),
+              onRetry: _refresh,
+            )
           : displayedApps.isEmpty
-          ? Center(child: Text(l10n.appManagementNone))
+          ? EmptyStateView(
+              icon: Icons.apps_outlined,
+              title: l10n.appManagementNone,
+            )
           : PageContainer(
               padding: EdgeInsets.zero,
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   StyleConstants.pagePadding,
                   8,
                   StyleConstants.pagePadding,
-                  16,
+                  bottomContentPadding(context, extra: 16),
                 ),
                 itemCount: displayedApps.length,
                 itemBuilder: (context, index) {

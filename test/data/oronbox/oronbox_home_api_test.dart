@@ -8,7 +8,7 @@ void main() {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          final data = options.path.contains('/api/blog')
+          final data = options.path.contains('/api/v1/blog')
               ? {
                   'posts': [
                     {
@@ -68,7 +68,7 @@ void main() {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) {
-          if (options.path.contains('/api/blog')) {
+          if (options.path.contains('/api/v1/blog')) {
             handler.reject(
               DioException(
                 requestOptions: options,
@@ -120,7 +120,7 @@ void main() {
             Response<Object?>(
               requestOptions: options,
               statusCode: 200,
-              data: options.path.contains('/api/blog')
+              data: options.path.contains('/api/v1/blog')
                   ? {'posts': <Object?>[]}
                   : {
                       'banners': <Object?>[],
@@ -152,7 +152,7 @@ void main() {
             Response<Object?>(
               requestOptions: options,
               statusCode: 200,
-              data: options.path.contains('/api/blog')
+              data: options.path.contains('/api/v1/blog')
                   ? {'posts': <Object?>[]}
                   : {
                       'banners': <Object?>[],

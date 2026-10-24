@@ -21,8 +21,6 @@ import 'package:oronbox/src/features/resources/application/creator/creator_works
 import 'package:oronbox/src/features/resources/pages/creator/creator_shared.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/accounts/services/mi_account_two_factor_resolver.dart';
-import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
-import 'package:oronbox/src/features/devices/widgets/xiaomi_fitness_logo.dart';
 
 final _desktopExitBehaviorProvider = Provider<int?>((ref) {
   return SharedPrefsService.instance.getInt('desktop.exit_behavior');
@@ -488,6 +486,21 @@ class SettingsPage extends ConsumerWidget {
                   title: Text(l10n.feedbackTitle),
                   description: Text(l10n.feedbackDesc),
                 ),
+                if (!kIsWeb &&
+                    (defaultTargetPlatform == TargetPlatform.android ||
+                        defaultTargetPlatform == TargetPlatform.iOS))
+                  SegmentedTile.navigation(
+                    onPressed: (_) => context.push('/settings/permissions'),
+                    leading: const Icon(Icons.security_outlined),
+                    title: Text(l10n.settingsPermissionsTitle),
+                    description: Text(l10n.settingsPermissionsDesc),
+                  ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/settings/data'),
+                  leading: const Icon(Icons.storage_outlined),
+                  title: Text(l10n.appDataTitle),
+                  description: Text(l10n.appDataDescription),
+                ),
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/settings/advanced'),
                   leading: const Icon(Icons.tune_outlined),
@@ -519,6 +532,12 @@ class SettingsPage extends ConsumerWidget {
                   title: Text(l10n.debugServerTitle),
                   description: Text(l10n.debugServerDescription),
                 ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/settings/labs'),
+                  leading: const Icon(Icons.science_outlined),
+                  title: Text(l10n.featureLabTitle),
+                  description: Text(l10n.featureLabDescription),
+                ),
                 if (showDebugWindowSettings)
                   SegmentedTile.switchTile(
                     onToggle: (value) =>
@@ -532,15 +551,6 @@ class SettingsPage extends ConsumerWidget {
                           : l10n.devToolsDescriptionEntry,
                     ),
                   ),
-                SegmentedTile.switchTile(
-                  onToggle: (value) => ref
-                      .read(xiaomiHealthDebugModeProvider.notifier)
-                      .setEnabled(value ?? false),
-                  initialValue: ref.watch(xiaomiHealthDebugModeProvider),
-                  leading: const XiaomiFitnessLogo(),
-                  title: Text(l10n.deviceHealthDebugModeTitle),
-                  description: Text(l10n.deviceHealthDebugModeDescription),
-                ),
                 if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
                   SegmentedTile.switchTile(
                     onToggle: (value) => ref

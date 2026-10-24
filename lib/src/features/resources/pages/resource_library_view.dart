@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
@@ -31,7 +32,6 @@ import 'package:oronbox/src/features/resources/widgets/resource_card.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_media_hero.dart';
 
 typedef _ResourceCard = ResourceCard;
-
 
 class ResourceLibraryView extends ConsumerStatefulWidget {
   const ResourceLibraryView({super.key});
@@ -494,18 +494,18 @@ class _ResourceLibraryViewState extends ConsumerState<ResourceLibraryView>
               SliverFillRemaining(
                 child: Center(
                   child: switch (_error) {
-                    _BandBbsSignInRequired() => Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(l10n.settingsBandBbsAccountRequired),
-                        const SizedBox(height: 12),
-                        FilledButton(
-                          onPressed: () => context.push('/settings/bandbbs'),
-                          child: Text(l10n.settingsTapToSignIn),
-                        ),
-                      ],
+                    _BandBbsSignInRequired() => EmptyStateView(
+                      icon: Icons.account_circle_outlined,
+                      title: l10n.settingsBandBbsAccountRequired,
+                      action: FilledButton(
+                        onPressed: () => context.push('/settings/bandbbs'),
+                        child: Text(l10n.settingsTapToSignIn),
+                      ),
                     ),
-                    _ => Text(localizedErrorMessage(l10n, _error!)),
+                    _ => ErrorStateView(
+                      message: localizedErrorMessage(l10n, _error!),
+                      onRetry: _reset,
+                    ),
                   },
                 ),
               )
@@ -553,7 +553,12 @@ class _ResourceLibraryViewState extends ConsumerState<ResourceLibraryView>
               else if (_items.isEmpty)
                 SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Center(child: Text(l10n.notFound)),
+                  child: Center(
+                    child: EmptyStateView(
+                      icon: Icons.search_off_outlined,
+                      title: l10n.notFound,
+                    ),
+                  ),
                 )
               else if (!_hasMore)
                 SliverToBoxAdapter(
@@ -565,7 +570,11 @@ class _ResourceLibraryViewState extends ConsumerState<ResourceLibraryView>
                   ),
                 ),
             ],
-            const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+            SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: bottomContentPadding(context, extra: 16),
+              ),
+            ),
           ],
         ),
       ),
@@ -1428,4 +1437,3 @@ class _ResourceLayoutTransition extends StatelessWidget {
     );
   }
 }
-

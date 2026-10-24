@@ -148,13 +148,12 @@ List<CommunityResourceDetail> communityImportOrder(
 
 enum CommunityImportStage { fetchingDetail, downloading, media, uploading }
 
-typedef CommunityImportProgress =
-    void Function(
-      CommunityImportStage stage,
-      int current,
-      int total,
-      String label,
-    );
+typedef CommunityImportProgress = void Function(
+  CommunityImportStage stage,
+  int current,
+  int total,
+  String label,
+);
 
 enum CommunityImportRecoveryAction { retry, continueImport, cancel }
 
@@ -1266,7 +1265,9 @@ Uint8List buildCommunityImportBundle({
       'version': 1,
       'kind': kind == CreatorResourceKind.watchface ? 'watchface' : 'quickapp',
       'name': name,
-      'summary': summary,
+      'description': summary,
+      'description_format': 'markdown',
+      'summary': '',
       'paid_type': communityPaidTypeToWire(paidType),
       if (purchaseLink != null) 'purchase_link': purchaseLink.toString(),
       if (purchaseLink != null && purchasePrice != null)

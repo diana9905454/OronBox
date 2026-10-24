@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:material_ui/material_ui.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
@@ -17,6 +18,7 @@ class CreatorResourceList extends StatefulWidget {
     required this.collections,
     required this.collectionsLoading,
     required this.onRefresh,
+    this.topContent,
     this.onOpenCollection,
     this.onOpen,
     this.selectedResourceIds = const {},
@@ -30,6 +32,7 @@ class CreatorResourceList extends StatefulWidget {
   final List<Map<String, Object?>> collections;
   final bool collectionsLoading;
   final Future<void> Function() onRefresh;
+  final Widget? topContent;
   final ValueChanged<Map<String, Object?>>? onOpenCollection;
   final ValueChanged<CreatorWorkspace>? onOpen;
   final Set<String> selectedResourceIds;
@@ -75,26 +78,31 @@ class _CreatorResourceListState extends State<CreatorResourceList> {
       );
     }
     if (entries.isEmpty) {
-      return PageContainer(
-        padding: const EdgeInsets.fromLTRB(
-          StyleConstants.pagePadding,
-          8,
-          StyleConstants.pagePadding,
-          0,
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.edit_outlined,
-                size: 56,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+      return RefreshIndicator(
+        onRefresh: widget.onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(bottom: widget.bottomPadding),
+          children: [
+            PageContainer(
+              padding: const EdgeInsets.fromLTRB(
+                StyleConstants.pagePadding,
+                8,
+                StyleConstants.pagePadding,
+                0,
               ),
-              const SizedBox(height: 12),
-              Text(l10n.creatorNoResources),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (widget.topContent != null) widget.topContent!,
+                  EmptyStateView(
+                    icon: Icons.edit_outlined,
+                    title: l10n.creatorNoResources,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -129,6 +137,7 @@ class _CreatorResourceListState extends State<CreatorResourceList> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (widget.topContent != null) widget.topContent!,
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(

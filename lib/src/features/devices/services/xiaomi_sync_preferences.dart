@@ -1,12 +1,10 @@
 import 'dart:convert';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart';
 
 abstract final class XiaomiSyncPreferences {
   static const healthAutoSyncKey = 'xiaomi.health.auto_sync';
-  static const healthDebugModeKey = 'xiaomi.health.debug_mode';
   static const weatherAutoSyncKey = 'xiaomi.weather.auto_sync';
   static const weatherLastCityKey = 'xiaomi.weather.last_city';
   static const weatherSnapshotKey = 'xiaomi.weather.snapshot';
@@ -17,10 +15,6 @@ abstract final class XiaomiSyncPreferences {
 
   static bool get healthAutoSync =>
       SharedPrefsService.instance.getBool(healthAutoSyncKey) ?? false;
-
-  static bool get healthDebugMode =>
-      SharedPrefsService.instance.isInitialized &&
-      (SharedPrefsService.instance.getBool(healthDebugModeKey) ?? false);
 
   static bool get weatherAutoSync =>
       SharedPrefsService.instance.getBool(weatherAutoSyncKey) ?? false;
@@ -73,9 +67,6 @@ abstract final class XiaomiSyncPreferences {
   static Future<void> setHealthAutoSync(bool enabled) =>
       SharedPrefsService.instance.setBool(healthAutoSyncKey, enabled);
 
-  static Future<void> setHealthDebugMode(bool enabled) =>
-      SharedPrefsService.instance.setBool(healthDebugModeKey, enabled);
-
   static Future<void> setWeatherAutoSync(bool enabled) =>
       SharedPrefsService.instance.setBool(weatherAutoSyncKey, enabled);
 
@@ -96,18 +87,3 @@ abstract final class XiaomiSyncPreferences {
   static String _lastSuccessfulDeviceSyncKey(String deviceId) =>
       '$_lastSuccessfulDeviceSyncKeyPrefix${Uri.encodeComponent(deviceId)}';
 }
-
-class XiaomiHealthDebugModeNotifier extends Notifier<bool> {
-  @override
-  bool build() => XiaomiSyncPreferences.healthDebugMode;
-
-  Future<void> setEnabled(bool enabled) async {
-    state = enabled;
-    await XiaomiSyncPreferences.setHealthDebugMode(enabled);
-  }
-}
-
-final xiaomiHealthDebugModeProvider =
-    NotifierProvider<XiaomiHealthDebugModeNotifier, bool>(
-      XiaomiHealthDebugModeNotifier.new,
-    );

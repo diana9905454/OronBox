@@ -1,5 +1,7 @@
+import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter/services.dart';
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
@@ -12,7 +14,7 @@ Future<String> loadLegalDocument(
   String id,
   String language,
 ) async {
-  return rootBundle.loadString('assets/legal/$id.$language.md', cache: false);
+  return LegalAgreements.read(id, language);
 }
 
 String legalDocumentLanguage(Locale locale) {
@@ -50,6 +52,16 @@ class LegalDocumentPage extends ConsumerWidget {
                     legalDocumentLanguage(Localizations.localeOf(context)),
                   ),
                   builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text(
+                          localizedErrorMessage(
+                            AppLocalizations.of(context)!,
+                            snapshot.error,
+                          ),
+                        ),
+                      );
+                    }
                     if (!snapshot.hasData) {
                       return const Center(
                         child: Padding(
@@ -90,4 +102,47 @@ class LegalDocumentPage extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Keeps the editor mounted while a new publishing agreement is read.
+Future<bool> ensurePublishingAgreement(BuildContext context) async {
+  await LegalAgreements.refreshManifest();
+  if (!context.mounted) return false;
+  if (LegalAgreements.accepted('resource-publishing')) return true;
+  String body;
+  try {
+    body = await LegalAgreements.read(
+      'resource-publishing',
+      legalDocumentLanguage(Localizations.localeOf(context)),
+    );
+  } catch (error) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.creatorTermsLoadFailed),
+        ),
+      );
+    }
+    return false;
+  }
+  if (!context.mounted) return false;
+  final agreed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: Text(AppLocalizations.of(context)!.creatorTermsUpdated),
+      content: SizedBox(width: 720, height: 480, child: Markdown(data: body)),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: Text(AppLocalizations.of(context)!.creatorPublishingLater),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: Text(AppLocalizations.of(context)!.creatorTermsAgree),
+        ),
+      ],
+    ),
+  );
+  return agreed == true &&
+      await LegalAgreements.acceptShown('resource-publishing');
 }

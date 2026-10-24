@@ -50,6 +50,11 @@ class MessagePresentation {
 
     final event = message.event;
     switch (event) {
+      case 'comment.created':
+        return MessagePresentation(
+          title: l10n.messageCommentCreatedTitle,
+          body: text('body').isEmpty ? message.legacyBody : text('body'),
+        );
       case 'comment.replied':
         return MessagePresentation(
           title: l10n.messageCommentRepliedTitle,

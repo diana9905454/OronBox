@@ -537,7 +537,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get errorBluetoothConnectFailed =>
-      '连接失败，请确认蓝牙权限已授予且蓝牙已开启、设备在附近、未被其他工具或设备占用，并在设备端开启“连接新手机”模式后重试';
+      '连接失败，请确认蓝牙权限已授予且蓝牙已开启、设备在附近、未被其他工具或设备占用，并进入“连接新手机”模式后重试';
 
   @override
   String get errorBluetoothDisconnected => '蓝牙连接已断开，请重新连接设备';
@@ -813,7 +813,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get collapse => '收起';
 
   @override
-  String get voiceLabTitle => '语音实验室';
+  String get voiceLabTitle => '语音助手';
 
   @override
   String get voiceLabXiaoAi => '小爱同学';
@@ -2225,25 +2225,28 @@ class AppLocalizationsZh extends AppLocalizations {
   String get acknowledgementsKazumi => 'Material Design 组件与界面设计参考';
 
   @override
-  String get acknowledgementsAstroBoxPublic => '界面结构、资源流程与交互设计参考';
+  String get acknowledgementsAstroBoxPublic => '界面结构与交互设计参考';
 
   @override
-  String get acknowledgementsAstroBoxNgCore => '小米设备协议、安装流程与传输行为参考';
+  String get acknowledgementsAstroBoxNgCore => '小米设备协议与传输层，移植改写';
 
   @override
-  String get acknowledgementsAstroBoxNgBluetooth => '蓝牙连接行为参考';
+  String get acknowledgementsAstroBoxNgPb => '小米 wear 协议定义，逐字采用';
 
   @override
-  String get acknowledgementsAstroBoxNgAccount => '小米账号登录、设备同步与 authkey 获取流程参考';
+  String get acknowledgementsAstroBoxNgBluetooth => '蓝牙连接流程参考';
 
   @override
-  String get acknowledgementsAstroBoxNgProvider => '社区资源索引、CDN 与清单解析流程参考';
+  String get acknowledgementsAstroBoxNgAccount => '小米账号登录与 authkey 获取流程参考';
 
   @override
-  String get acknowledgementsAstroBoxNgAppWasm => 'Web Serial 与浏览器端连接流程参考';
+  String get acknowledgementsAstroBoxNgProvider => '社区资源索引与清单解析流程参考';
 
   @override
-  String get acknowledgementsGadgetbridge => 'ZeppOS 与可穿戴设备协议研究参考';
+  String get acknowledgementsAstroBoxNgAppWasm => 'Web Serial 连接流程参考';
+
+  @override
+  String get acknowledgementsGadgetbridge => 'ZeppOS 协议实现移植改写';
 
   @override
   String get acknowledgementsBreezyWeather => '中国天气源实现参考';
@@ -3835,7 +3838,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get findDeviceDescription => '让设备持续振动或响铃';
 
   @override
-  String get appOrderTitle => '应用顺序管理';
+  String get appOrderTitle => '应用顺序';
 
   @override
   String get appOrderDescription => '拖动调整设备启动器中的应用顺序';
@@ -3859,7 +3862,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appOrderEmpty => '设备没有返回可排序的应用';
 
   @override
-  String get appLayoutTitle => '应用布局设置';
+  String get appLayoutTitle => '应用布局';
 
   @override
   String get appLayoutDescription => '选择设备应用列表的显示方式';
@@ -4107,6 +4110,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get xiaomiScreenshotFailed => '获取截图失败';
+
+  @override
+  String get xiaomiScreenshotDownloadStarted => '已发起截图下载';
+
+  @override
+  String get xiaomiScreenshotSaveFailed => '保存截图失败';
 
   @override
   String xiaomiScreenshotSaved(Object path) {
@@ -4457,40 +4466,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceHealthLatestStress => '最近压力';
 
   @override
-  String get deviceHealthDebugModeTitle => '运动健康开发模式';
+  String get deviceHealthDebugSnapshots => '活动文件';
 
   @override
-  String get deviceHealthDebugModeDescription => '启用运动健康数据快照与重载功能';
+  String get deviceHealthDebugSnapshotList => '活动文件';
 
   @override
-  String get deviceHealthDebugSnapshots => '快照';
-
-  @override
-  String get deviceHealthDebugSnapshotList => '快照列表';
-
-  @override
-  String get deviceHealthDebugSnapshotsDescription => '已捕获的原始活动文件，可在手表离线时重放';
+  String get deviceHealthDebugSnapshotsDescription => '已保存的活动文件，可导出';
 
   @override
   String get deviceHealthDebugRefresh => '刷新';
 
   @override
-  String get deviceHealthDebugRefreshDescription => '重新读取已保存的快照列表';
+  String get deviceHealthDebugRefreshDescription => '重新读取已保存的活动文件列表';
 
   @override
   String get deviceHealthDebugClearAll => '全部清除';
 
   @override
-  String get deviceHealthDebugClearAllDescription => '删除所有已保存的健康快照';
+  String get deviceHealthDebugClearAllDescription => '删除所有已保存的活动文件';
 
   @override
-  String get deviceHealthDebugNoSnapshots => '暂无快照';
+  String get deviceHealthDebugNoSnapshots => '暂无活动文件';
 
   @override
   String get deviceHealthDebugReload => '重放';
 
   @override
-  String get deviceHealthDebugReloaded => '快照已重放';
+  String get deviceHealthDebugReloaded => '活动文件已重放';
 
   @override
   String deviceHealthDebugFiles(Object count) {
@@ -4659,26 +4662,26 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceHealthResting => '静息';
 
   @override
-  String get deviceHealthDebugExport => '导出快照';
+  String get deviceHealthDebugExport => '导出活动文件';
 
   @override
-  String get deviceHealthDebugExportTooltip => '导出原始活动文件';
+  String get deviceHealthDebugExportTooltip => '导出活动文件';
 
   @override
   String deviceHealthDebugExported(String path) {
-    return '已导出到 $path';
+    return '活动文件已导出到：$path';
   }
 
   @override
   String deviceHealthDebugExportFailed(String error) {
-    return '导出快照失败：$error';
+    return '无法导出活动文件：$error';
   }
 
   @override
-  String get deviceHealthDebugImport => '导入';
+  String get deviceHealthDebugImport => '导入活动文件';
 
   @override
-  String get deviceHealthDebugImportDescription => '导入此前被导出的快照文件';
+  String get deviceHealthDebugImportDescription => '导入此前导出的活动文件';
 
   @override
   String deviceHealthDebugImported(String deviceCode, int files) {
@@ -4687,8 +4690,672 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String deviceHealthDebugImportFailed(String error) {
-    return '导入快照失败：$error';
+    return '无法导入活动文件：$error';
   }
+
+  @override
+  String get commentDeletedPlaceholder => '评论已删除';
+
+  @override
+  String commentViewReplies(int count) {
+    return '查看全部 $count 条回复';
+  }
+
+  @override
+  String get commentThreadTitle => '评论详情';
+
+  @override
+  String commentReplyTarget(String username) {
+    return '回复 $username';
+  }
+
+  @override
+  String get commentLoadEarlier => '加载更早的回复';
+
+  @override
+  String get messageCommentCreatedTitle => '资源收到新评论';
+
+  @override
+  String get scanQrCode => '扫描二维码';
+
+  @override
+  String get deviceSwitchQrImport => '扫描分享二维码导入已有设备';
+
+  @override
+  String get creatorCollectionReplacePendingDescription =>
+      '提交后将替换待审版本\n已上线版本不受影响';
+
+  @override
+  String get creatorCollectionNoMatchingResources => '暂无同类型资源\n请先在创作者中心创建资源';
+
+  @override
+  String get commentCreateFailed => '发表评论失败，请重试';
+
+  @override
+  String get commentsReadFailed => '读取评论失败，请重试';
+
+  @override
+  String get commentDeleteFailed => '删除评论失败，请重试';
+
+  @override
+  String get errorRequestTimeout => '请求超时，请重试';
+
+  @override
+  String get creatorCollectionReplacePendingTitle => '替换待审版本？';
+
+  @override
+  String get creatorCollectionReplaceAndSubmit => '替换并提审';
+
+  @override
+  String get creatorCollectionCreateTitle => '创建合集';
+
+  @override
+  String get creatorCollectionEditTitle => '编辑合集';
+
+  @override
+  String creatorCollectionCurrentRevision(String number) {
+    return '线上版本：$number';
+  }
+
+  @override
+  String creatorCollectionPendingRevision(String number) {
+    return '待审版本：$number';
+  }
+
+  @override
+  String get creatorCollectionHistory => '查看／参考历史版本';
+
+  @override
+  String get creatorCollectionBody => '正文（Markdown）';
+
+  @override
+  String get creatorMediaIcon => '图标';
+
+  @override
+  String get creatorMediaCover => '封面';
+
+  @override
+  String get creatorMediaUnset => '未设置';
+
+  @override
+  String get creatorMediaSet => '已设置';
+
+  @override
+  String get creatorCollectionMemberOrder => '成员顺序与代表资源';
+
+  @override
+  String get creatorCollectionMemberUnavailable => '资源不可用，请移除';
+
+  @override
+  String get creatorCollectionSetRepresentative => '设为代表资源';
+
+  @override
+  String get creatorCollectionAddMember => '添加成员';
+
+  @override
+  String get creatorImageReadFailed => '无法读取图片';
+
+  @override
+  String get creatorImageProcessFailed => '无法处理图片';
+
+  @override
+  String get creatorPublicationRetry => '重试发布';
+
+  @override
+  String get creatorTermsLoadFailed => '发布条款加载失败';
+
+  @override
+  String get creatorReviewItems => '整改项';
+
+  @override
+  String get creatorReviewFixReplied => '已回复修正';
+
+  @override
+  String get creatorReviewReplyFix => '回复修正';
+
+  @override
+  String get creatorTermsUpdated => '资源发布条款已更新';
+
+  @override
+  String get creatorPublishingLater => '暂不发布';
+
+  @override
+  String get creatorTermsAgree => '已阅读并同意';
+
+  @override
+  String get updateAssetUnavailable => '此版本没有适用于当前平台的安装包';
+
+  @override
+  String get legalDocumentUnavailable => '文档暂不可用，请重试';
+
+  @override
+  String get deviceImportTitle => '导入设备';
+
+  @override
+  String get qrScanFromImage => '从图片识别';
+
+  @override
+  String get qrScanNoCode => '未识别到二维码';
+
+  @override
+  String get qrScanImageFailed => '无法识别这张图片';
+
+  @override
+  String get qrScanCameraUnavailable => '相机不可用\n可以选择图片识别二维码';
+
+  @override
+  String get qrScanChooseCode => '选择二维码';
+
+  @override
+  String qrScanCodeLabel(int index) {
+    return '二维码 $index';
+  }
+
+  @override
+  String get qrScanUnsupported => '当前平台暂不支持二维码识别';
+
+  @override
+  String get featureLabTitle => '功能实验室';
+
+  @override
+  String get featureLabDescription => '测试一些正在开发中的功能';
+
+  @override
+  String get voiceAssistantDescription => '接收设备语音、监听和回复';
+
+  @override
+  String get voiceLabConnectDevice => '连接设备后，在设备上唤醒语音助手';
+
+  @override
+  String get voiceLabCaptureLimit => '录音已达到上限，请清空后重试';
+
+  @override
+  String get voiceLabReplyTooLong => '回复内容过长';
+
+  @override
+  String get voiceLabRecognitionLabel => '识别结果';
+
+  @override
+  String get voiceLabRecognitionHint => '输入识别出的文字';
+
+  @override
+  String get appDataTitle => '应用数据';
+
+  @override
+  String get appDataDescription => '查看存储占用和导出文件';
+
+  @override
+  String get appDataSpaceUsage => '分类占用';
+
+  @override
+  String get appDataHealth => '健康数据';
+
+  @override
+  String get appDataPlugins => '插件';
+
+  @override
+  String get appDataZeppos => 'ZeppOS 应用数据';
+
+  @override
+  String get appDataRecovery => '导入恢复数据';
+
+  @override
+  String get appDataDownloads => '资源和更新下载';
+
+  @override
+  String get appDataPluginCache => '插件缓存';
+
+  @override
+  String get appDataManageSnapshots => '管理已保存的活动文件';
+
+  @override
+  String get appDataExportSnapshots => '导出活动文件';
+
+  @override
+  String get appDataExportSnapshotsDescription => '导出已保存的活动文件';
+
+  @override
+  String get appDataExported => '已保存导出文件';
+
+  @override
+  String get appDataLoadFailed => '无法读取应用数据';
+
+  @override
+  String get appDataExportFailed => '文件导出失败';
+
+  @override
+  String get appDataArchiveTooLarge => '活动文件过大，请分别导出';
+
+  @override
+  String get appDataUpdateFailed => '应用数据修改失败';
+
+  @override
+  String get appDataBackup => '导出备份';
+
+  @override
+  String get appDataBackupDescription => '选择并导出需要保留的本地数据';
+
+  @override
+  String get appDataRestore => '恢复备份';
+
+  @override
+  String get appDataRestoreDescription => '选择要恢复的数据\n相同设备的本地健康历史将被替换';
+
+  @override
+  String get appDataSettings => '应用设置';
+
+  @override
+  String appDataHealthDevices(int count) {
+    return '健康历史（$count 台设备）';
+  }
+
+  @override
+  String get appDataRestored => '备份已恢复\n重启应用以应用全部设置';
+
+  @override
+  String get appDataRestoreFailed => '备份恢复失败';
+
+  @override
+  String get appDataRecover => '撤销上次恢复';
+
+  @override
+  String get appDataRecoveryPending => '上次恢复未完成，请先选择是否撤销';
+
+  @override
+  String get appDataRecoverDescription => '将恢复到上次导入前的设置和健康历史\n之后新增的本地健康数据也会被替换';
+
+  @override
+  String get voiceAsrMethod => '识别方式';
+
+  @override
+  String get voiceAsrManual => '手动输入';
+
+  @override
+  String get voiceAsrLocal => '本地识别';
+
+  @override
+  String get voiceAsrWeType => '微信输入法';
+
+  @override
+  String get voiceAsrDoubao => '豆包输入法';
+
+  @override
+  String get voiceAsrWasm => 'WASM 实验';
+
+  @override
+  String voiceAsrCloudConsent(String provider) {
+    return '录音将发送至$provider进行识别\n仅在此页面使用时发送';
+  }
+
+  @override
+  String get voiceAsrPreparing => '正在准备识别';
+
+  @override
+  String get voiceAsrRecognizing => '正在识别';
+
+  @override
+  String get voiceAsrFinishing => '正在处理最后的语音';
+
+  @override
+  String get voiceAsrFinished => '识别完成';
+
+  @override
+  String get voiceAsrModelReady => '本地中英识别数据已就绪';
+
+  @override
+  String get voiceAsrModelDescription => '本地中英识别\n首次使用需下载模型和识别组件';
+
+  @override
+  String get voiceAsrDownloadModel => '下载识别数据';
+
+  @override
+  String get voiceAsrDeleteModel => '删除识别数据';
+
+  @override
+  String get voiceAsrSendRecognition => '发送识别结果';
+
+  @override
+  String get voiceAsrModelMissing => '请先下载本地识别数据';
+
+  @override
+  String get voiceAsrModelDamaged => '识别数据损坏，请删除后重新下载';
+
+  @override
+  String get voiceAsrDownloadFailed => '模型下载失败，请检查网络后重试';
+
+  @override
+  String get voiceAsrRegistrationFailed => '无法启用此识别服务，请稍后重试';
+
+  @override
+  String get voiceAsrServiceRejected => '识别服务拒绝了本次请求';
+
+  @override
+  String get voiceAsrTimeout => '等待识别结果超时，请重新说话';
+
+  @override
+  String get voiceAsrOpusUnsupported => '此设备的音频暂不适用于微信输入法';
+
+  @override
+  String get voiceAsrUnsupported => '此平台暂不支持这种识别方式';
+
+  @override
+  String get voiceAsrTooSlow => '识别处理过慢，请结束本轮后重试';
+
+  @override
+  String get voiceAsrNoSpeech => '未识别到语音';
+
+  @override
+  String get voiceAsrInvalidResponse => '识别服务返回了无效结果';
+
+  @override
+  String get voiceAsrInferenceFailed => '本地识别失败，请重新选择识别方式';
+
+  @override
+  String get voiceAsrCancelled => '已取消识别';
+
+  @override
+  String get voiceAsrConnectionFailed => '无法连接识别服务，请检查网络后重试';
+
+  @override
+  String get appDataModels => '语音识别数据';
+
+  @override
+  String get appDataTasks => '任务记录';
+
+  @override
+  String get appDataDocuments => '文档缓存';
+
+  @override
+  String get privateStateLoadFailed => '暂时无法读取已保存的账号和设备\n请重试';
+
+  @override
+  String get privateStateSaveFailed => '未能保存账号或设备的更改\n请重试';
+
+  @override
+  String get voiceAsrStorageFull => '存储空间不足\n请清理后重试';
+
+  @override
+  String get voiceAsrReconnect => '重新连接识别服务';
+
+  @override
+  String get voiceAsrReconnectDescription => '重新连接后将重新注册此识别服务\n不会影响已登录的账号';
+
+  @override
+  String get voiceAsrReconnectFailed => '重新连接失败';
+
+  @override
+  String get appDataClearCache => '清理缓存';
+
+  @override
+  String get appDataClearCacheDescription =>
+      '清理图片、插件、文档缓存及过期临时文件\n运行中的插件和设备应用将停止';
+
+  @override
+  String get appDataCacheCleared => '缓存已清理';
+
+  @override
+  String get voiceAsrReplayRecording => '回放当前录音';
+
+  @override
+  String get voiceAsrImportWave => '导入 WAV';
+
+  @override
+  String get voiceAsrReplayDescription =>
+      '选择识别方式后回放录音或导入 WAV\n仅支持 16 kHz 单声道 PCM16，最长 60 秒\n在线识别会将音频发送给所选服务';
+
+  @override
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor) {
+    return '耗时 $elapsed ms · 首次结果 $first ms · 实时因子 $factor';
+  }
+
+  @override
+  String get voiceAsrExportReport => '导出测试报告';
+
+  @override
+  String get voiceAsrWaveFormat => '请选择 16 kHz 单声道 PCM16 WAV\n音频时长不超过 60 秒';
+
+  @override
+  String get voiceAsrReplayBusy => '请先结束当前语音或识别任务';
+
+  @override
+  String get appDataExtensionSettings => '插件与设备应用数据';
+
+  @override
+  String get appDataExtensionSettingsDescription => '插件和设备应用的设置及数据';
+
+  @override
+  String get appDataExtensionMissing => '请先安装备份中相同版本的插件和对应设备应用';
+
+  @override
+  String get appDataImageCache => '图片缓存';
+
+  @override
+  String get appDataSelectBackup => '选择要备份的数据';
+
+  @override
+  String get appDataSettingsDescription => '主题、语言和功能偏好';
+
+  @override
+  String get appDataHealthDescription => '已同步的健康和运动历史';
+
+  @override
+  String get appDataDeviceKeys => '设备配对与密钥';
+
+  @override
+  String get appDataDeviceKeysDescription => '设备列表及连接所需的认证信息';
+
+  @override
+  String get appDataXiaomiAccount => '小米账号信息';
+
+  @override
+  String get appDataXiaomiAccountDescription => '小米账号及当前登录会话';
+
+  @override
+  String get appDataSensitiveBackup => '备份包含密钥或登录信息且未加密\n请妥善保管，不要分享';
+
+  @override
+  String get appDataImportDescription => '从备份文件选择数据进行恢复';
+
+  @override
+  String get appDataSnapshotDescription => '已保存的活动文件';
+
+  @override
+  String get appDataPluginDescription => '已安装插件及其本地数据';
+
+  @override
+  String get appDataZepposDescription => '设备应用脚本和本地设置';
+
+  @override
+  String get appDataLogsDescription => '应用运行和问题排查记录';
+
+  @override
+  String get appDataRecoveryDescription => '恢复未完成时保留的数据';
+
+  @override
+  String get appDataDownloadsDescription => '下载和安装产生的临时文件';
+
+  @override
+  String get appDataPluginCacheDescription => '插件缓存和可回收临时文件';
+
+  @override
+  String get appDataImagesDescription => '浏览资源时保存的图片缓存';
+
+  @override
+  String get appDataModelsDescription => '已下载的语音模型和识别组件';
+
+  @override
+  String get appDataTasksDescription => '下载和安装任务的进度记录';
+
+  @override
+  String get appDataDocumentsDescription => '协议和隐私说明的本地副本';
+
+  @override
+  String get phoneLocationTitle => '辅助定位';
+
+  @override
+  String get deviceFeaturesGroupTitle => '常用功能与应用';
+
+  @override
+  String get deviceSettingsGroupTitle => '设备设置与维护';
+
+  @override
+  String get phoneLocationStatusSection => '运行状态';
+
+  @override
+  String get phoneLocationPermissionsSection => '定位权限';
+
+  @override
+  String get phoneLocationOptionsSection => '协同选项';
+
+  @override
+  String get phoneLocationReady => '辅助定位已就绪';
+
+  @override
+  String get phoneLocationReadyDesc => '设备发起户外运动时将自动协同定位';
+
+  @override
+  String get phoneLocationServiceEnabled => '系统定位服务';
+
+  @override
+  String get phoneLocationPreciseTitle => '精确位置';
+
+  @override
+  String get phoneLocationPreciseGranted => '已授予精确位置';
+
+  @override
+  String get phoneLocationPreciseDenied => '未授予精确位置';
+
+  @override
+  String get phoneLocationBackgroundTitle => '后台定位';
+
+  @override
+  String get phoneLocationBackgroundAlways => '始终允许';
+
+  @override
+  String get phoneLocationBackgroundWhileInUse => '仅在使用中允许';
+
+  @override
+  String get phoneLocationBackgroundDenied => '未授权';
+
+  @override
+  String get phoneLocationAutoSync => '自动辅助定位';
+
+  @override
+  String get phoneLocationAutoSyncDesc => '设备发起户外运动时自动提供手机 GPS 定位';
+
+  @override
+  String get phoneLocationEnabledText => '已开启';
+
+  @override
+  String get phoneLocationDisabledText => '未开启';
+
+  @override
+  String get phoneLocationNotification => '向设备提供运动位置';
+
+  @override
+  String get phoneLocationDescription => '运动准备和进行期间提供手机位置';
+
+  @override
+  String get phoneLocationOpenApp => '打开 OronBox 继续定位';
+
+  @override
+  String get phoneLocationRecovery => '打开应用后重试设备上的运动';
+
+  @override
+  String get phoneLocationPermission => '需要精确位置权限';
+
+  @override
+  String get phoneLocationBackground => '允许后台定位';
+
+  @override
+  String get phoneLocationBackgroundDescription => '在后台接收设备的运动定位请求';
+
+  @override
+  String get phoneLocationSettings => '打开系统设置';
+
+  @override
+  String get phoneLocationServiceOff => '定位服务未开启';
+
+  @override
+  String get phoneLocationPermissionHelp => '请授予精确位置权限后重试';
+
+  @override
+  String get phoneLocationMobileOnly => '此功能仅支持 Android 和 iOS';
+
+  @override
+  String get phoneLocationUnavailable => '无法获取手机位置\n请检查定位权限和定位服务';
+
+  @override
+  String get deviceConnectionAbnormalTitle => '设备连接异常';
+
+  @override
+  String get deviceConnectionAbnormalMessage =>
+      '设备频繁断开，建议重新配对或确保设备端进入“连接新手机”模式，以提升连接稳定性';
+
+  @override
+  String get deviceRePair => '重新配对';
+
+  @override
+  String appDataClearCategoryTitle(String category) {
+    return '清理$category？';
+  }
+
+  @override
+  String get appDataClearCategoryDescription => '将移除此分类的本地数据\n其它分类不受影响';
+
+  @override
+  String get appDataClearHealthDescription => '将删除健康和运动历史\n仅能重新同步设备上仍保留的数据';
+
+  @override
+  String get appDataClearRawDescription => '将删除已保存的原始活动文件\n之后无法导出或重放这些文件';
+
+  @override
+  String get appDataClearCachedCategoryDescription => '仅清理未使用的缓存文件\n需要时会重新下载';
+
+  @override
+  String get appDataClearModelsDescription => '保留当前模型\n清理未使用的旧版本和过期下载';
+
+  @override
+  String get settingsPermissionsTitle => '权限管理';
+
+  @override
+  String get settingsPermissionsDesc => '应用运行与设备协同权限';
+
+  @override
+  String get appArrangementTitle => '应用排布';
+
+  @override
+  String get appArrangementDescription => '调整应用显示顺序与抽屉布局';
+
+  @override
+  String get appOrderMainSection => '显示应用';
+
+  @override
+  String get appOrderMoreSection => '更多应用';
+
+  @override
+  String get appOrderHiddenSection => '隐藏应用';
+
+  @override
+  String get appOrderMoreSectionDesc => '设备二级抽屉中显示的应用';
+
+  @override
+  String get appOrderHiddenSectionDesc => '不在设备上显示的应用';
+
+  @override
+  String get appOrderMoveToMore => '移入更多';
+
+  @override
+  String get appOrderMoveToMain => '移入列表';
+
+  @override
+  String get appOrderHide => '隐藏';
+
+  @override
+  String get appOrderUnhide => '显示';
+
+  @override
+  String get appOrderCannotHide => '系统常驻应用不可隐藏';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -5501,7 +6168,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get collapse => '收合';
 
   @override
-  String get voiceLabTitle => '語音實驗室';
+  String get voiceLabTitle => '語音助手';
 
   @override
   String get voiceLabXiaoAi => 'XiaoAI';
@@ -6911,27 +7578,29 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get acknowledgementsKazumi => '參考 Material Design 元件與 UI 模式';
 
   @override
-  String get acknowledgementsAstroBoxPublic => '參考 UI 結構、資源流程與互動設計';
+  String get acknowledgementsAstroBoxPublic => '參考 UI 結構與互動設計';
 
   @override
-  String get acknowledgementsAstroBoxNgCore => '參考 Xiaomi 裝置通訊協定、安裝流程與傳輸行為';
+  String get acknowledgementsAstroBoxNgCore => 'Xiaomi 裝置通訊協定與傳輸層，移植改寫';
 
   @override
-  String get acknowledgementsAstroBoxNgBluetooth => '參考 Bluetooth 連線行為';
+  String get acknowledgementsAstroBoxNgPb => 'Xiaomi wear 通訊協定定義，逐字採用';
+
+  @override
+  String get acknowledgementsAstroBoxNgBluetooth => '藍牙連線流程參考';
 
   @override
   String get acknowledgementsAstroBoxNgAccount =>
-      '參考 Xiaomi 帳號登入、裝置同步與 Auth key 取得流程';
+      'Xiaomi 帳號登入與 Auth key 取得流程參考';
 
   @override
-  String get acknowledgementsAstroBoxNgProvider =>
-      '參考社群資源索引、CDN 處理與 manifest 解析流程';
+  String get acknowledgementsAstroBoxNgProvider => '社群資源索引與 manifest 解析流程參考';
 
   @override
-  String get acknowledgementsAstroBoxNgAppWasm => '參考 Web Serial 與瀏覽器端連線流程';
+  String get acknowledgementsAstroBoxNgAppWasm => 'Web Serial 連線流程參考';
 
   @override
-  String get acknowledgementsGadgetbridge => '參考 ZeppOS 與穿戴式裝置通訊協定研究';
+  String get acknowledgementsGadgetbridge => 'ZeppOS 通訊協定實作，移植改寫';
 
   @override
   String get acknowledgementsBreezyWeather => '中國天氣來源實作參考';
@@ -8474,6 +9143,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get xiaomiScreenshotFailed => '取得截圖失敗';
 
   @override
+  String get xiaomiScreenshotDownloadStarted => '已開始下載截圖';
+
+  @override
+  String get xiaomiScreenshotSaveFailed => '儲存截圖失敗';
+
+  @override
   String xiaomiScreenshotSaved(Object path) {
     return '手錶截圖已儲存至：$path';
   }
@@ -8822,40 +9497,34 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get deviceHealthLatestStress => '最近壓力';
 
   @override
-  String get deviceHealthDebugModeTitle => '運動健康開發模式';
+  String get deviceHealthDebugSnapshots => '活動檔案';
 
   @override
-  String get deviceHealthDebugModeDescription => '啟用運動健康資料快照與重載功能';
+  String get deviceHealthDebugSnapshotList => '活動檔案';
 
   @override
-  String get deviceHealthDebugSnapshots => '快照';
-
-  @override
-  String get deviceHealthDebugSnapshotList => '快照清單';
-
-  @override
-  String get deviceHealthDebugSnapshotsDescription => '已擷取的原始活動檔案，可在手錶離線時重放';
+  String get deviceHealthDebugSnapshotsDescription => '已儲存的活動檔案，可供匯出';
 
   @override
   String get deviceHealthDebugRefresh => '重新整理';
 
   @override
-  String get deviceHealthDebugRefreshDescription => '重新讀取已儲存的快照清單';
+  String get deviceHealthDebugRefreshDescription => '重新读取已保存的活动文件列表';
 
   @override
   String get deviceHealthDebugClearAll => '全部清除';
 
   @override
-  String get deviceHealthDebugClearAllDescription => '刪除所有已儲存的健康快照';
+  String get deviceHealthDebugClearAllDescription => '删除所有已保存的活动文件';
 
   @override
-  String get deviceHealthDebugNoSnapshots => '暫無快照';
+  String get deviceHealthDebugNoSnapshots => '暫無活動檔案';
 
   @override
   String get deviceHealthDebugReload => '重放';
 
   @override
-  String get deviceHealthDebugReloaded => '快照已重放';
+  String get deviceHealthDebugReloaded => '活动文件已重放';
 
   @override
   String deviceHealthDebugFiles(Object count) {
@@ -9024,26 +9693,26 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get deviceHealthResting => '靜息';
 
   @override
-  String get deviceHealthDebugExport => '匯出快照';
+  String get deviceHealthDebugExport => '匯出活動檔案';
 
   @override
-  String get deviceHealthDebugExportTooltip => '匯出原始活動檔案';
+  String get deviceHealthDebugExportTooltip => '匯出活動檔案';
 
   @override
   String deviceHealthDebugExported(String path) {
-    return '已匯出至 $path';
+    return '活動檔案已匯出到：$path';
   }
 
   @override
   String deviceHealthDebugExportFailed(String error) {
-    return '匯出快照失敗：$error';
+    return '無法匯出活動檔案：$error';
   }
 
   @override
-  String get deviceHealthDebugImport => '匯入';
+  String get deviceHealthDebugImport => '匯入活動檔案';
 
   @override
-  String get deviceHealthDebugImportDescription => '匯入先前被匯出的快照檔案';
+  String get deviceHealthDebugImportDescription => '匯入先前匯出的活動檔案';
 
   @override
   String deviceHealthDebugImported(String deviceCode, int files) {
@@ -9052,6 +9721,670 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String deviceHealthDebugImportFailed(String error) {
-    return '匯入快照失敗：$error';
+    return '無法匯入活動檔案：$error';
   }
+
+  @override
+  String get commentDeletedPlaceholder => '評論已刪除';
+
+  @override
+  String commentViewReplies(int count) {
+    return '查看全部 $count 則回覆';
+  }
+
+  @override
+  String get commentThreadTitle => '評論詳情';
+
+  @override
+  String commentReplyTarget(String username) {
+    return '回覆 $username';
+  }
+
+  @override
+  String get commentLoadEarlier => '載入較早的回覆';
+
+  @override
+  String get messageCommentCreatedTitle => '資源收到新評論';
+
+  @override
+  String get scanQrCode => '掃描 QR 碼';
+
+  @override
+  String get deviceSwitchQrImport => '掃描分享 QR 碼匯入現有裝置';
+
+  @override
+  String get creatorCollectionReplacePendingDescription =>
+      '提交後將取代待審版本\n已上線版本不受影響';
+
+  @override
+  String get creatorCollectionNoMatchingResources => '暫無同類型資源\n請先在創作者中心建立資源';
+
+  @override
+  String get commentCreateFailed => '發表評論失敗，請重試';
+
+  @override
+  String get commentsReadFailed => '讀取評論失敗，請重試';
+
+  @override
+  String get commentDeleteFailed => '刪除評論失敗，請重試';
+
+  @override
+  String get errorRequestTimeout => '請求逾時，請重試';
+
+  @override
+  String get creatorCollectionReplacePendingTitle => '替換待審版本？';
+
+  @override
+  String get creatorCollectionReplaceAndSubmit => '替換並提審';
+
+  @override
+  String get creatorCollectionCreateTitle => '建立合集';
+
+  @override
+  String get creatorCollectionEditTitle => '編輯合集';
+
+  @override
+  String creatorCollectionCurrentRevision(String number) {
+    return '線上版本：$number';
+  }
+
+  @override
+  String creatorCollectionPendingRevision(String number) {
+    return '待審版本：$number';
+  }
+
+  @override
+  String get creatorCollectionHistory => '查看／參考歷史版本';
+
+  @override
+  String get creatorCollectionBody => '正文（Markdown）';
+
+  @override
+  String get creatorMediaIcon => '圖示';
+
+  @override
+  String get creatorMediaCover => '封面';
+
+  @override
+  String get creatorMediaUnset => '未設定';
+
+  @override
+  String get creatorMediaSet => '已設定';
+
+  @override
+  String get creatorCollectionMemberOrder => '成員順序與代表資源';
+
+  @override
+  String get creatorCollectionMemberUnavailable => '資源無法使用，請移除';
+
+  @override
+  String get creatorCollectionSetRepresentative => '設為代表資源';
+
+  @override
+  String get creatorCollectionAddMember => '新增成員';
+
+  @override
+  String get creatorImageReadFailed => '無法讀取圖片';
+
+  @override
+  String get creatorImageProcessFailed => '無法處理圖片';
+
+  @override
+  String get creatorPublicationRetry => '重試發布';
+
+  @override
+  String get creatorTermsLoadFailed => '發布條款載入失敗';
+
+  @override
+  String get creatorReviewItems => '整改項';
+
+  @override
+  String get creatorReviewFixReplied => '已回覆修正';
+
+  @override
+  String get creatorReviewReplyFix => '回覆修正';
+
+  @override
+  String get creatorTermsUpdated => '資源發布條款已更新';
+
+  @override
+  String get creatorPublishingLater => '暫不發布';
+
+  @override
+  String get creatorTermsAgree => '已閱讀並同意';
+
+  @override
+  String get updateAssetUnavailable => '此版本沒有適用於目前平台的安裝包';
+
+  @override
+  String get legalDocumentUnavailable => '文件暫時無法使用，請重試';
+
+  @override
+  String get deviceImportTitle => '匯入裝置';
+
+  @override
+  String get qrScanFromImage => '從圖片辨識';
+
+  @override
+  String get qrScanNoCode => '未辨識到 QR Code';
+
+  @override
+  String get qrScanImageFailed => '無法辨識這張圖片';
+
+  @override
+  String get qrScanCameraUnavailable => '相機無法使用\n可以選擇圖片辨識 QR Code';
+
+  @override
+  String get qrScanChooseCode => '選擇 QR Code';
+
+  @override
+  String qrScanCodeLabel(int index) {
+    return 'QR Code $index';
+  }
+
+  @override
+  String get qrScanUnsupported => '目前平台暫不支援 QR Code 辨識';
+
+  @override
+  String get featureLabTitle => '功能實驗室';
+
+  @override
+  String get featureLabDescription => '測試一些正在開發中的功能';
+
+  @override
+  String get voiceAssistantDescription => '接收裝置語音、監聽和回覆';
+
+  @override
+  String get voiceLabConnectDevice => '連接裝置後，在裝置上喚醒語音助手';
+
+  @override
+  String get voiceLabCaptureLimit => '錄音已達到上限，請清除後重試';
+
+  @override
+  String get voiceLabReplyTooLong => '回覆內容過長';
+
+  @override
+  String get voiceLabRecognitionLabel => '辨識結果';
+
+  @override
+  String get voiceLabRecognitionHint => '輸入辨識出的文字';
+
+  @override
+  String get appDataTitle => '應用程式資料';
+
+  @override
+  String get appDataDescription => '查看儲存用量與匯出檔案';
+
+  @override
+  String get appDataSpaceUsage => '分類用量';
+
+  @override
+  String get appDataHealth => '健康資料';
+
+  @override
+  String get appDataPlugins => '外掛程式';
+
+  @override
+  String get appDataZeppos => 'ZeppOS 應用程式資料';
+
+  @override
+  String get appDataRecovery => '匯入復原資料';
+
+  @override
+  String get appDataDownloads => '資源與更新下載';
+
+  @override
+  String get appDataPluginCache => '外掛程式快取';
+
+  @override
+  String get appDataManageSnapshots => '管理已儲存的活動檔案';
+
+  @override
+  String get appDataExportSnapshots => '匯出活動檔案';
+
+  @override
+  String get appDataExportSnapshotsDescription => '匯出已儲存的活動檔案';
+
+  @override
+  String get appDataExported => '已儲存匯出檔案';
+
+  @override
+  String get appDataLoadFailed => '無法讀取應用程式資料';
+
+  @override
+  String get appDataExportFailed => '檔案匯出失敗';
+
+  @override
+  String get appDataArchiveTooLarge => '活动文件过大，请分别导出';
+
+  @override
+  String get appDataUpdateFailed => '應用程式資料修改失敗';
+
+  @override
+  String get appDataBackup => '匯出備份';
+
+  @override
+  String get appDataBackupDescription => '選擇並匯出需要保留的本機資料';
+
+  @override
+  String get appDataRestore => '還原備份';
+
+  @override
+  String get appDataRestoreDescription => '選擇要還原的資料\n相同裝置的本機健康紀錄將被取代';
+
+  @override
+  String get appDataSettings => '應用程式設定';
+
+  @override
+  String appDataHealthDevices(int count) {
+    return '健康紀錄（$count 台裝置）';
+  }
+
+  @override
+  String get appDataRestored => '備份已還原\n重新啟動以套用所有設定';
+
+  @override
+  String get appDataRestoreFailed => '備份還原失敗';
+
+  @override
+  String get appDataRecover => '復原上次還原';
+
+  @override
+  String get appDataRecoveryPending => '上次還原未完成';
+
+  @override
+  String get appDataRecoverDescription => '將還原至上次匯入前的設定與健康紀錄\n之後新增的本機健康資料也會被取代';
+
+  @override
+  String get voiceAsrMethod => '辨識方式';
+
+  @override
+  String get voiceAsrManual => '手動輸入';
+
+  @override
+  String get voiceAsrLocal => '本機辨識';
+
+  @override
+  String get voiceAsrWeType => '微信輸入法';
+
+  @override
+  String get voiceAsrDoubao => '豆包輸入法';
+
+  @override
+  String get voiceAsrWasm => 'WASM 實驗';
+
+  @override
+  String voiceAsrCloudConsent(String provider) {
+    return '錄音將傳送至$provider進行辨識\n僅在使用此頁面時傳送';
+  }
+
+  @override
+  String get voiceAsrPreparing => '正在準備辨識';
+
+  @override
+  String get voiceAsrRecognizing => '正在辨識';
+
+  @override
+  String get voiceAsrFinishing => '正在處理最後的語音';
+
+  @override
+  String get voiceAsrFinished => '辨識完成';
+
+  @override
+  String get voiceAsrModelReady => '本機中英辨識資料已就緒';
+
+  @override
+  String get voiceAsrModelDescription => '本機中英辨識\n首次使用需下載模型和辨識元件';
+
+  @override
+  String get voiceAsrDownloadModel => '下載辨識資料';
+
+  @override
+  String get voiceAsrDeleteModel => '刪除辨識資料';
+
+  @override
+  String get voiceAsrSendRecognition => '傳送辨識結果';
+
+  @override
+  String get voiceAsrModelMissing => '請先下載本機辨識資料';
+
+  @override
+  String get voiceAsrModelDamaged => '辨識資料損毀，請刪除後重新下載';
+
+  @override
+  String get voiceAsrDownloadFailed => '模型下載失敗，請檢查網路後重試';
+
+  @override
+  String get voiceAsrRegistrationFailed => '無法啟用此辨識服務，請稍後重試';
+
+  @override
+  String get voiceAsrServiceRejected => '辨識服務拒絕了本次請求';
+
+  @override
+  String get voiceAsrTimeout => '等待辨識結果逾時，請重新說話';
+
+  @override
+  String get voiceAsrOpusUnsupported => '此裝置的音訊暫不適用於微信輸入法';
+
+  @override
+  String get voiceAsrUnsupported => '此平台暫不支援這種辨識方式';
+
+  @override
+  String get voiceAsrTooSlow => '辨識處理過慢，請結束本輪後重試';
+
+  @override
+  String get voiceAsrNoSpeech => '未辨識到語音';
+
+  @override
+  String get voiceAsrInvalidResponse => '辨識服務傳回無效結果';
+
+  @override
+  String get voiceAsrInferenceFailed => '本機辨識失敗，請重新選擇辨識方式';
+
+  @override
+  String get voiceAsrCancelled => '已取消辨識';
+
+  @override
+  String get voiceAsrConnectionFailed => '無法連線至辨識服務，請檢查網路後重試';
+
+  @override
+  String get appDataModels => '語音辨識資料';
+
+  @override
+  String get appDataTasks => '工作記錄';
+
+  @override
+  String get appDataDocuments => '文件快取';
+
+  @override
+  String get privateStateLoadFailed => '暫時無法讀取已儲存的帳號和裝置\n請重試';
+
+  @override
+  String get privateStateSaveFailed => '未能儲存帳號或裝置的變更\n請重試';
+
+  @override
+  String get voiceAsrStorageFull => '儲存空間不足\n請清理後重試';
+
+  @override
+  String get voiceAsrReconnect => '重新連線辨識服務';
+
+  @override
+  String get voiceAsrReconnectDescription => '重新連線後將重新註冊此辨識服務\n不會影響已登入的帳號';
+
+  @override
+  String get voiceAsrReconnectFailed => '重新連線失敗';
+
+  @override
+  String get appDataClearCache => '清理快取';
+
+  @override
+  String get appDataClearCacheDescription =>
+      '清理圖片、外掛、文件快取與過期暫存檔\n執行中的外掛與裝置應用會停止';
+
+  @override
+  String get appDataCacheCleared => '快取已清理';
+
+  @override
+  String get voiceAsrReplayRecording => '重播目前錄音';
+
+  @override
+  String get voiceAsrImportWave => '匯入 WAV';
+
+  @override
+  String get voiceAsrReplayDescription =>
+      '選擇辨識方式後重播錄音或匯入 WAV\n僅支援 16 kHz 單聲道 PCM16，最長 60 秒\n線上辨識會將音訊傳送給所選服務';
+
+  @override
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor) {
+    return '耗時 $elapsed ms · 首次結果 $first ms · 即時因子 $factor';
+  }
+
+  @override
+  String get voiceAsrExportReport => '匯出測試報告';
+
+  @override
+  String get voiceAsrWaveFormat => '請選擇 16 kHz 單聲道 PCM16 WAV\n音訊長度不超過 60 秒';
+
+  @override
+  String get voiceAsrReplayBusy => '請先結束目前語音或辨識工作';
+
+  @override
+  String get appDataExtensionSettings => '外掛與裝置應用資料';
+
+  @override
+  String get appDataExtensionSettingsDescription => '外掛和裝置應用程式的設定及資料';
+
+  @override
+  String get appDataExtensionMissing => '請先安裝備份中相同版本的外掛與對應裝置應用';
+
+  @override
+  String get appDataImageCache => '圖片快取';
+
+  @override
+  String get appDataSelectBackup => '選擇要備份的資料';
+
+  @override
+  String get appDataSettingsDescription => '主題、語言和功能偏好';
+
+  @override
+  String get appDataHealthDescription => '已同步的健康和運動歷史';
+
+  @override
+  String get appDataDeviceKeys => '裝置配對與金鑰';
+
+  @override
+  String get appDataDeviceKeysDescription => '裝置清單及連線所需的認證資訊';
+
+  @override
+  String get appDataXiaomiAccount => '小米帳號資訊';
+
+  @override
+  String get appDataXiaomiAccountDescription => '小米帳號及目前登入工作階段';
+
+  @override
+  String get appDataSensitiveBackup => '備份包含金鑰或登入資訊且未加密\n請妥善保管，不要分享';
+
+  @override
+  String get appDataImportDescription => '從備份檔案選擇資料進行還原';
+
+  @override
+  String get appDataSnapshotDescription => '已儲存的活動檔案';
+
+  @override
+  String get appDataPluginDescription => '已安裝外掛及其本機資料';
+
+  @override
+  String get appDataZepposDescription => '裝置應用程式腳本和本機設定';
+
+  @override
+  String get appDataLogsDescription => '應用程式執行和問題排查記錄';
+
+  @override
+  String get appDataRecoveryDescription => '還原未完成時保留的資料';
+
+  @override
+  String get appDataDownloadsDescription => '下載和安裝產生的暫存檔案';
+
+  @override
+  String get appDataPluginCacheDescription => '外掛快取和可回收暫存檔案';
+
+  @override
+  String get appDataImagesDescription => '瀏覽資源時儲存的圖片快取';
+
+  @override
+  String get appDataModelsDescription => '已下載的語音模型和辨識元件';
+
+  @override
+  String get appDataTasksDescription => '下載和安裝工作的進度記錄';
+
+  @override
+  String get appDataDocumentsDescription => '條款和隱私說明的本機副本';
+
+  @override
+  String get phoneLocationTitle => '輔助定位';
+
+  @override
+  String get deviceFeaturesGroupTitle => '常用功能與應用';
+
+  @override
+  String get deviceSettingsGroupTitle => '裝置設定與維護';
+
+  @override
+  String get phoneLocationStatusSection => '運行狀態';
+
+  @override
+  String get phoneLocationPermissionsSection => '權限與系統服務';
+
+  @override
+  String get phoneLocationOptionsSection => '協同選項';
+
+  @override
+  String get phoneLocationReady => '輔助定位已就緒';
+
+  @override
+  String get phoneLocationReadyDesc => '裝置發起戶外運動時將自動協同定位';
+
+  @override
+  String get phoneLocationServiceEnabled => '系統定位服務';
+
+  @override
+  String get phoneLocationPreciseTitle => '精確位置';
+
+  @override
+  String get phoneLocationPreciseGranted => '已授予高精度定位';
+
+  @override
+  String get phoneLocationPreciseDenied => '未授予精確位置';
+
+  @override
+  String get phoneLocationBackgroundTitle => '背景定位';
+
+  @override
+  String get phoneLocationBackgroundAlways => '始終允許';
+
+  @override
+  String get phoneLocationBackgroundWhileInUse => '僅在使用中允許';
+
+  @override
+  String get phoneLocationBackgroundDenied => '未授權';
+
+  @override
+  String get phoneLocationAutoSync => '自動輔助定位';
+
+  @override
+  String get phoneLocationAutoSyncDesc => '裝置發起戶外運動時自動提供手機 GPS 定位';
+
+  @override
+  String get phoneLocationEnabledText => '已開啟';
+
+  @override
+  String get phoneLocationDisabledText => '未開啟';
+
+  @override
+  String get phoneLocationNotification => '向裝置提供運動位置';
+
+  @override
+  String get phoneLocationDescription => '運動準備和進行期間提供手機位置';
+
+  @override
+  String get phoneLocationOpenApp => '開啟 OronBox 繼續定位';
+
+  @override
+  String get phoneLocationRecovery => '開啟應用程式後重試裝置上的運動';
+
+  @override
+  String get phoneLocationPermission => '需要精確位置權限';
+
+  @override
+  String get phoneLocationBackground => '允許背景定位';
+
+  @override
+  String get phoneLocationBackgroundDescription => '在背景接收裝置的運動定位請求';
+
+  @override
+  String get phoneLocationSettings => '開啟系統設定';
+
+  @override
+  String get phoneLocationServiceOff => '定位服務未開啟';
+
+  @override
+  String get phoneLocationPermissionHelp => '請授予精確位置權限後重試';
+
+  @override
+  String get phoneLocationMobileOnly => '此功能僅支援 Android 和 iOS';
+
+  @override
+  String get phoneLocationUnavailable => '無法取得手機位置\n請檢查定位權限和定位服務';
+
+  @override
+  String get deviceConnectionAbnormalTitle => '裝置連線異常';
+
+  @override
+  String get deviceConnectionAbnormalMessage =>
+      '裝置頻繁中斷，建議重新配對，或確認裝置已進入「連線新手機」模式，以提升連線穩定性';
+
+  @override
+  String get deviceRePair => '重新配對';
+
+  @override
+  String appDataClearCategoryTitle(String category) {
+    return '清理$category？';
+  }
+
+  @override
+  String get appDataClearCategoryDescription => '將移除此分類的本機資料\n其它分類不受影響';
+
+  @override
+  String get appDataClearHealthDescription => '將刪除健康與運動歷史\n僅能重新同步裝置上仍保留的資料';
+
+  @override
+  String get appDataClearRawDescription => '將刪除已儲存的原始活動檔案\n之後無法匯出或重播這些檔案';
+
+  @override
+  String get appDataClearCachedCategoryDescription => '僅清理未使用的快取檔案\n需要時會重新下載';
+
+  @override
+  String get appDataClearModelsDescription => '保留目前模型\n清理未使用的舊版本與過期下載';
+
+  @override
+  String get settingsPermissionsTitle => '權限管理';
+
+  @override
+  String get settingsPermissionsDesc => '應用運行與設備協同權限';
+
+  @override
+  String get appArrangementTitle => '應用排布';
+
+  @override
+  String get appArrangementDescription => '調整應用顯示順序與抽屜排布';
+
+  @override
+  String get appOrderMainSection => '顯示應用';
+
+  @override
+  String get appOrderMoreSection => '更多應用';
+
+  @override
+  String get appOrderHiddenSection => '隱藏應用';
+
+  @override
+  String get appOrderMoreSectionDesc => '裝置二級抽屜中顯示的應用';
+
+  @override
+  String get appOrderHiddenSectionDesc => '不在裝置上顯示的應用';
+
+  @override
+  String get appOrderMoveToMore => '移入更多';
+
+  @override
+  String get appOrderMoveToMain => '移入列表';
+
+  @override
+  String get appOrderHide => '隱藏';
+
+  @override
+  String get appOrderUnhide => '顯示';
+
+  @override
+  String get appOrderCannotHide => '系統常駐應用不可隱藏';
 }

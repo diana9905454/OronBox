@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/oronbox_app.dart';
@@ -12,6 +14,7 @@ import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/host/gui_host_overrides.dart';
 import 'package:oronbox/src/app/integrations/app_link_handler.dart';
 import 'package:oronbox/src/features/debug/pages/debug_window_app.dart';
+import 'package:oronbox/src/app/widgets/private_state_gate.dart';
 import 'package:oronbox/src/features/plugins/pages/plugin_window_app.dart';
 
 void main(List<String> args) async {
@@ -29,6 +32,10 @@ void main(List<String> args) async {
   if (!await initializeWindowCoordinator(window, launchArguments: args)) return;
   if (window.role == OronBoxWindowRole.main) {
     await requestBluetoothPermissionOnStartup();
+    // The bundled documents are sufficient for startup. Refresh remote
+    // revisions after the first frame so a slow server cannot hold the app
+    // behind the legal-manifest request.
+    unawaited(LegalAgreements.refreshManifest());
   }
   await LicenseRegistryService.registerThirdPartyLicenses();
   await initializeDesktopWindow(spec: window);
@@ -38,13 +45,15 @@ void main(List<String> args) async {
         ...guiHostOverrides(),
         initialDeepLinksProvider.overrideWithValue(args),
       ],
-      child: switch (window.role) {
-        OronBoxWindowRole.debug => const DebugWindowApp(),
-        OronBoxWindowRole.plugin => PluginWindowApp(
-          pluginId: window.targetId ?? '',
-        ),
-        OronBoxWindowRole.main => const OronBoxApp(),
-      },
+      child: PrivateStateGate(
+        child: switch (window.role) {
+          OronBoxWindowRole.debug => const DebugWindowApp(),
+          OronBoxWindowRole.plugin => PluginWindowApp(
+            pluginId: window.targetId ?? '',
+          ),
+          OronBoxWindowRole.main => const OronBoxApp(),
+        },
+      ),
     ),
   );
   startupStopwatch.stop();

@@ -61,14 +61,16 @@ dependencies:
   file_picker: ^13.1.0
   # desktop_drop 0.8.x is still coupled to cross_file 0.3.x
   cross_file: ^0.3.5+5
-  archive: ^4.3.0
+  archive: ^4.5.2
   image: ^4.10.1
   charset: ^2.0.1
   enough_convert: ^1.6.0
   logging: ^1.3.0
   qr_flutter: ^4.1.0
+  flutter_zxing: 3.1.0
   app_links: ^7.2.1
   path_provider: ^2.1.6
+  path_provider_windows: ^2.3.0
   desktop_drop: ^0.8.4
   window_manager: ^0.5.2
   tray_manager: ^0.7.0
@@ -91,7 +93,19 @@ dependencies:
   desktop_multi_window: ^0.3.1
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
-  geolocator: ^14.1.1
+  oronbox_location:
+    git:
+      url: https://github.com/OrPudding/oronbox_location
+      ref: v0.1.0
+  flutter_secure_storage: ^11.2.0
+  html2md: ^1.3.2
+  markdown: ^7.3.1
+  drift: ^2.35.2
+  # wasm_run uses hooks 1.x; sqlite3 3.6+ requires hooks 2.x
+  sqlite3: ">=3.5.2 <3.6.0"
+  sherpa_onnx: ^1.13.8
+  web_socket_channel: ^3.0.3
+  disk_usage: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -107,16 +121,14 @@ dev_dependencies:
   json_serializable: ^6.14.0
 
 dependency_overrides:
-  # wasm_run 0.2.0+2 bindings are generated with flutter_rust_bridge 2.12.0;
+  # wasm_run bindings are generated with flutter_rust_bridge 2.12.0;
   # newer FRB releases reject them at runtime due to the codegen version.
   flutter_rust_bridge: 2.12.0
-
-hooks:
-  user_defines:
-    wasm_run:
-      buildMode: local
-      localPath: build/native_assets/macos/libwasm_run_dart.dylib
-      assetName: wasm_run_dart-dynamic-$target
+  wasm_run:
+    git:
+      url: https://github.com/OrPudding/wasm_run_oronbox
+      ref: wasm_run-v0.2.0-ob-patch.1
+      path: packages/wasm_run
 
 flutter:
   generate: true
@@ -136,6 +148,7 @@ flutter:
     - assets/licenses/
     - assets/wasm/
     - assets/legal/
+    - assets/certs/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

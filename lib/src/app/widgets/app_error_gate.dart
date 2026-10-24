@@ -1,10 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
-
-final appScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 /// Converts application-wide state failures into one user-facing notice.
 ///

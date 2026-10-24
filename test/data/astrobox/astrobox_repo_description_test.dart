@@ -1,26 +1,34 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/data/astrobox/astrobox_repo_description.dart';
+import 'package:oronbox/src/data/community/description_markdown.dart';
 
 void main() {
-  test('normalizes AstroBox manifest presentation markup only', () {
-    const raw =
-        '为Canopus模块打造的手环端管理器与注入器。<br/><span '
-        'style="color: #ff6b6b; font-size: 26px; font-weight: 700">'
-        '注意！！！</span>';
-
-    final result = normalizeAstroBoxRepoDescription(raw);
-
-    expect(result.isHtml, isTrue);
-    expect(result.value, contains('手环端管理器与注入器。<br/>'));
-    expect(result.value, contains('<strong>注意！！！</strong>'));
+  test('converts HTML formatting without losing paragraphs and links', () {
+    final result = normalizeAstroBoxRepoDescription(
+      '<p>First<br/><span style="font-weight: 700">bold</span></p>'
+      '<p><a href="https://example.com">Link</a></p>',
+    );
+    expect(result.value, contains('**bold**'));
+    expect(result.value, contains('[Link](https://example.com)'));
+    expect(result.value, contains('\n\n'));
     expect(result.value, isNot(contains('<span')));
-    expect(result.value, isNot(contains('style=')));
   });
 
-  test('keeps ordinary AstroBox descriptions as plain text', () {
-    final result = normalizeAstroBoxRepoDescription('普通描述 & 说明');
+  test('preserves existing Markdown', () {
+    expect(
+      normalizeAstroBoxRepoDescription('**bold** & text').value,
+      '**bold** & text',
+    );
+  });
 
-    expect(result.isHtml, isFalse);
-    expect(result.value, '普通描述 & 说明');
+  test('resolves forum assets and removes executable content', () {
+    final result = descriptionMarkdown(
+      '<script>secret</script><p><img src="/a.png">'
+      '<a href="javascript:alert(1)">unsafe</a></p>',
+      baseUri: Uri.parse('https://www.bandbbs.cn/'),
+    );
+    expect(result, contains('https://www.bandbbs.cn/a.png'));
+    expect(result, isNot(contains('secret')));
+    expect(result, isNot(contains('javascript:')));
   });
 }

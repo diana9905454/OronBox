@@ -865,7 +865,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get collapse => 'Сворачивание';
 
   @override
-  String get voiceLabTitle => 'Голосовая лаборатория';
+  String get voiceLabTitle => 'Голосовой помощник';
 
   @override
   String get voiceLabXiaoAi => 'XiaoAI';
@@ -2353,34 +2353,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get acknowledgementsAstroBoxPublic =>
-      'Благодарности AstroBox публичный';
+      'Ссылка на структуру интерфейса и дизайн взаимодействия';
 
   @override
   String get acknowledgementsAstroBoxNgCore =>
-      'Ссылки на исходный код ядра AstroBox NG';
+      'Протокол устройств Xiaomi и транспортный уровень, перенесено и изменено';
+
+  @override
+  String get acknowledgementsAstroBoxNgPb =>
+      'Определения протокола Xiaomi wear, приняты дословно';
 
   @override
   String get acknowledgementsAstroBoxNgBluetooth =>
-      'Ссылки на реализацию Bluetooth в AstroBox NG';
+      'Ссылка на процесс подключения по Bluetooth';
 
   @override
   String get acknowledgementsAstroBoxNgAccount =>
-      'Ссылки на работу с аккаунтами в AstroBox NG';
+      'Ссылка на процесс входа в аккаунт Xiaomi и получения authkey';
 
   @override
   String get acknowledgementsAstroBoxNgProvider =>
-      'Ссылки на провайдер ресурсов AstroBox NG';
+      'Ссылка на процесс индексации ресурсов сообщества и разбора манифестов';
 
   @override
   String get acknowledgementsAstroBoxNgAppWasm =>
-      'Ссылки на WebAssembly-приложение AstroBox NG';
+      'Ссылка на процесс подключения Web Serial';
 
   @override
-  String get acknowledgementsGadgetbridge => 'Благодарности Gadgetbridge';
+  String get acknowledgementsGadgetbridge =>
+      'Реализация протокола ZeppOS, перенесено и изменено';
 
   @override
   String get acknowledgementsBreezyWeather =>
-      '参考 реализации китайского источника погоды';
+      'Ссылка на реализацию китайского источника погоды';
 
   @override
   String get acknowledgementsOpenMeteo =>
@@ -4326,6 +4331,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get xiaomiScreenshotFailed => 'Не удалось получить снимок экрана';
 
   @override
+  String get xiaomiScreenshotDownloadStarted => 'Загрузка снимка экрана начата';
+
+  @override
+  String get xiaomiScreenshotSaveFailed => 'Не удалось сохранить снимок экрана';
+
+  @override
   String xiaomiScreenshotSaved(Object path) {
     return 'Снимок экрана часов сохранён в: $path';
   }
@@ -4674,44 +4685,37 @@ class AppLocalizationsRu extends AppLocalizations {
   String get deviceHealthLatestStress => 'Последний стресс';
 
   @override
-  String get deviceHealthDebugModeTitle => 'Режим разработки здоровья';
+  String get deviceHealthDebugSnapshots => 'Файлы активности';
 
   @override
-  String get deviceHealthDebugModeDescription =>
-      'Включить снимки данных о здоровье и перезагрузку';
-
-  @override
-  String get deviceHealthDebugSnapshots => 'Снимки';
-
-  @override
-  String get deviceHealthDebugSnapshotList => 'Список снимков';
+  String get deviceHealthDebugSnapshotList => 'Файлы активности';
 
   @override
   String get deviceHealthDebugSnapshotsDescription =>
-      'Сохранённые исходные файлы активности можно воспроизвести без часов';
+      'Сохранённые файлы активности доступны для экспорта';
 
   @override
   String get deviceHealthDebugRefresh => 'Обновить';
 
   @override
   String get deviceHealthDebugRefreshDescription =>
-      'Перечитать сохранённый список снимков';
+      'Reload the saved activity file list';
 
   @override
   String get deviceHealthDebugClearAll => 'Очистить всё';
 
   @override
   String get deviceHealthDebugClearAllDescription =>
-      'Удалить все сохранённые снимки здоровья';
+      'Delete every saved activity file';
 
   @override
-  String get deviceHealthDebugNoSnapshots => 'Снимков пока нет';
+  String get deviceHealthDebugNoSnapshots => 'Файлов активности пока нет';
 
   @override
   String get deviceHealthDebugReload => 'Воспроизвести';
 
   @override
-  String get deviceHealthDebugReloaded => 'Снимок воспроизведён';
+  String get deviceHealthDebugReloaded => 'Activity file replayed';
 
   @override
   String deviceHealthDebugFiles(Object count) {
@@ -4884,36 +4888,768 @@ class AppLocalizationsRu extends AppLocalizations {
   String get deviceHealthResting => 'Покой';
 
   @override
-  String get deviceHealthDebugExport => 'Экспорт снимка';
+  String get deviceHealthDebugExport => 'Экспортировать файлы активности';
 
   @override
   String get deviceHealthDebugExportTooltip =>
-      'Экспортировать необработанные файлы активности';
+      'Экспортировать файлы активности';
 
   @override
   String deviceHealthDebugExported(String path) {
-    return 'Экспортировано в $path';
+    return 'Файлы активности экспортированы в $path';
   }
 
   @override
   String deviceHealthDebugExportFailed(String error) {
-    return 'Не удалось экспортировать снимок: $error';
+    return 'Не удалось экспортировать файлы активности: $error';
   }
 
   @override
-  String get deviceHealthDebugImport => 'Импорт';
+  String get deviceHealthDebugImport => 'Импортировать файлы активности';
 
   @override
   String get deviceHealthDebugImportDescription =>
-      'Импортировать ранее экспортированный файл снимка';
+      'Импорт ранее экспортированных файлов активности';
 
   @override
   String deviceHealthDebugImported(String deviceCode, int files) {
-    return 'Импортирован $deviceCode ($files файлов)';
+    return 'Импортировано $deviceCode ($files файлов)';
   }
 
   @override
   String deviceHealthDebugImportFailed(String error) {
-    return 'Не удалось импортировать снимок: $error';
+    return 'Не удалось импортировать файлы активности: $error';
   }
+
+  @override
+  String get commentDeletedPlaceholder => 'Комментарий удалён';
+
+  @override
+  String commentViewReplies(int count) {
+    return 'Все ответы: $count';
+  }
+
+  @override
+  String get commentThreadTitle => 'Подробности комментария';
+
+  @override
+  String commentReplyTarget(String username) {
+    return 'Ответить $username';
+  }
+
+  @override
+  String get commentLoadEarlier => 'Загрузить предыдущие ответы';
+
+  @override
+  String get messageCommentCreatedTitle => 'Новый комментарий к вашему ресурсу';
+
+  @override
+  String get scanQrCode => 'Сканировать QR-код';
+
+  @override
+  String get deviceSwitchQrImport =>
+      'Импортировать устройство по QR-коду общего доступа';
+
+  @override
+  String get creatorCollectionReplacePendingDescription =>
+      'Ожидающая проверки версия будет заменена\nОпубликованная версия останется доступной';
+
+  @override
+  String get creatorCollectionNoMatchingResources =>
+      'Нет ресурсов этого типа\nСначала создайте ресурс в центре автора';
+
+  @override
+  String get commentCreateFailed =>
+      'Не удалось отправить комментарий, повторите попытку';
+
+  @override
+  String get commentsReadFailed =>
+      'Не удалось загрузить комментарии, повторите попытку';
+
+  @override
+  String get commentDeleteFailed =>
+      'Не удалось удалить комментарий, повторите попытку';
+
+  @override
+  String get errorRequestTimeout =>
+      'Время ожидания запроса истекло, повторите попытку';
+
+  @override
+  String get creatorCollectionReplacePendingTitle =>
+      'Заменить версию на проверке?';
+
+  @override
+  String get creatorCollectionReplaceAndSubmit =>
+      'Заменить и отправить на проверку';
+
+  @override
+  String get creatorCollectionCreateTitle => 'Создать подборку';
+
+  @override
+  String get creatorCollectionEditTitle => 'Изменить подборку';
+
+  @override
+  String creatorCollectionCurrentRevision(String number) {
+    return 'Опубликованная версия: $number';
+  }
+
+  @override
+  String creatorCollectionPendingRevision(String number) {
+    return 'Версия на проверке: $number';
+  }
+
+  @override
+  String get creatorCollectionHistory => 'Просмотр предыдущих версий';
+
+  @override
+  String get creatorCollectionBody => 'Текст (Markdown)';
+
+  @override
+  String get creatorMediaIcon => 'Значок';
+
+  @override
+  String get creatorMediaCover => 'Обложка';
+
+  @override
+  String get creatorMediaUnset => 'Не задано';
+
+  @override
+  String get creatorMediaSet => 'Задано';
+
+  @override
+  String get creatorCollectionMemberOrder =>
+      'Порядок элементов и главный ресурс';
+
+  @override
+  String get creatorCollectionMemberUnavailable =>
+      'Ресурс недоступен, удалите его';
+
+  @override
+  String get creatorCollectionSetRepresentative => 'Сделать главным ресурсом';
+
+  @override
+  String get creatorCollectionAddMember => 'Добавить элементы';
+
+  @override
+  String get creatorImageReadFailed => 'Не удалось прочитать изображение';
+
+  @override
+  String get creatorImageProcessFailed => 'Не удалось обработать изображение';
+
+  @override
+  String get creatorPublicationRetry => 'Повторить публикацию';
+
+  @override
+  String get creatorTermsLoadFailed =>
+      'Не удалось загрузить условия публикации';
+
+  @override
+  String get creatorReviewItems => 'Запрошенные исправления';
+
+  @override
+  String get creatorReviewFixReplied => 'Об исправлении сообщено';
+
+  @override
+  String get creatorReviewReplyFix => 'Сообщить об исправлении';
+
+  @override
+  String get creatorTermsUpdated => 'Условия публикации обновлены';
+
+  @override
+  String get creatorPublishingLater => 'Не сейчас';
+
+  @override
+  String get creatorTermsAgree => 'Прочитано, согласен';
+
+  @override
+  String get updateAssetUnavailable =>
+      'В этой версии нет установочного пакета для текущей платформы';
+
+  @override
+  String get legalDocumentUnavailable =>
+      'Документ недоступен, повторите попытку';
+
+  @override
+  String get deviceImportTitle => 'Импорт устройства';
+
+  @override
+  String get qrScanFromImage => 'Распознать на изображении';
+
+  @override
+  String get qrScanNoCode => 'QR-код не найден';
+
+  @override
+  String get qrScanImageFailed => 'Не удалось прочитать изображение';
+
+  @override
+  String get qrScanCameraUnavailable =>
+      'Камера недоступна\nМожно выбрать изображение с QR-кодом';
+
+  @override
+  String get qrScanChooseCode => 'Выберите QR-код';
+
+  @override
+  String qrScanCodeLabel(int index) {
+    return 'QR-код $index';
+  }
+
+  @override
+  String get qrScanUnsupported =>
+      'Распознавание QR-кодов недоступно на этой платформе';
+
+  @override
+  String get featureLabTitle => 'Лаборатория функций';
+
+  @override
+  String get featureLabDescription => 'Тестирование функций в разработке';
+
+  @override
+  String get voiceAssistantDescription =>
+      'Приём и прослушивание звука устройства, отправка ответов';
+
+  @override
+  String get voiceLabConnectDevice =>
+      'Подключите устройство и запустите голосового помощника';
+
+  @override
+  String get voiceLabCaptureLimit =>
+      'Достигнут предел записи, очистите запись и повторите';
+
+  @override
+  String get voiceLabReplyTooLong => 'Ответ слишком длинный';
+
+  @override
+  String get voiceLabRecognitionLabel => 'Результат распознавания';
+
+  @override
+  String get voiceLabRecognitionHint => 'Введите распознанный текст';
+
+  @override
+  String get appDataTitle => 'Данные приложения';
+
+  @override
+  String get appDataDescription => 'Просмотр занятого места и экспорт файлов';
+
+  @override
+  String get appDataSpaceUsage => 'Объём по категориям';
+
+  @override
+  String get appDataHealth => 'Данные здоровья';
+
+  @override
+  String get appDataPlugins => 'Плагины';
+
+  @override
+  String get appDataZeppos => 'Данные приложений ZeppOS';
+
+  @override
+  String get appDataRecovery => 'Данные восстановления импорта';
+
+  @override
+  String get appDataDownloads => 'Загрузки ресурсов и обновлений';
+
+  @override
+  String get appDataPluginCache => 'Кэш плагинов';
+
+  @override
+  String get appDataManageSnapshots =>
+      'Управление сохранёнными файлами активности';
+
+  @override
+  String get appDataExportSnapshots => 'Экспортировать файлы активности';
+
+  @override
+  String get appDataExportSnapshotsDescription =>
+      'Экспорт сохранённых файлов активности';
+
+  @override
+  String get appDataExported => 'Экспортированный файл сохранён';
+
+  @override
+  String get appDataLoadFailed => 'Не удалось прочитать данные приложения';
+
+  @override
+  String get appDataExportFailed => 'Не удалось экспортировать файлы';
+
+  @override
+  String get appDataArchiveTooLarge =>
+      'Activity files are too large, export them separately';
+
+  @override
+  String get appDataUpdateFailed => 'Не удалось изменить данные приложения';
+
+  @override
+  String get appDataBackup => 'Экспорт резервной копии';
+
+  @override
+  String get appDataBackupDescription =>
+      'Выберите и экспортируйте локальные данные';
+
+  @override
+  String get appDataRestore => 'Восстановить копию';
+
+  @override
+  String get appDataRestoreDescription =>
+      'Выберите данные\nИстория здоровья совпадающих устройств будет заменена';
+
+  @override
+  String get appDataSettings => 'Настройки приложения';
+
+  @override
+  String appDataHealthDevices(int count) {
+    return 'История здоровья ($count устройств)';
+  }
+
+  @override
+  String get appDataRestored =>
+      'Копия восстановлена\nПерезапустите приложение для применения всех настроек';
+
+  @override
+  String get appDataRestoreFailed => 'Не удалось восстановить копию';
+
+  @override
+  String get appDataRecover => 'Отменить предыдущее восстановление';
+
+  @override
+  String get appDataRecoveryPending => 'Предыдущее восстановление прервано';
+
+  @override
+  String get appDataRecoverDescription =>
+      'Вернуть настройки и историю до последнего импорта\nБолее новые локальные данные здоровья также будут заменены';
+
+  @override
+  String get voiceAsrMethod => 'Способ распознавания';
+
+  @override
+  String get voiceAsrManual => 'Ручной ввод';
+
+  @override
+  String get voiceAsrLocal => 'Локальное распознавание';
+
+  @override
+  String get voiceAsrWeType => 'WeChat Input';
+
+  @override
+  String get voiceAsrDoubao => 'Doubao Input';
+
+  @override
+  String get voiceAsrWasm => 'Эксперимент WASM';
+
+  @override
+  String voiceAsrCloudConsent(String provider) {
+    return 'Аудио будет отправлено в $provider для распознавания\nТолько при использовании этой страницы';
+  }
+
+  @override
+  String get voiceAsrPreparing => 'Подготовка распознавания';
+
+  @override
+  String get voiceAsrRecognizing => 'Распознавание';
+
+  @override
+  String get voiceAsrFinishing => 'Обработка конца записи';
+
+  @override
+  String get voiceAsrFinished => 'Распознавание завершено';
+
+  @override
+  String get voiceAsrModelReady => 'Локальное распознавание готово';
+
+  @override
+  String get voiceAsrModelDescription =>
+      'Локальное распознавание китайского и английского\nПри первом использовании загрузите модели и компоненты';
+
+  @override
+  String get voiceAsrDownloadModel => 'Загрузить данные распознавания';
+
+  @override
+  String get voiceAsrDeleteModel => 'Удалить данные распознавания';
+
+  @override
+  String get voiceAsrSendRecognition => 'Отправить результат';
+
+  @override
+  String get voiceAsrModelMissing =>
+      'Сначала загрузите данные локального распознавания';
+
+  @override
+  String get voiceAsrModelDamaged =>
+      'Данные повреждены\nУдалите и загрузите их заново';
+
+  @override
+  String get voiceAsrDownloadFailed =>
+      'Не удалось загрузить модель\nПроверьте подключение';
+
+  @override
+  String get voiceAsrRegistrationFailed =>
+      'Не удалось запустить сервис\nПовторите позже';
+
+  @override
+  String get voiceAsrServiceRejected => 'Сервис распознавания отклонил запрос';
+
+  @override
+  String get voiceAsrTimeout =>
+      'Время ожидания истекло\nПроизнесите фразу снова';
+
+  @override
+  String get voiceAsrOpusUnsupported =>
+      'Аудио этого устройства не поддерживается WeChat Input';
+
+  @override
+  String get voiceAsrUnsupported =>
+      'Этот способ недоступен на данной платформе';
+
+  @override
+  String get voiceAsrTooSlow =>
+      'Распознавание слишком медленное\nЗавершите сеанс и повторите';
+
+  @override
+  String get voiceAsrNoSpeech => 'Речь не распознана';
+
+  @override
+  String get voiceAsrInvalidResponse => 'Сервис вернул некорректный результат';
+
+  @override
+  String get voiceAsrInferenceFailed =>
+      'Ошибка локального распознавания\nВыберите способ заново';
+
+  @override
+  String get voiceAsrCancelled => 'Распознавание отменено';
+
+  @override
+  String get voiceAsrConnectionFailed =>
+      'Не удалось подключиться к сервису\nПроверьте подключение';
+
+  @override
+  String get appDataModels => 'Данные распознавания речи';
+
+  @override
+  String get appDataTasks => 'История задач';
+
+  @override
+  String get appDataDocuments => 'Кэш документов';
+
+  @override
+  String get privateStateLoadFailed =>
+      'Не удалось прочитать сохранённые аккаунты и устройства\nПовторите попытку';
+
+  @override
+  String get privateStateSaveFailed =>
+      'Не удалось сохранить изменения аккаунта или устройства\nПовторите попытку';
+
+  @override
+  String get voiceAsrStorageFull =>
+      'Недостаточно места\nОсвободите место и повторите попытку';
+
+  @override
+  String get voiceAsrReconnect => 'Переподключить распознавание';
+
+  @override
+  String get voiceAsrReconnectDescription =>
+      'Будет создано новое подключение к этому сервису\nВаши учётные записи не изменятся';
+
+  @override
+  String get voiceAsrReconnectFailed => 'Не удалось переподключиться';
+
+  @override
+  String get appDataClearCache => 'Очистить кэш';
+
+  @override
+  String get appDataClearCacheDescription =>
+      'Очистить кэш изображений, плагинов, документов и старые временные файлы\nРаботающие плагины и приложения устройства будут остановлены';
+
+  @override
+  String get appDataCacheCleared => 'Кэш очищен';
+
+  @override
+  String get voiceAsrReplayRecording => 'Повторить запись';
+
+  @override
+  String get voiceAsrImportWave => 'Импорт WAV';
+
+  @override
+  String get voiceAsrReplayDescription =>
+      'Выберите распознавание и повторите или импортируйте запись\nТолько 16 кГц моно PCM16, до 60 секунд\nОнлайн-распознавание отправляет звук выбранному сервису';
+
+  @override
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor) {
+    return 'Время $elapsed мс · Первый результат $first мс · RTF $factor';
+  }
+
+  @override
+  String get voiceAsrExportReport => 'Экспорт отчёта';
+
+  @override
+  String get voiceAsrWaveFormat =>
+      'Выберите WAV 16 кГц моно PCM16\nНе более 60 секунд';
+
+  @override
+  String get voiceAsrReplayBusy => 'Сначала завершите текущий сеанс';
+
+  @override
+  String get appDataExtensionSettings =>
+      'Данные плагинов и приложений устройства';
+
+  @override
+  String get appDataExtensionSettingsDescription =>
+      'Настройки и данные плагинов и приложений устройств';
+
+  @override
+  String get appDataExtensionMissing =>
+      'Перед восстановлением установите те же версии плагинов и соответствующие приложения';
+
+  @override
+  String get appDataImageCache => 'Кэш изображений';
+
+  @override
+  String get appDataSelectBackup => 'Выберите данные для копии';
+
+  @override
+  String get appDataSettingsDescription => 'Тема, язык и настройки функций';
+
+  @override
+  String get appDataHealthDescription => 'История здоровья и тренировок';
+
+  @override
+  String get appDataDeviceKeys => 'Сопряжения и ключи устройств';
+
+  @override
+  String get appDataDeviceKeysDescription =>
+      'Устройства и данные для подключения';
+
+  @override
+  String get appDataXiaomiAccount => 'Аккаунт Xiaomi';
+
+  @override
+  String get appDataXiaomiAccountDescription =>
+      'Аккаунт Xiaomi и текущий сеанс';
+
+  @override
+  String get appDataSensitiveBackup =>
+      'Копия содержит незашифрованные ключи или данные входа\nХраните её безопасно и не делитесь ею';
+
+  @override
+  String get appDataImportDescription => 'Выбор данных для восстановления';
+
+  @override
+  String get appDataSnapshotDescription => 'Сохранённые файлы активности';
+
+  @override
+  String get appDataPluginDescription => 'Плагины и их локальные данные';
+
+  @override
+  String get appDataZepposDescription =>
+      'Скрипты приложений устройств и настройки';
+
+  @override
+  String get appDataLogsDescription => 'Журналы работы и диагностики';
+
+  @override
+  String get appDataRecoveryDescription =>
+      'Данные для прерванного восстановления';
+
+  @override
+  String get appDataDownloadsDescription =>
+      'Временные файлы загрузки и установки';
+
+  @override
+  String get appDataPluginCacheDescription => 'Кэш плагинов и временные файлы';
+
+  @override
+  String get appDataImagesDescription =>
+      'Кэш изображений просмотренных ресурсов';
+
+  @override
+  String get appDataModelsDescription =>
+      'Загруженные речевые модели и компоненты';
+
+  @override
+  String get appDataTasksDescription => 'Состояние загрузок и установок';
+
+  @override
+  String get appDataDocumentsDescription =>
+      'Локальные копии условий и политики';
+
+  @override
+  String get phoneLocationTitle => 'Вспомогательное позиционирование';
+
+  @override
+  String get deviceFeaturesGroupTitle => 'Функции и инструменты';
+
+  @override
+  String get deviceSettingsGroupTitle => 'Настройки устройства и обслуживание';
+
+  @override
+  String get phoneLocationStatusSection => 'Статус';
+
+  @override
+  String get phoneLocationPermissionsSection => 'Разрешения и службы';
+
+  @override
+  String get phoneLocationOptionsSection => 'Параметры координации';
+
+  @override
+  String get phoneLocationReady => 'Служба геопозиции готова';
+
+  @override
+  String get phoneLocationReadyDesc =>
+      'Геопозиция будет передаваться автоматически во время тренировок';
+
+  @override
+  String get phoneLocationServiceEnabled => 'Служба геолокации';
+
+  @override
+  String get phoneLocationPreciseTitle => 'Точная геопозиция';
+
+  @override
+  String get phoneLocationPreciseGranted => 'Точная геопозиция разрешена';
+
+  @override
+  String get phoneLocationPreciseDenied => 'Точная геопозиция не разрешена';
+
+  @override
+  String get phoneLocationBackgroundTitle => 'Фоновая геопозиция';
+
+  @override
+  String get phoneLocationBackgroundAlways => 'Всегда разрешено';
+
+  @override
+  String get phoneLocationBackgroundWhileInUse => 'Только при использовании';
+
+  @override
+  String get phoneLocationBackgroundDenied => 'Не разрешено';
+
+  @override
+  String get phoneLocationAutoSync => 'Автоматическая геопозиция';
+
+  @override
+  String get phoneLocationAutoSyncDesc =>
+      'Передавать GPS телефона при начале тренировки на устройстве';
+
+  @override
+  String get phoneLocationEnabledText => 'Включено';
+
+  @override
+  String get phoneLocationDisabledText => 'Выключено';
+
+  @override
+  String get phoneLocationNotification => 'Передавать координаты на устройство';
+
+  @override
+  String get phoneLocationDescription =>
+      'Передавать координаты при подготовке и во время тренировки';
+
+  @override
+  String get phoneLocationOpenApp => 'Откройте OronBox для геолокации';
+
+  @override
+  String get phoneLocationRecovery =>
+      'Откройте приложение и повторите запуск тренировки';
+
+  @override
+  String get phoneLocationPermission => 'Нужен доступ к точной геолокации';
+
+  @override
+  String get phoneLocationBackground => 'Фоновая геолокация';
+
+  @override
+  String get phoneLocationBackgroundDescription =>
+      'Принимать запросы геолокации от устройства в фоне';
+
+  @override
+  String get phoneLocationSettings => 'Открыть системные настройки';
+
+  @override
+  String get phoneLocationServiceOff => 'Геолокация отключена';
+
+  @override
+  String get phoneLocationPermissionHelp =>
+      'Разрешите точную геолокацию и повторите попытку';
+
+  @override
+  String get phoneLocationMobileOnly => 'Доступно на Android и iOS';
+
+  @override
+  String get phoneLocationUnavailable =>
+      'Не удалось получить геолокацию\nПроверьте разрешения и службу геолокации';
+
+  @override
+  String get deviceConnectionAbnormalTitle => 'Проблема подключения устройства';
+
+  @override
+  String get deviceConnectionAbnormalMessage =>
+      'Устройство часто отключается. Выполните повторное сопряжение или включите на устройстве режим подключения нового телефона.';
+
+  @override
+  String get deviceRePair => 'Сопрячь заново';
+
+  @override
+  String appDataClearCategoryTitle(String category) {
+    return 'Очистить $category?';
+  }
+
+  @override
+  String get appDataClearCategoryDescription =>
+      'Локальные данные этой категории будут удалены\nДругие категории сохранятся';
+
+  @override
+  String get appDataClearHealthDescription =>
+      'История здоровья и тренировок будет удалена\nПовторно синхронизируются только данные, оставшиеся на устройстве';
+
+  @override
+  String get appDataClearRawDescription =>
+      'Сохранённые файлы активности будут удалены\nЭкспорт и воспроизведение станут недоступны';
+
+  @override
+  String get appDataClearCachedCategoryDescription =>
+      'Будет удалён только неиспользуемый кэш\nПри необходимости файлы загрузятся снова';
+
+  @override
+  String get appDataClearModelsDescription =>
+      'Текущая модель сохранится\nНеиспользуемые версии и устаревшие загрузки будут удалены';
+
+  @override
+  String get settingsPermissionsTitle => 'Разрешения';
+
+  @override
+  String get settingsPermissionsDesc =>
+      'Вспомогательное позиционирование и фоновый режим';
+
+  @override
+  String get appArrangementTitle => 'Расположение приложений';
+
+  @override
+  String get appArrangementDescription =>
+      'Настройка порядка и макета приложений';
+
+  @override
+  String get appOrderMainSection => 'Отображаемые приложения';
+
+  @override
+  String get appOrderMoreSection => 'Другие приложения';
+
+  @override
+  String get appOrderHiddenSection => 'Скрытые приложения';
+
+  @override
+  String get appOrderMoreSectionDesc =>
+      'Приложения во вложенном меню устройства';
+
+  @override
+  String get appOrderHiddenSectionDesc => 'Скрытые на устройстве приложения';
+
+  @override
+  String get appOrderMoveToMore => 'В другие';
+
+  @override
+  String get appOrderMoveToMain => 'В основной список';
+
+  @override
+  String get appOrderHide => 'Скрыть';
+
+  @override
+  String get appOrderUnhide => 'Показать';
+
+  @override
+  String get appOrderCannotHide => 'Системное приложение нельзя скрыть';
 }

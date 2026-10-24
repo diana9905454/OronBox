@@ -1,3 +1,8 @@
+import 'dart:io';
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
+import 'package:oronbox/src/core/storage/app_data_directory_io.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
@@ -5,8 +10,21 @@ import 'package:oronbox/src/features/accounts/services/mi_account_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  setUp(() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() async {
     SharedPreferences.setMockInitialValues({});
+    FlutterSecureStorage.setMockInitialValues({});
+    final root = await Directory.systemTemp.createTemp(
+      'oronbox-mi-session-test-',
+    );
+    PrivateAppState.instanceForTesting = PrivateAppState(
+      lock: IoAppDataDirectory(root),
+    );
+    await PrivateAppState.instance.initialize();
+    addTearDown(() async {
+      PrivateAppState.instanceForTesting = null;
+      await root.delete(recursive: true);
+    });
   });
 
   test('clears the stored Xiaomi session after an HTTP auth failure', () async {

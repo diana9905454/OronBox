@@ -76,7 +76,12 @@ class OronBoxCreatorApi {
           path,
           data: data,
           queryParameters: query,
-          options: authorization.copyWith(method: method),
+          options: authorization.copyWith(
+            method: method,
+            contentType: data is Uint8List
+                ? 'application/octet-stream'
+                : authorization.contentType,
+          ),
         ),
       ),
       stage: stage,
@@ -99,10 +104,14 @@ class OronBoxCreatorApi {
   }
 
   Future<Object?> publish({
+    int? expectedEditVersion,
     required String resourceId,
     required Uint8List bundle,
     void Function(double progress)? onProgress,
+    void Function(Map<String, Object?> workspace)? onDraftSaved,
   }) async {
+    expectedEditVersion ??= await _editVersion(resourceId);
+    final editVersion = expectedEditVersion;
     final stopwatch = Stopwatch()..start();
     logDiagnostic(
       _log,
@@ -111,25 +120,31 @@ class OronBoxCreatorApi {
       fields: {'resource': resourceId, 'bytes': bundle.length},
     );
     try {
+      final saved = (await saveDraft(
+        resourceId: resourceId,
+        bundle: bundle,
+        expectedEditVersion: editVersion,
+      ) as Map).cast<String, Object?>();
+      onDraftSaved?.call(saved);
+      final revisions = saved['revisions'] as List;
+      final revision = (revisions.first as Map)['id'].toString();
+      final version = ((saved['resource'] as Map)['edit_version'] as num)
+          .toInt();
+      onProgress?.call(0.9);
       final response = await _send(
         () => _sessions.send<Object?>(
           (authorization) => _dio.post<Object?>(
-            '/api/creator/resources/$resourceId/publish',
-            data: Stream.fromIterable([bundle]),
+            '/api/v1/creator/resources/$resourceId/publish',
+            data: {'revision_id': revision},
             options: authorization.copyWith(
-              headers: {
-                ...?authorization.headers,
-                Headers.contentLengthHeader: bundle.length,
-                Headers.contentTypeHeader: 'application/zip',
-              },
+              headers: {...?authorization.headers, 'If-Match': '$version'},
             ),
-            onSendProgress: (sent, total) {
-              if (total > 0) onProgress?.call(sent / total);
-            },
           ),
         ),
         stage: 'publish',
       );
+      onProgress?.call(1);
+
       stopwatch.stop();
       logDiagnostic(
         _log,
@@ -176,17 +191,21 @@ class OronBoxCreatorApi {
   }
 
   Future<Object?> saveDraft({
+    int? expectedEditVersion,
     required String resourceId,
     required Uint8List bundle,
   }) async {
+    expectedEditVersion ??= await _editVersion(resourceId);
+    final editVersion = expectedEditVersion;
     final response = await _send(
       () => _sessions.send<Object?>(
         (authorization) => _dio.put<Object?>(
-          '/api/creator/resources/$resourceId/draft',
-          data: Stream.fromIterable([bundle]),
+          '/api/v1/creator/resources/$resourceId/draft',
+          data: bundle,
           options: authorization.copyWith(
             headers: {
               ...?authorization.headers,
+              'If-Match': '$editVersion',
               Headers.contentLengthHeader: bundle.length,
               Headers.contentTypeHeader: 'application/zip',
             },
@@ -198,11 +217,17 @@ class OronBoxCreatorApi {
     return response.data;
   }
 
+  Future<int> _editVersion(String resourceId) async {
+    final value = await request('GET', '/api/v1/creator/resources/$resourceId');
+    final root = (value as Map).cast<String, Object?>();
+    return ((root['resource'] as Map)['edit_version'] as num).toInt();
+  }
+
   Future<Uint8List> downloadBlob(String resourceId, String digest) async {
     final response = await _send(
       () => _sessions.send<List<int>>(
         (authorization) => _dio.get<List<int>>(
-          '/api/creator/resources/$resourceId/blobs/$digest',
+          '/api/v1/creator/resources/$resourceId/blobs/$digest',
           options: authorization.copyWith(responseType: ResponseType.bytes),
         ),
       ),
@@ -215,14 +240,14 @@ class OronBoxCreatorApi {
       _map(
         await request(
           'GET',
-          '/api/creator/resources/$resourceId/relationships',
+          '/api/v1/creator/resources/$resourceId/relationships',
         ),
       );
 
   Future<void> inviteCollaborator(String resourceId, int bandBbsUserId) async {
     await request(
       'POST',
-      '/api/creator/resources/$resourceId/collaborators',
+      '/api/v1/creator/resources/$resourceId/collaborators',
       data: {'bandbbs_user_id': bandBbsUserId},
     );
   }
@@ -230,7 +255,7 @@ class OronBoxCreatorApi {
   Future<void> removeCollaborator(String resourceId, String userId) async {
     await request(
       'DELETE',
-      '/api/creator/resources/$resourceId/collaborators/$userId',
+      '/api/v1/creator/resources/$resourceId/collaborators/$userId',
     );
   }
 
@@ -243,7 +268,7 @@ class OronBoxCreatorApi {
   }) async {
     await request(
       'PUT',
-      '/api/creator/resources/$resourceId/source',
+      '/api/v1/creator/resources/$resourceId/source',
       data: {
         'author_name': authorName,
         'source_url': sourceUrl,
@@ -254,7 +279,7 @@ class OronBoxCreatorApi {
   }
 
   Future<List<Map<String, Object?>>> collaborationInvitations() async {
-    final root = _map(await request('GET', '/api/collaborations'));
+    final root = _map(await request('GET', '/api/v1/collaborations'));
     return (root['invitations'] as List? ?? const [])
         .whereType<Map>()
         .map((item) => item.cast<String, Object?>())
@@ -262,15 +287,15 @@ class OronBoxCreatorApi {
   }
 
   Future<void> acceptCollaboration(String resourceId) async {
-    await request('POST', '/api/resources/$resourceId/collaboration/accept');
+    await request('POST', '/api/v1/resources/$resourceId/collaboration/accept');
   }
 
   Future<void> declineCollaboration(String resourceId) async {
-    await request('DELETE', '/api/resources/$resourceId/collaboration');
+    await request('DELETE', '/api/v1/resources/$resourceId/collaboration');
   }
 
   Future<Map<String, Object?>> creatorCoinStats() async =>
-      _map(await request('GET', '/api/creator/coins/stats'));
+      _map(await request('GET', '/api/v1/creator/coins/stats'));
 
   Map<String, Object?> _map(Object? value) => value is Map
       ? value.cast<String, Object?>()
@@ -331,7 +356,17 @@ class CreatorApiException implements CodedError {
                   : 'The OronBox server returned HTTP $status',
           };
     return CreatorApiException(
-      code: serverCode ?? (status == null ? 'network_error' : 'http_$status'),
+      code:
+          serverCode ??
+          (status != null
+              ? 'http_$status'
+              : const {
+                  DioExceptionType.connectionTimeout,
+                  DioExceptionType.sendTimeout,
+                  DioExceptionType.receiveTimeout,
+                }.contains(error.type)
+              ? 'request_timeout'
+              : 'network_error'),
       message: message,
       details: {
         'stage': stage,

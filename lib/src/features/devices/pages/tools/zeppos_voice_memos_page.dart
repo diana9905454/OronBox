@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
@@ -60,9 +61,8 @@ class _ZeppOsVoiceMemosPageState extends ConsumerState<ZeppOsVoiceMemosPage> {
           content: Text(
             result.isEmpty
                 ? AppLocalizations.of(context)!.deviceRecordingsNoneOnWatch
-                : AppLocalizations.of(
-                    context,
-                  )!.deviceRecordingsSynced(result.length),
+                : AppLocalizations.of(context)!
+                      .deviceRecordingsSynced(result.length),
           ),
         ),
       );
@@ -111,8 +111,8 @@ class _ZeppOsVoiceMemosPageState extends ConsumerState<ZeppOsVoiceMemosPage> {
     } catch (error) {
       if (mounted) {
         setState(
-          () =>
-              _error = AppLocalizations.of(context)!.deviceRecordingsSaveFailed(
+          () => _error = AppLocalizations.of(context)!
+              .deviceRecordingsSaveFailed(
                 localizedErrorMessage(AppLocalizations.of(context)!, error),
               ),
         );
@@ -148,11 +148,11 @@ class _ZeppOsVoiceMemosPageState extends ConsumerState<ZeppOsVoiceMemosPage> {
         padding: EdgeInsets.zero,
         children: [
           PageContainer(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               StyleConstants.pagePadding,
               8,
               StyleConstants.pagePadding,
-              88,
+              bottomContentPadding(context, extra: 80),
             ),
             child: Column(
               children: [
@@ -188,9 +188,10 @@ class _ZeppOsVoiceMemosPageState extends ConsumerState<ZeppOsVoiceMemosPage> {
                   ),
                 ),
                 if (_memos.isEmpty && !_syncing)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 48),
-                    child: Center(child: Text(l10n.deviceRecordingsEmpty)),
+                  EmptyStateView(
+                    compact: true,
+                    icon: Icons.mic_none_outlined,
+                    title: l10n.deviceRecordingsEmpty,
                   )
                 else
                   ..._memos.map(

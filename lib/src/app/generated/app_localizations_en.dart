@@ -863,7 +863,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get collapse => 'Collapse';
 
   @override
-  String get voiceLabTitle => 'Voice lab';
+  String get voiceLabTitle => 'Voice assistant';
 
   @override
   String get voiceLabXiaoAi => 'XiaoAI';
@@ -2341,31 +2341,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get acknowledgementsAstroBoxPublic =>
-      'Reference for UI structure, resource workflows, and interaction design.';
+      'Reference for UI structure and interaction design.';
 
   @override
   String get acknowledgementsAstroBoxNgCore =>
-      'Reference for Xiaomi device protocols, install flows, and transfer behavior.';
+      'Xiaomi device protocol and transport layer, ported and modified.';
+
+  @override
+  String get acknowledgementsAstroBoxNgPb =>
+      'Xiaomi wear protocol definitions, adopted verbatim.';
 
   @override
   String get acknowledgementsAstroBoxNgBluetooth =>
-      'Reference for Bluetooth connection behavior.';
+      'Reference for Bluetooth connection flows.';
 
   @override
   String get acknowledgementsAstroBoxNgAccount =>
-      'Reference for Xiaomi account login, device sync, and authkey retrieval flows.';
+      'Reference for Xiaomi account login and authkey retrieval flows.';
 
   @override
   String get acknowledgementsAstroBoxNgProvider =>
-      'Reference for community resource indexes, CDN handling, and manifest parsing flows.';
+      'Reference for community resource indexes and manifest parsing flows.';
 
   @override
   String get acknowledgementsAstroBoxNgAppWasm =>
-      'Reference for Web Serial and browser-side connection flows.';
+      'Reference for Web Serial connection flows.';
 
   @override
   String get acknowledgementsGadgetbridge =>
-      'Reference for ZeppOS and wearable protocol research.';
+      'ZeppOS protocol implementation, ported and modified.';
 
   @override
   String get acknowledgementsBreezyWeather =>
@@ -4303,6 +4307,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get xiaomiScreenshotFailed => 'Screenshot failed';
 
   @override
+  String get xiaomiScreenshotDownloadStarted => 'Screenshot download started';
+
+  @override
+  String get xiaomiScreenshotSaveFailed => 'Failed to save screenshot';
+
+  @override
   String xiaomiScreenshotSaved(Object path) {
     return 'Watch screenshot saved to: $path';
   }
@@ -4651,44 +4661,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceHealthLatestStress => 'Latest stress';
 
   @override
-  String get deviceHealthDebugModeTitle => 'Health development mode';
+  String get deviceHealthDebugSnapshots => 'Activity files';
 
   @override
-  String get deviceHealthDebugModeDescription =>
-      'Enable health data snapshots and reload';
-
-  @override
-  String get deviceHealthDebugSnapshots => 'Snapshots';
-
-  @override
-  String get deviceHealthDebugSnapshotList => 'Snapshot list';
+  String get deviceHealthDebugSnapshotList => 'Activity files';
 
   @override
   String get deviceHealthDebugSnapshotsDescription =>
-      'Captured raw activity files that can be replayed without the watch';
+      'Saved activity files available for export';
 
   @override
   String get deviceHealthDebugRefresh => 'Refresh';
 
   @override
   String get deviceHealthDebugRefreshDescription =>
-      'Reload the saved snapshot list';
+      'Reload the saved activity file list';
 
   @override
   String get deviceHealthDebugClearAll => 'Clear all';
 
   @override
   String get deviceHealthDebugClearAllDescription =>
-      'Delete every saved health snapshot';
+      'Delete every saved activity file';
 
   @override
-  String get deviceHealthDebugNoSnapshots => 'No snapshots yet';
+  String get deviceHealthDebugNoSnapshots => 'No activity files yet';
 
   @override
   String get deviceHealthDebugReload => 'Replay';
 
   @override
-  String get deviceHealthDebugReloaded => 'Snapshot replayed';
+  String get deviceHealthDebugReloaded => 'Activity file replayed';
 
   @override
   String deviceHealthDebugFiles(Object count) {
@@ -4862,27 +4865,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deviceHealthResting => 'Resting';
 
   @override
-  String get deviceHealthDebugExport => 'Export snapshot';
+  String get deviceHealthDebugExport => 'Export activity files';
 
   @override
-  String get deviceHealthDebugExportTooltip => 'Export raw activity files';
+  String get deviceHealthDebugExportTooltip => 'Export activity files';
 
   @override
   String deviceHealthDebugExported(String path) {
-    return 'Exported to $path';
+    return 'Activity files exported to $path';
   }
 
   @override
   String deviceHealthDebugExportFailed(String error) {
-    return 'Could not export snapshot: $error';
+    return 'Could not export activity files: $error';
   }
 
   @override
-  String get deviceHealthDebugImport => 'Import';
+  String get deviceHealthDebugImport => 'Import activity files';
 
   @override
   String get deviceHealthDebugImportDescription =>
-      'Import a previously exported snapshot file';
+      'Import previously exported activity files';
 
   @override
   String deviceHealthDebugImported(String deviceCode, int files) {
@@ -4891,6 +4894,733 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String deviceHealthDebugImportFailed(String error) {
-    return 'Could not import snapshot: $error';
+    return 'Could not import activity files: $error';
   }
+
+  @override
+  String get commentDeletedPlaceholder => 'Comment deleted';
+
+  @override
+  String commentViewReplies(int count) {
+    return 'View all $count replies';
+  }
+
+  @override
+  String get commentThreadTitle => 'Comment details';
+
+  @override
+  String commentReplyTarget(String username) {
+    return 'Reply to $username';
+  }
+
+  @override
+  String get commentLoadEarlier => 'Load earlier replies';
+
+  @override
+  String get messageCommentCreatedTitle => 'New comment on your resource';
+
+  @override
+  String get scanQrCode => 'Scan QR code';
+
+  @override
+  String get deviceSwitchQrImport =>
+      'Import existing device from share QR code';
+
+  @override
+  String get creatorCollectionReplacePendingDescription =>
+      'This replaces the pending submission\nThe published version stays available';
+
+  @override
+  String get creatorCollectionNoMatchingResources =>
+      'No matching resources\nCreate a resource in Creator Center first';
+
+  @override
+  String get commentCreateFailed => 'Could not post comment, try again';
+
+  @override
+  String get commentsReadFailed => 'Could not load comments, try again';
+
+  @override
+  String get commentDeleteFailed => 'Could not delete comment, try again';
+
+  @override
+  String get errorRequestTimeout => 'Request timed out, try again';
+
+  @override
+  String get creatorCollectionReplacePendingTitle =>
+      'Replace pending revision?';
+
+  @override
+  String get creatorCollectionReplaceAndSubmit => 'Replace and submit';
+
+  @override
+  String get creatorCollectionCreateTitle => 'Create collection';
+
+  @override
+  String get creatorCollectionEditTitle => 'Edit collection';
+
+  @override
+  String creatorCollectionCurrentRevision(String number) {
+    return 'Live revision: $number';
+  }
+
+  @override
+  String creatorCollectionPendingRevision(String number) {
+    return 'Pending revision: $number';
+  }
+
+  @override
+  String get creatorCollectionHistory => 'View previous revisions';
+
+  @override
+  String get creatorCollectionBody => 'Body (Markdown)';
+
+  @override
+  String get creatorMediaIcon => 'Icon';
+
+  @override
+  String get creatorMediaCover => 'Cover';
+
+  @override
+  String get creatorMediaUnset => 'Not set';
+
+  @override
+  String get creatorMediaSet => 'Set';
+
+  @override
+  String get creatorCollectionMemberOrder =>
+      'Member order and representative resource';
+
+  @override
+  String get creatorCollectionMemberUnavailable =>
+      'Resource unavailable, remove it';
+
+  @override
+  String get creatorCollectionSetRepresentative =>
+      'Set as representative resource';
+
+  @override
+  String get creatorCollectionAddMember => 'Add members';
+
+  @override
+  String get creatorImageReadFailed => 'Could not read image';
+
+  @override
+  String get creatorImageProcessFailed => 'Could not process image';
+
+  @override
+  String get creatorPublicationRetry => 'Retry publishing';
+
+  @override
+  String get creatorTermsLoadFailed => 'Could not load publishing terms';
+
+  @override
+  String get creatorReviewItems => 'Requested changes';
+
+  @override
+  String get creatorReviewFixReplied => 'Fix reported';
+
+  @override
+  String get creatorReviewReplyFix => 'Report fix';
+
+  @override
+  String get creatorTermsUpdated => 'Publishing terms updated';
+
+  @override
+  String get creatorPublishingLater => 'Not now';
+
+  @override
+  String get creatorTermsAgree => 'Read and agree';
+
+  @override
+  String get updateAssetUnavailable =>
+      'No installation package for this platform in this release';
+
+  @override
+  String get legalDocumentUnavailable => 'Document unavailable, try again';
+
+  @override
+  String get deviceImportTitle => 'Import device';
+
+  @override
+  String get qrScanFromImage => 'Scan from image';
+
+  @override
+  String get qrScanNoCode => 'No QR code found';
+
+  @override
+  String get qrScanImageFailed => 'Unable to read this image';
+
+  @override
+  String get qrScanCameraUnavailable =>
+      'Camera unavailable\nYou can scan a QR code from an image';
+
+  @override
+  String get qrScanChooseCode => 'Choose a QR code';
+
+  @override
+  String qrScanCodeLabel(int index) {
+    return 'QR code $index';
+  }
+
+  @override
+  String get qrScanUnsupported =>
+      'QR code recognition is unavailable on this platform';
+
+  @override
+  String get featureLabTitle => 'Feature lab';
+
+  @override
+  String get featureLabDescription => 'Try features currently in development';
+
+  @override
+  String get voiceAssistantDescription =>
+      'Receive device audio, monitor and reply';
+
+  @override
+  String get voiceLabConnectDevice =>
+      'Connect a device, then activate its voice assistant';
+
+  @override
+  String get voiceLabCaptureLimit =>
+      'Recording limit reached, clear the recording to retry';
+
+  @override
+  String get voiceLabReplyTooLong => 'Reply is too long';
+
+  @override
+  String get voiceLabRecognitionLabel => 'Recognition result';
+
+  @override
+  String get voiceLabRecognitionHint => 'Enter the recognized words';
+
+  @override
+  String get appDataTitle => 'App data';
+
+  @override
+  String get appDataDescription => 'View stored data and export files';
+
+  @override
+  String get appDataSpaceUsage => 'Storage by category';
+
+  @override
+  String get appDataHealth => 'Health data';
+
+  @override
+  String get appDataPlugins => 'Plugins';
+
+  @override
+  String get appDataZeppos => 'ZeppOS app data';
+
+  @override
+  String get appDataRecovery => 'Import recovery data';
+
+  @override
+  String get appDataDownloads => 'Resource and update downloads';
+
+  @override
+  String get appDataPluginCache => 'Plugin cache';
+
+  @override
+  String get appDataManageSnapshots => 'Manage saved activity files';
+
+  @override
+  String get appDataExportSnapshots => 'Export activity files';
+
+  @override
+  String get appDataExportSnapshotsDescription => 'Export saved activity files';
+
+  @override
+  String get appDataExported => 'Export saved';
+
+  @override
+  String get appDataLoadFailed => 'Unable to read app data';
+
+  @override
+  String get appDataExportFailed => 'Unable to export files';
+
+  @override
+  String get appDataArchiveTooLarge =>
+      'Activity files are too large, export them separately';
+
+  @override
+  String get appDataUpdateFailed => 'Unable to update app data';
+
+  @override
+  String get appDataBackup => 'Export backup';
+
+  @override
+  String get appDataBackupDescription => 'Choose and export local data to keep';
+
+  @override
+  String get appDataRestore => 'Restore backup';
+
+  @override
+  String get appDataRestoreDescription =>
+      'Select data to restore\nLocal health history for matching devices will be replaced';
+
+  @override
+  String get appDataSettings => 'App settings';
+
+  @override
+  String appDataHealthDevices(int count) {
+    return 'Health history ($count devices)';
+  }
+
+  @override
+  String get appDataRestored =>
+      'Backup restored\nRestart the app to apply all settings';
+
+  @override
+  String get appDataRestoreFailed => 'Unable to restore backup';
+
+  @override
+  String get appDataRecover => 'Undo previous restore';
+
+  @override
+  String get appDataRecoveryPending => 'The previous restore was interrupted';
+
+  @override
+  String get appDataRecoverDescription =>
+      'Restore settings and health history from before the last import\nLocal health data added since then will also be replaced';
+
+  @override
+  String get voiceAsrMethod => 'Recognition method';
+
+  @override
+  String get voiceAsrManual => 'Manual input';
+
+  @override
+  String get voiceAsrLocal => 'On-device recognition';
+
+  @override
+  String get voiceAsrWeType => 'WeChat Input';
+
+  @override
+  String get voiceAsrDoubao => 'Doubao Input';
+
+  @override
+  String get voiceAsrWasm => 'WASM experiment';
+
+  @override
+  String voiceAsrCloudConsent(String provider) {
+    return 'Audio will be sent to $provider for recognition\nOnly while using this page';
+  }
+
+  @override
+  String get voiceAsrPreparing => 'Preparing recognition';
+
+  @override
+  String get voiceAsrRecognizing => 'Recognizing';
+
+  @override
+  String get voiceAsrFinishing => 'Finishing recognition';
+
+  @override
+  String get voiceAsrFinished => 'Recognition complete';
+
+  @override
+  String get voiceAsrModelReady =>
+      'Local Chinese and English recognition is ready';
+
+  @override
+  String get voiceAsrModelDescription =>
+      'Local Chinese and English recognition\nDownload models and runtime before first use';
+
+  @override
+  String get voiceAsrDownloadModel => 'Download recognition data';
+
+  @override
+  String get voiceAsrDeleteModel => 'Delete recognition data';
+
+  @override
+  String get voiceAsrSendRecognition => 'Send recognition result';
+
+  @override
+  String get voiceAsrModelMissing => 'Download local recognition data first';
+
+  @override
+  String get voiceAsrModelDamaged =>
+      'Recognition data is damaged, delete and download it again';
+
+  @override
+  String get voiceAsrDownloadFailed =>
+      'Model download failed\nCheck your connection and retry';
+
+  @override
+  String get voiceAsrRegistrationFailed =>
+      'Unable to enable this recognition service\nTry again later';
+
+  @override
+  String get voiceAsrServiceRejected =>
+      'The recognition service rejected this request';
+
+  @override
+  String get voiceAsrTimeout => 'Recognition timed out\nSpeak again to retry';
+
+  @override
+  String get voiceAsrOpusUnsupported =>
+      'This device’s audio is not supported by WeChat Input';
+
+  @override
+  String get voiceAsrUnsupported =>
+      'This recognition method is unavailable on this platform';
+
+  @override
+  String get voiceAsrTooSlow =>
+      'Recognition is too slow\nEnd this round and retry';
+
+  @override
+  String get voiceAsrNoSpeech => 'No speech recognized';
+
+  @override
+  String get voiceAsrInvalidResponse =>
+      'The recognition service returned an invalid result';
+
+  @override
+  String get voiceAsrInferenceFailed =>
+      'Local recognition failed\nSelect the recognition method again';
+
+  @override
+  String get voiceAsrCancelled => 'Recognition cancelled';
+
+  @override
+  String get voiceAsrConnectionFailed =>
+      'Unable to connect to the recognition service\nCheck your connection and retry';
+
+  @override
+  String get appDataModels => 'Speech recognition data';
+
+  @override
+  String get appDataTasks => 'Task history';
+
+  @override
+  String get appDataDocuments => 'Document cache';
+
+  @override
+  String get privateStateLoadFailed =>
+      'Unable to read saved accounts and devices\nPlease retry';
+
+  @override
+  String get privateStateSaveFailed =>
+      'Unable to save account or device changes\nPlease retry';
+
+  @override
+  String get voiceAsrStorageFull =>
+      'Not enough storage\nFree up space and try again';
+
+  @override
+  String get voiceAsrReconnect => 'Reconnect recognition service';
+
+  @override
+  String get voiceAsrReconnectDescription =>
+      'This will register a new connection with this recognition service\nYour signed-in accounts are unaffected';
+
+  @override
+  String get voiceAsrReconnectFailed => 'Could not reconnect';
+
+  @override
+  String get appDataClearCache => 'Clear cache';
+
+  @override
+  String get appDataClearCacheDescription =>
+      'Clear image, plugin and document caches and expired temporary files\nRunning plugins and device apps will stop';
+
+  @override
+  String get appDataCacheCleared => 'Cache cleared';
+
+  @override
+  String get voiceAsrReplayRecording => 'Replay recording';
+
+  @override
+  String get voiceAsrImportWave => 'Import WAV';
+
+  @override
+  String get voiceAsrReplayDescription =>
+      'Choose a recognition method, then replay or import audio\n16 kHz mono PCM16 only, up to 60 seconds\nOnline recognition sends audio to the selected service';
+
+  @override
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor) {
+    return 'Elapsed $elapsed ms · First result $first ms · RTF $factor';
+  }
+
+  @override
+  String get voiceAsrExportReport => 'Export test report';
+
+  @override
+  String get voiceAsrWaveFormat =>
+      'Choose a 16 kHz mono PCM16 WAV\nMaximum duration: 60 seconds';
+
+  @override
+  String get voiceAsrReplayBusy =>
+      'Finish the current voice or recognition session first';
+
+  @override
+  String get appDataExtensionSettings => 'Plugin and device app data';
+
+  @override
+  String get appDataExtensionSettingsDescription =>
+      'Settings and data for plugins and device apps';
+
+  @override
+  String get appDataExtensionMissing =>
+      'Install matching plugin versions and device apps before restoring this data';
+
+  @override
+  String get appDataImageCache => 'Image cache';
+
+  @override
+  String get appDataSelectBackup => 'Choose what to back up';
+
+  @override
+  String get appDataSettingsDescription =>
+      'Theme, language and feature preferences';
+
+  @override
+  String get appDataHealthDescription => 'Synced health and workout history';
+
+  @override
+  String get appDataDeviceKeys => 'Device pairing and keys';
+
+  @override
+  String get appDataDeviceKeysDescription =>
+      'Saved devices and connection credentials';
+
+  @override
+  String get appDataXiaomiAccount => 'Xiaomi account';
+
+  @override
+  String get appDataXiaomiAccountDescription =>
+      'Xiaomi account and current sign-in session';
+
+  @override
+  String get appDataSensitiveBackup =>
+      'The backup contains unencrypted keys or sign-in details\nKeep it secure and do not share it';
+
+  @override
+  String get appDataImportDescription => 'Choose data to restore from a backup';
+
+  @override
+  String get appDataSnapshotDescription => 'Saved activity files';
+
+  @override
+  String get appDataPluginDescription =>
+      'Installed plugins and their local data';
+
+  @override
+  String get appDataZepposDescription =>
+      'Device app scripts and local settings';
+
+  @override
+  String get appDataLogsDescription => 'App activity and troubleshooting logs';
+
+  @override
+  String get appDataRecoveryDescription =>
+      'Data retained for interrupted restores';
+
+  @override
+  String get appDataDownloadsDescription =>
+      'Temporary download and installation files';
+
+  @override
+  String get appDataPluginCacheDescription =>
+      'Plugin cache and disposable temporary files';
+
+  @override
+  String get appDataImagesDescription =>
+      'Cached images from browsing resources';
+
+  @override
+  String get appDataModelsDescription => 'Downloaded speech models and runtime';
+
+  @override
+  String get appDataTasksDescription =>
+      'Saved download and installation progress';
+
+  @override
+  String get appDataDocumentsDescription =>
+      'Local copies of terms and privacy notices';
+
+  @override
+  String get phoneLocationTitle => 'Assisted Positioning';
+
+  @override
+  String get deviceFeaturesGroupTitle => 'Features and tools';
+
+  @override
+  String get deviceSettingsGroupTitle => 'Device settings and maintenance';
+
+  @override
+  String get phoneLocationStatusSection => 'Status';
+
+  @override
+  String get phoneLocationPermissionsSection =>
+      'Permissions and system services';
+
+  @override
+  String get phoneLocationOptionsSection => 'Assisted location options';
+
+  @override
+  String get phoneLocationReady => 'Assisted location ready';
+
+  @override
+  String get phoneLocationReadyDesc =>
+      'Automatic positioning will be provided during outdoor workouts';
+
+  @override
+  String get phoneLocationServiceEnabled => 'Location service';
+
+  @override
+  String get phoneLocationPreciseTitle => 'Precise location';
+
+  @override
+  String get phoneLocationPreciseGranted => 'Precise location granted';
+
+  @override
+  String get phoneLocationPreciseDenied => 'Precise location not granted';
+
+  @override
+  String get phoneLocationBackgroundTitle => 'Background location';
+
+  @override
+  String get phoneLocationBackgroundAlways => 'Always allowed';
+
+  @override
+  String get phoneLocationBackgroundWhileInUse => 'Allowed while in use';
+
+  @override
+  String get phoneLocationBackgroundDenied => 'Not allowed';
+
+  @override
+  String get phoneLocationAutoSync => 'Auto-assisted location';
+
+  @override
+  String get phoneLocationAutoSyncDesc =>
+      'Provide phone GPS when device starts outdoor workouts';
+
+  @override
+  String get phoneLocationEnabledText => 'Enabled';
+
+  @override
+  String get phoneLocationDisabledText => 'Disabled';
+
+  @override
+  String get phoneLocationNotification =>
+      'Provide workout location to your device';
+
+  @override
+  String get phoneLocationDescription =>
+      'Share phone location while preparing for and recording a workout';
+
+  @override
+  String get phoneLocationOpenApp => 'Open OronBox to continue location';
+
+  @override
+  String get phoneLocationRecovery =>
+      'Open the app, then retry the workout on your device';
+
+  @override
+  String get phoneLocationPermission => 'Precise location permission required';
+
+  @override
+  String get phoneLocationBackground => 'Allow background location';
+
+  @override
+  String get phoneLocationBackgroundDescription =>
+      'Receive device workout location requests in the background';
+
+  @override
+  String get phoneLocationSettings => 'Open system settings';
+
+  @override
+  String get phoneLocationServiceOff => 'Location services are off';
+
+  @override
+  String get phoneLocationPermissionHelp =>
+      'Allow precise location, then try again';
+
+  @override
+  String get phoneLocationMobileOnly => 'Available on Android and iOS';
+
+  @override
+  String get phoneLocationUnavailable =>
+      'Unable to get phone location\nCheck location permissions and services';
+
+  @override
+  String get deviceConnectionAbnormalTitle => 'Device connection problem';
+
+  @override
+  String get deviceConnectionAbnormalMessage =>
+      'The device keeps disconnecting. Re-pair it or make sure the device is in Connect new phone mode for a more stable connection.';
+
+  @override
+  String get deviceRePair => 'Re-pair';
+
+  @override
+  String appDataClearCategoryTitle(String category) {
+    return 'Clear $category?';
+  }
+
+  @override
+  String get appDataClearCategoryDescription =>
+      'The selected local data will be removed\nOther categories will be kept';
+
+  @override
+  String get appDataClearHealthDescription =>
+      'Health history will be removed\nOnly data still on your device can be synced again';
+
+  @override
+  String get appDataClearRawDescription =>
+      'Saved activity files will be removed\nThey will no longer be available for export or replay';
+
+  @override
+  String get appDataClearCachedCategoryDescription =>
+      'Only unused cached files will be removed\nFiles may be downloaded again when needed';
+
+  @override
+  String get appDataClearModelsDescription =>
+      'The latest model will be kept\nUnused versions and expired downloads will be removed';
+
+  @override
+  String get settingsPermissionsTitle => 'Permissions';
+
+  @override
+  String get settingsPermissionsDesc =>
+      'App runtime and device coordination permissions';
+
+  @override
+  String get appArrangementTitle => 'App Arrangement';
+
+  @override
+  String get appArrangementDescription => 'Adjust app order and drawer layout';
+
+  @override
+  String get appOrderMainSection => 'Displayed Apps';
+
+  @override
+  String get appOrderMoreSection => 'More Apps';
+
+  @override
+  String get appOrderHiddenSection => 'Hidden Apps';
+
+  @override
+  String get appOrderMoreSectionDesc => 'Apps displayed in device drawer';
+
+  @override
+  String get appOrderHiddenSectionDesc => 'Apps hidden from device';
+
+  @override
+  String get appOrderMoveToMore => 'Move to More';
+
+  @override
+  String get appOrderMoveToMain => 'Move to Main';
+
+  @override
+  String get appOrderHide => 'Hide';
+
+  @override
+  String get appOrderUnhide => 'Show';
+
+  @override
+  String get appOrderCannotHide => 'System app cannot be hidden';
 }

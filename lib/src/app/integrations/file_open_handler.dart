@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
+
 import 'dart:convert';
 
 import 'package:cross_file/cross_file.dart';
@@ -155,7 +158,7 @@ class _FileOpenHandlerState extends ConsumerState<FileOpenHandler> {
     }
     if (context.mounted) {
       final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
+      appScaffoldMessengerOf(context).showSnackBar(
         SnackBar(content: Text('${manifest.name}: ${l10n.pluginInstalled}')),
       );
     }
@@ -188,13 +191,13 @@ class _FileOpenHandlerState extends ConsumerState<FileOpenHandler> {
           await _showPluginPackageCorruptedDialog(context);
           continue;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
+        appScaffoldMessengerOf(context).showSnackBar(
           SnackBar(content: Text(localizedErrorMessage(l10n, error))),
         );
       }
     }
     if (!context.mounted || enqueued == 0) return;
-    ScaffoldMessenger.of(context)
+    appScaffoldMessengerOf(context)
         .showSnackBar(SnackBar(content: Text(l10n.queueAddedFiles(enqueued))));
   }
 

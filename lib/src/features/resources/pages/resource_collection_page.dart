@@ -1,3 +1,4 @@
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
@@ -45,7 +46,20 @@ class _ResourceCollectionPageState extends State<ResourceCollectionPage> {
     // Mirrors the resource detail page: the header renders immediately from
     // the tapped list card so the shared element transition plays, then picks
     // up the freshly loaded collection data (correct coin count, owner).
-    final mediaResource = _loaded?.representative ?? widget.collection;
+    final representative = _loaded?.representative ?? widget.collection;
+    final mediaResource = _loaded == null
+        ? representative
+        : CommunityResource(
+            ref: widget.collection.ref,
+            paidType: CommunityPaidType.free,
+            name: _loaded!.name,
+            type: _loaded!.type,
+            authors: representative.authors,
+            supportedDevices: representative.supportedDevices,
+            iconUrl: _loaded!.iconUrl ?? representative.iconUrl,
+            coverUrl: _loaded!.coverUrl ?? representative.coverUrl,
+            summary: _loaded!.summary,
+          );
     final headerResource = _loaded == null
         ? widget.collection
         : CommunityResource(
@@ -114,6 +128,8 @@ class _ResourceCollectionPageState extends State<ResourceCollectionPage> {
                     ),
                     const SizedBox(height: 16),
                   ],
+                  if (_loaded!.description.isNotEmpty)
+                    MarkdownBody(data: _loaded!.description, selectable: true),
                   Text(
                     l10n.creatorResourceList,
                     style: Theme.of(context).textTheme.titleLarge,

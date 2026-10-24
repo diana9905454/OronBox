@@ -1,3 +1,4 @@
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,8 +51,10 @@ class PluginWindowApp extends ConsumerWidget {
               : AppTheme.buildDarkTheme(colorScheme: darkColorScheme),
           themeMode: themeSettings.materialThemeMode,
           locale: localeSettings.materialLocale,
-              localizationsDelegates: appLocalizationsDelegates,
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
+          builder: (context, child) =>
+              OronBoxScaffoldMessenger(child: child ?? const SizedBox.shrink()),
           home: SecondaryWindowHost(
             role: 'plugin.$pluginId',
             child: PluginHostRequestHandler(

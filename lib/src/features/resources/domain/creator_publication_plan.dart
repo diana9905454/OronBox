@@ -54,7 +54,11 @@ CreatorPublicationPlan buildCreatorPublicationPlan({
   required CreatorWorkspace workspace,
   required List<CreatorDevice> devices,
   required List<Map<String, Object?>> bandBbsCategories,
+  Map<String, Object?>? publicationOptions,
 }) {
+  if (publicationOptions != null) {
+    return _configuredPublicationPlan(workspace, devices, publicationOptions);
+  }
   final categories = _flattenCategories(bandBbsCategories);
   final deviceById = {for (final device in devices) device.id: device};
   final boundDeviceNames = <String>[];
@@ -155,4 +159,75 @@ List<({int id, String title})> _flattenCategories(
     visit(root);
   }
   return result;
+}
+
+CreatorPublicationPlan _configuredPublicationPlan(
+  CreatorWorkspace workspace,
+  List<CreatorDevice> devices,
+  Map<String, Object?> config,
+) {
+  final mappings = config['bandbbs'] as Map? ?? const {};
+  final prefixes = config['resource_prefixes'] as Map? ?? const {};
+  final prefix =
+      (prefixes[workspace.resource.kind == CreatorResourceKind.watchface
+                  ? 'watchface'
+                  : 'quickapp']
+              as num?)
+          ?.toInt() ??
+      0;
+  final byId = {for (final d in devices) d.id: d};
+  final groups = <int, ({CreatorArtifact artifact, List<String> names})>{};
+  final unresolved = <String>[];
+  final names = <String>[];
+  final boundIds = <String>{};
+  var shared = false;
+  for (final a in workspace.artifacts) {
+    for (final id in a.devices) {
+      final d = byId[id];
+      if (d == null) {
+        unresolved.add(id);
+        continue;
+      }
+      names.add(d.name);
+      boundIds.add(d.id);
+      final m = mappings[d.codename];
+      final category = m is Map ? (m['category_id'] as num?)?.toInt() : null;
+      if (category == null || category <= 0 || prefix <= 0) {
+        unresolved.add(d.name);
+        continue;
+      }
+      final old = groups[category];
+      if (old != null && old.artifact.id != a.id) {
+        shared = true;
+        continue;
+      }
+      groups[category] = (artifact: a, names: [...?old?.names, d.name]);
+    }
+  }
+  return CreatorPublicationPlan(
+    deviceNames: names,
+    astroBoxDeviceIds: {
+      for (final d in devices)
+        if (boundIds.contains(d.id) && d.astroBoxId.isNotEmpty) d.astroBoxId,
+    }.toList(),
+    bandBbsTargets: [
+      for (final e in groups.entries)
+        CreatorBandBbsTarget(
+          categoryId: e.key,
+          categoryName: e.value.names.join(' / '),
+          prefixId: prefix,
+          packageId: e.value.artifact.packageId,
+          packageName: e.value.artifact.name,
+          deviceNames: e.value.names,
+        ),
+    ],
+    unmappedDeviceNames: unresolved,
+    bandBbsProblem: unresolved.isNotEmpty
+        ? CreatorBandBbsPlanProblem.unmappedDevices
+        : shared
+        ? CreatorBandBbsPlanProblem.sharedCategoryArtifacts
+        : groups.isEmpty
+        ? CreatorBandBbsPlanProblem.noDevices
+        : null,
+  );
 }

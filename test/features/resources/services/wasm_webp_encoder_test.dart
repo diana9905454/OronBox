@@ -6,6 +6,7 @@ import 'package:image/image.dart' as img;
 import 'package:oronbox/src/features/resources/services/resource_image_processor.dart';
 import 'package:wasm_run_flutter/wasm_run_flutter.dart';
 import 'package:oronbox/src/core/wasm/wasm_runtime.dart';
+import 'package:oronbox/src/core/wasm/wasm_opus_decoder.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +26,7 @@ void main() {
     final candidates = [
       Platform.environment['WASM_RUN_DART_DYNAMIC_LIBRARY'],
       if (name.isNotEmpty) ...[
+        'build/native_assets/verified/$osDir/$name',
         'build/native_assets/$osDir/$name',
         '.dart_tool/lib/$name',
       ],
@@ -35,7 +37,7 @@ void main() {
     );
     if (path == null) {
       fail(
-        'wasm_run native library not fetched; run `flutter pub get` and '
+        'wasm_run native library not built; run `flutter pub get` and '
         'any flutter build/test once before the test suite.',
       );
     }
@@ -105,4 +107,73 @@ void main() {
     expect(String.fromCharCodes(webp.sublist(0, 4)), 'RIFF');
     expect(String.fromCharCodes(webp.sublist(8, 12)), 'WEBP');
   });
+  test('runtime executes a minimal module and releases its scope', () async {
+    final scope = WasmRuntime.shared.openScope('test.minimum');
+    final module = Uint8List.fromList([
+      0,
+      97,
+      115,
+      109,
+      1,
+      0,
+      0,
+      0,
+      1,
+      5,
+      1,
+      96,
+      0,
+      1,
+      127,
+      3,
+      2,
+      1,
+      0,
+      7,
+      10,
+      1,
+      6,
+      97,
+      110,
+      115,
+      119,
+      101,
+      114,
+      0,
+      0,
+      10,
+      6,
+      1,
+      4,
+      0,
+      65,
+      42,
+      11,
+    ]);
+    final instance = await scope.instantiate(module);
+    expect(instance.call('answer'), [42]);
+    scope.dispose();
+    expect(() => instance.call('answer'), throwsStateError);
+  });
+
+  test(
+    'Opus module decodes a silence packet and releases its instance',
+    () async {
+      final decoder = await WasmOpusDecoder.create();
+      final pcm = decoder.decode(Uint8List.fromList([0xf8, 0xff, 0xfe]));
+      expect(pcm, isNotEmpty);
+      expect(pcm.every((sample) => sample.isFinite), isTrue);
+      for (var session = 0; session < 16; session++) {
+        decoder.reset();
+        final restarted = decoder.decode(
+          Uint8List.fromList([0xf8, 0xff, 0xfe]),
+        );
+        expect(restarted.length, pcm.length);
+        expect(restarted.every((sample) => sample.isFinite), isTrue);
+      }
+      decoder.dispose();
+      expect(() => decoder.reset(), throwsStateError);
+      expect(() => decoder.decode(Uint8List(1)), throwsStateError);
+    },
+  );
 }

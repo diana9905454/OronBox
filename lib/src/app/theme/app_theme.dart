@@ -41,9 +41,7 @@ class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
       success: dark ? const Color(0xFF8BD49A) : const Color(0xFF2E7D32),
       warning: dark ? const Color(0xFFFFCC80) : const Color(0xFFB26A00),
       info: dark ? const Color(0xFF90CAF9) : const Color(0xFF1565C0),
-      healthHeartRate: dark
-          ? const Color(0xFFFF8A9A)
-          : const Color(0xFFD32F2F),
+      healthHeartRate: dark ? const Color(0xFFFF8A9A) : const Color(0xFFD32F2F),
       healthRestingHeartRate: dark
           ? const Color(0xFFFFAB91)
           : const Color(0xFFC2185B),
@@ -165,7 +163,7 @@ abstract final class AppTheme {
 
   static const pageTransitionsTheme = PageTransitionsTheme(
     builders: {
-      TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+      TargetPlatform.android: _ForegroundPredictiveBackTransitionsBuilder(),
       TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
       TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
@@ -330,9 +328,7 @@ abstract final class AppTheme {
         hoverElevation: 0,
         disabledElevation: 0,
       ),
-      extensions: [
-        AppSemanticColors.defaults(brightness),
-      ],
+      extensions: [AppSemanticColors.defaults(brightness)],
     );
   }
 
@@ -355,5 +351,39 @@ abstract final class AppTheme {
 
   static Color _tintedSurface(Color base, Color tint, double alpha) {
     return Color.alphaBlend(tint.withValues(alpha: alpha), base);
+  }
+}
+
+class _ForegroundPredictiveBackTransitionsBuilder
+    extends PageTransitionsBuilder {
+  const _ForegroundPredictiveBackTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // A branch route can be current in its Navigator while a root route covers it.
+    var navigator = route.navigator;
+    var visible = TickerMode.valuesOf(context).enabled;
+    while (navigator != null) {
+      final parentRoute = ModalRoute.of(navigator.context);
+      if (parentRoute == null) break;
+      visible = visible && (ModalRoute.isCurrentOf(navigator.context) ?? true);
+      navigator = parentRoute.navigator;
+    }
+    final PageTransitionsBuilder builder = visible
+        ? const PredictiveBackPageTransitionsBuilder()
+        : const ZoomPageTransitionsBuilder();
+    return builder.buildTransitions(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      child,
+    );
   }
 }

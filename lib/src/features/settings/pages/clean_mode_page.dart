@@ -26,25 +26,21 @@ class CleanModePage extends ConsumerWidget {
       appBar: SysAppBar(secondary: true, title: Text(l10n.cleanMode)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(
+        contentPadding: EdgeInsets.only(
           top: 8,
+          bottom: MediaQuery.paddingOf(context).bottom + 16,
         ),
         sections: [
           SegmentedSection(
             title: Text(l10n.cleanNavigationGroup),
             tiles: [
-              _switch(
-                l10n.cleanExploreEntry,
-                value.exploreEntry,
-                (enabled) {
-                  var next = value.copyWith(exploreEntry: enabled);
-                  if (enabled && !value.homeFeed && !value.explore) {
-                    next = next.copyWith(explore: true);
-                  }
-                  update(next);
-                },
-                icon: Icons.apps_outlined,
-              ),
+              _switch(l10n.cleanExploreEntry, value.exploreEntry, (enabled) {
+                var next = value.copyWith(exploreEntry: enabled);
+                if (enabled && !value.homeFeed && !value.explore) {
+                  next = next.copyWith(explore: true);
+                }
+                update(next);
+              }, icon: Icons.apps_outlined),
               _switch(
                 l10n.cleanPluginsEntry,
                 value.pluginsEntry,

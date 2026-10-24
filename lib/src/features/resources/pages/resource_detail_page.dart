@@ -1,3 +1,5 @@
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -6,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/horizontal_scroller.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
@@ -16,7 +19,6 @@ import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
-import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 import 'package:oronbox/src/features/accounts/services/oronbox_coin_service.dart';
 import 'package:oronbox/src/features/resources/application/comments/oronbox_comments.dart';
 import 'package:oronbox/src/features/resources/application/resource_catalog_providers.dart';
@@ -28,6 +30,10 @@ import 'package:oronbox/src/features/resources/widgets/community_html_content.da
 import 'package:oronbox/src/features/resources/widgets/resource_detail_header.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_external_link.dart';
 import 'package:oronbox/src/features/settings/pages/feedback_page.dart';
+
+import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
+
+part 'comment_thread_page.dart';
 
 class ResourceDetailPage extends ConsumerWidget {
   const ResourceDetailPage({
@@ -46,7 +52,9 @@ class ResourceDetailPage extends ConsumerWidget {
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(l10n.resourceDetails)),
       body: ListView(
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         children: [
           ResourceDetailHeader(
             resource: visibleResource,
@@ -64,7 +72,12 @@ class ResourceDetailPage extends ConsumerWidget {
             ),
             error: (error, _) => PageContainer(
               padding: const EdgeInsets.all(StyleConstants.pagePadding),
-              child: Text(localizedErrorMessage(l10n, error)),
+              child: ErrorStateView(
+                message: localizedErrorMessage(l10n, error),
+                onRetry: () => ref.invalidate(
+                  communityResourceDetailProvider(resource.ref),
+                ),
+              ),
             ),
             data: (value) =>
                 _DetailContent(detail: value, targetCommentId: targetCommentId),
@@ -333,6 +346,17 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
             ),
             const SizedBox(height: 12),
             switch (detail.content.format) {
+              ResourceContentFormat.markdown => MarkdownBody(
+                data: detail.content.value,
+                selectable: true,
+                onTapLink: (_, href, _) {
+                  final uri = Uri.tryParse(href ?? '');
+                  if (uri != null &&
+                      (uri.scheme == 'https' || uri.scheme == 'http')) {
+                    openResourceExternalLink(context, uri);
+                  }
+                },
+              ),
               ResourceContentFormat.html => CommunityHtmlContent(
                 html: detail.content.value,
                 baseUri: detail.content.baseUri,
@@ -348,7 +372,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
             const SizedBox(height: 24),
             _PreviewGallery(previews: previews),
           ],
-          if (currentCodename.isNotEmpty) ...[
+          if (!isBandBbs && currentCodename.isNotEmpty) ...[
             const SizedBox(height: 24),
             _Compatibility(
               detail: detail,
@@ -435,7 +459,9 @@ class _CoinButtonState extends ConsumerState<_CoinButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final isSignedIn = ref.watch(bandBbsAuthProvider).isSignedIn;
+    final isSignedIn = ref.watch(
+      hostAccountsProvider.select((state) => state.bandbbs.isSignedIn),
+    );
     final myCoins = ref.watch(oronBoxMyCoinsProvider(widget.resource.ref.id));
     final voted = myCoins.value ?? 0;
     final statusLoading = isSignedIn && myCoins.isLoading;
@@ -512,6 +538,9 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
   bool _loading = true;
   bool _sending = false;
   bool _hasMore = true;
+  int _commentPage = 0;
+  int _commentRequest = 0;
+  String _commentCursor = '';
   String? _replyTo;
   Object? _error;
   final _targetCommentKey = GlobalKey();
@@ -530,6 +559,7 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
   }
 
   Future<void> _load({bool more = false}) async {
+    final request = ++_commentRequest;
     setState(() {
       _loading = true;
       _error = null;
@@ -537,21 +567,29 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
     try {
       final page = await ref
           .read(oronBoxCommentsApiProvider)
-          .list(
+          .listPage(
             widget.resourceId,
-            before: more && _comments.isNotEmpty
-                ? _comments.last.createdAt
-                : null,
+            page: more ? _commentPage + 1 : 1,
+            size: 20,
+            before: more ? _commentCursor : '',
           );
-      if (!mounted) return;
+      if (!mounted || request != _commentRequest) return;
       setState(() {
-        _comments = more ? [..._comments, ...page] : page;
-        _hasMore = page.length == 20;
+        _comments = more
+            ? [
+                ...{
+                  for (final c in [..._comments, ...page.items]) c.id: c,
+                }.values,
+              ]
+            : page.items;
+        _commentPage = more ? _commentPage + 1 : 1;
+        _hasMore = page.hasMore;
+        _commentCursor = page.nextCursor;
         _loading = false;
       });
       _revealTargetComment();
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || request != _commentRequest) return;
       setState(() {
         _error = error;
         _loading = false;
@@ -559,29 +597,28 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
     }
   }
 
+  Future<void> _openThread(String id) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            CommentThreadPage(resourceId: widget.resourceId, commentId: id),
+      ),
+    );
+    if (mounted) await _load();
+  }
+
   void _revealTargetComment() {
     if (_targetRevealed || widget.targetCommentId.isEmpty) return;
+    _targetRevealed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetContext = _targetCommentKey.currentContext;
-      if (!mounted) return;
-      if (targetContext == null) {
-        if (_hasMore && !_loading) unawaited(_load(more: true));
-        return;
-      }
-      _targetRevealed = true;
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-        alignment: .25,
-      );
+      if (mounted) unawaited(_openThread(widget.targetCommentId));
     });
   }
 
   Key? _commentKey(OronBoxComment comment) =>
       comment.id == widget.targetCommentId ? _targetCommentKey : null;
 
-  Future<bool> _send() async {
+  Future<bool> _send({required ValueChanged<String> onError}) async {
     final body = _controller.text.trim();
     if (body.isEmpty || _sending) return false;
     setState(() => _sending = true);
@@ -590,28 +627,19 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
           .read(oronBoxCommentsApiProvider)
           .create(widget.resourceId, body, parentId: _replyTo ?? '');
       if (!mounted) return false;
+      if (comment.moderationAction == 'block') {
+        onError(AppLocalizations.of(context)!.commentBlocked);
+        return false;
+      }
       setState(() {
-        if (_replyTo == null) {
-          _comments = [comment, ..._comments];
-        } else {
-          _comments = _comments
-              .map(
-                (item) => item.id == _replyTo
-                    ? item.copyWith(replies: [...item.replies, comment])
-                    : item,
-              )
-              .toList();
-        }
         _replyTo = null;
         _controller.clear();
       });
+      await _load();
       return true;
-    } on CommentApiException catch (error) {
+    } catch (error) {
       if (!mounted) return false;
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizedErrorMessage(l10n, error))),
-      );
+      onError(localizedErrorMessage(AppLocalizations.of(context)!, error));
       return false;
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -622,6 +650,7 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _replyTo = parentId);
     var dialogBusy = false;
+    String? dialogError;
     final sent = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -643,6 +672,8 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
                 keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   hintText: l10n.commentHint,
+                  errorText: dialogError,
+                  errorMaxLines: 4,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -659,7 +690,14 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
                     ? null
                     : () async {
                         setDialogState(() => dialogBusy = true);
-                        final success = await _send();
+                        setDialogState(() => dialogError = null);
+                        final success = await _send(
+                          onError: (message) {
+                            if (dialogContext.mounted) {
+                              setDialogState(() => dialogError = message);
+                            }
+                          },
+                        );
                         if (!dialogContext.mounted) return;
                         if (success) {
                           Navigator.pop(dialogContext, true);
@@ -697,8 +735,20 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    ref.listen(
+      hostAccountsProvider.select(
+        (value) => (value.bandbbs.isSignedIn, value.bandbbs.userId),
+      ),
+      (previous, next) {
+        setState(() {
+          _comments = const [];
+          _replyTo = null;
+          _controller.clear();
+        });
+        unawaited(_load());
+      },
+    );
     final auth = ref.watch(hostAccountsProvider).bandbbs;
-    final isAdmin = ref.watch(currentUserRoleProvider).value == 'admin';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -734,26 +784,38 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
           Text(l10n.commentEmpty)
         else
           for (final comment in _comments) ...[
-            _CommentTile(
-              key: _commentKey(comment),
-              comment: comment,
-              ownUserId: int.tryParse(auth.userId ?? ''),
-              canModerate: isAdmin,
-              deleting: _deletingCommentIds.contains(comment.id),
-              onReply: () => _compose(parentId: comment.id),
-              onDelete: () => _delete(comment),
-              replies: [
-                for (final reply in comment.replies)
-                  _CommentTile(
-                    key: _commentKey(reply),
-                    comment: reply,
-                    isReply: true,
-                    ownUserId: int.tryParse(auth.userId ?? ''),
-                    canModerate: isAdmin,
-                    deleting: _deletingCommentIds.contains(reply.id),
-                    onDelete: () => _delete(reply),
-                  ),
-              ],
+            InkWell(
+              onTap: () => _openThread(comment.id),
+              child: _CommentTile(
+                key: _commentKey(comment),
+                comment: comment,
+                ownUserId: int.tryParse(auth.userId ?? ''),
+                canModerate: false,
+                deleting: _deletingCommentIds.contains(comment.id),
+                onReply: comment.deleted
+                    ? null
+                    : () => _compose(parentId: comment.id),
+                onDelete: () => _delete(comment),
+                replies: [
+                  for (final reply in comment.replies)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: InkWell(
+                        onTap: () => _openThread(reply.id),
+                        child: Text(
+                          '${reply.username}: ${reply.body}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                  if (comment.replyCount > 0)
+                    TextButton(
+                      onPressed: () => _openThread(comment.id),
+                      child: Text(l10n.commentViewReplies(comment.replyCount)),
+                    ),
+                ],
+              ),
             ),
           ],
         if (_hasMore && _comments.isNotEmpty)
@@ -834,16 +896,29 @@ class _CommentTile extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(comment.body, style: theme.textTheme.bodyMedium),
-                if (own && comment.moderationAction == 'review')
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      l10n.commentPending,
-                      style: TextStyle(color: theme.colorScheme.tertiary),
-                    ),
+                if (comment.replyToUsername.isNotEmpty)
+                  Text(
+                    l10n.commentReplyTarget(comment.replyToUsername),
+                    style: theme.textTheme.bodySmall,
                   ),
+                const SizedBox(height: 8),
+                MarkdownBody(
+                  data: comment.deleted
+                      ? l10n.commentDeletedPlaceholder
+                      : comment.body,
+                  selectable: true,
+                  styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+                    p: theme.textTheme.bodyMedium,
+                    pPadding: EdgeInsets.zero,
+                    blockSpacing: 4,
+                  ),
+                  onTapLink: (_, href, _) {
+                    final uri = Uri.tryParse(href ?? '');
+                    if (uri != null && uri.hasScheme) {
+                      openResourceExternalLink(context, uri);
+                    }
+                  },
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -854,7 +929,7 @@ class _CommentTile extends StatelessWidget {
                         onPressed: onReply,
                         icon: const Icon(Icons.reply_outlined, size: 19),
                       ),
-                    if (own || canModerate)
+                    if (!comment.deleted && (own || canModerate))
                       IconButton(
                         tooltip: l10n.delete,
                         visualDensity: VisualDensity.compact,
@@ -1296,7 +1371,8 @@ ResourceInstallChoice? preferredResourceInstallChoice(
   List<ResourceInstallChoice> choices,
   String currentCodename,
 ) {
-  if (detail.ref.source == CommunitySourceId.huamiAppStore) {
+  if (detail.ref.source == CommunitySourceId.huamiAppStore ||
+      detail.ref.source == CommunitySourceId.bandbbs) {
     return choices.firstOrNull;
   }
   return choices

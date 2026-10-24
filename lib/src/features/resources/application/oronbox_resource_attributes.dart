@@ -41,10 +41,13 @@ class OronBoxResourceAttributeCatalog {
 
   final Dio _dio;
 
-  Future<List<OronBoxResourceAttribute>> load() async {
-    final response = await _dio.get<Object?>('/api/resource-attributes');
+  Future<List<OronBoxResourceAttribute>> load({bool forCreator = false}) async {
+    final response = await _dio.get<Object?>(
+      '/api/v1/tags',
+      queryParameters: {'scene': forCreator ? 'c' : 'f'},
+    );
     final root = (response.data as Map?)?.cast<String, Object?>() ?? const {};
-    return (root['attributes'] as List? ?? const [])
+    return (root['tags'] as List? ?? const [])
         .whereType<Map>()
         .map(
           (item) =>

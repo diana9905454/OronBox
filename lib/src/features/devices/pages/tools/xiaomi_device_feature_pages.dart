@@ -7,6 +7,8 @@ import 'package:segmented_list/tile/segmented_tile_info.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/stable_fab.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -167,18 +169,27 @@ class _XiaomiAppOrderPageState extends ConsumerState<XiaomiAppOrderPage> {
             : const SizedBox.shrink(key: ValueKey('app-order-actions-empty')),
       ),
       body: !ready
-          ? Center(child: Text(l10n.deviceNotConnected))
+          ? EmptyStateView(
+              icon: Icons.bluetooth_disabled_outlined,
+              title: l10n.deviceNotConnected,
+            )
           : _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? _AppOrderError(message: _error!, onRetry: _load)
+          ? ErrorStateView(
+              message: localizedErrorMessage(l10n, _error),
+              onRetry: _load,
+            )
           : _apps.isEmpty
-          ? Center(child: Text(l10n.appOrderEmpty))
+          ? EmptyStateView(icon: Icons.apps_outlined, title: l10n.appOrderEmpty)
           : Column(
               children: [
                 Expanded(
                   child: ReorderableListView.builder(
-                    padding: const EdgeInsets.only(top: 8, bottom: 24),
+                    padding: EdgeInsets.only(
+                      top: 8,
+                      bottom: bottomContentPadding(context, extra: 24),
+                    ),
                     itemCount: _apps.length,
                     onReorderItem: _reorder,
                     buildDefaultDragHandles: false,
@@ -294,33 +305,6 @@ class _ReorderableAppTile extends StatelessWidget {
       ],
     );
   }
-}
-
-class _AppOrderError extends StatelessWidget {
-  const _AppOrderError({required this.message, required this.onRetry});
-
-  final String message;
-  final VoidCallback onRetry;
-
-  @override
-  Widget build(BuildContext context) => Center(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.error_outline, size: 40),
-          const SizedBox(height: 12),
-          Text(message, textAlign: TextAlign.center),
-          const SizedBox(height: 16),
-          FilledButton.tonal(
-            onPressed: onRetry,
-            child: Text(AppLocalizations.of(context)!.retry),
-          ),
-        ],
-      ),
-    ),
-  );
 }
 
 class XiaomiAlarmsPage extends ConsumerStatefulWidget {
@@ -703,14 +687,29 @@ class _XiaomiAlarmsPageState extends ConsumerState<XiaomiAlarmsPage> {
             : const SizedBox.shrink(key: ValueKey('add-alarm-hidden')),
       ),
       body: !ready
-          ? Center(child: Text(l10n.deviceNotConnected))
+          ? EmptyStateView(
+              icon: Icons.bluetooth_disabled_outlined,
+              title: l10n.deviceNotConnected,
+            )
           : _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text(_error!))
+          ? ErrorStateView(
+              message: localizedErrorMessage(l10n, _error),
+              onRetry: _load,
+            )
+          : _alarms.isEmpty
+          ? EmptyStateView(
+              icon: Icons.alarm_off_outlined,
+              title: l10n.alarmManagementTitle,
+              message: l10n.noContent,
+            )
           : SegmentedList(
               maxWidth: StyleConstants.pageMaxWidth,
-              contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+              contentPadding: EdgeInsets.only(
+                top: 8,
+                bottom: bottomContentPadding(context, extra: 80),
+              ),
               sections: [
                 SegmentedSection(
                   tiles: [

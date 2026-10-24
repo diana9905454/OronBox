@@ -1,3 +1,10 @@
+import 'dart:io';
+
+import 'package:oronbox/src/core/services/private_app_state.dart';
+import 'package:oronbox/src/core/storage/app_data_directory_io.dart';
+
+import '../../../support/memory_secure_storage.dart';
+
 import 'dart:async';
 
 import 'package:archive/archive.dart';
@@ -11,6 +18,7 @@ import 'package:oronbox/src/host/application_host_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   test('extracts Xiaomi and Huami authkeys from wearable log zip', () {
     const log = '''
 2026-01-01|I|HttpClient|{"code":0,"result":{"list":[{"sid":"1","identifier":"1","name":"Xiaomi Watch","model":"miwear.watch.test","status":1,"create_time":1,"update_time":2,"detail":{"encrypt_key":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","fw_ver":"1.2.3","mac":"01:23:45:67:89:AB","sn":"SN1","token":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},{"sid":"huami.2","identifier":"huami.2","name":"Mi Band","model":"hmpace.bracelet.test","status":1,"create_time":1,"update_time":2,"detail":{"auth_key":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","mac_address":"10:32:54:76:98:BA","sn":"SN2"}}]}}
@@ -119,6 +127,17 @@ void main() {
 
   test('persists and clears the Xiaomi signed session material', () async {
     SharedPreferences.setMockInitialValues({});
+    final root = await Directory.systemTemp.createTemp(
+      'oronbox-host-account-test-',
+    );
+    PrivateAppState.instanceForTesting = PrivateAppState(
+      secureStorage: MemorySecureStorage(),
+      lock: IoAppDataDirectory(root),
+    );
+    addTearDown(() async {
+      PrivateAppState.instanceForTesting = null;
+      await root.delete(recursive: true);
+    });
     final service = MiAccountService();
     const token = MiAccountToken(
       userId: '10001',

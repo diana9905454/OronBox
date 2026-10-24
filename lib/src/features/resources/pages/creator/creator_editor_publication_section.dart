@@ -139,7 +139,7 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
                   if (_publicationPlan case final plan?)
                     _unsupportedDeviceNotice(
                       l10n,
-                      '米坛社区',
+                      l10n.bandbbs,
                       plan.unmappedDeviceNames,
                     ),
                 ],
@@ -307,6 +307,18 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (error.isNotEmpty) Text(error),
+          if (publication['state'] == 'failed')
+            TextButton.icon(
+              onPressed: widget.state.loading
+                  ? null
+                  : () => _run(
+                      () => widget.controller.retryPublication(
+                        publication['id'].toString(),
+                      ),
+                    ),
+              icon: const Icon(Icons.refresh),
+              label: Text(l10n.creatorPublicationRetry),
+            ),
           for (final url in links)
             InkWell(
               onTap: () => unawaited(launchUrl(Uri.parse(url))),
@@ -467,6 +479,4 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
     CreatorBandBbsPlanProblem.sharedCategoryArtifacts =>
       l10n.creatorBandBbsSharedCategory,
   };
-
-
 }

@@ -23,8 +23,7 @@ class ApplicationHost implements OronBoxCommandBus {
 
   final OronBoxCommandBus core;
   final FutureOr<void> Function()? onClose;
-  final Future<Future<void> Function()> Function(HostTask)?
-  beginTaskExecution;
+  final Future<Future<void> Function()> Function(HostTask)? beginTaskExecution;
   late final HostTaskQueue tasks;
   final _events = StreamController<CommandEvent>.broadcast();
   late final StreamSubscription<CommandEvent> _coreSubscription;
@@ -36,6 +35,10 @@ class ApplicationHost implements OronBoxCommandBus {
   @override
   Future<CommandResult> execute(OronBoxCommand command) {
     return runAsDiagnosticBackend(() async {
+      if (command.method.startsWith('queue.') ||
+          command.method == 'task.enqueue') {
+        await tasks.ready;
+      }
       switch (command.method) {
         case 'task.enqueue':
           return CommandResult.success({

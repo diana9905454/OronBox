@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/host/tasks/task_models.dart';
@@ -259,35 +259,30 @@ class InstallQueueNotifier extends Notifier<InstallQueueState> {
   }
 
   Future<String> _stage(String name, Uint8List bytes) async {
-    final directory = await getTemporaryDirectory();
     final safeName = name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-    final file = File(
-      '${directory.path}${Platform.pathSeparator}'
-      'oronbox_queue_${DateTime.now().microsecondsSinceEpoch}_$safeName',
+    return ManagedTemporaryFiles.create(
+      TemporaryFilePurpose.installs,
+      'file_$safeName',
+      (path) async {
+        await File(path).writeAsBytes(bytes, flush: true);
+      },
     );
-    await file.writeAsBytes(bytes, flush: true);
-    return file.path;
   }
 
   Future<String> _stageFile(XFile source) async {
-    final directory = await getTemporaryDirectory();
     final safeName = source.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-    final target = File(
-      '${directory.path}${Platform.pathSeparator}'
-      'oronbox_queue_${DateTime.now().microsecondsSinceEpoch}_$safeName',
+    return ManagedTemporaryFiles.create(
+      TemporaryFilePurpose.installs,
+      'file_$safeName',
+      (path) async {
+        final sink = File(path).openWrite();
+        try {
+          await sink.addStream(source.openRead());
+        } finally {
+          await sink.close();
+        }
+      },
     );
-    final sink = target.openWrite();
-    try {
-      await for (final chunk in source.openRead()) {
-        sink.add(chunk);
-      }
-      await sink.flush();
-      await sink.close();
-    } catch (_) {
-      await sink.close();
-      rethrow;
-    }
-    return target.path;
   }
 
   Future<void> _enqueue(OronBoxCommand command, {bool held = true}) async {
