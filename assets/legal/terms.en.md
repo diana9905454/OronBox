@@ -1,7 +1,7 @@
 # OronBox Terms of Use and Disclaimer
 
-Version: 1.0.0
-Effective date: 2026-07-19
+Version: 1.1.0
+Effective date: 2026-10-19
 
 ## 1. Service overview
 
@@ -131,3 +131,8 @@ This section does not restrict any right to submit a lawful complaint or seek an
 - Operator: OronBox Operations Team
 - Email: t3164473115@163.com
 - Discussions: <https://github.com/zxor-org/OronBox/discussions>
+
+## Speech experiments and data export
+
+Speech recognition experiments are selected by the user. Third-party online test services may change, impose limits or stop operating. Do not rely on them as the sole basis for emergency calls, medical judgments or other critical decisions. Recognition may be inaccurate; review text before sending it to a device.
+Backups and audio or health-data exports are initiated by the user, who should keep exported files secure. Local models and third-party components retain their respective licenses, available in the app's notices.

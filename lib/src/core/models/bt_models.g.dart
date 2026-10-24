@@ -82,6 +82,10 @@ _AppInfo _$AppInfoFromJson(Map<String, dynamic> json) => _AppInfo(
   versionCode: (json['versionCode'] as num?)?.toInt() ?? 0,
   canRemove: json['canRemove'] as bool? ?? false,
   appName: json['appName'] as String,
+  hidden: json['hidden'] as bool? ?? false,
+  persist: json['persist'] as bool? ?? false,
+  canMore: json['canMore'] as bool? ?? false,
+  inMore: json['inMore'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$AppInfoToJson(_AppInfo instance) => <String, dynamic>{
@@ -90,6 +94,10 @@ Map<String, dynamic> _$AppInfoToJson(_AppInfo instance) => <String, dynamic>{
   'versionCode': instance.versionCode,
   'canRemove': instance.canRemove,
   'appName': instance.appName,
+  'hidden': instance.hidden,
+  'persist': instance.persist,
+  'canMore': instance.canMore,
+  'inMore': instance.inMore,
 };
 
 _StorageInfo _$StorageInfoFromJson(Map<String, dynamic> json) => _StorageInfo(

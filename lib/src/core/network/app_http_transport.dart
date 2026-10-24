@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:oronbox/src/core/network/client_attestation_interceptor.dart';
 import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/core/network/github_cdn_interceptor.dart';
 import 'package:oronbox/src/core/network/http_observability_interceptor.dart';
@@ -24,6 +25,7 @@ Dio createAppHttpTransport({
     dio.interceptors.add(interceptor);
     interceptor.retryDio = dio;
   }
+  dio.interceptors.add(ClientAttestationInterceptor());
   installHttpObservability(dio);
   return dio;
 }

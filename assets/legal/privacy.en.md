@@ -1,11 +1,11 @@
 # OronBox Privacy Notice
 
-Version: 1.0.0
-Effective date: 2026-07-19
+Version: 1.1.0
+Effective date: 2026-10-19
 
 ## 1. Scope
 
-This notice applies to the official OronBox online service. It does not apply to self-hosted OronBox Server instances, and it does not replace the privacy notices of BandBBS, GitHub, Cloudflare, or other third parties.
+This notice applies to the OronBox client and official online service. It does not apply to self-hosted OronBox Server instances, and it does not replace the privacy notices of BandBBS, GitHub, Cloudflare, or other third parties.
 
 ## 2. Information processed
 
@@ -21,7 +21,9 @@ When you create a resource, the service processes the name, description, images,
 
 When handling rights complaints, security incidents, or appeals, the service may process complaint content, rights evidence, creator responses, file hashes, review opinions, and directly relevant evidence.
 
-Except where required by law or a specific dispute, OronBox does not request identity numbers, precise addresses, biometric, financial, health, or other information unrelated to the service.
+Except where required by law or a specific dispute, OronBox online services do not request identity numbers, precise addresses, biometric, financial, or other information unrelated to the service.
+
+After sign-in, the client reports its version and platform on launch or return to the foreground to measure daily/monthly activity and version adoption. The same account is counted once per day; an upgrade may update its version record. Offline events are not queued for later submission. These reports do not include audio, health records, workout routes or device authentication keys.
 
 ## 3. Purposes
 
@@ -49,7 +51,7 @@ BandBBS login, BandBBS publication, and GitHub publication are separate grants. 
 
 The primary server is located in Hong Kong, China. Accounts, OAuth credentials, sessions, drafts, resources, review records, and file objects are processed there.
 
-Approved public files and images are copied to Cloudflare R2 for public download distribution. R2 does not hold OAuth tokens, account profiles, unpublished drafts, or internal audit logs.
+Resource images are stored and distributed by the main server. Binary files are stored locally and in Cloudflare R2, with normal downloads distributed through R2. R2 does not hold OAuth tokens, account profiles, unpublished drafts, or internal audit logs.
 
 Data you submit through the official online service is processed in Hong Kong. Public resource copies may be stored and distributed through Cloudflare's network.
 
@@ -122,3 +124,24 @@ Governing law and dispute resolution related to the official online service foll
 - Operator: OronBox Operations Team
 - Privacy and data requests: t3164473115@163.com
 - Discussions: <https://github.com/zxor-org/OronBox/discussions>
+
+## 13. Local app data and backups
+
+Pairing records, device authentication keys and account credentials support connections to devices and platforms selected by the user. Sensitive credentials use the secure storage facilities provided by the operating system.
+Health records, workout routes, watch screenshots, plugin data and ZeppOS app data are stored locally. Using these local features does not automatically upload them to OronBox online services. The Web app uses browser storage, which may be removed by clearing site data or by browser storage eviction.
+
+App data management provides storage information, reclaimable cache cleanup and backup export. Backups may contain health records and other local data selected by the user. Choose a trusted destination and do not publish the archive. Device pairing records, authentication keys and Xiaomi account sessions are included only when explicitly selected, and are unchecked by default. These backup files are not encrypted and must be kept private. App backups exclude OronBox and BandBBS credentials and plugin permission grants. Restoring a backup does not grant plugin permissions. Exported audio, screenshots, logs and backups are managed by the destination or recipient selected by the user.
+
+## 14. Speech recognition
+
+The voice assistant experiment receives audio from a wearable when the user activates it. Local recognition processes audio on the current device. The first use requires the user to download the model and any required runtime libraries; the model and runtime hosts receive download requests and network connection information.
+
+When the user selects and confirms the WeType or Doubao input-method online test, audio is sent directly to that selected third-party recognition service. The provider processes audio, an anonymous connection identifier and network connection information, and returns text. OronBox does not operate these test services. Their availability, limits and data handling are controlled by the provider. Local recognition does not automatically switch to an online service, and a failed service does not automatically send audio to another provider.
+
+Ordinary client logs do not include audio, recognized text, device authentication keys or anonymous recognition credentials. Experimental recordings and results are used for the current session and are saved to a user-selected destination only when explicitly exported. Stopping the experiment or leaving the page ends recognition connections. Downloaded local models can be deleted in the app.
+
+## 15. Permissions and storage capacity
+
+The camera scans QR codes; user-selected images can also be used for QR recognition. Location permission supports location features enabled by the user. With phone-assisted location enabled, the phone sends positions to the connected wearable while preparing for and recording a workout. Background device workout requests require separate authorization. An ongoing notification or system location indicator is shown during workout location sessions. This feature does not retain a phone route or upload positions to the OronBox server. Bluetooth and nearby-device permissions support discovery and connection. Permissions can be revoked in system settings, which may make the corresponding features unavailable.
+
+Available storage is checked before model downloads to avoid running out of space. Storage-capacity results are not uploaded with activity statistics.

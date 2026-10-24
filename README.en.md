@@ -88,14 +88,32 @@ OronBox provides a powerful, scriptable command-line interface for managing devi
 
 ### Prerequisites
 
-- Flutter stable (we recommend managing it with [fvm](https://fvm.app); the repo root `.fvmrc` pins the version), then `flutter pub get`
-- Platform-specific dependencies:
-  - **Linux**: `gtk3` `webkit2gtk-4.1` `bluez` `libblkid` `libasound2` (`libasound2-dev` when building) `xz`; packaging tools as needed: `dpkg-deb` (deb), `rpmbuild` (rpm), `makepkg` (arch), `linuxdeploy` or `appimagetool` (AppImage), `flatpak-builder` with the GNOME SDK (Flatpak)
-  - **Linux ARM64**: also require `libflac-dev`, `libogg-dev`, `libopus-dev`, and `libvorbis-dev`; the `flutter_soloud` bundled Xiph `.so` files are amd64-only, so ARM64 builds use system libraries and ARM64 packages declare the matching runtime dependencies
-  - **Android**: the Android SDK/NDK bundled with a standard Flutter setup
-  - **Windows**: Visual Studio 2022 (Desktop development with C++); the WebView2 SDK can be installed via `windows/scripts/install_webview2_sdk.ps1`
-  - **macOS**: Xcode; can only be built on a macOS host
-  - **Web**: no extra dependencies
+Flutter stable and Rust stable are required on every platform:
+
+- Flutter stable: version pinned in `.fvmrc`, install with [fvm](https://fvm.app), then `flutter pub get`
+- Rust stable: install with rustup; the WASM runtime is compiled from source on the first build
+
+Debian / Ubuntu dependencies:
+
+```sh
+sudo apt install libsecret-1-dev clang cmake ninja-build pkg-config zip curl \
+  libgtk-3-dev libblkid-dev liblzma-dev libasound2-dev libwebkit2gtk-4.1-dev \
+  libbluetooth-dev libayatana-appindicator3-dev dpkg-dev rpm flatpak flatpak-builder
+```
+
+ARM64 additionally needs the audio libraries (the Xiph `.so` files bundled with `flutter_soloud` are amd64-only, so ARM64 uses system libraries):
+
+```sh
+sudo apt install libflac-dev libogg-dev libopus-dev libvorbis-dev
+```
+
+Other distributions: install the equivalents under their own package names (gtk3, webkit2gtk-4.1, bluez, libblkid, libasound2, xz) plus the packaging tools you need (dpkg-deb / rpmbuild / makepkg / linuxdeploy / appimagetool / flatpak-builder)
+
+Windows: Visual Studio 2022 (Desktop development with C++); the WebView2 SDK can be installed with `windows/scripts/install_webview2_sdk.ps1`
+
+macOS: Xcode, macOS hosts only
+
+Android / Web: no extra dependencies
 
 ### Build everything
 
@@ -129,43 +147,29 @@ tool/build_web.sh
 - Android release signing is configured through environment variables: `ORONBOX_KEYSTORE_PATH`, `ORONBOX_KEYSTORE_PASSWORD`, `ORONBOX_KEY_ALIAS`, `ORONBOX_KEY_PASSWORD`; without them the debug signing config is used
 - Cross-building Linux aarch64 from an x86_64 host requires `ORONBOX_LINUX_ARM64_SYSROOT` pointing to an arm64 sysroot with the gtk3/webkit2gtk/alsa/flac/ogg/opus/vorbis development packages; cross mode only produces tar.gz / deb / rpm / arch packages
 
-### Version and artifact conventions
-
-- The version is taken from the `version` field in `pubspec.yaml`
-- The git worktree must be clean by default; `--dev` allows a dirty worktree and appends git metadata to the version (for example, `1.0.0.dirty.abc1234`)
-- Artifacts are named `oronbox-<version>-<platform>[-<arch>].<ext>`, with symbol files archived alongside the packages
-
 ## AI development disclosure
 
 This project was developed with the help of AI agent tools.
 
-Usage:
-
-| Model | Areas assisted |
-|-------|----------------|
-| GPT 5.5/5.6-Sol | Dart Bluetooth connection behavior/protocol, backend logic rewrite and parts of the frontend |
-| GPT 5.6-Luna | GitHub CI / Release script rewrites and fixes, and Fitness implementation |
-| Kimi K3 | OOBE, creator-related logic |
-| Kimi K2.6 | Parts of the frontend, UI/UX, initial backend |
-
 ## Acknowledgements
 
-OronBox references and uses code from the following excellent projects:
+OronBox uses or references the following projects:
 
-| Project | What we referenced |
+| Project | Nature of use |
 |---------|--------------------|
-| [AstroBox-Public](https://github.com/AstralSightStudios/AstroBox-Public) | UI structure, resource flow and interaction design |
-| [AstroBox-NG-Module-Core](https://github.com/AstralSightStudios/AstroBox-NG-Module-Core) | Xiaomi device protocol, installation flow and transfer behavior |
-| [AstroBox-NG-Module-Bluetooth](https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth) | Bluetooth connection behavior |
-| [AstroBox-NG-Module-Account](https://github.com/AstralSightStudios/AstroBox-NG-Module-Account) | Xiaomi account login, device synchronization and authkey retrieval |
-| [AstroBox-NG-Module-Provider](https://github.com/AstralSightStudios/AstroBox-NG-Module-Provider) | Community resource index, CDN and manifest parsing |
-| [AstroBox-NG-Module-AppWasm](https://github.com/AstralSightStudios/AstroBox-NG-Module-AppWasm) | Web Serial and browser-side connection flow |
-| [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge) | ZeppOS and wearable device protocol research |
+| [AstralSightStudios/AstroBox-Public](https://github.com/AstralSightStudios/AstroBox-Public) | UI structure and interaction design reference |
+| [AstralSightStudios/AstroBox-NG-Module-Core](https://github.com/AstralSightStudios/AstroBox-NG-Module-Core) | Xiaomi device protocol and transport layer, ported and modified |
+| [AstralSightStudios/AstroBox-NG-Module-Pb](https://github.com/AstralSightStudios/AstroBox-NG-Module-Pb) | Xiaomi wear protocol definitions, adopted verbatim |
+| [AstralSightStudios/AstroBox-NG-Module-Bluetooth](https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth) | Bluetooth connection flow reference |
+| [AstralSightStudios/AstroBox-NG-Module-Account](https://github.com/AstralSightStudios/AstroBox-NG-Module-Account) | Xiaomi account login and authkey retrieval flow reference |
+| [AstralSightStudios/AstroBox-NG-Module-Provider](https://github.com/AstralSightStudios/AstroBox-NG-Module-Provider) | Community resource index and manifest parsing flow reference |
+| [AstralSightStudios/AstroBox-NG-Module-AppWasm](https://github.com/AstralSightStudios/AstroBox-NG-Module-AppWasm) | Web Serial connection flow reference |
+| [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge) | ZeppOS protocol implementation, ported and modified |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Material Design components and UI design |
 
 ## License
 
-OronBox is licensed under the [GNU Affero General Public License v3.0](LICENSE)
+[GNU Affero General Public License v3.0](LICENSE) · [Additional terms](ADDITIONAL-TERMS.md) · [Third-party notices](THIRD-PARTY-NOTICES.md)
 
 ## Star History
 

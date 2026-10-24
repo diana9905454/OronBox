@@ -14,6 +14,7 @@ final class WasmOpusDecoder {
     this._inputPointer,
     this._outputPointer,
     this._inputCapacity,
+    this._sampleRate,
   );
 
   static const _assetPath = 'assets/wasm/opus_frame_decoder.wasm';
@@ -23,7 +24,8 @@ final class WasmOpusDecoder {
   final WasmScope _scope;
   final ScopedWasmInstance _instance;
   final WasmMemory _memory;
-  final int _decoderPointer;
+  int _decoderPointer;
+  final int _sampleRate;
   final int _mappingPointer;
   int _inputPointer;
   final int _outputPointer;
@@ -87,6 +89,7 @@ final class WasmOpusDecoder {
         inputPointer,
         outputPointer,
         _initialInputCapacity,
+        sampleRate,
       );
     } catch (_) {
       scope.dispose();
@@ -123,6 +126,18 @@ final class WasmOpusDecoder {
         samples,
       ),
     );
+  }
+
+  void reset() {
+    _ensureActive();
+    _destroyFunction([_decoderPointer]);
+    _freeFunction([_decoderPointer]);
+    _decoderPointer = _intResult(
+      _instance.function('i')([_sampleRate, 1, 1, 0, _mappingPointer, 0, 0]),
+    );
+    if (_decoderPointer == 0) {
+      throw StateError('libopus WASM decoder reset failed');
+    }
   }
 
   void dispose() {

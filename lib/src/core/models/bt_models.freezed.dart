@@ -29,16 +29,21 @@ $BTDeviceInfoCopyWith<BTDeviceInfo> get copyWith => _$BTDeviceInfoCopyWithImpl<B
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BTDeviceInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType));
+  final _this = this as BTDeviceInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BTDeviceInfo&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.addr, _this.addr) || other.addr == _this.addr)&&(identical(other.connectType, _this.connectType) || other.connectType == _this.connectType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,addr,connectType);
+int get hashCode {
+  final _this = this as BTDeviceInfo;
+  return Object.hash(runtimeType,_this.name,_this.addr,_this.connectType);
+}
 
 @override
 String toString() {
-  return 'BTDeviceInfo(name: $name, addr: $addr, connectType: $connectType)';
+  final _this = this as BTDeviceInfo;
+  return 'BTDeviceInfo(name: ${_this.name}, addr: ${_this.addr}, connectType: ${_this.connectType})';
 }
 
 
@@ -232,16 +237,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BTDeviceInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BTDeviceInfo&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,addr,connectType);
+int get hashCode {
+    return Object.hash(runtimeType,name,addr,connectType);
+}
 
 @override
 String toString() {
-  return 'BTDeviceInfo(name: $name, addr: $addr, connectType: $connectType)';
+    return 'BTDeviceInfo(name: $name, addr: $addr, connectType: $connectType)';
 }
 
 
@@ -298,16 +305,21 @@ $MiWearStateCopyWith<MiWearState> get copyWith => _$MiWearStateCopyWithImpl<MiWe
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MiWearState&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType)&&(identical(other.authkey, authkey) || other.authkey == authkey)&&(identical(other.codename, codename) || other.codename == codename)&&(identical(other.disconnected, disconnected) || other.disconnected == disconnected));
+  final _this = this as MiWearState;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MiWearState&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.addr, _this.addr) || other.addr == _this.addr)&&(identical(other.connectType, _this.connectType) || other.connectType == _this.connectType)&&(identical(other.authkey, _this.authkey) || other.authkey == _this.authkey)&&(identical(other.codename, _this.codename) || other.codename == _this.codename)&&(identical(other.disconnected, _this.disconnected) || other.disconnected == _this.disconnected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,addr,connectType,authkey,codename,disconnected);
+int get hashCode {
+  final _this = this as MiWearState;
+  return Object.hash(runtimeType,_this.name,_this.addr,_this.connectType,_this.authkey,_this.codename,_this.disconnected);
+}
 
 @override
 String toString() {
-  return 'MiWearState(name: $name, addr: $addr, connectType: $connectType, authkey: $authkey, codename: $codename, disconnected: $disconnected)';
+  final _this = this as MiWearState;
+  return 'MiWearState(name: ${_this.name}, addr: ${_this.addr}, connectType: ${_this.connectType}, authkey: ${_this.authkey}, codename: ${_this.codename}, disconnected: ${_this.disconnected})';
 }
 
 
@@ -507,16 +519,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _MiWearState&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType)&&(identical(other.authkey, authkey) || other.authkey == authkey)&&(identical(other.codename, codename) || other.codename == codename)&&(identical(other.disconnected, disconnected) || other.disconnected == disconnected));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MiWearState&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType)&&(identical(other.authkey, authkey) || other.authkey == authkey)&&(identical(other.codename, codename) || other.codename == codename)&&(identical(other.disconnected, disconnected) || other.disconnected == disconnected));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,name,addr,connectType,authkey,codename,disconnected);
+int get hashCode {
+    return Object.hash(runtimeType,name,addr,connectType,authkey,codename,disconnected);
+}
 
 @override
 String toString() {
-  return 'MiWearState(name: $name, addr: $addr, connectType: $connectType, authkey: $authkey, codename: $codename, disconnected: $disconnected)';
+    return 'MiWearState(name: $name, addr: $addr, connectType: $connectType, authkey: $authkey, codename: $codename, disconnected: $disconnected)';
 }
 
 
@@ -576,16 +590,21 @@ $ChargeInfoCopyWith<ChargeInfo> get copyWith => _$ChargeInfoCopyWithImpl<ChargeI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChargeInfo&&(identical(other.state, state) || other.state == state)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
+  final _this = this as ChargeInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ChargeInfo&&(identical(other.state, _this.state) || other.state == _this.state)&&(identical(other.timestamp, _this.timestamp) || other.timestamp == _this.timestamp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,state,timestamp);
+int get hashCode {
+  final _this = this as ChargeInfo;
+  return Object.hash(runtimeType,_this.state,_this.timestamp);
+}
 
 @override
 String toString() {
-  return 'ChargeInfo(state: $state, timestamp: $timestamp)';
+  final _this = this as ChargeInfo;
+  return 'ChargeInfo(state: ${_this.state}, timestamp: ${_this.timestamp})';
 }
 
 
@@ -777,16 +796,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChargeInfo&&(identical(other.state, state) || other.state == state)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ChargeInfo&&(identical(other.state, state) || other.state == state)&&(identical(other.timestamp, timestamp) || other.timestamp == timestamp));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,state,timestamp);
+int get hashCode {
+    return Object.hash(runtimeType,state,timestamp);
+}
 
 @override
 String toString() {
-  return 'ChargeInfo(state: $state, timestamp: $timestamp)';
+    return 'ChargeInfo(state: $state, timestamp: $timestamp)';
 }
 
 
@@ -842,16 +863,21 @@ $BatteryStatusCopyWith<BatteryStatus> get copyWith => _$BatteryStatusCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatteryStatus&&(identical(other.capacity, capacity) || other.capacity == capacity)&&(identical(other.chargeStatus, chargeStatus) || other.chargeStatus == chargeStatus)&&(identical(other.chargeInfo, chargeInfo) || other.chargeInfo == chargeInfo));
+  final _this = this as BatteryStatus;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is BatteryStatus&&(identical(other.capacity, _this.capacity) || other.capacity == _this.capacity)&&(identical(other.chargeStatus, _this.chargeStatus) || other.chargeStatus == _this.chargeStatus)&&(identical(other.chargeInfo, _this.chargeInfo) || other.chargeInfo == _this.chargeInfo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,capacity,chargeStatus,chargeInfo);
+int get hashCode {
+  final _this = this as BatteryStatus;
+  return Object.hash(runtimeType,_this.capacity,_this.chargeStatus,_this.chargeInfo);
+}
 
 @override
 String toString() {
-  return 'BatteryStatus(capacity: $capacity, chargeStatus: $chargeStatus, chargeInfo: $chargeInfo)';
+  final _this = this as BatteryStatus;
+  return 'BatteryStatus(capacity: ${_this.capacity}, chargeStatus: ${_this.chargeStatus}, chargeInfo: ${_this.chargeInfo})';
 }
 
 
@@ -1057,16 +1083,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatteryStatus&&(identical(other.capacity, capacity) || other.capacity == capacity)&&(identical(other.chargeStatus, chargeStatus) || other.chargeStatus == chargeStatus)&&(identical(other.chargeInfo, chargeInfo) || other.chargeInfo == chargeInfo));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _BatteryStatus&&(identical(other.capacity, capacity) || other.capacity == capacity)&&(identical(other.chargeStatus, chargeStatus) || other.chargeStatus == chargeStatus)&&(identical(other.chargeInfo, chargeInfo) || other.chargeInfo == chargeInfo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,capacity,chargeStatus,chargeInfo);
+int get hashCode {
+    return Object.hash(runtimeType,capacity,chargeStatus,chargeInfo);
+}
 
 @override
 String toString() {
-  return 'BatteryStatus(capacity: $capacity, chargeStatus: $chargeStatus, chargeInfo: $chargeInfo)';
+    return 'BatteryStatus(capacity: $capacity, chargeStatus: $chargeStatus, chargeInfo: $chargeInfo)';
 }
 
 
@@ -1122,7 +1150,7 @@ $ChargeInfoCopyWith<$Res>? get chargeInfo {
 /// @nodoc
 mixin _$AppInfo {
 
- String get packageName; List<int> get fingerprint; int get versionCode; bool get canRemove; String get appName;
+ String get packageName; List<int> get fingerprint; int get versionCode; bool get canRemove; String get appName; bool get hidden; bool get persist; bool get canMore; bool get inMore;
 /// Create a copy of AppInfo
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1135,16 +1163,21 @@ $AppInfoCopyWith<AppInfo> get copyWith => _$AppInfoCopyWithImpl<AppInfo>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppInfo&&(identical(other.packageName, packageName) || other.packageName == packageName)&&const DeepCollectionEquality().equals(other.fingerprint, fingerprint)&&(identical(other.versionCode, versionCode) || other.versionCode == versionCode)&&(identical(other.canRemove, canRemove) || other.canRemove == canRemove)&&(identical(other.appName, appName) || other.appName == appName));
+  final _this = this as AppInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AppInfo&&(identical(other.packageName, _this.packageName) || other.packageName == _this.packageName)&&const DeepCollectionEquality().equals(other.fingerprint, _this.fingerprint)&&(identical(other.versionCode, _this.versionCode) || other.versionCode == _this.versionCode)&&(identical(other.canRemove, _this.canRemove) || other.canRemove == _this.canRemove)&&(identical(other.appName, _this.appName) || other.appName == _this.appName)&&(identical(other.hidden, _this.hidden) || other.hidden == _this.hidden)&&(identical(other.persist, _this.persist) || other.persist == _this.persist)&&(identical(other.canMore, _this.canMore) || other.canMore == _this.canMore)&&(identical(other.inMore, _this.inMore) || other.inMore == _this.inMore));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,packageName,const DeepCollectionEquality().hash(fingerprint),versionCode,canRemove,appName);
+int get hashCode {
+  final _this = this as AppInfo;
+  return Object.hash(runtimeType,_this.packageName,const DeepCollectionEquality().hash(_this.fingerprint),_this.versionCode,_this.canRemove,_this.appName,_this.hidden,_this.persist,_this.canMore,_this.inMore);
+}
 
 @override
 String toString() {
-  return 'AppInfo(packageName: $packageName, fingerprint: $fingerprint, versionCode: $versionCode, canRemove: $canRemove, appName: $appName)';
+  final _this = this as AppInfo;
+  return 'AppInfo(packageName: ${_this.packageName}, fingerprint: ${_this.fingerprint}, versionCode: ${_this.versionCode}, canRemove: ${_this.canRemove}, appName: ${_this.appName}, hidden: ${_this.hidden}, persist: ${_this.persist}, canMore: ${_this.canMore}, inMore: ${_this.inMore})';
 }
 
 
@@ -1155,7 +1188,7 @@ abstract mixin class $AppInfoCopyWith<$Res>  {
   factory $AppInfoCopyWith(AppInfo value, $Res Function(AppInfo) _then) = _$AppInfoCopyWithImpl;
 @useResult
 $Res call({
- String packageName, List<int> fingerprint, int versionCode, bool canRemove, String appName
+ String packageName, List<int> fingerprint, int versionCode, bool canRemove, String appName, bool hidden, bool persist, bool canMore, bool inMore
 });
 
 
@@ -1172,14 +1205,18 @@ class _$AppInfoCopyWithImpl<$Res>
 
 /// Create a copy of AppInfo
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? packageName = null,Object? fingerprint = null,Object? versionCode = null,Object? canRemove = null,Object? appName = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? packageName = null,Object? fingerprint = null,Object? versionCode = null,Object? canRemove = null,Object? appName = null,Object? hidden = null,Object? persist = null,Object? canMore = null,Object? inMore = null,}) {
   return _then(AppInfo(
 packageName: null == packageName ? _self.packageName : packageName // ignore: cast_nullable_to_non_nullable
 as String,fingerprint: null == fingerprint ? _self.fingerprint : fingerprint // ignore: cast_nullable_to_non_nullable
 as List<int>,versionCode: null == versionCode ? _self.versionCode : versionCode // ignore: cast_nullable_to_non_nullable
 as int,canRemove: null == canRemove ? _self.canRemove : canRemove // ignore: cast_nullable_to_non_nullable
 as bool,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
-as String,
+as String,hidden: null == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
+as bool,persist: null == persist ? _self.persist : persist // ignore: cast_nullable_to_non_nullable
+as bool,canMore: null == canMore ? _self.canMore : canMore // ignore: cast_nullable_to_non_nullable
+as bool,inMore: null == inMore ? _self.inMore : inMore // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -1264,10 +1301,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String packageName,  List<int> fingerprint,  int versionCode,  bool canRemove,  String appName)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String packageName,  List<int> fingerprint,  int versionCode,  bool canRemove,  String appName,  bool hidden,  bool persist,  bool canMore,  bool inMore)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AppInfo() when $default != null:
-return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canRemove,_that.appName);case _:
+return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canRemove,_that.appName,_that.hidden,_that.persist,_that.canMore,_that.inMore);case _:
   return orElse();
 
 }
@@ -1285,10 +1322,10 @@ return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canR
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String packageName,  List<int> fingerprint,  int versionCode,  bool canRemove,  String appName)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String packageName,  List<int> fingerprint,  int versionCode,  bool canRemove,  String appName,  bool hidden,  bool persist,  bool canMore,  bool inMore)  $default,) {final _that = this;
 switch (_that) {
 case _AppInfo():
-return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canRemove,_that.appName);case _:
+return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canRemove,_that.appName,_that.hidden,_that.persist,_that.canMore,_that.inMore);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1305,10 +1342,10 @@ return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canR
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String packageName,  List<int> fingerprint,  int versionCode,  bool canRemove,  String appName)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String packageName,  List<int> fingerprint,  int versionCode,  bool canRemove,  String appName,  bool hidden,  bool persist,  bool canMore,  bool inMore)?  $default,) {final _that = this;
 switch (_that) {
 case _AppInfo() when $default != null:
-return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canRemove,_that.appName);case _:
+return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canRemove,_that.appName,_that.hidden,_that.persist,_that.canMore,_that.inMore);case _:
   return null;
 
 }
@@ -1320,7 +1357,7 @@ return $default(_that.packageName,_that.fingerprint,_that.versionCode,_that.canR
 @JsonSerializable()
 
 class _AppInfo implements AppInfo {
-  const _AppInfo({required this.packageName,  List<int> fingerprint = const <int>[], this.versionCode = 0, this.canRemove = false, required this.appName}): _fingerprint = fingerprint;
+  const _AppInfo({required this.packageName,  List<int> fingerprint = const <int>[], this.versionCode = 0, this.canRemove = false, required this.appName, this.hidden = false, this.persist = false, this.canMore = false, this.inMore = false}): _fingerprint = fingerprint;
   factory _AppInfo.fromJson(Map<String, dynamic> json) => _$AppInfoFromJson(json);
 
 @override final  String packageName;
@@ -1334,6 +1371,10 @@ class _AppInfo implements AppInfo {
 @override@JsonKey() final  int versionCode;
 @override@JsonKey() final  bool canRemove;
 @override final  String appName;
+@override@JsonKey() final  bool hidden;
+@override@JsonKey() final  bool persist;
+@override@JsonKey() final  bool canMore;
+@override@JsonKey() final  bool inMore;
 
 /// Create a copy of AppInfo
 /// with the given fields replaced by the non-null parameter values.
@@ -1348,16 +1389,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppInfo&&(identical(other.packageName, packageName) || other.packageName == packageName)&&const DeepCollectionEquality().equals(other._fingerprint, _fingerprint)&&(identical(other.versionCode, versionCode) || other.versionCode == versionCode)&&(identical(other.canRemove, canRemove) || other.canRemove == canRemove)&&(identical(other.appName, appName) || other.appName == appName));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _AppInfo&&(identical(other.packageName, packageName) || other.packageName == packageName)&&const DeepCollectionEquality().equals(other.fingerprint, _fingerprint)&&(identical(other.versionCode, versionCode) || other.versionCode == versionCode)&&(identical(other.canRemove, canRemove) || other.canRemove == canRemove)&&(identical(other.appName, appName) || other.appName == appName)&&(identical(other.hidden, hidden) || other.hidden == hidden)&&(identical(other.persist, persist) || other.persist == persist)&&(identical(other.canMore, canMore) || other.canMore == canMore)&&(identical(other.inMore, inMore) || other.inMore == inMore));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,packageName,const DeepCollectionEquality().hash(_fingerprint),versionCode,canRemove,appName);
+int get hashCode {
+    return Object.hash(runtimeType,packageName,const DeepCollectionEquality().hash(_fingerprint),versionCode,canRemove,appName,hidden,persist,canMore,inMore);
+}
 
 @override
 String toString() {
-  return 'AppInfo(packageName: $packageName, fingerprint: $fingerprint, versionCode: $versionCode, canRemove: $canRemove, appName: $appName)';
+    return 'AppInfo(packageName: $packageName, fingerprint: $fingerprint, versionCode: $versionCode, canRemove: $canRemove, appName: $appName, hidden: $hidden, persist: $persist, canMore: $canMore, inMore: $inMore)';
 }
 
 
@@ -1368,7 +1411,7 @@ abstract mixin class _$AppInfoCopyWith<$Res> implements $AppInfoCopyWith<$Res> {
   factory _$AppInfoCopyWith(_AppInfo value, $Res Function(_AppInfo) _then) = __$AppInfoCopyWithImpl;
 @override @useResult
 $Res call({
- String packageName, List<int> fingerprint, int versionCode, bool canRemove, String appName
+ String packageName, List<int> fingerprint, int versionCode, bool canRemove, String appName, bool hidden, bool persist, bool canMore, bool inMore
 });
 
 
@@ -1385,14 +1428,18 @@ class __$AppInfoCopyWithImpl<$Res>
 
 /// Create a copy of AppInfo
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? packageName = null,Object? fingerprint = null,Object? versionCode = null,Object? canRemove = null,Object? appName = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? packageName = null,Object? fingerprint = null,Object? versionCode = null,Object? canRemove = null,Object? appName = null,Object? hidden = null,Object? persist = null,Object? canMore = null,Object? inMore = null,}) {
   return _then(_AppInfo(
 packageName: null == packageName ? _self.packageName : packageName // ignore: cast_nullable_to_non_nullable
 as String,fingerprint: null == fingerprint ? _self._fingerprint : fingerprint // ignore: cast_nullable_to_non_nullable
 as List<int>,versionCode: null == versionCode ? _self.versionCode : versionCode // ignore: cast_nullable_to_non_nullable
 as int,canRemove: null == canRemove ? _self.canRemove : canRemove // ignore: cast_nullable_to_non_nullable
 as bool,appName: null == appName ? _self.appName : appName // ignore: cast_nullable_to_non_nullable
-as String,
+as String,hidden: null == hidden ? _self.hidden : hidden // ignore: cast_nullable_to_non_nullable
+as bool,persist: null == persist ? _self.persist : persist // ignore: cast_nullable_to_non_nullable
+as bool,canMore: null == canMore ? _self.canMore : canMore // ignore: cast_nullable_to_non_nullable
+as bool,inMore: null == inMore ? _self.inMore : inMore // ignore: cast_nullable_to_non_nullable
+as bool,
   ));
 }
 
@@ -1416,16 +1463,21 @@ $StorageInfoCopyWith<StorageInfo> get copyWith => _$StorageInfoCopyWithImpl<Stor
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StorageInfo&&(identical(other.used, used) || other.used == used)&&(identical(other.total, total) || other.total == total));
+  final _this = this as StorageInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StorageInfo&&(identical(other.used, _this.used) || other.used == _this.used)&&(identical(other.total, _this.total) || other.total == _this.total));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,used,total);
+int get hashCode {
+  final _this = this as StorageInfo;
+  return Object.hash(runtimeType,_this.used,_this.total);
+}
 
 @override
 String toString() {
-  return 'StorageInfo(used: $used, total: $total)';
+  final _this = this as StorageInfo;
+  return 'StorageInfo(used: ${_this.used}, total: ${_this.total})';
 }
 
 
@@ -1617,16 +1669,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _StorageInfo&&(identical(other.used, used) || other.used == used)&&(identical(other.total, total) || other.total == total));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StorageInfo&&(identical(other.used, used) || other.used == used)&&(identical(other.total, total) || other.total == total));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,used,total);
+int get hashCode {
+    return Object.hash(runtimeType,used,total);
+}
 
 @override
 String toString() {
-  return 'StorageInfo(used: $used, total: $total)';
+    return 'StorageInfo(used: $used, total: $total)';
 }
 
 
@@ -1682,16 +1736,21 @@ $SystemInfoCopyWith<SystemInfo> get copyWith => _$SystemInfoCopyWithImpl<SystemI
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SystemInfo&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.firmwareVersion, firmwareVersion) || other.firmwareVersion == firmwareVersion)&&(identical(other.imei, imei) || other.imei == imei)&&(identical(other.model, model) || other.model == model)&&(identical(other.storageInfo, storageInfo) || other.storageInfo == storageInfo));
+  final _this = this as SystemInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SystemInfo&&(identical(other.serialNumber, _this.serialNumber) || other.serialNumber == _this.serialNumber)&&(identical(other.firmwareVersion, _this.firmwareVersion) || other.firmwareVersion == _this.firmwareVersion)&&(identical(other.imei, _this.imei) || other.imei == _this.imei)&&(identical(other.model, _this.model) || other.model == _this.model)&&(identical(other.storageInfo, _this.storageInfo) || other.storageInfo == _this.storageInfo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serialNumber,firmwareVersion,imei,model,storageInfo);
+int get hashCode {
+  final _this = this as SystemInfo;
+  return Object.hash(runtimeType,_this.serialNumber,_this.firmwareVersion,_this.imei,_this.model,_this.storageInfo);
+}
 
 @override
 String toString() {
-  return 'SystemInfo(serialNumber: $serialNumber, firmwareVersion: $firmwareVersion, imei: $imei, model: $model, storageInfo: $storageInfo)';
+  final _this = this as SystemInfo;
+  return 'SystemInfo(serialNumber: ${_this.serialNumber}, firmwareVersion: ${_this.firmwareVersion}, imei: ${_this.imei}, model: ${_this.model}, storageInfo: ${_this.storageInfo})';
 }
 
 
@@ -1901,16 +1960,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SystemInfo&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.firmwareVersion, firmwareVersion) || other.firmwareVersion == firmwareVersion)&&(identical(other.imei, imei) || other.imei == imei)&&(identical(other.model, model) || other.model == model)&&(identical(other.storageInfo, storageInfo) || other.storageInfo == storageInfo));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _SystemInfo&&(identical(other.serialNumber, serialNumber) || other.serialNumber == serialNumber)&&(identical(other.firmwareVersion, firmwareVersion) || other.firmwareVersion == firmwareVersion)&&(identical(other.imei, imei) || other.imei == imei)&&(identical(other.model, model) || other.model == model)&&(identical(other.storageInfo, storageInfo) || other.storageInfo == storageInfo));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,serialNumber,firmwareVersion,imei,model,storageInfo);
+int get hashCode {
+    return Object.hash(runtimeType,serialNumber,firmwareVersion,imei,model,storageInfo);
+}
 
 @override
 String toString() {
-  return 'SystemInfo(serialNumber: $serialNumber, firmwareVersion: $firmwareVersion, imei: $imei, model: $model, storageInfo: $storageInfo)';
+    return 'SystemInfo(serialNumber: $serialNumber, firmwareVersion: $firmwareVersion, imei: $imei, model: $model, storageInfo: $storageInfo)';
 }
 
 
@@ -1981,16 +2042,21 @@ $WatchfaceInfoCopyWith<WatchfaceInfo> get copyWith => _$WatchfaceInfoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is WatchfaceInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.canRemove, canRemove) || other.canRemove == canRemove)&&(identical(other.versionCode, versionCode) || other.versionCode == versionCode)&&(identical(other.canEdit, canEdit) || other.canEdit == canEdit)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.backgroundImage, backgroundImage) || other.backgroundImage == backgroundImage)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other.backgroundImageList, backgroundImageList));
+  final _this = this as WatchfaceInfo;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is WatchfaceInfo&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.isCurrent, _this.isCurrent) || other.isCurrent == _this.isCurrent)&&(identical(other.canRemove, _this.canRemove) || other.canRemove == _this.canRemove)&&(identical(other.versionCode, _this.versionCode) || other.versionCode == _this.versionCode)&&(identical(other.canEdit, _this.canEdit) || other.canEdit == _this.canEdit)&&(identical(other.backgroundColor, _this.backgroundColor) || other.backgroundColor == _this.backgroundColor)&&(identical(other.backgroundImage, _this.backgroundImage) || other.backgroundImage == _this.backgroundImage)&&(identical(other.style, _this.style) || other.style == _this.style)&&const DeepCollectionEquality().equals(other.backgroundImageList, _this.backgroundImageList));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,isCurrent,canRemove,versionCode,canEdit,backgroundColor,backgroundImage,style,const DeepCollectionEquality().hash(backgroundImageList));
+int get hashCode {
+  final _this = this as WatchfaceInfo;
+  return Object.hash(runtimeType,_this.id,_this.name,_this.isCurrent,_this.canRemove,_this.versionCode,_this.canEdit,_this.backgroundColor,_this.backgroundImage,_this.style,const DeepCollectionEquality().hash(_this.backgroundImageList));
+}
 
 @override
 String toString() {
-  return 'WatchfaceInfo(id: $id, name: $name, isCurrent: $isCurrent, canRemove: $canRemove, versionCode: $versionCode, canEdit: $canEdit, backgroundColor: $backgroundColor, backgroundImage: $backgroundImage, style: $style, backgroundImageList: $backgroundImageList)';
+  final _this = this as WatchfaceInfo;
+  return 'WatchfaceInfo(id: ${_this.id}, name: ${_this.name}, isCurrent: ${_this.isCurrent}, canRemove: ${_this.canRemove}, versionCode: ${_this.versionCode}, canEdit: ${_this.canEdit}, backgroundColor: ${_this.backgroundColor}, backgroundImage: ${_this.backgroundImage}, style: ${_this.style}, backgroundImageList: ${_this.backgroundImageList})';
 }
 
 
@@ -2204,16 +2270,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _WatchfaceInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.canRemove, canRemove) || other.canRemove == canRemove)&&(identical(other.versionCode, versionCode) || other.versionCode == versionCode)&&(identical(other.canEdit, canEdit) || other.canEdit == canEdit)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.backgroundImage, backgroundImage) || other.backgroundImage == backgroundImage)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other._backgroundImageList, _backgroundImageList));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _WatchfaceInfo&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.isCurrent, isCurrent) || other.isCurrent == isCurrent)&&(identical(other.canRemove, canRemove) || other.canRemove == canRemove)&&(identical(other.versionCode, versionCode) || other.versionCode == versionCode)&&(identical(other.canEdit, canEdit) || other.canEdit == canEdit)&&(identical(other.backgroundColor, backgroundColor) || other.backgroundColor == backgroundColor)&&(identical(other.backgroundImage, backgroundImage) || other.backgroundImage == backgroundImage)&&(identical(other.style, style) || other.style == style)&&const DeepCollectionEquality().equals(other.backgroundImageList, _backgroundImageList));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,isCurrent,canRemove,versionCode,canEdit,backgroundColor,backgroundImage,style,const DeepCollectionEquality().hash(_backgroundImageList));
+int get hashCode {
+    return Object.hash(runtimeType,id,name,isCurrent,canRemove,versionCode,canEdit,backgroundColor,backgroundImage,style,const DeepCollectionEquality().hash(_backgroundImageList));
+}
 
 @override
 String toString() {
-  return 'WatchfaceInfo(id: $id, name: $name, isCurrent: $isCurrent, canRemove: $canRemove, versionCode: $versionCode, canEdit: $canEdit, backgroundColor: $backgroundColor, backgroundImage: $backgroundImage, style: $style, backgroundImageList: $backgroundImageList)';
+    return 'WatchfaceInfo(id: $id, name: $name, isCurrent: $isCurrent, canRemove: $canRemove, versionCode: $versionCode, canEdit: $canEdit, backgroundColor: $backgroundColor, backgroundImage: $backgroundImage, style: $style, backgroundImageList: $backgroundImageList)';
 }
 
 

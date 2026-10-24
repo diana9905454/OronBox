@@ -61,6 +61,10 @@ abstract class AppInfo with _$AppInfo {
     @Default(0) int versionCode,
     @Default(false) bool canRemove,
     required String appName,
+    @Default(false) bool hidden,
+    @Default(false) bool persist,
+    @Default(false) bool canMore,
+    @Default(false) bool inMore,
   }) = _AppInfo;
 
   factory AppInfo.fromJson(Map<String, dynamic> json) =>

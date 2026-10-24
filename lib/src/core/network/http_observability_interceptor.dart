@@ -36,7 +36,9 @@ class HttpObservabilityInterceptor extends Interceptor {
       (response?.statusCode ?? 0) >= 500 || response == null
           ? Level.SEVERE
           : Level.WARNING,
-      'HTTP request failed',
+      'HTTP ${err.requestOptions.method} ${safeHttpEndpoint(err.requestOptions.uri)}: '
+      '${response?.statusCode ?? err.type.name}'
+      '${summary['serverCode'] == null ? '' : ' (${summary['serverCode']})'}',
       fields: {
         'method': err.requestOptions.method,
         'endpoint': safeHttpEndpoint(err.requestOptions.uri),

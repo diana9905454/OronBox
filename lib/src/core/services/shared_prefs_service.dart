@@ -27,6 +27,9 @@ class SharedPrefsService {
     return _prefs!;
   }
 
+  Set<String> get keys => _safePrefs.getKeys();
+  Object? value(String key) => _safePrefs.get(key);
+
   String? getString(String key) => _safePrefs.getString(key);
   Future<bool> setString(String key, String value) =>
       _safePrefs.setString(key, value);
