@@ -122,7 +122,7 @@ elif [[ "${HOST_ARCH}" == "aarch64" && "${ABI}" == "x86_64" ]]; then
   exit 1
 fi
 
-init_build "${COMMON_ARGS[@]}"
+init_build_metadata "${COMMON_ARGS[@]}"
 log_info "Building Linux release packages for version ${VERSION} (format=${FORMAT}, abi=${ABI})"
 
 require_command tar
@@ -131,6 +131,7 @@ ensure_release_dir
 if [[ "${SKIP_BUILD}" == "true" ]]; then
   log_info "Skipping Flutter build, reusing the existing release bundle"
 else
+  setup_build_integrity
   require_flutter
   DART_DEFINES=()
   while IFS= read -r define; do
@@ -228,7 +229,7 @@ Version: ${deb_version}
 Section: utils
 Priority: optional
 Architecture: ${DEB_ARCH}
-Depends: libgtk-3-0, libblkid1, liblzma5, libasound2 | libasound2t64${deb_audio_depends}, libwebkit2gtk-4.1-0, bluez
+Depends: libsecret-1-0, libgtk-3-0, libblkid1, liblzma5, libasound2 | libasound2t64${deb_audio_depends}, libwebkit2gtk-4.1-0, bluez
 Maintainer: ${MAINTAINER}
 Description: ${DESCRIPTION}
 EOF
@@ -274,6 +275,7 @@ Summary:        ${DESCRIPTION}
 License:        ${LICENSE}
 URL:            ${HOMEPAGE}
 BuildArch:      ${RPM_ARCH}
+Requires:       libsecret
 Requires:       alsa-lib
 ${rpm_audio_requires}
 
@@ -346,7 +348,7 @@ pkgdesc="${DESCRIPTION}"
 arch=('${RPM_ARCH}')
 url="${HOMEPAGE}"
 license=('${LICENSE}')
-depends=('gtk3' 'libblockdev' 'xz' ${arch_audio_deps} 'webkit2gtk-4.1' 'bluez')
+depends=('libsecret' 'gtk3' 'libblockdev' 'xz' ${arch_audio_deps} 'webkit2gtk-4.1' 'bluez')
 options=('!debug')
 source=()
 
@@ -492,7 +494,7 @@ build_flatpak() {
   local manifest="${flatpak_stage}/${PACKAGE_NAME}.yml"
   sed -e "s|path: ../../|path: ${PROJECT_ROOT}/|g" \
       -e "s|build/linux/x64/release/bundle|build/linux/${BUNDLE_ARCH_DIR}/release/bundle|" \
-    "${PROJECT_ROOT}/tool/flatpak/${PACKAGE_NAME}.yml" > "${manifest}"
+    "${PROJECT_ROOT}/tool/packaging/flatpak/${PACKAGE_NAME}.yml" > "${manifest}"
   local runtime_version
   runtime_version="$(awk -F'"' '/^runtime-version:/ { print $2; exit }' "${manifest}")"
   if ! flatpak info "org.gnome.Sdk//${runtime_version}" >/dev/null 2>&1; then

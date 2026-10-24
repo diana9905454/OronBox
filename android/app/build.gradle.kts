@@ -43,12 +43,15 @@ android {
         }
     }
 
-    // Store native libraries uncompressed and page-aligned so the system maps
-    // them straight from the APK instead of extracting a second copy. The APK
-    // download grows, but installed size drops by roughly the same amount.
+    // Keep native libraries uncompressed so Android loads them from the APK.
     packaging {
         jniLibs {
-            useLegacyPackaging = true
+            useLegacyPackaging = false
+            excludes += setOf(
+                "**/libonnxruntime.so",
+                "**/libsherpa-onnx-c-api.so",
+                "**/libsherpa-onnx-cxx-api.so",
+            )
         }
     }
 
@@ -83,34 +86,4 @@ flutter {
 
 dependencies {
     implementation(project(":xms-wearable-lib"))
-}
-
-val normalizeWasmRunReleaseNativeAssets = tasks.register("normalizeWasmRunReleaseNativeAssets") {
-    val nativeAssetsDir = layout.buildDirectory
-        .dir("intermediates/flutter/release/native_assets/jniLibs")
-        .get()
-        .asFile
-
-    dependsOn("compileFlutterBuildRelease")
-
-    doLast {
-        nativeAssetsDir
-            .walkTopDown()
-            .filter { it.isFile && it.name == "libwasm_run_dart.a" }
-            .forEach { archiveNamedLibrary ->
-                val dynamicLibrary = archiveNamedLibrary.resolveSibling("libwasm_run_dart.so")
-                if (dynamicLibrary.exists()) {
-                    dynamicLibrary.delete()
-                }
-                check(archiveNamedLibrary.renameTo(dynamicLibrary)) {
-                    "Unable to normalize ${archiveNamedLibrary.absolutePath}"
-                }
-            }
-    }
-}
-
-tasks.configureEach {
-    if (name == "copyJniLibsflutterBuildRelease") {
-        dependsOn(normalizeWasmRunReleaseNativeAssets)
-    }
 }

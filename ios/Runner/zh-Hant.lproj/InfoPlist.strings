@@ -1,0 +1,2 @@
+"NSLocationWhenInUseUsageDescription" = "在運動時向穿戴裝置提供手機位置";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "在 OronBox 位於背景時向裝置提供運動位置";

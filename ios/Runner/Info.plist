@@ -273,6 +273,15 @@
 	<string>This app uses Bluetooth to scan, connect, and communicate with wearable devices.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>This app uses Bluetooth to communicate with wearable devices.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>OronBox uses the camera to scan device sharing and eSIM QR codes.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>location</string>
+	</array>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Provide location to your wearable during workouts when OronBox is in the background</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>OronBox uses your location to assist the connected wearable device with faster GPS acquisition (GNSS assistance data).</string>
 	<key>UILaunchStoryboardName</key>

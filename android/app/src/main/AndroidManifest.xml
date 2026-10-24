@@ -1,7 +1,12 @@
 <manifest
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <!-- Bluetooth permissions -->
+    <!-- Camera and Bluetooth permissions -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <!-- Some Android 12 vendor BluetoothSocket implementations still enforce
          the legacy BLUETOOTH permission in addition to BLUETOOTH_CONNECT. -->
@@ -28,6 +33,7 @@
         android:maxSdkVersion="32" />
 
     <application
+        android:allowBackup="false"
         android:label="OronBox"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"

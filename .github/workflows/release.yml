@@ -75,6 +75,21 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare client attestation
+        shell: bash
+        env:
+          ORONBOX_AUTH_MASTER: ${{ secrets.ORONBOX_AUTH_MASTER }}
+          OB_BUILD_VERSION: ${{ needs.validate.outputs.version }}
+          OB_BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ -n "$ORONBOX_AUTH_MASTER" ]] || { echo 'Missing required secret: ORONBOX_AUTH_MASTER' >&2; exit 1; }
+          python tool/prepare_build_integrity.py --version "$OB_BUILD_VERSION" --commit "$OB_BUILD_COMMIT"
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -94,6 +109,8 @@ jobs:
           chmod 600 "$keystore"
           keytool -list -keystore "$keystore" -storepass "$ORONBOX_KEYSTORE_PASSWORD" -alias "$ORONBOX_KEY_ALIAS" >/dev/null
           echo "ORONBOX_KEYSTORE_PATH=$keystore" >> "$GITHUB_ENV"
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - uses: subosito/flutter-action@v2
         with:
@@ -135,6 +152,12 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Clean client attestation files
+        if: always()
+        shell: bash
+        run: |
+          python -c "from pathlib import Path; [Path(p).unlink(missing_ok=True) for p in ('build/integrity_defines.json', 'config/integrity_defines.local.json')]"
+
   build-linux:
     name: Build Linux (${{ matrix.arch }})
     needs: validate
@@ -154,6 +177,23 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare client attestation
+        shell: bash
+        env:
+          ORONBOX_AUTH_MASTER: ${{ secrets.ORONBOX_AUTH_MASTER }}
+          OB_BUILD_VERSION: ${{ needs.validate.outputs.version }}
+          OB_BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ -n "$ORONBOX_AUTH_MASTER" ]] || { echo 'Missing required secret: ORONBOX_AUTH_MASTER' >&2; exit 1; }
+          python tool/prepare_build_integrity.py --version "$OB_BUILD_VERSION" --commit "$OB_BUILD_COMMIT"
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Flutter SDK (arm64)
         if: matrix.arch == 'arm64'
@@ -194,7 +234,7 @@ jobs:
         run: |
           source tool/build_common.sh
           retry_cmd sudo apt-get update
-          retry_cmd sudo apt-get install -y \
+          retry_cmd sudo apt-get install -y libsecret-1-dev \
             clang cmake ninja-build pkg-config zip curl \
             libgtk-3-dev libblkid-dev liblzma-dev libasound2-dev \
             libwebkit2gtk-4.1-dev \
@@ -254,7 +294,7 @@ jobs:
         run: |
           source tool/build_common.sh
           set -euo pipefail
-          runtime_version="$(awk -F'"' '/^runtime-version:/ { print $2; exit }' tool/flatpak/org.zxor.oronbox.yml)"
+          runtime_version="$(awk -F'"' '/^runtime-version:/ { print $2; exit }' tool/packaging/flatpak/org.zxor.oronbox.yml)"
           retry_cmd sudo flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
           retry_cmd sudo flatpak install -y --noninteractive flathub \
             "org.gnome.Platform//${runtime_version}" "org.gnome.Sdk//${runtime_version}"
@@ -267,7 +307,7 @@ jobs:
       - name: Build Arch package
         run: |
           source tool/build_common.sh
-          chmod -R a+rwX build
+          chmod -R a+rwX build/linux build/release build/linux_staging
           retry_cmd docker run --rm -v "$PWD:/ws" -w /ws "${{ matrix.arch-image }}" \
               bash -euc '
                 command -v git >/dev/null || pacman --disable-sandbox -Sy --noconfirm git
@@ -282,6 +322,12 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Clean client attestation files
+        if: always()
+        shell: bash
+        run: |
+          python -c "from pathlib import Path; [Path(p).unlink(missing_ok=True) for p in ('build/integrity_defines.json', 'config/integrity_defines.local.json')]"
+
   build-macos:
     name: Build macOS
     needs: validate
@@ -289,6 +335,23 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare client attestation
+        shell: bash
+        env:
+          ORONBOX_AUTH_MASTER: ${{ secrets.ORONBOX_AUTH_MASTER }}
+          OB_BUILD_VERSION: ${{ needs.validate.outputs.version }}
+          OB_BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ -n "$ORONBOX_AUTH_MASTER" ]] || { echo 'Missing required secret: ORONBOX_AUTH_MASTER' >&2; exit 1; }
+          python tool/prepare_build_integrity.py --version "$OB_BUILD_VERSION" --commit "$OB_BUILD_COMMIT"
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - uses: subosito/flutter-action@v2
         with:
@@ -326,6 +389,12 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Clean client attestation files
+        if: always()
+        shell: bash
+        run: |
+          python -c "from pathlib import Path; [Path(p).unlink(missing_ok=True) for p in ('build/integrity_defines.json', 'config/integrity_defines.local.json')]"
+
   build-windows:
     name: Build Windows
     needs: validate
@@ -333,6 +402,23 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Prepare client attestation
+        shell: bash
+        env:
+          ORONBOX_AUTH_MASTER: ${{ secrets.ORONBOX_AUTH_MASTER }}
+          OB_BUILD_VERSION: ${{ needs.validate.outputs.version }}
+          OB_BUILD_COMMIT: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          [[ -n "$ORONBOX_AUTH_MASTER" ]] || { echo 'Missing required secret: ORONBOX_AUTH_MASTER' >&2; exit 1; }
+          python tool/prepare_build_integrity.py --version "$OB_BUILD_VERSION" --commit "$OB_BUILD_COMMIT"
+
+      - uses: dtolnay/rust-toolchain@stable
 
       - uses: subosito/flutter-action@v2
         with:
@@ -396,6 +482,12 @@ jobs:
           path: build/release/*
           if-no-files-found: error
           retention-days: 1
+
+      - name: Clean client attestation files
+        if: always()
+        shell: bash
+        run: |
+          python -c "from pathlib import Path; [Path(p).unlink(missing_ok=True) for p in ('build/integrity_defines.json', 'config/integrity_defines.local.json')]"
 
   publish:
     name: Publish release

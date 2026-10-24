@@ -39,5 +39,5 @@ done
   -Wl,--no-entry -Wl,--strip-all \
   -Wl,--export=zb_alloc -Wl,--export=zb_free \
   -Wl,--export=zb_webp_encode -Wl,--export=zb_webp_output -Wl,--export-memory \
-  obj_*.o -o ../../../assets/wasm/webp_encoder.wasm -lc
-echo "built assets/wasm/webp_encoder.wasm ($(wc -c < ../../../assets/wasm/webp_encoder.wasm) bytes)"
+  obj_*.o -o ../../../../assets/wasm/webp_encoder.wasm -lc
+echo "built assets/wasm/webp_encoder.wasm ($(wc -c < ../../../../assets/wasm/webp_encoder.wasm) bytes)"

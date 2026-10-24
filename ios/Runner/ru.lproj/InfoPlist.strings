@@ -1,0 +1,2 @@
+"NSLocationWhenInUseUsageDescription" = "Передавать местоположение телефона на устройство во время тренировки";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Передавать координаты тренировки, когда OronBox работает в фоне";

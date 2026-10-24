@@ -255,16 +255,27 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    private fun startBackgroundService(label: String, mode: String, battery: Int? = null) {
+    private fun startBackgroundService(label: String, mode: String, battery: Int? = null): Boolean {
         val intent = Intent(this, BackgroundTaskService::class.java).apply {
             putExtra(BackgroundTaskService.EXTRA_LABEL, label)
             putExtra(BackgroundTaskService.EXTRA_MODE, mode)
             battery?.let { putExtra(BackgroundTaskService.EXTRA_BATTERY, it) }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForegroundService(intent)
-        } else {
-            startService(intent)
+        return try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                startForegroundService(intent)
+            } else {
+                startService(intent)
+            }
+            true
+        } catch (error: IllegalStateException) {
+            // Android 12+ rejects background foreground-service starts. The
+            // caller can keep its work in-process and retry when visible.
+            Log.w(LOG_TAG, "background service start rejected: $mode", error)
+            false
+        } catch (error: SecurityException) {
+            Log.w(LOG_TAG, "background service permission denied: $mode", error)
+            false
         }
     }
 

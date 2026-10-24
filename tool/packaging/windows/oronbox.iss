@@ -2,7 +2,7 @@
   #define MyAppVersion "0.0.0"
 #endif
 #ifndef BundleDir
-  #define BundleDir "..\..\build\windows\x64\runner\Release"
+  #define BundleDir "..\..\..\build\windows\x64\runner\Release"
 #endif
 #define MyAppName "OronBox"
 #define MyAppExeName "oronbox.exe"
@@ -20,7 +20,7 @@ AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
-OutputDir=..\..\build\release
+OutputDir=..\..\..\build\release
 OutputBaseFilename=oronbox-{#MyAppVersion}-windows-amd64-setup
 Compression=lzma2
 SolidCompression=yes
@@ -29,7 +29,7 @@ PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
-SetupIconFile=..\..\windows\runner\resources\app_icon.ico
+SetupIconFile=..\..\..\windows\runner\resources\app_icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 CloseApplications=yes
 RestartApplications=no

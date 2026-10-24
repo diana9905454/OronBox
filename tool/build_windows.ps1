@@ -63,6 +63,7 @@ function Find-WindowsBundle {
 
 Require-Command "git"
 Require-Command "flutter"
+Require-Command "python"
 
 $VersionInfo = Get-PubspecVersion
 $GitHash = (git -C $ProjectRoot rev-parse --short=7 HEAD 2>$null)
@@ -84,14 +85,19 @@ if ($Untracked) {
 
 $Version = $VersionInfo.BaseVersion
 if ($Dev) {
+  $Version = "$($VersionInfo.BaseVersion)-dev.$GitHash"
   if ($Dirty) {
-    $Version = "$($VersionInfo.BaseVersion).dirty.$GitHash"
-  } else {
-    $Version = "$($VersionInfo.BaseVersion).git.$GitHash"
+    $Version = "$Version.dirty"
   }
 } elseif ($Dirty) {
   throw "Git working tree is dirty. Commit or stash changes first, or use -Dev."
 }
+
+$FullGitHash = (git -C $ProjectRoot rev-parse HEAD)
+if ($LASTEXITCODE -ne 0) { throw "Could not read the full Git commit" }
+& python (Join-Path $ScriptDir "prepare_build_integrity.py") --project-root $ProjectRoot --version $Version --commit $FullGitHash
+if ($LASTEXITCODE -ne 0) { throw "Client attestation configuration failed" }
+$IntegrityDefines = Join-Path $ProjectRoot "build/integrity_defines.json"
 
 if (!$SkipWebView2Sdk) {
   $InstallWebView2 = Join-Path $ProjectRoot "windows/scripts/install_webview2_sdk.ps1"
@@ -136,7 +142,7 @@ if (!$SkipWebView2Sdk) {
 New-Item -ItemType Directory -Force -Path $ReleaseDir | Out-Null
 
 Write-Host "[INFO] Building Windows release package for version $Version"
-flutter build windows --release --obfuscate --split-debug-info=symbols\windows --build-name=$Version --build-number=$($VersionInfo.BuildNumber) --dart-define=APP_VERSION=$Version --dart-define=GIT_COMMIT_HASH=$GitHash --dart-define=BUILD_USER=$BuildUser
+flutter build windows --release --obfuscate --split-debug-info=symbols\windows --build-name=$Version --build-number=$($VersionInfo.BuildNumber) --dart-define=APP_VERSION=$Version --dart-define=GIT_COMMIT_HASH=$GitHash --dart-define=BUILD_USER=$BuildUser "--dart-define-from-file=$IntegrityDefines"
 if ($LASTEXITCODE -ne 0) {
   throw "Flutter Windows build failed with exit code $LASTEXITCODE"
 }
@@ -181,7 +187,7 @@ if (!$SkipInstaller) {
   if (!$Iscc) {
     throw "Inno Setup 6 (ISCC.exe) not found. Install it (choco install innosetup) or pass -SkipInstaller."
   }
-  $IssFile = Join-Path $ScriptDir "windows/oronbox.iss"
+  $IssFile = Join-Path $ScriptDir "packaging/windows/oronbox.iss"
   & $Iscc $IssFile "/DMyAppVersion=$Version" "/DBundleDir=$BundleDir"
   if ($LASTEXITCODE -ne 0) {
     throw "Inno Setup compilation failed with exit code $LASTEXITCODE"

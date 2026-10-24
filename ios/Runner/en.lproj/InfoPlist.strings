@@ -1,0 +1,2 @@
+"NSLocationWhenInUseUsageDescription" = "Provide phone location to your wearable during workouts";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Provide workout location when OronBox is in the background";

@@ -246,6 +246,8 @@
 	<string>$(PRODUCT_COPYRIGHT)</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>This app uses Bluetooth to scan, connect, and communicate with wearable devices.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>OronBox uses the camera to scan device sharing and eSIM QR codes.</string>
 	<key>NSMainNibFile</key>
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>

@@ -1,0 +1,2 @@
+"NSLocationWhenInUseUsageDescription" = "運動中にスマートフォンの位置をデバイスに提供します";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "OronBox がバックグラウンドでも運動の位置を提供します";

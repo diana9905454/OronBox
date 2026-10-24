@@ -5,6 +5,7 @@ sdk: org.gnome.Sdk
 command: oronbox
 
 finish-args:
+  - --talk-name=org.freedesktop.secrets
   - --share=ipc
   - --socket=wayland
   - --socket=fallback-x11
@@ -12,6 +13,7 @@ finish-args:
   - --device=all
   - --filesystem=xdg-download
   - --filesystem=xdg-documents
+  - --filesystem=xdg-pictures/WatchScreenshots:create
 
 modules:
   - name: oronbox
