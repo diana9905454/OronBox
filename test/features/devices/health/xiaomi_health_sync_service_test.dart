@@ -1,3 +1,6 @@
+import 'package:drift/native.dart';
+import 'package:oronbox/src/features/devices/health/health_database.dart';
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -12,9 +15,17 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    HealthStore.databaseForTesting = HealthDatabase(NativeDatabase.memory());
     SharedPreferences.setMockInitialValues({});
     await SharedPrefsService.instance.init();
     await SharedPrefsService.instance.reload();
+  });
+
+  tearDown(() async {
+    await HealthStore.flush();
+    await HealthStore.databaseForTesting?.close();
+    HealthStore.databaseForTesting = null;
+    HealthStore.clearCache();
   });
 
   test('raw snapshot replay preserves health data outside the snapshot', () async {

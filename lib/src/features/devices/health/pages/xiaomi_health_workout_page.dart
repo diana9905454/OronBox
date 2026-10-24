@@ -15,14 +15,13 @@ import 'package:oronbox/src/features/devices/health/health_cards.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/devices/health/health_fit_exporter.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
+import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/features/devices/health/pages/health_detail_components.dart';
 import 'package:oronbox/src/features/devices/health/pages/xiaomi_health_detail_page.dart'
     show XiaomiHealthDetailArgs;
 
 typedef _DetailCard = HealthDetailCard;
 typedef _HealthSummaryStats = HealthSummaryStats;
-
-
 
 String _date(DateTime value) {
   final local = value.toLocal();
@@ -34,7 +33,6 @@ String _clock(DateTime value) {
   return '${local.hour.toString().padLeft(2, '0')}:'
       '${local.minute.toString().padLeft(2, '0')}';
 }
-
 
 /// The in-memory preview passed while opening a workout from the current
 /// health snapshot. The route still carries [workoutId], so a deep link or a
@@ -60,9 +58,11 @@ class XiaomiHealthWorkoutPage extends ConsumerStatefulWidget {
     super.key,
     required this.workoutId,
     this.preview,
+    this.deviceId,
   });
 
   final String workoutId;
+  final String? deviceId;
   final HealthWorkoutSummary? preview;
 
   @override
@@ -80,20 +80,19 @@ class _XiaomiHealthWorkoutPageState
   void initState() {
     super.initState();
     _workout = widget.preview;
-    if (_workout == null) unawaited(_loadWorkout());
+    unawaited(_loadWorkout());
   }
 
   Future<void> _loadWorkout() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final data = await ref
-          .read(deviceManagerProvider.notifier)
-          .loadXiaomiHealthData();
-      final workout = data.workouts
-          .where(
-            (value) => xiaomiHealthWorkoutRouteId(value) == widget.workoutId,
-          )
-          .firstOrNull;
+      final deviceId =
+          widget.deviceId ??
+          ref.read(deviceManagerProvider).currentDevice?.addr;
+      final workout = deviceId == null
+          ? null
+          : await HealthStore().workout(deviceId, widget.workoutId);
+      if (workout == null && _workout != null) return;
       if (workout == null) throw StateError('Workout record not found');
       if (mounted) setState(() => _workout = workout);
     } catch (error) {
@@ -218,10 +217,7 @@ class WorkoutDetailPage extends StatelessWidget {
                 ),
                 if (workout.route.length >= 2) ...[
                   const SizedBox(height: 12),
-                  _WorkoutRouteCard(
-                    route: workout.route,
-                    color: color,
-                  ),
+                  _WorkoutRouteCard(route: workout.route, color: color),
                 ],
                 if (_hasWorkoutChartSeries(workout)) ...[
                   const SizedBox(height: 12),
@@ -461,7 +457,6 @@ class _WorkoutRecordSeriesCard extends StatelessWidget {
 }
 
 const _workoutYAxisReservedSize = 28.0;
-
 
 bool _hasWorkoutChartSeries(HealthWorkoutSummary workout) =>
     workout.samples.any(
@@ -724,11 +719,7 @@ class _WorkoutRecoveryCard extends StatelessWidget {
 typedef _WorkoutRouteCard = WorkoutRouteCard;
 
 class WorkoutRouteCard extends StatefulWidget {
-  const WorkoutRouteCard({
-    super.key,
-    required this.route,
-    required this.color,
-  });
+  const WorkoutRouteCard({super.key, required this.route, required this.color});
 
   final List<HealthWorkoutRoutePoint> route;
   final Color color;
@@ -777,12 +768,28 @@ class _WorkoutRouteCardState extends State<WorkoutRouteCard> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // CartoDB Voyager (light) and Dark Matter (dark) raster tiles:
-    // Pure street/road geometry, green spaces, water bodies, and street names.
-    // Built entirely on OpenStreetMap data, without administrative borders or disputed boundaries.
-    final tileUrl = isDark
-        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}@2x.png'
-        : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png';
+    const darkMapColorFilter = ColorFilter.matrix(<double>[
+      -0.75,
+      0.0,
+      0.0,
+      0.0,
+      220.0,
+      0.0,
+      -0.75,
+      0.0,
+      0.0,
+      220.0,
+      0.0,
+      0.0,
+      -0.75,
+      0.0,
+      220.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+    ]);
 
     return _DetailCard(
       child: Column(
@@ -836,104 +843,110 @@ class _WorkoutRouteCardState extends State<WorkoutRouteCard> {
                             padding: const EdgeInsets.all(32),
                           ),
                           interactionOptions: const InteractionOptions(
-                            flags: InteractiveFlag.pinchZoom |
+                            flags:
+                                InteractiveFlag.pinchZoom |
                                 InteractiveFlag.drag |
                                 InteractiveFlag.doubleTapZoom,
                           ),
                         ),
                         children: [
                           TileLayer(
-                            urlTemplate: tileUrl,
-                            subdomains: const ['a', 'b', 'c', 'd'],
+                            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                             userAgentPackageName: 'org.zxor.oronbox',
                             maxZoom: 19,
+                            tileBuilder: isDark
+                                ? (context, tileWidget, tile) => ColorFiltered(
+                                    colorFilter: darkMapColorFilter,
+                                    child: tileWidget,
+                                  )
+                                : null,
                           ),
-                        PolylineLayer(
-                          polylines: [
-                            Polyline(
-                              points: latLngs,
-                              strokeWidth: 4.5,
-                              color: widget.color,
-                              borderStrokeWidth: 2.0,
-                              borderColor: isDark
-                                  ? Colors.black87
-                                  : Colors.white.withValues(alpha: 0.9),
-                              strokeCap: StrokeCap.round,
-                              strokeJoin: StrokeJoin.round,
-                            ),
-                          ],
-                        ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: latLngs.first,
-                              width: 26,
-                              height: 26,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF2E7D32),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    '起',
-                                    style: TextStyle(
+                          PolylineLayer(
+                            polylines: [
+                              Polyline(
+                                points: latLngs,
+                                strokeWidth: 4.5,
+                                color: widget.color,
+                                borderStrokeWidth: 2.0,
+                                borderColor: isDark
+                                    ? Colors.black87
+                                    : Colors.white.withValues(alpha: 0.9),
+                                strokeCap: StrokeCap.round,
+                                strokeJoin: StrokeJoin.round,
+                              ),
+                            ],
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: latLngs.first,
+                                width: 26,
+                                height: 26,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF2E7D32),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
                                       color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
+                                      width: 2,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '起',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                            Marker(
-                              point: latLngs.last,
-                              width: 26,
-                              height: 26,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFC62828),
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 4,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Center(
-                                  child: Text(
-                                    '终',
-                                    style: TextStyle(
+                              Marker(
+                                point: latLngs.last,
+                                width: 26,
+                                height: 26,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFC62828),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
                                       color: Colors.white,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
+                                      width: 2,
+                                    ),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      '终',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
                   : CustomPaint(
                       painter: _WorkoutRoutePainter(
                         points: widget.route,
@@ -1193,8 +1206,6 @@ String _swimmingStrokeName(BuildContext context, int? stroke) =>
       4 => AppLocalizations.of(context)!.deviceHealthStrokeButterfly,
       _ => AppLocalizations.of(context)!.deviceHealthSectionLabel,
     };
-
-
 
 String _duration(int seconds) {
   final hours = seconds ~/ 3600;

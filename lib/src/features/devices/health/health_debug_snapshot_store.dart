@@ -1,186 +1,61 @@
 import 'dart:convert';
-import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:archive/archive.dart';
-import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:uuid/uuid.dart';
+import 'package:oronbox/src/core/storage/app_data_directory.dart';
 import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 
-/// A raw Xiaomi activity-file capture from one health synchronization.
-///
-/// The capture is deliberately kept before model conversion. This makes a
-/// parser fix testable against a real wearable response without asking for a
-/// new workout or health measurement.
-class XiaomiHealthRawSnapshot {
-  const XiaomiHealthRawSnapshot({
-    required this.id,
-    required this.deviceId,
-    this.deviceCode,
-    required this.capturedAt,
-    required this.files,
-  });
-
-  final String id;
-  final String deviceId;
-  final String? deviceCode;
-  final DateTime capturedAt;
-  final List<XiaomiActivityRawFile> files;
-
-  Map<String, Object?> toJson() => {
-    'id': id,
-    'deviceId': deviceId,
-    if (deviceCode != null && deviceCode!.isNotEmpty) 'deviceCode': deviceCode,
-    'capturedAt': capturedAt.toIso8601String(),
-    'files': files
-        .map((file) => {'id': file.id, 'data': base64Encode(file.data)})
-        .toList(growable: false),
-  };
-
-  /// A stable, human-readable file name for the exported capture, e.g.
-  /// `xiaomi-health-<code>-20260919-170800.zip`.
-  String get exportFileName {
-    final local = capturedAt.toLocal();
-    final timestamp =
-        '${local.year.toString().padLeft(4, '0')}'
-        '${local.month.toString().padLeft(2, '0')}'
-        '${local.day.toString().padLeft(2, '0')}-'
-        '${local.hour.toString().padLeft(2, '0')}'
-        '${local.minute.toString().padLeft(2, '0')}'
-        '${local.second.toString().padLeft(2, '0')}';
-    final code = deviceCode?.trim();
-    final suffix = code == null || code.isEmpty ? '' : '-$code';
-    return 'xiaomi-health$suffix-$timestamp.zip';
-  }
-
-  /// Packs every raw activity file plus a manifest into a zip so the exact
-  /// bytes that produced a parser bug can be shared and replayed.
-  Uint8List encodeArchive() {
-    final archive = Archive();
-    for (final file in files) {
-      archive.addFile(
-        ArchiveFile('${file.id}.bin', file.data.length, file.data),
-      );
-    }
-    final manifest = utf8.encode(
-      const JsonEncoder.withIndent('  ').convert({
-        'id': id,
-        'deviceId': deviceId,
-        if (deviceCode != null && deviceCode!.isNotEmpty)
-          'deviceCode': deviceCode,
-        'capturedAt': capturedAt.toIso8601String(),
-        'files': files
-            .map(
-              (file) => {
-                'name': '${file.id}.bin',
-                'id': file.id,
-                'bytes': file.data.length,
-              },
-            )
-            .toList(growable: false),
-      }),
-    );
-    archive.addFile(ArchiveFile('manifest.json', manifest.length, manifest));
-    return Uint8List.fromList(ZipEncoder().encode(archive));
-  }
-
-  /// Reads a zip produced by [encodeArchive] back into a snapshot.
-  ///
-  /// The manifest carries the original id / device id / capture time; the
-  /// `.bin` entries carry the raw activity files. An archive without a manifest
-  /// is still accepted: the id and capture time are derived from the zip itself
-  /// so an imported capture always lands in the snapshot list.
-  factory XiaomiHealthRawSnapshot.decodeArchive(Uint8List bytes) {
-    final archive = ZipDecoder().decodeBytes(bytes);
-    Map<String, Object?>? manifest;
-    final files = <XiaomiActivityRawFile>[];
-    for (final entry in archive) {
-      if (!entry.isFile) continue;
-      final name = entry.name;
-      final data = entry.content;
-      if (name == 'manifest.json') {
-        try {
-          final decoded = jsonDecode(utf8.decode(data));
-          if (decoded is Map) manifest = decoded.cast<String, Object?>();
-        } catch (_) {
-          manifest = null;
-        }
-        continue;
-      }
-      if (name.endsWith('.bin')) {
-        files.add(
-          XiaomiActivityRawFile(
-            id: name.substring(0, name.length - 4),
-            data: data,
-          ),
-        );
-      }
-    }
-    if (files.isEmpty) {
-      throw const FormatException('Archive contains no activity files');
-    }
-    final capturedAt =
-        _tryParseDate(manifest?['capturedAt']?.toString()) ?? DateTime.now();
-    return XiaomiHealthRawSnapshot(
-      id: manifest?['id']?.toString() ?? _archiveId(capturedAt),
-      deviceId: manifest?['deviceId']?.toString() ?? 'imported',
-      deviceCode: manifest?['deviceCode']?.toString(),
-      capturedAt: capturedAt,
-      files: List.unmodifiable(files),
-    );
-  }
-
-  factory XiaomiHealthRawSnapshot.fromJson(Map<String, Object?> json) {
-    final rawFiles = json['files'];
-    if (rawFiles is! List) {
-      throw const FormatException('Invalid Xiaomi health snapshot files');
-    }
-    return XiaomiHealthRawSnapshot(
-      id: json['id']!.toString(),
-      deviceId: json['deviceId']!.toString(),
-      deviceCode: json['deviceCode']?.toString(),
-      capturedAt: DateTime.parse(json['capturedAt']!.toString()),
-      files: rawFiles
-          .whereType<Map>()
-          .map(
-            (file) => XiaomiActivityRawFile(
-              id: file['id'].toString(),
-              data: base64Decode(file['data'].toString()),
-            ),
-          )
-          .toList(growable: false),
-    );
-  }
-}
+import 'health_debug_snapshot.dart';
+export 'health_debug_snapshot.dart';
 
 class HealthDebugSnapshotStore {
-  static const _key = 'xiaomi_health_debug_snapshots_v1';
+  HealthDebugSnapshotStore({AppDataDirectory? storage})
+    : _storage = storage == null ? null : Future.value(storage);
+
   static const _maxSnapshots = 20;
+  static const _maxStoredBytes = 100 * 1024 * 1024;
+  Future<AppDataDirectory>? _storage;
 
-  final SharedPrefsService _prefs;
+  Future<T> _locked<T>(Future<T> Function(AppDataDirectory) action) async {
+    final storage = await (_storage ??= openAppDataDirectory('health/raw'));
+    return storage.exclusive(() async {
+      return action(storage);
+    });
+  }
 
-  HealthDebugSnapshotStore({SharedPrefsService? prefs})
-    : _prefs = prefs ?? SharedPrefsService.instance;
+  Future<List<HealthSnapshotSummary>> list() => _locked(_index);
 
-  Future<List<XiaomiHealthRawSnapshot>> read() async {
-    if (!_prefs.isInitialized) return const [];
-    final value = _prefs.getString(_key);
-    if (value == null || value.isEmpty) return const [];
-    try {
-      final decoded = jsonDecode(value);
-      if (decoded is! List) return const [];
-      final snapshots = decoded
-          .whereType<Map>()
-          .map(
-            (item) =>
-                XiaomiHealthRawSnapshot.fromJson(item.cast<String, Object?>()),
-          )
-          .toList();
-      snapshots.sort(
-        (left, right) => right.capturedAt.compareTo(left.capturedAt),
-      );
-      return snapshots;
-    } catch (_) {
-      return const [];
-    }
+  // Kept for callers explicitly requesting complete captures, not list views.
+  Future<List<XiaomiHealthRawSnapshot>> read() => _locked(
+    (storage) async => [
+      for (final summary in await _index(storage))
+        await _load(storage, summary),
+    ],
+  );
+
+  Future<XiaomiHealthRawSnapshot> load(String id) => _locked((storage) async {
+    final summary = (await _index(storage))
+        .where((item) => item.id == id)
+        .firstOrNull;
+    if (summary == null) throw StateError('Health snapshot no longer exists');
+    return _load(storage, summary);
+  });
+
+  Future<Uint8List> export(String id) async =>
+      compute(_encodeArchive, await load(id));
+
+  Future<Uint8List> exportCollection() async {
+    final captures = await _locked((storage) async {
+      final summaries = await _index(storage);
+      if (summaries.fold<int>(0, (sum, item) => sum + item.totalBytes) >
+          128 * 1024 * 1024) {
+        throw const SnapshotArchiveTooLarge();
+      }
+      return [for (final summary in summaries) await _load(storage, summary)];
+    });
+    return compute(_encodeCollection, captures);
   }
 
   Future<void> add({
@@ -188,64 +63,231 @@ class HealthDebugSnapshotStore {
     String? deviceCode,
     required List<XiaomiActivityRawFile> files,
   }) async {
-    if (!_prefs.isInitialized || files.isEmpty) return;
-    final snapshots = List<XiaomiHealthRawSnapshot>.of(await read());
-    final id = '${DateTime.now().microsecondsSinceEpoch}-$deviceId';
-    snapshots.insert(
-      0,
-      XiaomiHealthRawSnapshot(
-        id: id,
-        deviceId: deviceId,
-        deviceCode: deviceCode,
-        capturedAt: DateTime.now(),
-        files: List.unmodifiable(files),
+    if (files.isEmpty) return;
+    final snapshot = XiaomiHealthRawSnapshot(
+      id: const Uuid().v4(),
+      deviceId: deviceId,
+      deviceCode: deviceCode,
+      capturedAt: DateTime.now(),
+      files: List.unmodifiable(
+        files.map(
+          (file) => XiaomiActivityRawFile(
+            id: file.id,
+            data: Uint8List.fromList(file.data),
+          ),
+        ),
       ),
     );
-    await _write(snapshots.take(_maxSnapshots).toList(growable: false));
+    await _locked((storage) => _save(storage, snapshot));
   }
 
-  /// Imports a zip produced by [XiaomiHealthRawSnapshot.encodeArchive] and
-  /// adds it to the stored snapshot list. Returns the imported snapshot.
-  ///
-  /// The manifest id is preserved when present; a duplicate id replaces the
-  /// existing entry so re-importing the same archive stays idempotent.
   Future<XiaomiHealthRawSnapshot> import(Uint8List bytes) async {
-    if (!_prefs.isInitialized) {
-      throw StateError('Xiaomi health snapshots are not initialized');
-    }
-    final snapshot = XiaomiHealthRawSnapshot.decodeArchive(bytes);
-    final snapshots = List<XiaomiHealthRawSnapshot>.of(await read())
-      ..removeWhere((item) => item.id == snapshot.id)
-      ..insert(0, snapshot);
-    await _write(snapshots.take(_maxSnapshots).toList(growable: false));
+    final snapshot = await compute(_decodeArchive, bytes);
+    await _locked((storage) => _save(storage, snapshot));
     return snapshot;
   }
 
-  Future<void> delete(String id) async {
-    if (!_prefs.isInitialized) return;
-    final snapshots = List<XiaomiHealthRawSnapshot>.of(await read())
-      ..removeWhere((item) => item.id == id);
-    await _write(snapshots);
+  Future<void> _save(
+    AppDataDirectory storage,
+    XiaomiHealthRawSnapshot snapshot,
+  ) async {
+    if (snapshot.files.fold<int>(0, (sum, file) => sum + file.data.length) >
+        _maxStoredBytes) {
+      throw const SnapshotArchiveTooLarge();
+    }
+    final previous = await _index(storage);
+    final summary = await _writeFiles(storage, snapshot);
+    final next = [summary, ...previous.where((item) => item.id != snapshot.id)];
+    var bytes = next.fold<int>(0, (sum, item) => sum + item.totalBytes);
+    while (next.length > _maxSnapshots || bytes > _maxStoredBytes) {
+      bytes -= next.removeLast().totalBytes;
+    }
+    await _commit(storage, next);
   }
 
-  Future<void> clear() async {
-    if (!_prefs.isInitialized) return;
-    await _prefs.remove(_key);
+  Future<void> delete(String id) => _locked((storage) async {
+    final next = (await _index(storage))
+        .where((item) => item.id != id)
+        .toList();
+    await _commit(storage, next);
+  });
+
+  Future<void> clear() => _locked((storage) => _commit(storage, const []));
+
+  Future<int> storedBytes() => _locked(
+    (storage) async =>
+        (await storage.files()).fold<int>(0, (sum, file) => sum + file.bytes),
+  );
+
+  Future<List<HealthSnapshotSummary>> _index(AppDataDirectory storage) async {
+    final bytes = await storage.read('index.json');
+    if (bytes == null) return [];
+    final decoded = jsonDecode(utf8.decode(bytes)) as Map;
+    if (decoded['version'] != 1) {
+      throw const FormatException('Unknown snapshot format');
+    }
+    final result = (decoded['snapshots'] as List)
+        .map(
+          (item) => HealthSnapshotSummary.fromJson(
+            (item as Map).cast<String, Object?>(),
+          ),
+        )
+        .toList();
+    if (result.map((item) => item.id).toSet().length != result.length) {
+      throw const FormatException('Duplicate health snapshot id');
+    }
+    for (final item in result) {
+      final directory = sha256.convert(utf8.encode(item.id)).toString();
+      if (item.files.isEmpty ||
+          item.files.map((file) => file.id).toSet().length !=
+              item.files.length ||
+          item.files.any(
+            (file) =>
+                file.bytes < 0 ||
+                !RegExp(r'^[a-f0-9]{64}$').hasMatch(file.digest) ||
+                (file.path != '$directory/files/${file.digest}.bin' &&
+                    file.path != _rawPath(item.deviceId, file.id, file.digest)),
+          )) {
+        throw const FormatException('Invalid health snapshot index');
+      }
+    }
+    return result..sort((a, b) => b.capturedAt.compareTo(a.capturedAt));
   }
 
-  Future<void> _write(List<XiaomiHealthRawSnapshot> snapshots) async {
-    final ok = await _prefs.setString(
-      _key,
-      jsonEncode(snapshots.map((item) => item.toJson()).toList()),
+  Future<HealthSnapshotSummary> _writeFiles(
+    AppDataDirectory storage,
+    XiaomiHealthRawSnapshot snapshot,
+  ) async {
+    if (snapshot.files.isEmpty ||
+        snapshot.files.map((file) => file.id).toSet().length !=
+            snapshot.files.length) {
+      throw const FormatException('Invalid health snapshot files');
+    }
+    final files = <HealthSnapshotFile>[];
+    for (final file in snapshot.files) {
+      final digest = sha256.convert(file.data).toString();
+      final path = _rawPath(snapshot.deviceId, file.id, digest);
+      final existing = await storage.read(path);
+      if (existing == null || sha256.convert(existing).toString() != digest) {
+        await storage.write(path, file.data);
+      }
+      files.add(
+        HealthSnapshotFile(
+          id: file.id,
+          path: path,
+          bytes: file.data.length,
+          digest: digest,
+        ),
+      );
+    }
+    final summary = HealthSnapshotSummary(
+      id: snapshot.id,
+      deviceId: snapshot.deviceId,
+      deviceCode: snapshot.deviceCode,
+      capturedAt: snapshot.capturedAt,
+      files: files,
     );
-    if (!ok) throw StateError('Unable to persist Xiaomi health snapshots');
+    // Verify persisted bytes before a new record can become visible.
+    await _load(storage, summary);
+    return summary;
+  }
+
+  Future<XiaomiHealthRawSnapshot> _load(
+    AppDataDirectory storage,
+    HealthSnapshotSummary summary,
+  ) async {
+    final files = <XiaomiActivityRawFile>[];
+    for (final file in summary.files) {
+      final data = await storage.read(file.path);
+      if (data == null ||
+          data.length != file.bytes ||
+          sha256.convert(data).toString() != file.digest) {
+        throw const FormatException(
+          'Health snapshot file is missing or damaged',
+        );
+      }
+      files.add(XiaomiActivityRawFile(id: file.id, data: data));
+    }
+    return XiaomiHealthRawSnapshot(
+      id: summary.id,
+      deviceId: summary.deviceId,
+      deviceCode: summary.deviceCode,
+      capturedAt: summary.capturedAt,
+      files: files,
+    );
+  }
+
+  Future<void> _commit(
+    AppDataDirectory storage,
+    List<HealthSnapshotSummary> summaries,
+  ) async {
+    await storage.write(
+      'index.json',
+      Uint8List.fromList(
+        utf8.encode(
+          jsonEncode({
+            'version': 1,
+            'snapshots': summaries.map((item) => item.toJson()).toList(),
+          }),
+        ),
+      ),
+    );
+    final keep = {
+      'index.json',
+      for (final item in summaries)
+        for (final file in item.files) file.path,
+    };
+    for (final file in await storage.files()) {
+      if (!keep.contains(file.path)) await storage.remove(file.path);
+    }
   }
 }
 
-DateTime? _tryParseDate(String? value) {
-  if (value == null || value.isEmpty) return null;
-  return DateTime.tryParse(value);
+String _rawPath(String deviceId, String fileId, String digest) =>
+    '${sha256.convert(utf8.encode(deviceId))}/'
+    '${sha256.convert(utf8.encode(fileId))}/$digest.bin';
+
+Uint8List _encodeArchive(XiaomiHealthRawSnapshot snapshot) =>
+    snapshot.encodeArchive();
+XiaomiHealthRawSnapshot _decodeArchive(Uint8List bytes) =>
+    XiaomiHealthRawSnapshot.decodeArchive(bytes);
+
+class SnapshotArchiveTooLarge implements Exception {
+  const SnapshotArchiveTooLarge();
 }
 
-String _archiveId(DateTime capturedAt) =>
-    'imported-${capturedAt.microsecondsSinceEpoch}';
+Uint8List _encodeCollection(List<XiaomiHealthRawSnapshot> snapshots) {
+  final archive = Archive();
+  final entries = <Map<String, Object?>>[];
+  for (var i = 0; i < snapshots.length; i++) {
+    final snapshot = snapshots[i];
+    final files = <Map<String, Object?>>[];
+    for (var j = 0; j < snapshot.files.length; j++) {
+      final file = snapshot.files[j];
+      final path = 'snapshots/$i/files/$j.bin';
+      archive.addFile(ArchiveFile(path, file.data.length, file.data));
+      files.add({
+        'id': file.id,
+        'path': path,
+        'bytes': file.data.length,
+        'sha256': sha256.convert(file.data).toString(),
+      });
+    }
+    entries.add({
+      'id': snapshot.id,
+      'deviceId': snapshot.deviceId,
+      'deviceCode': snapshot.deviceCode,
+      'capturedAt': snapshot.capturedAt.toIso8601String(),
+      'files': files,
+    });
+  }
+  final manifest = utf8.encode(
+    jsonEncode({
+      'format': 'oronbox-health-snapshots',
+      'version': 1,
+      'snapshots': entries,
+    }),
+  );
+  archive.addFile(ArchiveFile('manifest.json', manifest.length, manifest));
+  return Uint8List.fromList(ZipEncoder().encode(archive));
+}

@@ -9,7 +9,8 @@ import 'package:oronbox/src/core/models/xiaomi_health_models.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/xiaomi/health/parsers/xiaomi_activity_parser.dart';
 import 'package:oronbox/src/device/xiaomi/systems/xiaomi_system.dart';
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_fitness.pb.dart'
     as pb_fitness;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
@@ -30,14 +31,14 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
   XiaomiHealthState _state = const XiaomiHealthState();
   Future<XiaomiActivityFileSyncResult>? _activitySyncFuture;
   Completer<Uint8List>? _activityFileCompleter;
-  BytesBuilder? _activityFileBuffer;
   Timer? _activityWatchdog;
-  int _activityTotalChunks = 0;
-  int _activityNextChunk = 1;
   final _pendingActivityFiles = <String, Uint8List>{};
-  BytesBuilder? _pendingActivityFileBuffer;
-  int _pendingActivityTotalChunks = 0;
-  int _pendingActivityNextChunk = 1;
+  // The file channel can begin a response just before the request future is
+  // installed. Keep one assembler alive across that boundary, like Mi
+  // Fitness and Gadgetbridge do, instead of assigning chunks to requests.
+  BytesBuilder? _activityWireBuffer;
+  int _activityWireTotalChunks = 0;
+  int _activityWireNextChunk = 1;
 
   XiaomiHealthState get state => _state;
 
@@ -54,9 +55,8 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
       );
     }
     _activityFileCompleter = null;
-    _activityFileBuffer = null;
     _pendingActivityFiles.clear();
-    _pendingActivityFileBuffer = null;
+    _activityWireBuffer = null;
     await _fitnessPackets.close();
     await super.dispose();
   }
@@ -367,50 +367,48 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
           final file = await _requestActivityFile(id);
           final actualId = Uint8List.fromList(file.sublist(0, 7));
           final actualKey = _activityIdKey(actualId);
-          if (completedIds.add(actualKey)) {
-            retrievalFailures.remove(actualKey);
-            rawFiles.add(
-              XiaomiActivityRawFile(
-                id: actualKey,
-                data: Uint8List.fromList(file),
-              ),
-            );
-            // Gadgetbridge confirms the validated file before parsing it.
+          if (actualKey != key) {
+            // The device may answer a request with a different queued file.
+            // Keep that validated file for its own request and leave the
+            // requested ID pending. Parsing it here would associate the
+            // payload with the wrong request and makes later pages appear
+            // empty or incomplete.
             await confirmFile(actualId, actualKey, attempts);
-            if (file.length == 11) {
-              skipped++;
-            } else {
-              try {
-                final parsed = _parseActivityFile(file);
-                if (parsed.daily != null) daily.add(parsed.daily!);
-                samples.addAll(parsed.samples);
-                sleep.addAll(parsed.sleep);
-                workouts.addAll(parsed.workouts);
-                abnormalHealthRecords.addAll(parsed.abnormalHealthRecords);
-                received++;
-              } catch (error, stackTrace) {
-                failedFiles.add(
-                  XiaomiActivityFileFailure(
-                    id: actualKey,
-                    attempts: attempts,
-                    error: 'parse failed: $error',
-                  ),
-                );
-                _log.warning(
-                  '[${entity.id}] could not parse Xiaomi activity file '
-                  '$actualKey; raw bytes were retained',
-                  error,
-                  stackTrace,
-                );
+            if (completedIds.add(actualKey)) {
+              rawFiles.add(
+                XiaomiActivityRawFile(
+                  id: actualKey,
+                  data: Uint8List.fromList(file),
+                ),
+              );
+              if (file.length == 11) {
+                skipped++;
+              } else {
+                try {
+                  final parsed = _parseActivityFile(file);
+                  if (parsed.daily != null) daily.add(parsed.daily!);
+                  samples.addAll(parsed.samples);
+                  sleep.addAll(parsed.sleep);
+                  workouts.addAll(parsed.workouts);
+                  abnormalHealthRecords.addAll(parsed.abnormalHealthRecords);
+                  received++;
+                } catch (error, stackTrace) {
+                  failedFiles.add(
+                    XiaomiActivityFileFailure(
+                      id: actualKey,
+                      attempts: attempts,
+                      error: 'parse failed: $error',
+                    ),
+                  );
+                  _log.warning(
+                    '[${entity.id}] could not parse Xiaomi activity file '
+                    '$actualKey; raw bytes were retained',
+                    error,
+                    stackTrace,
+                  );
+                }
               }
             }
-          } else {
-            // ACK duplicates so the watch can advance, but parse each ID once.
-            await confirmFile(actualId, actualKey, attempts);
-          }
-          if (actualKey == key) {
-            retrievalFailures.remove(key);
-          } else {
             retrievalFailures[key] = XiaomiActivityFileFailure(
               id: key,
               attempts: attempts,
@@ -418,8 +416,49 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
             );
             _log.warning(
               '[${entity.id}] requested Xiaomi activity file $key but '
-              'received $actualKey; processed and confirmed the payload ID',
+              'received $actualKey; buffered the payload for its own request',
             );
+          } else {
+            if (completedIds.add(actualKey)) {
+              retrievalFailures.remove(actualKey);
+              rawFiles.add(
+                XiaomiActivityRawFile(
+                  id: actualKey,
+                  data: Uint8List.fromList(file),
+                ),
+              );
+              await confirmFile(actualId, actualKey, attempts);
+              if (file.length == 11) {
+                skipped++;
+              } else {
+                try {
+                  final parsed = _parseActivityFile(file);
+                  if (parsed.daily != null) daily.add(parsed.daily!);
+                  samples.addAll(parsed.samples);
+                  sleep.addAll(parsed.sleep);
+                  workouts.addAll(parsed.workouts);
+                  abnormalHealthRecords.addAll(parsed.abnormalHealthRecords);
+                  received++;
+                } catch (error, stackTrace) {
+                  failedFiles.add(
+                    XiaomiActivityFileFailure(
+                      id: actualKey,
+                      attempts: attempts,
+                      error: 'parse failed: $error',
+                    ),
+                  );
+                  _log.warning(
+                    '[${entity.id}] could not parse Xiaomi activity file '
+                    '$actualKey; raw bytes were retained',
+                    error,
+                    stackTrace,
+                  );
+                }
+              }
+            } else {
+              await confirmFile(actualId, actualKey, attempts);
+            }
+            retrievalFailures.remove(key);
           }
         } catch (error, stackTrace) {
           retrievalFailures[key] = XiaomiActivityFileFailure(
@@ -530,9 +569,6 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
     final completer = Completer<Uint8List>();
     _log.fine('[${entity.id}] requesting Xiaomi activity file $key');
     _activityFileCompleter = completer;
-    _activityFileBuffer = BytesBuilder(copy: false);
-    _activityTotalChunks = 0;
-    _activityNextChunk = 1;
     _armActivityWatchdog();
     try {
       await requestFitnessId(id);
@@ -541,13 +577,12 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
       _activityWatchdog?.cancel();
       _activityWatchdog = null;
       _activityFileCompleter = null;
-      _activityFileBuffer = null;
     }
   }
 
   void _armActivityWatchdog() {
     _activityWatchdog?.cancel();
-    final waitingForFirstChunk = _activityNextChunk == 1;
+    final waitingForFirstChunk = _activityWireNextChunk == 1;
     _activityWatchdog = Timer(
       waitingForFirstChunk
           ? const Duration(seconds: 45)
@@ -557,14 +592,14 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
         if (completer == null || completer.isCompleted) return;
         _log.warning(
           '[${entity.id}] Xiaomi activity file transfer timed out: '
-          'chunk=${_activityNextChunk - 1}/$_activityTotalChunks',
+          'chunk=${_activityWireNextChunk - 1}/$_activityWireTotalChunks',
         );
         completer.completeError(
           ProtocolException(
             waitingForFirstChunk
                 ? 'Xiaomi activity file preparation timed out before the first chunk'
                 : 'Xiaomi activity file transfer stalled at chunk '
-                      '${_activityNextChunk - 1}/$_activityTotalChunks',
+                      '${_activityWireNextChunk - 1}/$_activityWireTotalChunks',
           ),
         );
       },
@@ -574,142 +609,82 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
   /// Receives one raw activity-file chunk from SPP activity or L2 fileFitness.
   void onActivityPayload(Uint8List payload) {
     final completer = _activityFileCompleter;
-    if (completer == null || completer.isCompleted) {
-      _bufferUnsolicitedActivityPayload(payload);
-      return;
-    }
     if (payload.length < 4) {
-      _log.warning(
+      _log.fine(
         '[${entity.id}] dropping Xiaomi activity chunk shorter than header '
         '(${payload.length} bytes)',
       );
-      completer.completeError(
-        ProtocolException('Xiaomi activity chunk too short'),
-      );
+      if (completer != null && !completer.isCompleted) {
+        completer.completeError(
+          ProtocolException('Xiaomi activity chunk too short'),
+        );
+      }
       return;
     }
     final view = ByteData.sublistView(payload);
     final total = view.getUint16(0, Endian.little);
     final number = view.getUint16(2, Endian.little);
     if (total == 0 || number == 0 || number > total) {
-      _log.warning(
+      _log.fine(
         '[${entity.id}] dropping invalid Xiaomi activity chunk '
         '$number/$total',
       );
-      completer.completeError(
-        ProtocolException('Invalid Xiaomi activity chunk $number/$total'),
-      );
+      if (completer != null && !completer.isCompleted) {
+        completer.completeError(
+          ProtocolException('Invalid Xiaomi activity chunk $number/$total'),
+        );
+      }
       return;
     }
     if (number == 1) {
-      _activityFileBuffer = BytesBuilder(copy: false);
-      _activityTotalChunks = total;
-      _activityNextChunk = 1;
+      _activityWireBuffer = BytesBuilder(copy: false);
+      _activityWireTotalChunks = total;
+      _activityWireNextChunk = 1;
     }
-    if (total != _activityTotalChunks || number != _activityNextChunk) {
-      _log.warning(
+    if (_activityWireBuffer == null ||
+        total != _activityWireTotalChunks ||
+        number != _activityWireNextChunk) {
+      _log.fine(
         '[${entity.id}] unexpected Xiaomi activity chunk '
-        '$number/$total, expected $_activityNextChunk/$_activityTotalChunks',
-      );
-      completer.completeError(
-        ProtocolException(
-          'Unexpected Xiaomi activity chunk $number/$total '
-          '(expected $_activityNextChunk/$_activityTotalChunks)',
-        ),
+        '$number/$total, expected $_activityWireNextChunk/$_activityWireTotalChunks',
       );
       return;
     }
-    _activityFileBuffer!.add(payload.sublist(4));
-    _activityNextChunk++;
-    _armActivityWatchdog();
+    _activityWireBuffer!.add(payload.sublist(4));
+    _activityWireNextChunk++;
+    if (_activityFileCompleter != null) _armActivityWatchdog();
     _log.fine(
       '[${entity.id}] Xiaomi activity chunk $number/$total '
       '(${payload.length - 4} bytes)',
     );
     if (number == total) {
-      final data = _activityFileBuffer!.toBytes();
+      final data = _activityWireBuffer!.toBytes();
+      _activityWireBuffer = null;
+      _activityWireTotalChunks = 0;
+      _activityWireNextChunk = 1;
       _log.fine(
         '[${entity.id}] Xiaomi activity file transfer completed: '
         '$number/$total chunks, ${data.length} bytes',
       );
       try {
-        completer.complete(_normalizeActivityFile(data));
+        final normalized = _normalizeActivityFile(data);
+        final key = _activityIdKey(Uint8List.sublistView(normalized, 0, 7));
+        _cachePendingActivityFile(key, normalized);
+        final completer = _activityFileCompleter;
+        if (completer != null && !completer.isCompleted) {
+          completer.complete(normalized);
+        }
       } catch (error, stackTrace) {
         _log.warning(
           '[${entity.id}] Xiaomi activity file validation failed',
           error,
           stackTrace,
         );
-        completer.completeError(error, stackTrace);
+        final completer = _activityFileCompleter;
+        if (completer != null && !completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
       }
-    }
-  }
-
-  /// Xiaomi can emit the first file chunk in the interval between the file
-  /// request and the next request. Mi Fitness keeps an assembler
-  /// alive for that stream; dropping it here made the first health sync depend
-  /// on a retry. A completed file is retained only after header and CRC
-  /// validation, then bounded by the number of pending files.
-  void _bufferUnsolicitedActivityPayload(Uint8List payload) {
-    if (payload.length < 4) {
-      _log.fine(
-        '[${entity.id}] dropping unsolicited Xiaomi activity payload '
-        'shorter than header (${payload.length} bytes)',
-      );
-      return;
-    }
-    final view = ByteData.sublistView(payload);
-    final total = view.getUint16(0, Endian.little);
-    final number = view.getUint16(2, Endian.little);
-    if (total == 0 || number == 0 || number > total) {
-      _pendingActivityFileBuffer = null;
-      _pendingActivityTotalChunks = 0;
-      _pendingActivityNextChunk = 1;
-      _log.fine(
-        '[${entity.id}] dropping invalid unsolicited Xiaomi activity '
-        'chunk $number/$total',
-      );
-      return;
-    }
-    if (number == 1) {
-      _pendingActivityFileBuffer = BytesBuilder(copy: false);
-      _pendingActivityTotalChunks = total;
-      _pendingActivityNextChunk = 1;
-    }
-    if (_pendingActivityFileBuffer == null ||
-        total != _pendingActivityTotalChunks ||
-        number != _pendingActivityNextChunk) {
-      _pendingActivityFileBuffer = null;
-      _pendingActivityTotalChunks = 0;
-      _pendingActivityNextChunk = 1;
-      _log.fine(
-        '[${entity.id}] dropping out-of-order unsolicited Xiaomi activity '
-        'chunk $number/$total',
-      );
-      return;
-    }
-    _pendingActivityFileBuffer!.add(payload.sublist(4));
-    _pendingActivityNextChunk++;
-    if (number != total) return;
-
-    final data = _pendingActivityFileBuffer!.toBytes();
-    _pendingActivityFileBuffer = null;
-    _pendingActivityTotalChunks = 0;
-    _pendingActivityNextChunk = 1;
-    try {
-      final normalized = _normalizeActivityFile(data);
-      final key = _activityIdKey(Uint8List.sublistView(normalized, 0, 7));
-      _cachePendingActivityFile(key, normalized);
-      _log.fine(
-        '[${entity.id}] buffered unsolicited Xiaomi activity file '
-        '$key (${normalized.length} bytes)',
-      );
-    } catch (error, stackTrace) {
-      _log.fine(
-        '[${entity.id}] dropping invalid unsolicited Xiaomi activity file',
-        error,
-        stackTrace,
-      );
     }
   }
 
@@ -729,7 +704,6 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
 
   Uint8List _normalizeActivityFile(Uint8List data) =>
       normalizeXiaomiActivityFile(data);
-
 
   /// Parses a sleep activity file for protocol tests and diagnostics.
   @visibleForTesting
@@ -863,7 +837,6 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
 
   XiaomiParsedActivityFile _parseActivityFile(Uint8List data) =>
       parseXiaomiActivityFile(data);
-
 
   Future<pb_fitness.RemainingSportData_List> fetchRemainingSportData() =>
       _requestFitness(

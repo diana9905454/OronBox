@@ -1,13 +1,17 @@
+import 'package:oronbox/src/core/services/phone_location_sessions.dart';
+import 'package:oronbox/src/device/xiaomi/systems/phone_location_system.dart';
 import 'package:oronbox/src/core/services/device_location_service.dart';
 import 'package:oronbox/src/device/core/entity.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/runtime.dart';
 import 'package:oronbox/src/device/core/transport.dart';
 import 'package:oronbox/src/device/xiaomi/systems/auth_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_voice_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/gnss_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/install_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/lpa_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/media_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/network_system.dart';
@@ -65,16 +69,24 @@ class XiaomiDeviceFactory implements DeviceEntityFactory {
     entity.registerSystem(XiaomiAuthSystem());
 
     entity.registerSystem(XiaomiMassSystem());
+    entity.registerSystem(XiaomiVoiceSystem());
+    entity.registerSystem(XiaomiPhoneLocationSystem());
     final locationService = DeviceLocationService();
     entity.registerSystem(
       XiaomiGnssSystem(
-        gpsInfoProvider: locationService.getGpsInfo,
+        gpsInfoProvider: () async {
+          if (!PhoneLocationSessions.instance.enabled) return null;
+          final info = await locationService.getGpsInfo();
+          return PhoneLocationSessions.instance.enabled ? info : null;
+        },
+        cancelGpsInfo: locationService.cancel,
       ),
     );
     entity.registerSystem(XiaomiScreenshotSystem());
     entity.registerSystem(XiaomiMediaSystem());
     entity.registerSystem(XiaomiNetworkSystem());
     entity.registerSystem(XiaomiWifiConfigHandler());
+    entity.registerSystem(XiaomiLpaSystem());
 
     entity.registerSystem(XiaomiInstallSystem());
     entity.registerSystem(XiaomiInfoSystem());

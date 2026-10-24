@@ -1399,9 +1399,9 @@ class Song extends $pb.GeneratedMessage {
         1, _omitFieldNames ? '' : 'id', $pb.PbFieldType.QY)
     ..aQS(2, _omitFieldNames ? '' : 'name')
     ..aI(3, _omitFieldNames ? '' : 'size', fieldType: $pb.PbFieldType.QU3)
-    ..aI(5, _omitFieldNames ? '' : 'duration', fieldType: $pb.PbFieldType.OU3)
-    ..aQS(6, _omitFieldNames ? '' : 'album')
-    ..aQS(7, _omitFieldNames ? '' : 'artist');
+    ..aI(4, _omitFieldNames ? '' : 'duration', fieldType: $pb.PbFieldType.OU3)
+    ..aQS(5, _omitFieldNames ? '' : 'album')
+    ..aQS(6, _omitFieldNames ? '' : 'artist');
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Song clone() => deepCopy();
@@ -1448,32 +1448,32 @@ class Song extends $pb.GeneratedMessage {
   @$pb.TagNumber(3)
   void clearSize() => $_clearField(3);
 
-  @$pb.TagNumber(5)
+  @$pb.TagNumber(4)
   $core.int get duration => $_getIZ(3);
-  @$pb.TagNumber(5)
+  @$pb.TagNumber(4)
   set duration($core.int value) => $_setUnsignedInt32(3, value);
-  @$pb.TagNumber(5)
+  @$pb.TagNumber(4)
   $core.bool hasDuration() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearDuration() => $_clearField(4);
+
   @$pb.TagNumber(5)
-  void clearDuration() => $_clearField(5);
-
-  @$pb.TagNumber(6)
   $core.String get album => $_getSZ(4);
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(5)
   set album($core.String value) => $_setString(4, value);
-  @$pb.TagNumber(6)
+  @$pb.TagNumber(5)
   $core.bool hasAlbum() => $_has(4);
-  @$pb.TagNumber(6)
-  void clearAlbum() => $_clearField(6);
+  @$pb.TagNumber(5)
+  void clearAlbum() => $_clearField(5);
 
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(6)
   $core.String get artist => $_getSZ(5);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(6)
   set artist($core.String value) => $_setString(5, value);
-  @$pb.TagNumber(7)
+  @$pb.TagNumber(6)
   $core.bool hasArtist() => $_has(5);
-  @$pb.TagNumber(7)
-  void clearArtist() => $_clearField(7);
+  @$pb.TagNumber(6)
+  void clearArtist() => $_clearField(6);
 }
 
 class MediaFile_Summary_Item extends $pb.GeneratedMessage {

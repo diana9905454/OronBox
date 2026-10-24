@@ -485,9 +485,9 @@ const Song$json = {
     {'1': 'id', '3': 1, '4': 2, '5': 12, '10': 'id'},
     {'1': 'name', '3': 2, '4': 2, '5': 9, '10': 'name'},
     {'1': 'size', '3': 3, '4': 2, '5': 13, '10': 'size'},
-    {'1': 'duration', '3': 5, '4': 1, '5': 13, '10': 'duration'},
-    {'1': 'album', '3': 6, '4': 2, '5': 9, '10': 'album'},
-    {'1': 'artist', '3': 7, '4': 2, '5': 9, '10': 'artist'},
+    {'1': 'duration', '3': 4, '4': 1, '5': 13, '10': 'duration'},
+    {'1': 'album', '3': 5, '4': 2, '5': 9, '10': 'album'},
+    {'1': 'artist', '3': 6, '4': 2, '5': 9, '10': 'artist'},
   ],
   '3': [
     Song_GetRequest$json,
@@ -593,8 +593,8 @@ const Song_RemoveResponse$json = {
 /// Descriptor for `Song`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List songDescriptor = $convert.base64Decode(
     'CgRTb25nEg4KAmlkGAEgAigMUgJpZBISCgRuYW1lGAIgAigJUgRuYW1lEhIKBHNpemUYAyACKA'
-    '1SBHNpemUSGgoIZHVyYXRpb24YBSABKA1SCGR1cmF0aW9uEhQKBWFsYnVtGAYgAigJUgVhbGJ1'
-    'bRIWCgZhcnRpc3QYByACKAlSBmFydGlzdBoiCgpHZXRSZXF1ZXN0EhQKBWluZGV4GAEgAigNUg'
+    '1SBHNpemUSGgoIZHVyYXRpb24YBCABKA1SCGR1cmF0aW9uEhQKBWFsYnVtGAUgAigJUgVhbGJ1'
+    'bRIWCgZhcnRpc3QYBiACKAlSBmFydGlzdBoiCgpHZXRSZXF1ZXN0EhQKBWluZGV4GAEgAigNUg'
     'VpbmRleBpQCgtHZXRSZXNwb25zZRIiCgRsaXN0GAEgAygLMg4ucHJvdG9jb2wuU29uZ1IEbGlz'
     'dBIdCgpuZXh0X2luZGV4GAIgAigNUgluZXh0SW5kZXgaMAoKQWRkUmVxdWVzdBIiCgRzb25nGA'
     'EgAigLMg4ucHJvdG9jb2wuU29uZ1IEc29uZxqBAQoLQWRkUmVzcG9uc2USPgoOcHJlcGFyZV9z'

@@ -1,22 +1,28 @@
 import 'dart:typed_data';
+import 'dart:io';
+
+import 'package:oronbox/src/core/storage/app_data_directory_io.dart';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late Directory root;
+  late IoAppDataDirectory storage;
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    await SharedPrefsService.instance.init();
-    await SharedPrefsService.instance.reload();
+    root = await Directory.systemTemp.createTemp('oronbox-snapshots-test-');
+    storage = IoAppDataDirectory(root);
+  });
+
+  tearDown(() async {
+    await root.delete(recursive: true);
   });
 
   test('adds the first snapshot to an empty store', () async {
-    final store = HealthDebugSnapshotStore();
+    final store = HealthDebugSnapshotStore(storage: storage);
 
     await store.add(
       deviceId: 'device-a',
@@ -71,7 +77,7 @@ void main() {
   });
 
   test('imports an archive into the store', () async {
-    final store = HealthDebugSnapshotStore();
+    final store = HealthDebugSnapshotStore(storage: storage);
     final archive = XiaomiHealthRawSnapshot(
       id: 'snapshot-b',
       deviceId: 'device-b',
@@ -99,5 +105,50 @@ void main() {
       () => XiaomiHealthRawSnapshot.decodeArchive(Uint8List.fromList(const [])),
       throwsA(isA<Exception>()),
     );
+  });
+  test('concurrent store instances do not overwrite captures', () async {
+    await Future.wait(
+      List.generate(
+        8,
+        (i) => HealthDebugSnapshotStore(storage: IoAppDataDirectory(root)).add(
+          deviceId: 'device-$i',
+          files: [
+            XiaomiActivityRawFile(id: 'sample', data: Uint8List.fromList([i])),
+          ],
+        ),
+      ),
+    );
+    expect(
+      await HealthDebugSnapshotStore(storage: storage).list(),
+      hasLength(8),
+    );
+  });
+
+  test(
+    'listing never loads raw files but loading detects corruption',
+    () async {
+      final store = HealthDebugSnapshotStore(storage: storage);
+      await store.add(
+        deviceId: 'device',
+        files: [
+          XiaomiActivityRawFile(id: 'sample', data: Uint8List.fromList([5])),
+        ],
+      );
+      final summary = (await store.list()).single;
+      await storage.write(summary.files.single.path, Uint8List.fromList([9]));
+      expect((await store.list()).single.totalBytes, 1);
+      await expectLater(
+        store.load(summary.id),
+        throwsA(isA<FormatException>()),
+      );
+    },
+  );
+
+  test('a failed operation does not poison the serialization queue', () async {
+    await expectLater(
+      storage.exclusive(() async => throw StateError('fail')),
+      throwsStateError,
+    );
+    expect(await storage.exclusive(() async => 42), 42);
   });
 }

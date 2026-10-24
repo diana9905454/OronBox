@@ -1058,4 +1058,154 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(HealthOfficialRangeChart), findsOneWidget);
   });
+
+  testWidgets(
+    'heart-rate detail page groups abnormal samples into standard card without bottom sheet',
+    (tester) async {
+      final date = DateTime(2026, 10, 4);
+      final episodeStart = DateTime(2026, 10, 4, 20, 0);
+      final episodeEnd = DateTime(2026, 10, 4, 20, 10);
+      final abnormalSamples = [
+        for (var index = 0; index < 10; index++)
+          HealthAbnormalHealthRecord(
+            timestamp: episodeStart.add(Duration(minutes: index)),
+            kind: HealthAbnormalHealthKind.highHeartRate,
+            value: 120 + (index % 2),
+            threshold: 100,
+            startedAt: episodeStart,
+            endedAt: episodeEnd,
+          ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: appLocalizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SizedBox(
+              width: 360,
+              height: 1200,
+              child: XiaomiHealthDetailPage(
+                args: XiaomiHealthDetailArgs(
+                  metric: XiaomiHealthMetric.heartRate,
+                  data: XiaomiHealthData(
+                    daily: [
+                      HealthDailySummary(
+                        date: date,
+                        averageHeartRate: 85,
+                        restingHeartRate: 61,
+                        minHeartRate: 58,
+                        maxHeartRate: 159,
+                      ),
+                    ],
+                    samples: [
+                      HealthSample(
+                        timestamp: episodeStart,
+                        metric: XiaomiHealthMetric.heartRate,
+                        value: 105,
+                      ),
+                    ],
+                    abnormalHealthRecords: abnormalSamples,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify day overview block exists
+      expect(find.text('平均'), findsOneWidget);
+      expect(find.text('静息'), findsOneWidget);
+
+      // Verify abnormal section is grouped into standard card with localized title
+      expect(find.text('心率过高'), findsOneWidget);
+      expect(find.text('1 次'), findsOneWidget);
+      expect(find.text('20:00 – 20:10'), findsOneWidget);
+      expect(find.textContaining('120 - 121 bpm'), findsOneWidget);
+
+      // Tap the row to confirm no modal bottom sheet is opened
+      final episodeFinder = find.text('20:00 – 20:10');
+      await tester.ensureVisible(episodeFinder);
+      await tester.pumpAndSettle();
+      await tester.tap(episodeFinder);
+      await tester.pumpAndSettle();
+
+      // Verify no bottom sheet exists and no workout duration appears
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.text('运动时长'), findsNothing);
+    },
+  );
+
+  testWidgets(
+    'heart-rate detail page distinguishes multiple abnormal high heart rate episodes in a single day',
+    (tester) async {
+      final date = DateTime(2026, 10, 4);
+      final episode1Start = DateTime(2026, 10, 4, 10, 15);
+      final episode1End = DateTime(2026, 10, 4, 10, 25);
+      final episode2Start = DateTime(2026, 10, 4, 16, 30);
+      final episode2End = DateTime(2026, 10, 4, 16, 40);
+
+      final abnormalSamples = [
+        for (var index = 0; index < 5; index++)
+          HealthAbnormalHealthRecord(
+            timestamp: episode1Start.add(Duration(minutes: index)),
+            kind: HealthAbnormalHealthKind.highHeartRate,
+            value: 125 + index,
+            threshold: 110,
+            startedAt: episode1Start,
+            endedAt: episode1End,
+          ),
+        for (var index = 0; index < 5; index++)
+          HealthAbnormalHealthRecord(
+            timestamp: episode2Start.add(Duration(minutes: index)),
+            kind: HealthAbnormalHealthKind.highHeartRate,
+            value: 130 + index,
+            threshold: 110,
+            startedAt: episode2Start,
+            endedAt: episode2End,
+          ),
+      ];
+
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: appLocalizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: SizedBox(
+              width: 360,
+              height: 1200,
+              child: XiaomiHealthDetailPage(
+                args: XiaomiHealthDetailArgs(
+                  metric: XiaomiHealthMetric.heartRate,
+                  data: XiaomiHealthData(
+                    daily: [
+                      HealthDailySummary(
+                        date: date,
+                        averageHeartRate: 88,
+                        restingHeartRate: 63,
+                        minHeartRate: 60,
+                        maxHeartRate: 145,
+                      ),
+                    ],
+                    abnormalHealthRecords: abnormalSamples,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify that 2 distinct episodes are detected and displayed
+      expect(find.text('心率过高'), findsOneWidget);
+      expect(find.text('2 次'), findsOneWidget);
+      expect(find.text('10:15 – 10:25'), findsOneWidget);
+      expect(find.text('16:30 – 16:40'), findsOneWidget);
+    },
+  );
 }

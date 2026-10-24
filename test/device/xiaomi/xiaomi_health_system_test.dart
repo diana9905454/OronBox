@@ -195,6 +195,33 @@ void main() {
     expect(records, isEmpty);
   });
 
+  test('parses a real walking v3 GPS route capture', () {
+    final data = _fixture('3643c26a2003da.bin');
+    final records = XiaomiHealthSystem().parseActivityWorkoutFilesForTesting(
+      data,
+    );
+    expect(records, hasLength(1));
+    final record = records.single;
+    expect(record.activityType, 0x16); // subtype 22 = outdoor foot
+    expect(record.route, hasLength(576));
+
+    final first = record.route.first;
+    expect(first.longitude, closeTo(108.4376, 0.001));
+    expect(first.latitude, closeTo(30.7563, 0.001));
+    expect(first.altitudeMeters, closeTo(388.4, 1.0));
+
+    final last = record.route.last;
+    expect(last.longitude, closeTo(108.4319, 0.001));
+    expect(last.latitude, closeTo(30.7575, 0.001));
+
+    expect(
+      record.route.every(
+        (p) => p.latitude.abs() <= 90 && p.longitude.abs() <= 180,
+      ),
+      isTrue,
+    );
+  });
+
   test('maps the basic snapshot to health and battery events', () async {
     final eventBus = DeviceEventBus();
     final entity = _entity(eventBus);
@@ -1058,7 +1085,7 @@ Uint8List _invalidActivityChunk() {
   final value = Uint8List(4);
   final header = ByteData.sublistView(value);
   header.setUint16(0, 2, Endian.little);
-  header.setUint16(2, 2, Endian.little);
+  header.setUint16(2, 0, Endian.little);
   return value;
 }
 

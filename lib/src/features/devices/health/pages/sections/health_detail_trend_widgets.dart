@@ -507,22 +507,12 @@ String _clock(DateTime value) {
       '${local.minute.toString().padLeft(2, '0')}';
 }
 
-String _sleepDateTime(DateTime value) {
-  final local = value.toLocal();
-  return '${_date(local)} ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-}
-
 String _duration(int seconds) {
   final hours = seconds ~/ 3600;
   final minutes = (seconds % 3600) ~/ 60;
   if (hours == 0) return '${minutes}m';
   if (minutes == 0) return '${hours}h';
   return '${hours}h ${minutes.toString().padLeft(2, '0')}m';
-}
-
-String _durationBetween(DateTime start, DateTime end) {
-  final seconds = end.difference(start).inSeconds;
-  return _duration(seconds < 0 ? 0 : seconds);
 }
 
 String _sleepClock(DateTime value) {

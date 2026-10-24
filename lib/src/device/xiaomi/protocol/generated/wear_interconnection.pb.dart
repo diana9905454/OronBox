@@ -50,6 +50,12 @@ enum Interconnection_Payload {
   certResponse,
   propRequest,
   propResponse,
+  gameCmd,
+  gameCmdResponse,
+  gameState,
+  gameInfo,
+  gameScene,
+  gameEvent,
   notSet
 }
 
@@ -82,6 +88,12 @@ class Interconnection extends $pb.GeneratedMessage {
     Cert_Response? certResponse,
     Prop_Request? propRequest,
     Prop_Response? propResponse,
+    GameModeCmd? gameCmd,
+    GameModeCmdResponse? gameCmdResponse,
+    GameModeState? gameState,
+    GameModeInfo? gameInfo,
+    GameModeScene? gameScene,
+    GameModeEvent? gameEvent,
   }) {
     final result = create();
     if (phoneStatus != null) result.phoneStatus = phoneStatus;
@@ -113,6 +125,12 @@ class Interconnection extends $pb.GeneratedMessage {
     if (certResponse != null) result.certResponse = certResponse;
     if (propRequest != null) result.propRequest = propRequest;
     if (propResponse != null) result.propResponse = propResponse;
+    if (gameCmd != null) result.gameCmd = gameCmd;
+    if (gameCmdResponse != null) result.gameCmdResponse = gameCmdResponse;
+    if (gameState != null) result.gameState = gameState;
+    if (gameInfo != null) result.gameInfo = gameInfo;
+    if (gameScene != null) result.gameScene = gameScene;
+    if (gameEvent != null) result.gameEvent = gameEvent;
     return result;
   }
 
@@ -154,6 +172,12 @@ class Interconnection extends $pb.GeneratedMessage {
     25: Interconnection_Payload.certResponse,
     26: Interconnection_Payload.propRequest,
     27: Interconnection_Payload.propResponse,
+    37: Interconnection_Payload.gameCmd,
+    38: Interconnection_Payload.gameCmdResponse,
+    39: Interconnection_Payload.gameState,
+    40: Interconnection_Payload.gameInfo,
+    41: Interconnection_Payload.gameScene,
+    42: Interconnection_Payload.gameEvent,
     0: Interconnection_Payload.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
@@ -187,7 +211,13 @@ class Interconnection extends $pb.GeneratedMessage {
       24,
       25,
       26,
-      27
+      27,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42
     ])
     ..aOM<PhoneStatus>(1, _omitFieldNames ? '' : 'phoneStatus',
         subBuilder: PhoneStatus.create)
@@ -242,7 +272,19 @@ class Interconnection extends $pb.GeneratedMessage {
     ..aOM<Prop_Request>(26, _omitFieldNames ? '' : 'propRequest',
         subBuilder: Prop_Request.create)
     ..aOM<Prop_Response>(27, _omitFieldNames ? '' : 'propResponse',
-        subBuilder: Prop_Response.create);
+        subBuilder: Prop_Response.create)
+    ..aOM<GameModeCmd>(37, _omitFieldNames ? '' : 'gameCmd',
+        subBuilder: GameModeCmd.create)
+    ..aOM<GameModeCmdResponse>(38, _omitFieldNames ? '' : 'gameCmdResponse',
+        subBuilder: GameModeCmdResponse.create)
+    ..aOM<GameModeState>(39, _omitFieldNames ? '' : 'gameState',
+        subBuilder: GameModeState.create)
+    ..aOM<GameModeInfo>(40, _omitFieldNames ? '' : 'gameInfo',
+        subBuilder: GameModeInfo.create)
+    ..aOM<GameModeScene>(41, _omitFieldNames ? '' : 'gameScene',
+        subBuilder: GameModeScene.create)
+    ..aOM<GameModeEvent>(42, _omitFieldNames ? '' : 'gameEvent',
+        subBuilder: GameModeEvent.create);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   Interconnection clone() => deepCopy();
@@ -290,6 +332,12 @@ class Interconnection extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(27)
+  @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
   Interconnection_Payload whichPayload() =>
       _Interconnection_PayloadByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
@@ -319,6 +367,12 @@ class Interconnection extends $pb.GeneratedMessage {
   @$pb.TagNumber(25)
   @$pb.TagNumber(26)
   @$pb.TagNumber(27)
+  @$pb.TagNumber(37)
+  @$pb.TagNumber(38)
+  @$pb.TagNumber(39)
+  @$pb.TagNumber(40)
+  @$pb.TagNumber(41)
+  @$pb.TagNumber(42)
   void clearPayload() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -617,6 +671,455 @@ class Interconnection extends $pb.GeneratedMessage {
   void clearPropResponse() => $_clearField(27);
   @$pb.TagNumber(27)
   Prop_Response ensurePropResponse() => $_ensure(26);
+
+  @$pb.TagNumber(37)
+  GameModeCmd get gameCmd => $_getN(27);
+  @$pb.TagNumber(37)
+  set gameCmd(GameModeCmd value) => $_setField(37, value);
+  @$pb.TagNumber(37)
+  $core.bool hasGameCmd() => $_has(27);
+  @$pb.TagNumber(37)
+  void clearGameCmd() => $_clearField(37);
+  @$pb.TagNumber(37)
+  GameModeCmd ensureGameCmd() => $_ensure(27);
+
+  @$pb.TagNumber(38)
+  GameModeCmdResponse get gameCmdResponse => $_getN(28);
+  @$pb.TagNumber(38)
+  set gameCmdResponse(GameModeCmdResponse value) => $_setField(38, value);
+  @$pb.TagNumber(38)
+  $core.bool hasGameCmdResponse() => $_has(28);
+  @$pb.TagNumber(38)
+  void clearGameCmdResponse() => $_clearField(38);
+  @$pb.TagNumber(38)
+  GameModeCmdResponse ensureGameCmdResponse() => $_ensure(28);
+
+  @$pb.TagNumber(39)
+  GameModeState get gameState => $_getN(29);
+  @$pb.TagNumber(39)
+  set gameState(GameModeState value) => $_setField(39, value);
+  @$pb.TagNumber(39)
+  $core.bool hasGameState() => $_has(29);
+  @$pb.TagNumber(39)
+  void clearGameState() => $_clearField(39);
+  @$pb.TagNumber(39)
+  GameModeState ensureGameState() => $_ensure(29);
+
+  @$pb.TagNumber(40)
+  GameModeInfo get gameInfo => $_getN(30);
+  @$pb.TagNumber(40)
+  set gameInfo(GameModeInfo value) => $_setField(40, value);
+  @$pb.TagNumber(40)
+  $core.bool hasGameInfo() => $_has(30);
+  @$pb.TagNumber(40)
+  void clearGameInfo() => $_clearField(40);
+  @$pb.TagNumber(40)
+  GameModeInfo ensureGameInfo() => $_ensure(30);
+
+  @$pb.TagNumber(41)
+  GameModeScene get gameScene => $_getN(31);
+  @$pb.TagNumber(41)
+  set gameScene(GameModeScene value) => $_setField(41, value);
+  @$pb.TagNumber(41)
+  $core.bool hasGameScene() => $_has(31);
+  @$pb.TagNumber(41)
+  void clearGameScene() => $_clearField(41);
+  @$pb.TagNumber(41)
+  GameModeScene ensureGameScene() => $_ensure(31);
+
+  @$pb.TagNumber(42)
+  GameModeEvent get gameEvent => $_getN(32);
+  @$pb.TagNumber(42)
+  set gameEvent(GameModeEvent value) => $_setField(42, value);
+  @$pb.TagNumber(42)
+  $core.bool hasGameEvent() => $_has(32);
+  @$pb.TagNumber(42)
+  void clearGameEvent() => $_clearField(42);
+  @$pb.TagNumber(42)
+  GameModeEvent ensureGameEvent() => $_ensure(32);
+}
+
+class GameModeCmd extends $pb.GeneratedMessage {
+  factory GameModeCmd({
+    GameModeCmd_CmdType? cmd,
+  }) {
+    final result = create();
+    if (cmd != null) result.cmd = cmd;
+    return result;
+  }
+
+  GameModeCmd._();
+
+  factory GameModeCmd.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GameModeCmd.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GameModeCmd',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'protocol'),
+      createEmptyInstance: create)
+    ..aE<GameModeCmd_CmdType>(1, _omitFieldNames ? '' : 'cmd',
+        fieldType: $pb.PbFieldType.QE, enumValues: GameModeCmd_CmdType.values);
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeCmd clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeCmd copyWith(void Function(GameModeCmd) updates) =>
+      super.copyWith((message) => updates(message as GameModeCmd))
+          as GameModeCmd;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GameModeCmd create() => GameModeCmd._();
+  @$core.override
+  GameModeCmd createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GameModeCmd getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GameModeCmd>(create);
+  static GameModeCmd? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  GameModeCmd_CmdType get cmd => $_getN(0);
+  @$pb.TagNumber(1)
+  set cmd(GameModeCmd_CmdType value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCmd() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCmd() => $_clearField(1);
+}
+
+class GameModeCmdResponse extends $pb.GeneratedMessage {
+  factory GameModeCmdResponse({
+    GameModeCmd_CmdType? cmd,
+    GameModeCmdResponse_Status? status,
+  }) {
+    final result = create();
+    if (cmd != null) result.cmd = cmd;
+    if (status != null) result.status = status;
+    return result;
+  }
+
+  GameModeCmdResponse._();
+
+  factory GameModeCmdResponse.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GameModeCmdResponse.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GameModeCmdResponse',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'protocol'),
+      createEmptyInstance: create)
+    ..aE<GameModeCmd_CmdType>(1, _omitFieldNames ? '' : 'cmd',
+        fieldType: $pb.PbFieldType.QE, enumValues: GameModeCmd_CmdType.values)
+    ..aE<GameModeCmdResponse_Status>(2, _omitFieldNames ? '' : 'status',
+        fieldType: $pb.PbFieldType.QE,
+        enumValues: GameModeCmdResponse_Status.values);
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeCmdResponse clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeCmdResponse copyWith(void Function(GameModeCmdResponse) updates) =>
+      super.copyWith((message) => updates(message as GameModeCmdResponse))
+          as GameModeCmdResponse;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GameModeCmdResponse create() => GameModeCmdResponse._();
+  @$core.override
+  GameModeCmdResponse createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GameModeCmdResponse getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GameModeCmdResponse>(create);
+  static GameModeCmdResponse? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  GameModeCmd_CmdType get cmd => $_getN(0);
+  @$pb.TagNumber(1)
+  set cmd(GameModeCmd_CmdType value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasCmd() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearCmd() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  GameModeCmdResponse_Status get status => $_getN(1);
+  @$pb.TagNumber(2)
+  set status(GameModeCmdResponse_Status value) => $_setField(2, value);
+  @$pb.TagNumber(2)
+  $core.bool hasStatus() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearStatus() => $_clearField(2);
+}
+
+class GameModeState extends $pb.GeneratedMessage {
+  factory GameModeState({
+    GameModeState_State? state,
+  }) {
+    final result = create();
+    if (state != null) result.state = state;
+    return result;
+  }
+
+  GameModeState._();
+
+  factory GameModeState.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GameModeState.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GameModeState',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'protocol'),
+      createEmptyInstance: create)
+    ..aE<GameModeState_State>(1, _omitFieldNames ? '' : 'state',
+        fieldType: $pb.PbFieldType.QE, enumValues: GameModeState_State.values);
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeState clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeState copyWith(void Function(GameModeState) updates) =>
+      super.copyWith((message) => updates(message as GameModeState))
+          as GameModeState;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GameModeState create() => GameModeState._();
+  @$core.override
+  GameModeState createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GameModeState getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GameModeState>(create);
+  static GameModeState? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  GameModeState_State get state => $_getN(0);
+  @$pb.TagNumber(1)
+  set state(GameModeState_State value) => $_setField(1, value);
+  @$pb.TagNumber(1)
+  $core.bool hasState() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearState() => $_clearField(1);
+}
+
+class GameModeInfo extends $pb.GeneratedMessage {
+  factory GameModeInfo({
+    $core.int? gameId,
+    $core.String? gameName,
+  }) {
+    final result = create();
+    if (gameId != null) result.gameId = gameId;
+    if (gameName != null) result.gameName = gameName;
+    return result;
+  }
+
+  GameModeInfo._();
+
+  factory GameModeInfo.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GameModeInfo.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GameModeInfo',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'protocol'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'gameId', fieldType: $pb.PbFieldType.QU3)
+    ..aQS(2, _omitFieldNames ? '' : 'gameName');
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeInfo clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeInfo copyWith(void Function(GameModeInfo) updates) =>
+      super.copyWith((message) => updates(message as GameModeInfo))
+          as GameModeInfo;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GameModeInfo create() => GameModeInfo._();
+  @$core.override
+  GameModeInfo createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GameModeInfo getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GameModeInfo>(create);
+  static GameModeInfo? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get gameId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set gameId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasGameId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearGameId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get gameName => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set gameName($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasGameName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearGameName() => $_clearField(2);
+}
+
+class GameModeScene extends $pb.GeneratedMessage {
+  factory GameModeScene({
+    $core.int? sceneStyle,
+    $core.String? sceneTitle,
+    $core.String? sceneMessage,
+  }) {
+    final result = create();
+    if (sceneStyle != null) result.sceneStyle = sceneStyle;
+    if (sceneTitle != null) result.sceneTitle = sceneTitle;
+    if (sceneMessage != null) result.sceneMessage = sceneMessage;
+    return result;
+  }
+
+  GameModeScene._();
+
+  factory GameModeScene.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GameModeScene.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GameModeScene',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'protocol'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'sceneStyle', fieldType: $pb.PbFieldType.QU3)
+    ..aQS(2, _omitFieldNames ? '' : 'sceneTitle')
+    ..aQS(3, _omitFieldNames ? '' : 'sceneMessage');
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeScene clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeScene copyWith(void Function(GameModeScene) updates) =>
+      super.copyWith((message) => updates(message as GameModeScene))
+          as GameModeScene;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GameModeScene create() => GameModeScene._();
+  @$core.override
+  GameModeScene createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GameModeScene getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GameModeScene>(create);
+  static GameModeScene? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get sceneStyle => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set sceneStyle($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasSceneStyle() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSceneStyle() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get sceneTitle => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set sceneTitle($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasSceneTitle() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearSceneTitle() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get sceneMessage => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set sceneMessage($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasSceneMessage() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearSceneMessage() => $_clearField(3);
+}
+
+class GameModeEvent extends $pb.GeneratedMessage {
+  factory GameModeEvent({
+    $core.int? eventId,
+    $core.int? eventType,
+  }) {
+    final result = create();
+    if (eventId != null) result.eventId = eventId;
+    if (eventType != null) result.eventType = eventType;
+    return result;
+  }
+
+  GameModeEvent._();
+
+  factory GameModeEvent.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory GameModeEvent.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'GameModeEvent',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'protocol'),
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'eventId', fieldType: $pb.PbFieldType.QU3)
+    ..aI(2, _omitFieldNames ? '' : 'eventType', fieldType: $pb.PbFieldType.QU3);
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeEvent clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  GameModeEvent copyWith(void Function(GameModeEvent) updates) =>
+      super.copyWith((message) => updates(message as GameModeEvent))
+          as GameModeEvent;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static GameModeEvent create() => GameModeEvent._();
+  @$core.override
+  GameModeEvent createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static GameModeEvent getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<GameModeEvent>(create);
+  static GameModeEvent? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get eventId => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set eventId($core.int value) => $_setUnsignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasEventId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearEventId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get eventType => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set eventType($core.int value) => $_setUnsignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasEventType() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearEventType() => $_clearField(2);
 }
 
 class PhoneStatus extends $pb.GeneratedMessage {

@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
-import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
 
 /// Xiaomi health synchronizer based on Xiaomi's activity-file protocol.
 ///
@@ -46,6 +43,7 @@ class XiaomiHealthSyncService {
 
   Future<XiaomiHealthSyncResult> sync() async {
     _log.info('Xiaomi health synchronization started for $_deviceId');
+    await _store.resetForStorageMigration();
     final results = await Future.wait<Object?>([
       _store.read(_deviceId),
       _system.syncActivityFiles(),
@@ -57,20 +55,20 @@ class XiaomiHealthSyncService {
       'files=${files.filesReceived}, skipped=${files.filesSkipped}, '
       'failed=${files.failedFiles.length}',
     );
-    if (XiaomiSyncPreferences.healthDebugMode && files.rawFiles.isNotEmpty) {
-      unawaited(
-        _snapshotStore.add(
+    if (files.rawFiles.isNotEmpty) {
+      try {
+        await _snapshotStore.add(
           deviceId: _deviceId,
           deviceCode: _deviceCode,
           files: files.rawFiles,
-        ).catchError((error, stackTrace) {
-          _log.warning(
-            'Xiaomi health raw snapshot could not be saved for $_deviceId',
-            error,
-            stackTrace,
-          );
-        }),
-      );
+        );
+      } catch (error, stackTrace) {
+        _log.warning(
+          'Xiaomi health activity files could not be archived for $_deviceId',
+          error,
+          stackTrace,
+        );
+      }
     }
 
     final mapped = _mapFiles(files, previous: previous);
@@ -103,7 +101,8 @@ class XiaomiHealthSyncService {
               '${files.failedFiles.length} failed activity file(s)';
 
     final data = mapped.data;
-    final saved = await _store.write(_deviceId, data);
+    final saved = await _store.write(_deviceId, data, flushImmediately: true);
+    await _store.markStorageMigrationComplete();
 
     _log.info(
       'Xiaomi health synchronization saved for $_deviceId: '

@@ -283,6 +283,43 @@ const WatchFaceItem$json = {
       '6': '.protocol.WatchFaceSlot.Item',
       '10': 'slotItemList'
     },
+    {
+      '1': 'foreground_color',
+      '3': 14,
+      '4': 1,
+      '5': 12,
+      '10': 'foregroundColor'
+    },
+    {
+      '1': 'style_color_index',
+      '3': 15,
+      '4': 1,
+      '5': 13,
+      '10': 'styleColorIndex'
+    },
+    {
+      '1': 'support_image_group',
+      '3': 16,
+      '4': 1,
+      '5': 8,
+      '10': 'supportImageGroup'
+    },
+    {
+      '1': 'image_group_list',
+      '3': 17,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.WatchFaceImage.GroupList',
+      '10': 'imageGroupList'
+    },
+    {'1': 'on_trial', '3': 18, '4': 1, '5': 8, '10': 'onTrial'},
+    {
+      '1': 'support_video_format',
+      '3': 20,
+      '4': 1,
+      '5': 13,
+      '10': 'supportVideoFormat'
+    },
   ],
   '3': [WatchFaceItem_List$json],
 };
@@ -313,8 +350,13 @@ final $typed_data.Uint8List watchFaceItemDescriptor = $convert.base64Decode(
     'CGRhdGFMaXN0EkcKFHN1cHBvcnRfaW1hZ2VfZm9ybWF0GAsgASgOMhUucHJvdG9jb2wuSW1hZ2'
     'VGb3JtYXRSEnN1cHBvcnRJbWFnZUZvcm1hdBIyChViYWNrZ3JvdW5kX2ltYWdlX2xpc3QYDCAD'
     'KAlSE2JhY2tncm91bmRJbWFnZUxpc3QSQgoOc2xvdF9pdGVtX2xpc3QYDSADKAsyHC5wcm90b2'
-    'NvbC5XYXRjaEZhY2VTbG90Lkl0ZW1SDHNsb3RJdGVtTGlzdBozCgRMaXN0EisKBGxpc3QYASAD'
-    'KAsyFy5wcm90b2NvbC5XYXRjaEZhY2VJdGVtUgRsaXN0');
+    'NvbC5XYXRjaEZhY2VTbG90Lkl0ZW1SDHNsb3RJdGVtTGlzdBIpChBmb3JlZ3JvdW5kX2NvbG9y'
+    'GA4gASgMUg9mb3JlZ3JvdW5kQ29sb3ISKgoRc3R5bGVfY29sb3JfaW5kZXgYDyABKA1SD3N0eW'
+    'xlQ29sb3JJbmRleBIuChNzdXBwb3J0X2ltYWdlX2dyb3VwGBAgASgIUhFzdXBwb3J0SW1hZ2VH'
+    'cm91cBJMChBpbWFnZV9ncm91cF9saXN0GBEgASgLMiIucHJvdG9jb2wuV2F0Y2hGYWNlSW1hZ2'
+    'UuR3JvdXBMaXN0Ug5pbWFnZUdyb3VwTGlzdBIZCghvbl90cmlhbBgSIAEoCFIHb25UcmlhbBIw'
+    'ChRzdXBwb3J0X3ZpZGVvX2Zvcm1hdBgUIAEoDVISc3VwcG9ydFZpZGVvRm9ybWF0GjMKBExpc3'
+    'QSKwoEbGlzdBgBIAMoCzIXLnByb3RvY29sLldhdGNoRmFjZUl0ZW1SBGxpc3Q=');
 
 @$core.Deprecated('Use watchFaceInfoDescriptor instead')
 const WatchFaceInfo$json = {

@@ -8,7 +8,8 @@ import 'package:oronbox/src/device/xiaomi/protocol/packet/l1_packet.dart';
 import 'package:oronbox/src/device/xiaomi/protocol/packet/l1cmd_packet.dart';
 import 'package:oronbox/src/device/xiaomi/protocol/packet/l2_packet.dart';
 import 'package:oronbox/src/device/xiaomi/protocol/packet/spp_v1_packet.dart';
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 import 'package:oronbox/src/device/xiaomi/systems/xiaomi_protocol_trace.dart';
 
 class XiaomiDispatcher extends Dispatcher {
@@ -48,6 +49,14 @@ class XiaomiDispatcher extends Dispatcher {
             onL2Payload(
               L2Packet(
                 channel: L2Channel.mass,
+                opcode: L2OpCode.write,
+                payload: packet.payload,
+              ).toBytes(),
+            );
+          case XiaomiSppV1Channel.voice:
+            onL2Payload(
+              L2Packet(
+                channel: L2Channel.massVoice,
                 opcode: L2OpCode.write,
                 payload: packet.payload,
               ).toBytes(),
@@ -131,7 +140,7 @@ class XiaomiDispatcher extends Dispatcher {
         'seq': l1.seq,
         'frx': l1.frx,
         'size': l1.payload.length,
-        'hex': sampled ? _hexPreview(l1.payload) : _hex(l1.payload),
+        if (l1.pktType != L1DataType.data) 'hex': _hex(l1.payload),
         if (sampled) 'sampled': true,
       };
       if (l1.pktType == L1DataType.cmd) {
@@ -158,7 +167,8 @@ class XiaomiDispatcher extends Dispatcher {
       'L2 channel=${l2.channel} opcode=${l2.opcode} len=${l2.payload.length}',
     );
     final encrypted = l2.opcode == L2OpCode.writeEnc;
-    if (l2.channel != L2Channel.mass || l2.payload.length <= 64) {
+    if (l2.channel != L2Channel.massVoice &&
+        (l2.channel != L2Channel.mass || l2.payload.length <= 64)) {
       tracer?.emit({
         'layer': 'l2',
         'direction': 'in',
@@ -204,10 +214,4 @@ class XiaomiDispatcher extends Dispatcher {
 
   static String _hex(Uint8List bytes) =>
       bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join(' ');
-
-  static String _hexPreview(Uint8List bytes, {int maxBytes = 64}) {
-    final length = bytes.length > maxBytes ? maxBytes : bytes.length;
-    final preview = _hex(Uint8List.sublistView(bytes, 0, length));
-    return bytes.length > length ? '$preview …' : preview;
-  }
 }

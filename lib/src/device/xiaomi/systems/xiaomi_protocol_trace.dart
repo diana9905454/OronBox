@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 
 typedef XiaomiProtocolTraceSink = void Function(Map<String, Object?> trace);
 
@@ -46,6 +47,11 @@ class XiaomiProtocolTracer {
     };
     try {
       final packet = pb.WearPacket.fromBuffer(bytes);
+      if ((packet.hasGnss() && packet.gnss.hasGpsInfo()) ||
+          (packet.hasFitness() && packet.fitness.hasPhoneSportDataV2d())) {
+        trace.remove('hex');
+        trace['redacted'] = true;
+      }
       trace.addAll({
         'type': packet.type.name,
         'id': packet.id,

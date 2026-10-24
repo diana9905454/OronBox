@@ -474,9 +474,13 @@ class XiaomiWorkoutParser {
     if (version == 2) {
       return _parseWorkoutRouteV2(data, subtype);
     }
+    if (version == 3) {
+      return _parseWorkoutRouteV3(data, subtype);
+    }
+    // v4/v5: count-prefixed schema layout (MiFitness parseTgcGps for v4+).
     final validityBytes = switch ((subtype, version)) {
       (22, 5) => 2,
-      (22, 3) || (22, 4) || (23, 3) || (23, 4) || (9, 3) || (10, 3) => 1,
+      (22, 4) || (23, 4) => 1,
       _ => null,
     };
     if (validityBytes == null) return null;
@@ -558,6 +562,58 @@ class XiaomiWorkoutParser {
             timestamp: _activityTimestamp(seconds),
             latitude: latitude,
             longitude: longitude,
+            speedMetersPerSecond: ((speedAndSource >> 4) / 10),
+            horizontalAccuracyMeters: accuracy.isFinite ? accuracy : null,
+          ),
+        );
+      }
+      offset += pointBytes;
+    }
+    if (route.isEmpty) return null;
+    return XiaomiActivityWorkoutRecord(
+      startedAt: route.first.timestamp,
+      endedAt: route.last.timestamp,
+      activityType: subtype,
+      route: route,
+    );
+  }
+
+  // Workout GPS v3 (Gadgetbridge layout): 1-byte header, then a stream of
+  // 26-byte points read to EOF (no leading point count). Point layout:
+  // time(u32) | longitude(f32) | latitude(f32) | horizontalAccuracy(f32) |
+  // locationSpeedAndGpsSource(u16: high 12 bits = 0.1 m/s) |
+  // altitude(f32) | hdop(f32).
+  XiaomiActivityWorkoutRecord? _parseWorkoutRouteV3(
+    Uint8List data,
+    int subtype,
+  ) {
+    const headerBytes = 1;
+    const pointBytes = 26;
+    final limit = data.length - 4;
+    final bodyOffset = 8 + headerBytes;
+    if (bodyOffset + pointBytes > limit) return null;
+    final view = ByteData.sublistView(data);
+    final route = <XiaomiWorkoutRoutePoint>[];
+    var offset = bodyOffset;
+    while (offset + pointBytes <= limit) {
+      final seconds = view.getUint32(offset, Endian.little);
+      final longitude = view.getFloat32(offset + 4, Endian.little);
+      final latitude = view.getFloat32(offset + 8, Endian.little);
+      final accuracy = view.getFloat32(offset + 12, Endian.little);
+      final speedAndSource = view.getUint16(offset + 16, Endian.little);
+      final altitude = view.getFloat32(offset + 18, Endian.little);
+      // hdop at offset + 22; not yet exposed in XiaomiWorkoutRoutePoint.
+      if (seconds != 0 &&
+          latitude.isFinite &&
+          longitude.isFinite &&
+          latitude.abs() <= 90 &&
+          longitude.abs() <= 180) {
+        route.add(
+          XiaomiWorkoutRoutePoint(
+            timestamp: _activityTimestamp(seconds),
+            latitude: latitude,
+            longitude: longitude,
+            altitudeMeters: altitude.isFinite ? altitude : null,
             speedMetersPerSecond: ((speedAndSource >> 4) / 10),
             horizontalAccuracyMeters: accuracy.isFinite ? accuracy : null,
           ),

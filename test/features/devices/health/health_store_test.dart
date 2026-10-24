@@ -1,3 +1,5 @@
+import 'package:drift/native.dart';
+import 'package:oronbox/src/features/devices/health/health_database.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
@@ -9,10 +11,18 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() async {
+    HealthStore.databaseForTesting = HealthDatabase(NativeDatabase.memory());
     HealthStore.clearCache();
     SharedPreferences.setMockInitialValues({});
     await SharedPrefsService.instance.init();
     await SharedPrefsService.instance.reload();
+  });
+
+  tearDown(() async {
+    await HealthStore.flush();
+    await HealthStore.databaseForTesting?.close();
+    HealthStore.databaseForTesting = null;
+    HealthStore.clearCache();
   });
 
   test(
@@ -108,7 +118,7 @@ void main() {
     },
   );
 
-  test('drops the pre-timezone-fix health namespace before reading', () async {
+  test('drops legacy health namespaces during the storage reset', () async {
     const deviceId = 'timezone-cache-regression';
     final legacyKey =
         'health_data_v5_${sha1.convert(deviceId.codeUnits).toString()}';
@@ -125,7 +135,9 @@ void main() {
     });
     await SharedPrefsService.instance.reload();
 
-    final data = await HealthStore().read(deviceId);
+    final store = HealthStore();
+    await store.resetForStorageMigration();
+    final data = await store.read(deviceId);
 
     expect(data.sleep, isEmpty);
     expect(SharedPrefsService.instance.getString(legacyKey), isNull);
@@ -203,6 +215,36 @@ void main() {
       expect(saved.activitySamples.single.caloriesDelta, 3);
       expect(saved.activitySamples.single.floors, 1);
       expect(saved.activitySamples.single.pressure, 42);
+    },
+  );
+  test('clears v6 payloads without reconstructing health data', () async {
+    const id = 'legacy-device';
+    final hash = sha1.convert(id.codeUnits).toString();
+    final raw = XiaomiHealthData(
+      daily: [HealthDailySummary(date: DateTime(2026, 10, 19), steps: 321)],
+    ).encode();
+    final key = 'health_data_v6_$hash';
+    await SharedPrefsService.instance.setString(key, raw);
+    final store = HealthStore();
+    await store.resetForStorageMigration();
+    final data = await store.read(id);
+    expect(data.daily, isEmpty);
+    final source = await HealthStore.databaseForTesting!
+        .customSelect('SELECT source FROM health_legacy_archive')
+        .get();
+    expect(source, isEmpty);
+    expect(SharedPrefsService.instance.getString(key), isNull);
+  });
+
+  test(
+    'a corrupt v6 source is not removed or replaced with empty data',
+    () async {
+      const id = 'damaged-device';
+      final key = 'health_data_v6_${sha1.convert(id.codeUnits)}';
+      await SharedPrefsService.instance.setString(key, '{broken');
+      await HealthStore().resetForStorageMigration();
+      expect(await HealthStore().read(id), isA<XiaomiHealthData>());
+      expect(SharedPrefsService.instance.getString(key), isNull);
     },
   );
 }

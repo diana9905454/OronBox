@@ -215,7 +215,8 @@ final class XiaoAiSessionStarted extends DeviceEvent {
 }
 
 final class XiaoAiSessionEnded extends DeviceEvent {
-  const XiaoAiSessionEnded({required super.deviceId});
+  const XiaoAiSessionEnded({required super.deviceId, this.cancelled = false});
+  final bool cancelled;
 }
 
 final class XiaoAiOpusFrameReceived extends DeviceEvent {

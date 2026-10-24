@@ -1,6 +1,11 @@
+import 'dart:async';
+
 import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
+import 'package:oronbox/src/features/devices/health/health_store.dart';
+import 'package:oronbox/src/features/devices/health/health_database.dart'
+    show HealthWorkoutTotals;
 import 'package:go_router/go_router.dart';
 import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
@@ -17,10 +22,15 @@ part 'sections/health_detail_sleep_section.dart';
 part 'sections/health_detail_vitals_section.dart';
 
 class XiaomiHealthDetailArgs {
-  const XiaomiHealthDetailArgs({required this.metric, required this.data});
+  const XiaomiHealthDetailArgs({
+    required this.metric,
+    required this.data,
+    this.deviceId,
+  });
 
   final XiaomiHealthMetric metric;
   final XiaomiHealthData data;
+  final String? deviceId;
 }
 
 class XiaomiHealthDetailPage extends StatefulWidget {
@@ -36,13 +46,117 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
   late HealthChartPeriod _period;
   late DateTime _anchorDate;
 
-  XiaomiHealthDetailArgs get args => widget.args;
+  XiaomiHealthData? _queried;
+  int _queryGeneration = 0;
+  bool _loading = false;
+  bool _failed = false;
+  bool _hasMore = false;
+  Timer? _refreshDebounce;
+  HealthWorkoutTotals? _workoutTotals;
+  XiaomiHealthDetailArgs get args => XiaomiHealthDetailArgs(
+    metric: widget.args.metric,
+    data: _queried ?? widget.args.data,
+    deviceId: widget.args.deviceId,
+  );
+
+  bool get _hasInitialContent {
+    final data = widget.args.data;
+    return data.daily.isNotEmpty ||
+        data.samples.isNotEmpty ||
+        data.activitySamples.isNotEmpty ||
+        data.sleep.isNotEmpty ||
+        data.workouts.isNotEmpty;
+  }
+
+  Future<void> _query({bool more = false}) async {
+    if (more && (_loading || !_hasMore)) return;
+    final generation = ++_queryGeneration;
+    final device = widget.args.deviceId;
+    if (device == null) return;
+    final range = _currentRange;
+    final useInitialData =
+        !more && _queried == null && _period == HealthChartPeriod.day;
+    setState(() {
+      _loading = true;
+      _failed = false;
+    });
+    try {
+      final data = await HealthStore().query(
+        device,
+        start: args.metric == XiaomiHealthMetric.workout
+            ? range.start
+            : DateTime(
+                range.start.year,
+                range.start.month,
+                range.start.day - 6,
+              ),
+        end: range.end,
+        kinds: args.metric == XiaomiHealthMetric.workout
+            ? const ['workouts']
+            : null,
+        limit: args.metric == XiaomiHealthMetric.workout ? 51 : null,
+        offset: more ? (_queried?.workouts.length ?? 0) : 0,
+        seed: useInitialData ? widget.args.data : null,
+      );
+      final totals = args.metric == XiaomiHealthMetric.workout && !more
+          ? await HealthStore().workoutTotals(device, range.start, range.end)
+          : _workoutTotals;
+      if (mounted && generation == _queryGeneration) {
+        setState(() {
+          if (args.metric == XiaomiHealthMetric.workout) {
+            _workoutTotals = totals;
+            _hasMore = data.workouts.length > 50;
+            _queried = XiaomiHealthData(
+              workouts: [
+                if (more) ...?_queried?.workouts,
+                ...data.workouts.take(50),
+              ],
+              capabilities: data.capabilities,
+              lastSyncedAt: data.lastSyncedAt,
+            );
+          } else {
+            _queried = data;
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted && generation == _queryGeneration) {
+        setState(() => _failed = true);
+      }
+    } finally {
+      if (mounted && generation == _queryGeneration) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  void _changePeriod(HealthChartPeriod period) {
+    setState(() => _period = period);
+    unawaited(_query());
+  }
 
   @override
   void initState() {
     super.initState();
     _period = HealthChartPeriod.day;
     _anchorDate = _initialAnchorDate(args.data, args.metric);
+    healthDataRevision.addListener(_onStoredChange);
+    unawaited(_query());
+  }
+
+  void _onStoredChange() {
+    _refreshDebounce?.cancel();
+    _refreshDebounce = Timer(const Duration(milliseconds: 250), () {
+      if (mounted) unawaited(_query());
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshDebounce?.cancel();
+    _queryGeneration++;
+    healthDataRevision.removeListener(_onStoredChange);
+    super.dispose();
   }
 
   @override
@@ -56,7 +170,13 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
-        sections: _sections(context),
+        sections: [
+          if (_loading && _queried == null && !_hasInitialContent)
+            const CustomSegmentedSection(child: LinearProgressIndicator()),
+          if (_failed)
+            CustomSegmentedSection(child: Text(l10n.deviceHealthLoadFailed)),
+          ..._sections(context),
+        ],
       ),
     );
   }
@@ -73,7 +193,7 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
                   period: _period,
                   anchorDate: _anchorDate,
                   canGoForward: _canGoForward,
-                  onPeriodChanged: (period) => setState(() => _period = period),
+                  onPeriodChanged: _changePeriod,
                   onPrevious: () => _shiftPeriod(-1),
                   onNext: _canGoForward ? () => _shiftPeriod(1) : null,
                 ),
@@ -132,7 +252,7 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
                 period: _period,
                 anchorDate: _anchorDate,
                 canGoForward: _canGoForward,
-                onPeriodChanged: (period) => setState(() => _period = period),
+                onPeriodChanged: _changePeriod,
                 onPrevious: () => _shiftPeriod(-1),
                 onNext: _canGoForward ? () => _shiftPeriod(1) : null,
               ),
@@ -196,8 +316,8 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
       return;
     }
     setState(() => _anchorDate = normalized);
+    unawaited(_query());
   }
-
 
   Widget _activity(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -548,7 +668,6 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
     );
   }
 
-
   Widget _workouts(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final range = _currentRange;
@@ -650,6 +769,11 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
           ),
           const SizedBox(height: 8),
         ],
+        if (_hasMore)
+          TextButton(
+            onPressed: _loading ? null : () => unawaited(_query(more: true)),
+            child: Text(l10n.loadMore),
+          ),
       ],
     );
   }
@@ -713,18 +837,33 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
       child: _HealthSummaryStats(
         columns: 4,
         entries: [
-          (l10n.deviceHealthWorkoutDuration, _duration(duration)),
+          (
+            l10n.deviceHealthWorkoutDuration,
+            _duration(_workoutTotals?.durationSeconds ?? duration),
+          ),
           (
             l10n.deviceHealthDistance,
-            distanceValues.isEmpty ? '—' : workoutDistance(distance),
+            _workoutTotals != null
+                ? (_workoutTotals!.distanceMeters == null
+                      ? '—'
+                      : workoutDistance(_workoutTotals!.distanceMeters!))
+                : (distanceValues.isEmpty ? '—' : workoutDistance(distance)),
           ),
           (
             l10n.deviceHealthCalories,
-            calorieValues.isEmpty ? '—' : '$calories kcal',
+            _workoutTotals != null
+                ? (_workoutTotals!.calories == null
+                      ? '—'
+                      : '${_workoutTotals!.calories} kcal')
+                : (calorieValues.isEmpty ? '—' : '$calories kcal'),
           ),
           (
             l10n.deviceHealthAverageHeartRateLabel,
-            averageHeartRate == null ? '—' : '$averageHeartRate bpm',
+            _workoutTotals != null
+                ? (_workoutTotals!.averageHeartRate == null
+                      ? '—'
+                      : '${_workoutTotals!.averageHeartRate} bpm')
+                : (averageHeartRate == null ? '—' : '$averageHeartRate bpm'),
           ),
         ],
       ),
@@ -918,5 +1057,3 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
     return localStart.isBefore(range.end) && !localEnd.isBefore(range.start);
   }
 }
-
-

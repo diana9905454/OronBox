@@ -282,6 +282,60 @@ const Interconnection$json = {
       '9': 0,
       '10': 'propResponse'
     },
+    {
+      '1': 'game_cmd',
+      '3': 37,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.GameModeCmd',
+      '9': 0,
+      '10': 'gameCmd'
+    },
+    {
+      '1': 'game_cmd_response',
+      '3': 38,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.GameModeCmdResponse',
+      '9': 0,
+      '10': 'gameCmdResponse'
+    },
+    {
+      '1': 'game_state',
+      '3': 39,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.GameModeState',
+      '9': 0,
+      '10': 'gameState'
+    },
+    {
+      '1': 'game_info',
+      '3': 40,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.GameModeInfo',
+      '9': 0,
+      '10': 'gameInfo'
+    },
+    {
+      '1': 'game_scene',
+      '3': 41,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.GameModeScene',
+      '9': 0,
+      '10': 'gameScene'
+    },
+    {
+      '1': 'game_event',
+      '3': 42,
+      '4': 1,
+      '5': 11,
+      '6': '.protocol.GameModeEvent',
+      '9': 0,
+      '10': 'gameEvent'
+    },
   ],
   '4': [Interconnection_InterconnectionID$json],
   '8': [
@@ -333,6 +387,12 @@ const Interconnection_InterconnectionID$json = {
     {'1': 'RESPONSE_DEVICE_CERT', '2': 37},
     {'1': 'REQUEST_PROPS', '2': 38},
     {'1': 'RESPONSE_PROPS', '2': 39},
+    {'1': 'REQUEST_GAME_CMD', '2': 49},
+    {'1': 'GET_GAME_STATUS', '2': 50},
+    {'1': 'REQUEST_GAME_INFO', '2': 51},
+    {'1': 'SEND_GAME_INFO', '2': 52},
+    {'1': 'SEND_GAME_SCENE', '2': 53},
+    {'1': 'SEND_GAME_EVENT', '2': 54},
   ],
 };
 
@@ -371,25 +431,183 @@ final $typed_data.Uint8List interconnectionDescriptor = $convert.base64Decode(
     'IAEoCzIXLnByb3RvY29sLkNlcnQuUmVzcG9uc2VIAFIMY2VydFJlc3BvbnNlEjsKDHByb3Bfcm'
     'VxdWVzdBgaIAEoCzIWLnByb3RvY29sLlByb3AuUmVxdWVzdEgAUgtwcm9wUmVxdWVzdBI+Cg1w'
     'cm9wX3Jlc3BvbnNlGBsgASgLMhcucHJvdG9jb2wuUHJvcC5SZXNwb25zZUgAUgxwcm9wUmVzcG'
-    '9uc2Ui2gcKEUludGVyY29ubmVjdGlvbklEEhgKFFJFUVVFU1RfUEhPTkVfU1RBVFVTEAASFQoR'
-    'U1lOQ19QSE9ORV9TVEFUVVMQARIYChRSRUdJU1RFUl9QSE9ORV9VU0FHRRAREhoKFlVOUkVHSV'
-    'NURVJfUEhPTkVfVVNBR0UQEhIUChBTRU5EX1BIT05FX1VTQUdFEBMSFQoRU1RBUlRfUEhPTkVf'
-    'VFJBQ0UQFBIWChJGSU5JU0hfUEhPTkVfVFJBQ0UQFRIUChBTRU5EX1BIT05FX1RSQUNFEBYSGQ'
-    'oVUkVRRVVTVF9TSEFSRV9ERVZJQ0VTEAISFgoSU1lOQ19TSEFSRV9ERVZJQ0VTEAMSFwoTVVBE'
-    'QVRFX1NIQVJFX0RFVklDRRAEEhEKDUNPTlRST0xfQVVESU8QBRIOCgpDT05UUk9MX1RWEAYSEw'
-    'oPQ09OVFJPTF9IRUFEU0VUEAcSFwoTU0VORF9DT05UUk9MX1JFU1VMVBAIEh4KGlJFUVVFU1Rf'
-    'UFJPSkVDVElPTl9ERVZJQ0VTEAkSGwoXU1lOQ19QUk9KRUNUSU9OX0RFVklDRVMQChIWChJSRV'
-    'FVRVNUX1BST0pFQ1RJT04QCxIcChhTRU5EX1BST0pFQ1RJT05fUkVTUE9OU0UQDBIaChZSRVBP'
-    'UlRfUFJPSkVDVElPTl9EQVRBEA0SHAoYUkVQT1JUX1BST0pFQ1RJT05fUkVQT1JUEA4SHQoZTk'
-    '9USUZZX1BST0pFQ1RJT05fTUVNQkVSUxAPEhUKEUVOVEVSX0NPVVJTRV9aT05FEBASFAoQU1RB'
-    'UlRfU0xJREVfU0hPVxAXEhMKD1NUT1BfU0xJREVfU0hPVxAYEhMKD1NUQVJUX0RFTU9fU0hPVx'
-    'AZEhIKDlNUT1BfREVNT19TSE9XEBoSGAoUU1VCU0NSSUJFX01JU19ERVZJQ0UQGxIaChZVTlNV'
-    'QlNDUklCRV9NSVNfREVWSUNFEBwSEwoPU1lOQ19NSVNfREVWSUNFEB0SFAoQUFVCTElTSF9NSV'
-    'NfU1BFQxAeEhMKD1JFUE9SVF9NSVNfU1BFQxAfEhcKE0dFVF9XRUFSX1NQRUNfQkFTSUMQIBIT'
-    'Cg9TRU5EX01JU19QQUNLRVQQIRIXChNSRVFVRVNUX1NFUlZFUl9DRVJUECISGAoUUkVTUE9OU0'
-    'VfU0VSVkVSX0NFUlQQIxIXChNSRVFVRVNUX0RFVklDRV9DRVJUECQSGAoUUkVTUE9OU0VfREVW'
-    'SUNFX0NFUlQQJRIRCg1SRVFVRVNUX1BST1BTECYSEgoOUkVTUE9OU0VfUFJPUFMQJ0IJCgdwYX'
-    'lsb2Fk');
+    '9uc2USMgoIZ2FtZV9jbWQYJSABKAsyFS5wcm90b2NvbC5HYW1lTW9kZUNtZEgAUgdnYW1lQ21k'
+    'EksKEWdhbWVfY21kX3Jlc3BvbnNlGCYgASgLMh0ucHJvdG9jb2wuR2FtZU1vZGVDbWRSZXNwb2'
+    '5zZUgAUg9nYW1lQ21kUmVzcG9uc2USOAoKZ2FtZV9zdGF0ZRgnIAEoCzIXLnByb3RvY29sLkdh'
+    'bWVNb2RlU3RhdGVIAFIJZ2FtZVN0YXRlEjUKCWdhbWVfaW5mbxgoIAEoCzIWLnByb3RvY29sLk'
+    'dhbWVNb2RlSW5mb0gAUghnYW1lSW5mbxI4CgpnYW1lX3NjZW5lGCkgASgLMhcucHJvdG9jb2wu'
+    'R2FtZU1vZGVTY2VuZUgAUglnYW1lU2NlbmUSOAoKZ2FtZV9ldmVudBgqIAEoCzIXLnByb3RvY2'
+    '9sLkdhbWVNb2RlRXZlbnRIAFIJZ2FtZUV2ZW50ItoIChFJbnRlcmNvbm5lY3Rpb25JRBIYChRS'
+    'RVFVRVNUX1BIT05FX1NUQVRVUxAAEhUKEVNZTkNfUEhPTkVfU1RBVFVTEAESGAoUUkVHSVNURV'
+    'JfUEhPTkVfVVNBR0UQERIaChZVTlJFR0lTVEVSX1BIT05FX1VTQUdFEBISFAoQU0VORF9QSE9O'
+    'RV9VU0FHRRATEhUKEVNUQVJUX1BIT05FX1RSQUNFEBQSFgoSRklOSVNIX1BIT05FX1RSQUNFEB'
+    'USFAoQU0VORF9QSE9ORV9UUkFDRRAWEhkKFVJFUUVVU1RfU0hBUkVfREVWSUNFUxACEhYKElNZ'
+    'TkNfU0hBUkVfREVWSUNFUxADEhcKE1VQREFURV9TSEFSRV9ERVZJQ0UQBBIRCg1DT05UUk9MX0'
+    'FVRElPEAUSDgoKQ09OVFJPTF9UVhAGEhMKD0NPTlRST0xfSEVBRFNFVBAHEhcKE1NFTkRfQ09O'
+    'VFJPTF9SRVNVTFQQCBIeChpSRVFVRVNUX1BST0pFQ1RJT05fREVWSUNFUxAJEhsKF1NZTkNfUF'
+    'JPSkVDVElPTl9ERVZJQ0VTEAoSFgoSUkVRVUVTVF9QUk9KRUNUSU9OEAsSHAoYU0VORF9QUk9K'
+    'RUNUSU9OX1JFU1BPTlNFEAwSGgoWUkVQT1JUX1BST0pFQ1RJT05fREFUQRANEhwKGFJFUE9SVF'
+    '9QUk9KRUNUSU9OX1JFUE9SVBAOEh0KGU5PVElGWV9QUk9KRUNUSU9OX01FTUJFUlMQDxIVChFF'
+    'TlRFUl9DT1VSU0VfWk9ORRAQEhQKEFNUQVJUX1NMSURFX1NIT1cQFxITCg9TVE9QX1NMSURFX1'
+    'NIT1cQGBITCg9TVEFSVF9ERU1PX1NIT1cQGRISCg5TVE9QX0RFTU9fU0hPVxAaEhgKFFNVQlND'
+    'UklCRV9NSVNfREVWSUNFEBsSGgoWVU5TVUJTQ1JJQkVfTUlTX0RFVklDRRAcEhMKD1NZTkNfTU'
+    'lTX0RFVklDRRAdEhQKEFBVQkxJU0hfTUlTX1NQRUMQHhITCg9SRVBPUlRfTUlTX1NQRUMQHxIX'
+    'ChNHRVRfV0VBUl9TUEVDX0JBU0lDECASEwoPU0VORF9NSVNfUEFDS0VUECESFwoTUkVRVUVTVF'
+    '9TRVJWRVJfQ0VSVBAiEhgKFFJFU1BPTlNFX1NFUlZFUl9DRVJUECMSFwoTUkVRVUVTVF9ERVZJ'
+    'Q0VfQ0VSVBAkEhgKFFJFU1BPTlNFX0RFVklDRV9DRVJUECUSEQoNUkVRVUVTVF9QUk9QUxAmEh'
+    'IKDlJFU1BPTlNFX1BST1BTECcSFAoQUkVRVUVTVF9HQU1FX0NNRBAxEhMKD0dFVF9HQU1FX1NU'
+    'QVRVUxAyEhUKEVJFUVVFU1RfR0FNRV9JTkZPEDMSEgoOU0VORF9HQU1FX0lORk8QNBITCg9TRU'
+    '5EX0dBTUVfU0NFTkUQNRITCg9TRU5EX0dBTUVfRVZFTlQQNkIJCgdwYXlsb2Fk');
+
+@$core.Deprecated('Use gameModeCmdDescriptor instead')
+const GameModeCmd$json = {
+  '1': 'GameModeCmd',
+  '2': [
+    {
+      '1': 'cmd',
+      '3': 1,
+      '4': 2,
+      '5': 14,
+      '6': '.protocol.GameModeCmd.CmdType',
+      '10': 'cmd'
+    },
+  ],
+  '4': [GameModeCmd_CmdType$json],
+};
+
+@$core.Deprecated('Use gameModeCmdDescriptor instead')
+const GameModeCmd_CmdType$json = {
+  '1': 'CmdType',
+  '2': [
+    {'1': 'START', '2': 1},
+    {'1': 'PAUSE', '2': 2},
+    {'1': 'RESUME', '2': 3},
+    {'1': 'STOP', '2': 4},
+  ],
+};
+
+/// Descriptor for `GameModeCmd`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List gameModeCmdDescriptor = $convert.base64Decode(
+    'CgtHYW1lTW9kZUNtZBIvCgNjbWQYASACKA4yHS5wcm90b2NvbC5HYW1lTW9kZUNtZC5DbWRUeX'
+    'BlUgNjbWQiNQoHQ21kVHlwZRIJCgVTVEFSVBABEgkKBVBBVVNFEAISCgoGUkVTVU1FEAMSCAoE'
+    'U1RPUBAE');
+
+@$core.Deprecated('Use gameModeCmdResponseDescriptor instead')
+const GameModeCmdResponse$json = {
+  '1': 'GameModeCmdResponse',
+  '2': [
+    {
+      '1': 'cmd',
+      '3': 1,
+      '4': 2,
+      '5': 14,
+      '6': '.protocol.GameModeCmd.CmdType',
+      '10': 'cmd'
+    },
+    {
+      '1': 'status',
+      '3': 2,
+      '4': 2,
+      '5': 14,
+      '6': '.protocol.GameModeCmdResponse.Status',
+      '10': 'status'
+    },
+  ],
+  '4': [GameModeCmdResponse_Status$json],
+};
+
+@$core.Deprecated('Use gameModeCmdResponseDescriptor instead')
+const GameModeCmdResponse_Status$json = {
+  '1': 'Status',
+  '2': [
+    {'1': 'SUCCESS', '2': 0},
+    {'1': 'FAIL', '2': 1},
+    {'1': 'EXCLUSION', '2': 2},
+  ],
+};
+
+/// Descriptor for `GameModeCmdResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List gameModeCmdResponseDescriptor = $convert.base64Decode(
+    'ChNHYW1lTW9kZUNtZFJlc3BvbnNlEi8KA2NtZBgBIAIoDjIdLnByb3RvY29sLkdhbWVNb2RlQ2'
+    '1kLkNtZFR5cGVSA2NtZBI8CgZzdGF0dXMYAiACKA4yJC5wcm90b2NvbC5HYW1lTW9kZUNtZFJl'
+    'c3BvbnNlLlN0YXR1c1IGc3RhdHVzIi4KBlN0YXR1cxILCgdTVUNDRVNTEAASCAoERkFJTBABEg'
+    '0KCUVYQ0xVU0lPThAC');
+
+@$core.Deprecated('Use gameModeStateDescriptor instead')
+const GameModeState$json = {
+  '1': 'GameModeState',
+  '2': [
+    {
+      '1': 'state',
+      '3': 1,
+      '4': 2,
+      '5': 14,
+      '6': '.protocol.GameModeState.State',
+      '10': 'state'
+    },
+  ],
+  '4': [GameModeState_State$json],
+};
+
+@$core.Deprecated('Use gameModeStateDescriptor instead')
+const GameModeState_State$json = {
+  '1': 'State',
+  '2': [
+    {'1': 'NOT_IN_GAME_MODE', '2': 0},
+    {'1': 'IN_GAME_MODE', '2': 1},
+    {'1': 'PAUSED', '2': 2},
+  ],
+};
+
+/// Descriptor for `GameModeState`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List gameModeStateDescriptor = $convert.base64Decode(
+    'Cg1HYW1lTW9kZVN0YXRlEjMKBXN0YXRlGAEgAigOMh0ucHJvdG9jb2wuR2FtZU1vZGVTdGF0ZS'
+    '5TdGF0ZVIFc3RhdGUiOwoFU3RhdGUSFAoQTk9UX0lOX0dBTUVfTU9ERRAAEhAKDElOX0dBTUVf'
+    'TU9ERRABEgoKBlBBVVNFRBAC');
+
+@$core.Deprecated('Use gameModeInfoDescriptor instead')
+const GameModeInfo$json = {
+  '1': 'GameModeInfo',
+  '2': [
+    {'1': 'game_id', '3': 1, '4': 2, '5': 13, '10': 'gameId'},
+    {'1': 'game_name', '3': 2, '4': 2, '5': 9, '10': 'gameName'},
+  ],
+};
+
+/// Descriptor for `GameModeInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List gameModeInfoDescriptor = $convert.base64Decode(
+    'CgxHYW1lTW9kZUluZm8SFwoHZ2FtZV9pZBgBIAIoDVIGZ2FtZUlkEhsKCWdhbWVfbmFtZRgCIA'
+    'IoCVIIZ2FtZU5hbWU=');
+
+@$core.Deprecated('Use gameModeSceneDescriptor instead')
+const GameModeScene$json = {
+  '1': 'GameModeScene',
+  '2': [
+    {'1': 'scene_style', '3': 1, '4': 2, '5': 13, '10': 'sceneStyle'},
+    {'1': 'scene_title', '3': 2, '4': 2, '5': 9, '10': 'sceneTitle'},
+    {'1': 'scene_message', '3': 3, '4': 2, '5': 9, '10': 'sceneMessage'},
+  ],
+};
+
+/// Descriptor for `GameModeScene`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List gameModeSceneDescriptor = $convert.base64Decode(
+    'Cg1HYW1lTW9kZVNjZW5lEh8KC3NjZW5lX3N0eWxlGAEgAigNUgpzY2VuZVN0eWxlEh8KC3NjZW'
+    '5lX3RpdGxlGAIgAigJUgpzY2VuZVRpdGxlEiMKDXNjZW5lX21lc3NhZ2UYAyACKAlSDHNjZW5l'
+    'TWVzc2FnZQ==');
+
+@$core.Deprecated('Use gameModeEventDescriptor instead')
+const GameModeEvent$json = {
+  '1': 'GameModeEvent',
+  '2': [
+    {'1': 'event_id', '3': 1, '4': 2, '5': 13, '10': 'eventId'},
+    {'1': 'event_type', '3': 2, '4': 2, '5': 13, '10': 'eventType'},
+  ],
+};
+
+/// Descriptor for `GameModeEvent`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List gameModeEventDescriptor = $convert.base64Decode(
+    'Cg1HYW1lTW9kZUV2ZW50EhkKCGV2ZW50X2lkGAEgAigNUgdldmVudElkEh0KCmV2ZW50X3R5cG'
+    'UYAiACKA1SCWV2ZW50VHlwZQ==');
 
 @$core.Deprecated('Use phoneStatusDescriptor instead')
 const PhoneStatus$json = {

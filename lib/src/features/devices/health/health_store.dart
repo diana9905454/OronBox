@@ -5,29 +5,75 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/storage/app_data_directory.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 
-/// Local store for the rewritten Xiaomi health data model.
-///
-/// This intentionally uses a new key namespace. The previous health model is
-/// not migrated: its entry is removed when this store is first opened for a
-/// device.
+import 'health_database.dart';
+
+/// Incremental persistence for health summaries and indexed records.
 class HealthStore {
-  // v2 and v3 were written with activity timestamps shifted by the host
-  // timezone. v4 stored the device's running 7-day total in the per-day
-  // vitality field, and v5 may contain records written before Xiaomi raw
-  // timestamps were corrected to device-local time. Drop older versions so a
-  // corrected sync cannot be mixed with records carrying the old clock.
+  @visibleForTesting
+  static HealthDatabase? databaseForTesting;
+  HealthDatabase get _database => databaseForTesting ?? healthDatabase;
+  static final _persisted = <String, XiaomiHealthData>{};
+  static final _persistErrors = <String, Object>{};
+  static bool _maintenance = false;
+  static DateTime? _lastCompaction;
+
+  static String? _maintenanceOwner;
+  static bool _externallyPaused = false;
+  static bool get maintenanceRequested =>
+      _maintenance || _maintenanceOwner != null;
+
+  static Future<void> pauseForOwner(
+    String owner,
+    Future<void> Function() drain,
+  ) async {
+    if (_maintenanceOwner != null) {
+      if (!_externallyPaused) {
+        throw StateError('Health data maintenance is active');
+      }
+      _maintenanceOwner = owner;
+      return;
+    }
+    _maintenanceOwner = owner;
+    try {
+      await drain();
+      await flush();
+      _externallyPaused = true;
+    } catch (_) {
+      _maintenanceOwner = null;
+      rethrow;
+    }
+  }
+
+  static void resumeForOwner(String owner) {
+    if (_maintenanceOwner != owner) return;
+    if (_externallyPaused) {
+      clearCache();
+      healthDataRevision.value++;
+    }
+    _externallyPaused = false;
+    _maintenanceOwner = null;
+  }
+
+  static Future<T> maintenance<T>(Future<T> Function() action) async {
+    if (_maintenance) throw StateError('Health data maintenance is active');
+    _maintenance = true;
+    try {
+      await flush();
+      return await action();
+    } finally {
+      _maintenance = false;
+    }
+  }
+
+  // Health data is rebuilt from the device after the storage reset marker is
+  // introduced. The database remains the only runtime source of persisted data.
   static const _keyPrefix = 'health_data_v6_';
-  static const _legacyKeyPrefixes = [
-    'health_data_v1_',
-    'health_data_v2_',
-    'health_data_v3_',
-    'health_data_v4_',
-    'health_data_v5_',
-  ];
+  static const _migrationKey = 'migration.health_storage.v3_drop_legacy';
   static const _maxDailyRecords = 90;
-  static const _maxActivitySampleRecords = 30 * 24 * 60;
+  static const _maxActivitySampleRecords = 30 * 24 * 12;
   static const _maxSleepRecords = 90;
   static const _maxWorkoutRecords = 90;
   static const _maxAbnormalHealthRecords = 90;
@@ -39,42 +85,189 @@ class HealthStore {
 
   static XiaomiHealthData? getCached(String deviceId) => _memoryCache[deviceId];
 
-  @visibleForTesting
   static void clearCache() {
     _memoryCache.clear();
+    _persisted.clear();
+    _persistErrors.clear();
     _pendingPersist.clear();
     _activePersists.clear();
   }
 
-  @visibleForTesting
   static Future<void> flush() async {
     final futures = _activePersists.values.toList();
     if (futures.isNotEmpty) {
       await Future.wait(futures);
     }
+    if (_persistErrors.isNotEmpty) throw _persistErrors.values.first;
   }
 
   final _prefs = SharedPrefsService.instance;
 
+  Future<void> resetForStorageMigration() async {
+    if (!_prefs.isInitialized || (_prefs.getBool(_migrationKey) ?? false)) {
+      return;
+    }
+    final inFlight = _activePersists.values.toList();
+    if (inFlight.isNotEmpty) {
+      try {
+        await Future.wait(inFlight);
+      } catch (_) {
+        // The reset intentionally discards failed legacy writes as well.
+      }
+    }
+    await _database.clearAll();
+    for (final key
+        in _prefs.keys
+            .where(
+              (key) =>
+                  key.startsWith(_keyPrefix) ||
+                  key.startsWith('health_data_v1_') ||
+                  key.startsWith('health_data_v2_') ||
+                  key.startsWith('health_data_v3_') ||
+                  key.startsWith('health_data_v4_') ||
+                  key.startsWith('health_data_v5_') ||
+                  key == 'xiaomi_health_debug_snapshots_v1',
+            )
+            .toList()) {
+      await _prefs.remove(key);
+    }
+    for (final path in ['health/raw', 'diagnostics/health']) {
+      final directory = await openAppDataDirectory(path);
+      await directory.exclusive(() async {
+        for (final file in await directory.files(includeTemporary: true)) {
+          await directory.remove(file.path);
+        }
+      });
+    }
+    await _prefs.remove('xiaomi.health.debug_mode');
+    clearCache();
+    await _database.compact();
+  }
+
+  Future<void> markStorageMigrationComplete() async {
+    if (!_prefs.isInitialized) return;
+    await _prefs.setBool(_migrationKey, true);
+  }
+
+  Future<XiaomiHealthData> query(
+    String deviceId, {
+    required DateTime start,
+    required DateTime end,
+    List<String>? kinds,
+    int? limit,
+    int offset = 0,
+    XiaomiHealthData? seed,
+  }) async {
+    final cached = seed ?? _memoryCache[deviceId] ?? _persisted[deviceId];
+    if (cached != null) {
+      return _filterCached(
+        cached,
+        start: start,
+        end: end,
+        kinds: kinds,
+        limit: limit,
+        offset: offset,
+      );
+    }
+    return _database.readRange(
+      _key(deviceId).substring(_keyPrefix.length),
+      start: start,
+      end: end,
+      kinds: kinds,
+      limit: limit,
+      offset: offset,
+    );
+  }
+
+  XiaomiHealthData _filterCached(
+    XiaomiHealthData data, {
+    required DateTime start,
+    required DateTime end,
+    List<String>? kinds,
+    int? limit,
+    required int offset,
+  }) {
+    final include = kinds?.toSet();
+    bool selected(String kind) => include == null || include.contains(kind);
+    bool point(DateTime value) => !value.isBefore(start) && value.isBefore(end);
+    bool overlap(DateTime from, DateTime? until) =>
+        from.isBefore(end) && !(until ?? from).isBefore(start);
+
+    var workouts = selected('workouts')
+        ? data.workouts
+              .where((item) => overlap(item.startedAt, item.endedAt))
+              .toList(growable: false)
+        : const <HealthWorkoutSummary>[];
+    if (limit != null) {
+      workouts = workouts.skip(offset).take(limit).toList(growable: false);
+    }
+    return XiaomiHealthData(
+      daily: selected('daily')
+          ? data.daily.where((item) => point(item.date)).toList(growable: false)
+          : const [],
+      samples: selected('samples')
+          ? data.samples
+                .where((item) => point(item.timestamp))
+                .toList(growable: false)
+          : const [],
+      activitySamples: selected('activitySamples')
+          ? data.activitySamples
+                .where((item) => point(item.timestamp))
+                .toList(growable: false)
+          : const [],
+      sleep: selected('sleep')
+          ? data.sleep
+                .where((item) => overlap(item.startedAt, item.endedAt))
+                .toList(growable: false)
+          : const [],
+      workouts: workouts,
+      abnormalHealthRecords: selected('abnormalHealthRecords')
+          ? data.abnormalHealthRecords
+                .where((item) => overlap(item.timestamp, item.endedAt))
+                .toList(growable: false)
+          : const [],
+      capabilities: data.capabilities,
+      lastSyncedAt: data.lastSyncedAt,
+    );
+  }
+
+  Future<XiaomiHealthData> overview(String deviceId) {
+    final now = DateTime.now();
+    return query(
+      deviceId,
+      start: DateTime(now.year, now.month, now.day - 7),
+      end: DateTime(now.year, now.month, now.day + 1),
+    );
+  }
+
+  Future<HealthWorkoutTotals> workoutTotals(
+    String deviceId,
+    DateTime start,
+    DateTime end,
+  ) async {
+    return _database.workoutTotals(
+      _key(deviceId).substring(_keyPrefix.length),
+      start,
+      end,
+    );
+  }
+
+  Future<HealthWorkoutSummary?> workout(String deviceId, String routeId) async {
+    return _database.readWorkout(
+      _key(deviceId).substring(_keyPrefix.length),
+      routeId,
+    );
+  }
+
   Future<XiaomiHealthData> read(String deviceId) async {
     final cached = _memoryCache[deviceId];
     if (cached != null) return cached;
-
-    for (final prefix in _legacyKeyPrefixes) {
-      final legacyKey = _keyFor(prefix, deviceId);
-      if (_prefs.getString(legacyKey) != null) {
-        await _prefs.remove(legacyKey);
-      }
-    }
-    final value = _prefs.getString(_key(deviceId));
-    if (value == null || value.isEmpty) return const XiaomiHealthData();
-    try {
-      final decoded = await compute(_decodeHealthData, value);
-      _memoryCache[deviceId] = decoded;
-      return decoded;
-    } catch (_) {
-      return const XiaomiHealthData();
-    }
+    final databaseKey = _key(deviceId).substring(_keyPrefix.length);
+    var data = await _database.readDevice(databaseKey);
+    final result = data ?? const XiaomiHealthData();
+    _memoryCache[deviceId] = result;
+    _persisted[deviceId] = result;
+    return result;
   }
 
   Future<XiaomiHealthData> write(
@@ -82,6 +275,9 @@ class HealthStore {
     XiaomiHealthData data, {
     bool flushImmediately = false,
   }) async {
+    if (_maintenance || _externallyPaused) {
+      throw StateError('Health data maintenance is active');
+    }
     final cached = _memoryCache[deviceId];
 
     final bool samplesUnchanged =
@@ -113,51 +309,64 @@ class HealthStore {
 
     final daily = dailyUnchanged
         ? cached.daily
-        : ([..._deduplicateDaily(data.daily)]
-            ..sort((a, b) => b.date.microsecondsSinceEpoch.compareTo(a.date.microsecondsSinceEpoch)))
-            .take(_maxDailyRecords)
-            .toList(growable: false);
+        : ([..._deduplicateDaily(data.daily)]..sort(
+                (a, b) => b.date.microsecondsSinceEpoch.compareTo(
+                  a.date.microsecondsSinceEpoch,
+                ),
+              ))
+              .take(_maxDailyRecords)
+              .toList(growable: false);
 
     final samples = samplesUnchanged
         ? cached.samples
         : _capSamplesPerMetric(
-            [..._deduplicateSamples(data.samples)]
-              ..sort((a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(a.timestamp.microsecondsSinceEpoch)),
+            [..._deduplicateSamples(data.samples)]..sort(
+              (a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(
+                a.timestamp.microsecondsSinceEpoch,
+              ),
+            ),
           );
 
     final activitySamples = activityUnchanged
         ? cached.activitySamples
-        : ([..._deduplicateActivitySamples(data.activitySamples)]
-            ..sort((a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(a.timestamp.microsecondsSinceEpoch)))
-            .take(_maxActivitySampleRecords)
-            .toList(growable: false);
+        : _compactActivitySamples(data.activitySamples);
 
     final sleep = sleepUnchanged
         ? cached.sleep
-        : ([..._deduplicateSleep(data.sleep)]
-            ..sort((a, b) {
-              final endComparison = b.endedAt.microsecondsSinceEpoch.compareTo(a.endedAt.microsecondsSinceEpoch);
-              if (endComparison != 0) return endComparison;
-              return b.startedAt.microsecondsSinceEpoch.compareTo(a.startedAt.microsecondsSinceEpoch);
-            }))
-            .take(_maxSleepRecords)
-            .toList(growable: false);
+        : ([..._deduplicateSleep(data.sleep)]..sort((a, b) {
+                final endComparison = b.endedAt.microsecondsSinceEpoch
+                    .compareTo(a.endedAt.microsecondsSinceEpoch);
+                if (endComparison != 0) return endComparison;
+                return b.startedAt.microsecondsSinceEpoch.compareTo(
+                  a.startedAt.microsecondsSinceEpoch,
+                );
+              }))
+              .take(_maxSleepRecords)
+              .toList(growable: false);
 
     final workouts = workoutsUnchanged
         ? cached.workouts
         : [
-            for (final workout in ([..._deduplicateWorkouts(data.workouts)]
-                  ..sort((a, b) => b.startedAt.microsecondsSinceEpoch.compareTo(a.startedAt.microsecondsSinceEpoch)))
-                .take(_maxWorkoutRecords))
-              _capWorkoutPoints(workout),
+            for (final workout
+                in ([..._deduplicateWorkouts(data.workouts)]..sort(
+                      (a, b) => b.startedAt.microsecondsSinceEpoch.compareTo(
+                        a.startedAt.microsecondsSinceEpoch,
+                      ),
+                    ))
+                    .take(_maxWorkoutRecords))
+              workout,
           ];
 
     final abnormalHealthRecords = abnormalUnchanged
         ? cached.abnormalHealthRecords
         : ([..._deduplicateAbnormalHealthRecords(data.abnormalHealthRecords)]
-            ..sort((a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(a.timestamp.microsecondsSinceEpoch)))
-            .take(_maxAbnormalHealthRecords)
-            .toList(growable: false);
+                ..sort(
+                  (a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(
+                    a.timestamp.microsecondsSinceEpoch,
+                  ),
+                ))
+              .take(_maxAbnormalHealthRecords)
+              .toList(growable: false);
 
     final normalized = XiaomiHealthData(
       daily: daily,
@@ -175,6 +384,7 @@ class HealthStore {
     final persistFuture = _schedulePersist(deviceId, normalized);
     if (flushImmediately) {
       await persistFuture;
+      if (_persistErrors.containsKey(deviceId)) throw _persistErrors[deviceId]!;
     } else {
       unawaited(persistFuture);
     }
@@ -196,12 +406,15 @@ class HealthStore {
       while (_pendingPersist.containsKey(deviceId)) {
         final toSave = _pendingPersist.remove(deviceId)!;
         try {
-          final encoded = toSave.encode();
-          final ok = await _prefs.setString(_key(deviceId), encoded);
-          if (!ok) {
-            _log.warning('Unable to persist health data for $deviceId');
-          }
+          final key = _key(deviceId).substring(_keyPrefix.length);
+          final previous =
+              _persisted[deviceId] ?? await _database.readDevice(key);
+          await _database.writeDevice(key, toSave, previous: previous);
+          _persisted[deviceId] = toSave;
+          _persistErrors.remove(deviceId);
+          unawaited(_compactIfNeeded());
         } catch (error, stackTrace) {
+          _persistErrors[deviceId] = error;
           _log.warning(
             'Failed to persist health data for $deviceId',
             error,
@@ -214,11 +427,19 @@ class HealthStore {
     }
   }
 
+  Future<void> _compactIfNeeded() async {
+    final now = DateTime.now();
+    if (_lastCompaction != null &&
+        now.difference(_lastCompaction!) < const Duration(hours: 24)) {
+      return;
+    }
+    if (await _database.storedBytes() <= 100 * 1024 * 1024) return;
+    _lastCompaction = now;
+    await _database.compact();
+  }
+
   String _key(String deviceId) =>
       '$_keyPrefix${sha1.convert(utf8.encode(deviceId)).toString()}';
-
-  String _keyFor(String prefix, String deviceId) =>
-      '$prefix${sha1.convert(utf8.encode(deviceId)).toString()}';
 
   List<HealthDailySummary> _deduplicateDaily(List<HealthDailySummary> values) {
     final result = <int, HealthDailySummary>{};
@@ -231,7 +452,8 @@ class HealthStore {
   List<HealthSample> _deduplicateSamples(List<HealthSample> values) {
     final result = <int, HealthSample>{};
     for (final value in values) {
-      final key = (value.metric.index << 48) |
+      final key =
+          (value.metric.index << 48) |
           (value.timestamp.millisecondsSinceEpoch & 0xffffffffffff);
       result[key] ??= value;
     }
@@ -303,7 +525,8 @@ class HealthStore {
   ) {
     final result = <int, HealthWorkoutSummary>{};
     for (final value in values) {
-      final key = (value.activityType << 48) |
+      final key =
+          (value.activityType << 48) |
           (value.startedAt.millisecondsSinceEpoch & 0xffffffffffff);
       final existing = result[key];
       if (existing == null ||
@@ -358,18 +581,13 @@ class HealthStore {
   }
 }
 
-XiaomiHealthData _decodeHealthData(String value) =>
-    XiaomiHealthData.decode(value);
-
 // Retention budget per metric, not per row: each minute-level activity
 // record fans out into up to five derived HealthSample rows (heart rate,
 // blood oxygen, stress, steps, active calories), so a single global row
 // cap would silently truncate the 30-day window to under a week.
-const _healthSampleRecordsPerMetric = 30 * 24 * 60;
-// Per-point lists inside a workout (1 Hz samples and GPS route) can reach
-// tens of thousands of entries; keep them bounded so the single encoded
-// blob stays a size SharedPreferences can write without jank.
-const _healthWorkoutPointRecords = 2000;
+const _healthSampleRecordsPerMetric = 30 * 24 * 12;
+const _healthRawSampleWindow = Duration(days: 7);
+const _healthSampleBucket = Duration(minutes: 5);
 
 /// Bumped after every successful [HealthStore.write] so open health pages
 /// can refresh when a sync (manual, scheduled, or command-bus driven)
@@ -380,9 +598,18 @@ final healthDataRevision = ValueNotifier<int>(0);
 /// independently. [sortedDesc] must be newest-first, per-metric truncation
 /// then always drops the oldest rows.
 List<HealthSample> _capSamplesPerMetric(List<HealthSample> sortedDesc) {
+  final newest = sortedDesc.isEmpty ? null : sortedDesc.first.timestamp;
   final remaining = <XiaomiHealthMetric, int>{};
+  final buckets = <(XiaomiHealthMetric, int)>{};
   final result = <HealthSample>[];
   for (final sample in sortedDesc) {
+    if (newest != null &&
+        newest.difference(sample.timestamp) > _healthRawSampleWindow) {
+      final bucket =
+          sample.timestamp.millisecondsSinceEpoch ~/
+          _healthSampleBucket.inMilliseconds;
+      if (!buckets.add((sample.metric, bucket))) continue;
+    }
     final budget = remaining.update(
       sample.metric,
       (value) => value - 1,
@@ -394,32 +621,28 @@ List<HealthSample> _capSamplesPerMetric(List<HealthSample> sortedDesc) {
   return result;
 }
 
-/// Bounds the per-second sample/route lists of one workout with stride
-/// downsampling that always preserves the first and last point. Rebuilds
-/// through the JSON round-trip so the constructor list does not need a
-/// 70-parameter copyWith.
-HealthWorkoutSummary _capWorkoutPoints(HealthWorkoutSummary workout) {
-  if (workout.samples.length <= _healthWorkoutPointRecords &&
-      workout.route.length <= _healthWorkoutPointRecords) {
-    return workout;
+List<HealthActivitySample> _compactActivitySamples(
+  List<HealthActivitySample> values,
+) {
+  final sorted = [...HealthStore()._deduplicateActivitySamples(values)]
+    ..sort(
+      (a, b) => b.timestamp.microsecondsSinceEpoch.compareTo(
+        a.timestamp.microsecondsSinceEpoch,
+      ),
+    );
+  final newest = sorted.isEmpty ? null : sorted.first.timestamp;
+  final buckets = <int>{};
+  final result = <HealthActivitySample>[];
+  for (final sample in sorted) {
+    if (newest != null &&
+        newest.difference(sample.timestamp) > _healthRawSampleWindow) {
+      final bucket =
+          sample.timestamp.millisecondsSinceEpoch ~/
+          _healthSampleBucket.inMilliseconds;
+      if (!buckets.add(bucket)) continue;
+    }
+    result.add(sample);
+    if (result.length >= HealthStore._maxActivitySampleRecords) break;
   }
-  final json = workout.toJson();
-  json['samples'] = _downsamplePoints(workout.samples)
-      .map((HealthWorkoutSample value) => value.toJson())
-      .toList();
-  json['route'] = _downsamplePoints(workout.route)
-      .map((HealthWorkoutRoutePoint value) => value.toJson())
-      .toList();
-  return HealthWorkoutSummary.fromJson(json);
-}
-
-List<T> _downsamplePoints<T>(List<T> points) {
-  if (points.length <= _healthWorkoutPointRecords) return points;
-  final step = points.length / _healthWorkoutPointRecords;
-  final result = <T>[];
-  for (var position = 0.0; position < points.length - 1; position += step) {
-    result.add(points[position.floor()]);
-  }
-  result.add(points.last);
   return result;
 }

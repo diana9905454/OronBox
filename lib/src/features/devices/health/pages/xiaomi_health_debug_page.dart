@@ -8,6 +8,10 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
+import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
 
@@ -21,11 +25,13 @@ class XiaomiHealthDebugPage extends ConsumerStatefulWidget {
 
 class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
   final _store = HealthDebugSnapshotStore();
-  List<XiaomiHealthRawSnapshot> _snapshots = const [];
+  final _log = getLogger('HealthDebugPage');
+  List<HealthSnapshotSummary> _snapshots = const [];
   String? _error;
-  String? _reloadingSnapshotId;
   String? _exportingSnapshotId;
   bool _loading = false;
+  bool _filterCurrentDeviceOnly = true;
+  bool get _busy => _loading || _exportingSnapshotId != null;
 
   @override
   void initState() {
@@ -38,62 +44,45 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final snapshots = await _store.read();
+      final snapshots = await _store.list();
       if (!mounted) return;
       setState(() {
         _snapshots = snapshots;
         _error = null;
       });
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
+    } catch (error, stack) {
+      _log.warning('Health snapshot operation failed', error, stack);
+      if (mounted) {
+        setState(
+          () => _error = AppLocalizations.of(context)!.appDataLoadFailed,
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
-  Future<void> _reload(XiaomiHealthRawSnapshot snapshot) async {
-    final manager = ref.read(deviceManagerProvider.notifier);
-    setState(() {
-      _reloadingSnapshotId = snapshot.id;
-      _error = null;
-    });
-    try {
-      await manager.replayXiaomiHealthSnapshot(
-        snapshot.deviceId,
-        snapshot.files,
-      );
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.deviceHealthDebugReloaded,
-          ),
-        ),
-      );
-    } catch (error) {
-      if (mounted) setState(() => _error = error.toString());
-    } finally {
-      if (mounted) setState(() => _reloadingSnapshotId = null);
-    }
-  }
-
-  Future<void> _export(XiaomiHealthRawSnapshot snapshot) async {
+  Future<void> _export(HealthSnapshotSummary snapshot) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() {
       _exportingSnapshotId = snapshot.id;
       _error = null;
     });
     try {
-      final bytes = snapshot.encodeArchive();
+      final bytes = await _store.export(snapshot.id);
       final saved = await FilePicker.saveFile(
         dialogTitle: l10n.deviceHealthDebugExport,
-        fileName: snapshot.exportFileName,
+        fileName:
+            'activity-files-${snapshot.capturedAt.millisecondsSinceEpoch}.zip',
         mimeType: 'application/zip',
         bytes: bytes,
       );
       if (!mounted) return;
       if (saved == null) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+      _log.info(
+        'Exported activity snapshot ${snapshot.id} (${snapshot.files.length} files) to $saved',
+      );
+      appScaffoldMessengerOf(context).showSnackBar(
         SnackBar(
           content: Text(
             l10n.deviceHealthDebugExported(
@@ -102,10 +91,11 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
           ),
         ),
       );
-    } catch (error) {
+    } catch (error, stack) {
+      _log.warning('Health snapshot export failed', error, stack);
       if (mounted) {
         setState(() {
-          _error = l10n.deviceHealthDebugExportFailed(error.toString());
+          _error = l10n.appDataExportFailed;
         });
       }
     } finally {
@@ -132,11 +122,14 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
         throw const FormatException('Selected file is empty');
       }
       final snapshot = await _store.import(bytes);
+      _log.info(
+        'Imported activity snapshot ${snapshot.id} for device ${snapshot.deviceId} (${snapshot.files.length} files)',
+      );
       if (!mounted) return;
       await _load();
       if (!mounted) return;
       final code = snapshot.deviceCode?.trim();
-      ScaffoldMessenger.of(context).showSnackBar(
+      appScaffoldMessengerOf(context).showSnackBar(
         SnackBar(
           content: Text(
             l10n.deviceHealthDebugImported(
@@ -146,10 +139,11 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
           ),
         ),
       );
-    } catch (error) {
+    } catch (error, stack) {
+      _log.warning('Health snapshot import failed', error, stack);
       if (mounted) {
         setState(() {
-          _error = l10n.deviceHealthDebugImportFailed(error.toString());
+          _error = l10n.appDataLoadFailed;
         });
       }
     } finally {
@@ -157,84 +151,77 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
     }
   }
 
-  Future<void> _clearAll() async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.deviceHealthDebugClearAll),
-        content: Text(l10n.deviceHealthDebugClearAllDescription),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-              foregroundColor: Theme.of(context).colorScheme.onError,
-            ),
-            child: Text(l10n.delete),
-          ),
-        ],
-      ),
+  Future<void> _delete(HealthSnapshotSummary snapshot) async {
+    _log.info(
+      'Deleting activity snapshot ${snapshot.id} for device ${snapshot.deviceId}',
     );
-    if (confirmed != true) return;
-    await _store.clear();
-    if (mounted) setState(() => _snapshots = const []);
+    await _changeSnapshots(() => _store.delete(snapshot.id));
   }
 
-  Future<void> _delete(XiaomiHealthRawSnapshot snapshot) async {
-    await _store.delete(snapshot.id);
-    if (mounted) {
-      setState(() {
-        _snapshots = _snapshots
-            .where((item) => item.id != snapshot.id)
-            .toList(growable: false);
-      });
+  Future<void> _changeSnapshots(Future<void> Function() action) async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await action();
+      if (mounted) await _load();
+    } catch (error, stack) {
+      _log.warning('Health snapshot update failed', error, stack);
+      if (mounted) {
+        setState(
+          () => _error = AppLocalizations.of(context)!.appDataUpdateFailed,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final currentDevice = ref.watch(deviceManagerProvider).currentDevice;
+    final currentDeviceId = currentDevice?.addr;
+    final visibleSnapshots = _filterCurrentDeviceOnly && currentDeviceId != null
+        ? _snapshots.where((s) => s.deviceId == currentDeviceId).toList()
+        : _snapshots;
+
     return Scaffold(
       appBar: SysAppBar(
         secondary: true,
         title: Text(l10n.deviceHealthDebugSnapshots),
+        actions: [
+          if (currentDeviceId != null && _snapshots.isNotEmpty)
+            TextButton(
+              onPressed: () => setState(
+                () => _filterCurrentDeviceOnly = !_filterCurrentDeviceOnly,
+              ),
+              child: Text(
+                _filterCurrentDeviceOnly
+                    ? l10n.all
+                    : (currentDevice?.name ??
+                        currentDevice?.addr ??
+                        l10n.pairedDevices),
+              ),
+            ),
+        ],
       ),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         sections: [
           SegmentedSection(
             tiles: [
               SegmentedTile(
-                leading: _loading
-                    ? const SizedBox.square(
-                        dimension: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh_outlined),
-                title: Text(l10n.deviceHealthDebugRefresh),
-                description: Text(l10n.deviceHealthDebugRefreshDescription),
-                enabled: !_loading,
-                onPressed: (_) => _load(),
-              ),
-              SegmentedTile(
                 leading: const Icon(Icons.file_download_outlined),
                 title: Text(l10n.deviceHealthDebugImport),
                 description: Text(l10n.deviceHealthDebugImportDescription),
-                enabled: !_loading,
+                enabled: !_busy,
                 onPressed: (_) => _importSnapshot(),
-              ),
-              SegmentedTile(
-                leading: const Icon(Icons.delete_sweep_outlined),
-                title: Text(l10n.deviceHealthDebugClearAll),
-                description: Text(l10n.deviceHealthDebugClearAllDescription),
-                enabled: _snapshots.isNotEmpty,
-                onPressed: (_) => _clearAll(),
               ),
             ],
           ),
@@ -251,39 +238,34 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
             ),
           SegmentedSection(
             title: Text(l10n.deviceHealthDebugSnapshotList),
-            tiles: _snapshots.isEmpty
+            tiles: visibleSnapshots.isEmpty
                 ? [
-                    SegmentedTile(
-                      leading: const Icon(Icons.inbox_outlined),
-                      title: Text(l10n.deviceHealthDebugNoSnapshots),
-                      description: Text(
-                        l10n.deviceHealthDebugSnapshotsDescription,
+                    CustomSegmentedTile(
+                      child: (_) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 24),
+                        child: EmptyStateView(
+                          compact: true,
+                          icon: Icons.inbox_outlined,
+                          title: l10n.deviceHealthDebugNoSnapshots,
+                          message: l10n.deviceHealthDebugSnapshotsDescription,
+                        ),
                       ),
-                      enabled: false,
                     ),
                   ]
-                : _snapshots.map(_snapshotTile).toList(growable: false),
+                : visibleSnapshots.map(_snapshotTile).toList(growable: false),
           ),
         ],
       ),
     );
   }
 
-  AbstractSegmentedTile _snapshotTile(XiaomiHealthRawSnapshot snapshot) {
+  AbstractSegmentedTile _snapshotTile(HealthSnapshotSummary snapshot) {
     final l10n = AppLocalizations.of(context)!;
-    final reloading = _reloadingSnapshotId == snapshot.id;
     final exporting = _exportingSnapshotId == snapshot.id;
-    final busy = reloading || exporting;
-    final currentDevice = ref.watch(deviceManagerProvider).currentDevice;
-    // Replay parses the captured bytes locally and writes the snapshot under
-    // its original device id. It does not require the wearable to be online,
-    // so an offline snapshot must not render a disabled replay button.
-    final canReplay = snapshot.files.isNotEmpty;
+    final busy = _busy;
     final storedDeviceCode = snapshot.deviceCode?.trim();
     final deviceCode = storedDeviceCode?.isNotEmpty == true
         ? storedDeviceCode
-        : snapshot.deviceId == currentDevice?.addr
-        ? currentDevice?.codename
         : null;
     return SegmentedTile(
       leading: const Icon(Icons.data_object_outlined),
@@ -306,16 +288,6 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
                   )
                 : const Icon(Icons.file_upload_outlined),
             tooltip: l10n.deviceHealthDebugExportTooltip,
-          ),
-          IconButton(
-            onPressed: !canReplay || busy ? null : () => _reload(snapshot),
-            icon: reloading
-                ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.replay_outlined),
-            tooltip: l10n.deviceHealthDebugReload,
           ),
           IconButton(
             onPressed: busy ? null : () => _delete(snapshot),

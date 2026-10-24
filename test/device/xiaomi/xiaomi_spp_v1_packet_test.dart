@@ -68,6 +68,19 @@ void main() {
     expect(packets.single.payload, [1, 2, 3, 4]);
   });
 
+  test('routes fragmented SPP v1 channel 4 to voice rather than fitness', () {
+    final encoded = XiaomiSppV1Codec().encodeProtobuf(
+      Uint8List.fromList([0, 1, 0, 1, 255]),
+      authenticate: true,
+    );
+    encoded[3] = 4;
+    final receiver = XiaomiSppV1Codec();
+    expect(receiver.add(Uint8List.sublistView(encoded, 0, 9)), isEmpty);
+    final packets = receiver.add(Uint8List.sublistView(encoded, 9));
+    expect(packets.single.channel, XiaomiSppV1Channel.voice);
+    expect(packets.single.payload, [0, 1, 0, 1, 255]);
+  });
+
   test('encrypts and decrypts SPP v1 protobuf frames', () {
     final key = Uint8List.fromList(List<int>.generate(16, (index) => index));
     final nonce = Uint8List.fromList([1, 2, 3, 4]);

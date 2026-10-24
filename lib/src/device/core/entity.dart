@@ -28,6 +28,7 @@ class DeviceEntity {
   StreamSubscription<Uint8List>? _incomingSubscription;
   StreamSubscription<bool>? _connectionSubscription;
   StreamSubscription<LinkTraffic>? _trafficSubscription;
+  bool _disposed = false;
 
   Stream<Uint8List> get rawIncomingData => _rawIncomingController.stream;
   Stream<Uint8List> get rawOutgoingData => _rawOutgoingController.stream;
@@ -90,6 +91,7 @@ class DeviceEntity {
   }
 
   void _onIncomingData(Uint8List data) {
+    if (_disposed) return;
     _log.fine('[$id] received ${data.length} bytes');
     _rawIncomingController.add(Uint8List.fromList(data));
     try {
@@ -100,6 +102,7 @@ class DeviceEntity {
   }
 
   void _onConnectionStateChanged(bool connected) {
+    if (_disposed) return;
     _log.info('[$id] transport connection state: $connected');
     if (!connected) {
       _emitDisconnected();
@@ -107,11 +110,14 @@ class DeviceEntity {
   }
 
   void _emitDisconnected() {
+    if (_disposed) return;
     emit(DeviceError(deviceId: id, error: 'transport disconnected'));
     emit(TransportDisconnected(deviceId: id));
   }
 
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     _log.fine('[$id] disposing entity');
     await _incomingSubscription?.cancel();
     await _connectionSubscription?.cancel();

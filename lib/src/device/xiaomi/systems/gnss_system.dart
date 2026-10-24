@@ -11,7 +11,8 @@ import 'package:oronbox/src/device/xiaomi/systems/xiaomi_protocol_trace.dart';
 import 'package:oronbox/src/device/xiaomi/systems/xiaomi_system.dart';
 import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
 import 'package:oronbox/src/features/accounts/services/mi_account_service.dart';
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_gnss.pb.dart'
     as pb_gnss;
 import 'package:oronbox/src/device/xiaomi/protocol/packet/mass_packet.dart';
@@ -87,6 +88,7 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
   XiaomiGnssSystem({
     Dio? dio,
     this.gpsInfoProvider,
+    this.cancelGpsInfo,
     this.defaultSource = 'ublox',
   }) : _dio = dio ?? Dio(),
        _log = getLogger('XiaomiGnssSystem');
@@ -99,6 +101,16 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
   final Dio _dio;
   final Logger _log;
   final XiaomiGpsInfoProvider? gpsInfoProvider;
+  final Future<void> Function()? cancelGpsInfo;
+  bool _disposed = false;
+
+  @override
+  Future<void> dispose() async {
+    _disposed = true;
+    await cancelGpsInfo?.call();
+    await super.dispose();
+  }
+
   final String defaultSource;
   final _pendingDataRequests = Queue<XiaomiGnssRequest>();
   final _pendingRequestKeys = <String>{};
@@ -241,7 +253,7 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
       if (request.needGpsInfo) {
         operation?.step('gps_info_requested');
         final sent = await _sendGpsInfo();
-        if (!sent) operation?.step('location_provider_missing');
+        if (!sent) operation?.step('location_unavailable');
       }
       operation?.complete();
     } catch (error, stackTrace) {
@@ -406,9 +418,7 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
       if (sent) {
         operation?.complete();
       } else {
-        operation?.fail(
-          StateError('GNSS phone location provider is not configured'),
-        );
+        operation?.fail(StateError('GNSS phone location is unavailable'));
       }
     } catch (error, stackTrace) {
       operation?.fail(error);
@@ -421,12 +431,14 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
   }
 
   Future<bool> _sendGpsInfo({XiaomiTraceOperation? operation}) async {
+    if (_disposed) return false;
     final info = await gpsInfoProvider?.call();
+    if (_disposed) return false;
     if (info == null) {
       _log.warning(
-        '[${entity.id}] GNSS requested phone location but no location provider is configured',
+        '[${entity.id}] GNSS requested phone location but no location fix was available',
       );
-      operation?.step('location_provider_missing');
+      operation?.step('location_unavailable');
       return false;
     }
     await component.sendPbPacket(

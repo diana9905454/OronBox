@@ -161,7 +161,16 @@ class XiaomiInfoSystem extends XiaomiPbSystem {
       responseMapper: (p) => p.system.appList,
     );
     final apps = response.list
-        .map((app) => models.AppInfo(packageName: app.id, appName: app.name))
+        .map(
+          (app) => models.AppInfo(
+            packageName: app.id,
+            appName: app.name,
+            hidden: app.hidden,
+            persist: app.persist,
+            canMore: app.canMore,
+            inMore: app.inMore,
+          ),
+        )
         .toList();
     _log.fine('[${entity.id}] installed apps: ${apps.length}');
     entity.emit(AppListUpdated(deviceId: entity.id, apps: apps));
@@ -177,8 +186,14 @@ class XiaomiInfoSystem extends XiaomiPbSystem {
           appList: pb_system.App_List(
             list: apps
                 .map(
-                  (app) =>
-                      pb_system.App(id: app.packageName, name: app.appName),
+                  (app) => pb_system.App(
+                    id: app.packageName,
+                    name: app.appName,
+                    hidden: app.hidden,
+                    persist: app.persist,
+                    canMore: app.canMore,
+                    inMore: app.inMore,
+                  ),
                 )
                 .toList(growable: false),
           ),

@@ -142,4 +142,13 @@ skills-lock.json
 server
 /.kimi-code/
 CONTEXT.md
-tmp/script.md
+tmp/
+
+# Local per-build client attestation configuration
+/config/integrity_defines.local.json
+
+# Local documentation & research
+docs/
+
+# Pinned dependencies for vendored WASM runtime backends.
+!/packages/wasm_run/native/locks/*.lock

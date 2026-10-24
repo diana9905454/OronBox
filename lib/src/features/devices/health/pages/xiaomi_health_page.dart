@@ -41,17 +41,7 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
     _autoSync = XiaomiSyncPreferences.healthAutoSync;
     healthDataRevision.addListener(_onHealthDataPersisted);
 
-    final cached =
-        ref.read(deviceManagerProvider.notifier).cachedXiaomiHealthData;
-    if (cached != null) {
-      _data = cached;
-      _loading = false;
-      _cardBuildersForRender = _cardBuilders(cached);
-      unawaited(_load(silent: true));
-    } else {
-      _loading = true;
-      unawaited(_load(silent: false));
-    }
+    unawaited(_load(silent: false));
   }
 
   @override
@@ -83,9 +73,10 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
       });
     }
     try {
-      final data = await ref
-          .read(deviceManagerProvider.notifier)
-          .loadXiaomiHealthData();
+      final deviceId = ref.read(deviceManagerProvider).currentDevice?.addr;
+      final data = deviceId == null
+          ? const XiaomiHealthData()
+          : await HealthStore().overview(deviceId);
       unawaited(updateHealthStatusSurface(healthStatusSurfaceData(data)));
       if (!mounted) return;
       _showData(data);
@@ -113,7 +104,8 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
         updateHealthStatusSurface(healthStatusSurfaceData(result.data)),
       );
       if (!mounted) return;
-      _showData(result.data);
+      final deviceId = ref.read(deviceManagerProvider).currentDevice?.addr;
+      if (deviceId != null) _showData(await HealthStore().overview(deviceId));
     } catch (error) {
       if (!mounted) return;
       setState(() => _error = _healthErrorMessage(error));
@@ -136,7 +128,11 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
     if (data == null) return;
     context.push(
       '/devices/velaos-health/detail',
-      extra: XiaomiHealthDetailArgs(metric: metric, data: data),
+      extra: XiaomiHealthDetailArgs(
+        metric: metric,
+        data: data,
+        deviceId: ref.read(deviceManagerProvider).currentDevice?.addr,
+      ),
     );
   }
 
@@ -152,12 +148,11 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
         secondary: true,
         title: Text(l10n.deviceHealthTitle),
         actions: [
-          if (ref.watch(xiaomiHealthDebugModeProvider))
-            IconButton(
-              onPressed: () => context.push('/devices/velaos-health/debug'),
-              icon: const Icon(Icons.build_outlined),
-              tooltip: l10n.deviceHealthDebugModeTitle,
-            ),
+          IconButton(
+            onPressed: () => context.push('/devices/velaos-health/debug'),
+            icon: const Icon(Icons.data_object_outlined),
+            tooltip: l10n.deviceHealthDebugSnapshots,
+          ),
         ],
       ),
       body: CustomScrollView(
@@ -319,23 +314,6 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
         ),
       );
     }
-    final heartHealthRecords = _abnormalRecords(value, const {
-      HealthAbnormalHealthKind.highHeartRate,
-      HealthAbnormalHealthKind.lowHeartRate,
-      HealthAbnormalHealthKind.irregularHeartbeat,
-    });
-    if (heartHealthRecords.isNotEmpty) {
-      cards.add(
-        () => HealthAbnormalHealthCard(
-          title: l10n.deviceHealthHeartHealthMonitoring,
-          records: heartHealthRecords,
-          labelFor: (record) => _abnormalLabel(l10n, record),
-          valueFor: (record) => _abnormalValue(l10n, record),
-          recordLabel: l10n.deviceHealthRecordCount,
-          onPressed: () => _openDetail(XiaomiHealthMetric.heartRate),
-        ),
-      );
-    }
     if (capabilities.bloodOxygen) {
       cards.add(
         () => _metricCard(
@@ -354,23 +332,6 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
         ),
       );
     }
-    final lowBloodOxygenRecords = _abnormalRecords(value, const {
-      HealthAbnormalHealthKind.lowBloodOxygen,
-    });
-    if (lowBloodOxygenRecords.isNotEmpty) {
-      cards.add(
-        () => HealthAbnormalHealthCard(
-          title: l10n.deviceHealthLowBloodOxygen,
-          records: lowBloodOxygenRecords,
-          labelFor: (record) => _abnormalLabel(l10n, record),
-          valueFor: (record) => _abnormalValue(l10n, record),
-          recordLabel: l10n.deviceHealthRecordCount,
-          icon: Icons.bloodtype_outlined,
-          color: context.appColors.healthBloodOxygen,
-          onPressed: () => _openDetail(XiaomiHealthMetric.bloodOxygen),
-        ),
-      );
-    }
     if (capabilities.stress) {
       cards.add(
         () => _metricCard(
@@ -386,23 +347,6 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
             value.latestDay?.maxStress,
             '',
           ),
-        ),
-      );
-    }
-    final highStressRecords = _abnormalRecords(value, const {
-      HealthAbnormalHealthKind.highStress,
-    });
-    if (highStressRecords.isNotEmpty) {
-      cards.add(
-        () => HealthAbnormalHealthCard(
-          title: l10n.deviceHealthHighStress,
-          records: highStressRecords,
-          labelFor: (record) => _abnormalLabel(l10n, record),
-          valueFor: (record) => _abnormalValue(l10n, record),
-          recordLabel: l10n.deviceHealthRecordCount,
-          icon: Icons.spa_outlined,
-          color: context.appColors.healthStress,
-          onPressed: () => _openDetail(XiaomiHealthMetric.stress),
         ),
       );
     }
@@ -436,43 +380,6 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
       );
     }
     return cards;
-  }
-
-  List<HealthAbnormalHealthRecord> _abnormalRecords(
-    XiaomiHealthData data,
-    Set<HealthAbnormalHealthKind> kinds,
-  ) => data.abnormalHealthRecords
-      .where((record) => kinds.contains(record.kind))
-      .toList(growable: false);
-
-  String _abnormalLabel(
-    AppLocalizations l10n,
-    HealthAbnormalHealthRecord record,
-  ) => switch (record.kind) {
-    HealthAbnormalHealthKind.highHeartRate => l10n.deviceHealthHeartRateHigh,
-    HealthAbnormalHealthKind.lowHeartRate => l10n.deviceHealthHeartRateLow,
-    HealthAbnormalHealthKind.lowBloodOxygen => l10n.deviceHealthLowBloodOxygen,
-    HealthAbnormalHealthKind.highStress => l10n.deviceHealthHighStress,
-    HealthAbnormalHealthKind.irregularHeartbeat =>
-      l10n.deviceHealthIrregularHeartbeat,
-  };
-
-  String _abnormalValue(
-    AppLocalizations l10n,
-    HealthAbnormalHealthRecord record,
-  ) {
-    final value = record.value;
-    if (record.kind == HealthAbnormalHealthKind.irregularHeartbeat) {
-      return l10n.deviceHealthDetected;
-    }
-    if (value == null) return '—';
-    return switch (record.kind) {
-      HealthAbnormalHealthKind.highHeartRate ||
-      HealthAbnormalHealthKind.lowHeartRate => '$value bpm',
-      HealthAbnormalHealthKind.lowBloodOxygen => '$value%',
-      HealthAbnormalHealthKind.highStress => '$value',
-      HealthAbnormalHealthKind.irregularHeartbeat => l10n.deviceHealthDetected,
-    };
   }
 
   HealthMetricCard _metricCard({

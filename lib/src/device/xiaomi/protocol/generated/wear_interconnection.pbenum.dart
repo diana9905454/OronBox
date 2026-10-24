@@ -169,6 +169,24 @@ class Interconnection_InterconnectionID extends $pb.ProtobufEnum {
   static const Interconnection_InterconnectionID RESPONSE_PROPS =
       Interconnection_InterconnectionID._(
           39, _omitEnumNames ? '' : 'RESPONSE_PROPS');
+  static const Interconnection_InterconnectionID REQUEST_GAME_CMD =
+      Interconnection_InterconnectionID._(
+          49, _omitEnumNames ? '' : 'REQUEST_GAME_CMD');
+  static const Interconnection_InterconnectionID GET_GAME_STATUS =
+      Interconnection_InterconnectionID._(
+          50, _omitEnumNames ? '' : 'GET_GAME_STATUS');
+  static const Interconnection_InterconnectionID REQUEST_GAME_INFO =
+      Interconnection_InterconnectionID._(
+          51, _omitEnumNames ? '' : 'REQUEST_GAME_INFO');
+  static const Interconnection_InterconnectionID SEND_GAME_INFO =
+      Interconnection_InterconnectionID._(
+          52, _omitEnumNames ? '' : 'SEND_GAME_INFO');
+  static const Interconnection_InterconnectionID SEND_GAME_SCENE =
+      Interconnection_InterconnectionID._(
+          53, _omitEnumNames ? '' : 'SEND_GAME_SCENE');
+  static const Interconnection_InterconnectionID SEND_GAME_EVENT =
+      Interconnection_InterconnectionID._(
+          54, _omitEnumNames ? '' : 'SEND_GAME_EVENT');
 
   static const $core.List<Interconnection_InterconnectionID> values =
       <Interconnection_InterconnectionID>[
@@ -212,14 +230,90 @@ class Interconnection_InterconnectionID extends $pb.ProtobufEnum {
     RESPONSE_DEVICE_CERT,
     REQUEST_PROPS,
     RESPONSE_PROPS,
+    REQUEST_GAME_CMD,
+    GET_GAME_STATUS,
+    REQUEST_GAME_INFO,
+    SEND_GAME_INFO,
+    SEND_GAME_SCENE,
+    SEND_GAME_EVENT,
   ];
 
   static final $core.List<Interconnection_InterconnectionID?> _byValue =
-      $pb.ProtobufEnum.$_initByValueList(values, 39);
+      $pb.ProtobufEnum.$_initByValueList(values, 54);
   static Interconnection_InterconnectionID? valueOf($core.int value) =>
       value < 0 || value >= _byValue.length ? null : _byValue[value];
 
   const Interconnection_InterconnectionID._(super.value, super.name);
+}
+
+class GameModeCmd_CmdType extends $pb.ProtobufEnum {
+  static const GameModeCmd_CmdType START =
+      GameModeCmd_CmdType._(1, _omitEnumNames ? '' : 'START');
+  static const GameModeCmd_CmdType PAUSE =
+      GameModeCmd_CmdType._(2, _omitEnumNames ? '' : 'PAUSE');
+  static const GameModeCmd_CmdType RESUME =
+      GameModeCmd_CmdType._(3, _omitEnumNames ? '' : 'RESUME');
+  static const GameModeCmd_CmdType STOP =
+      GameModeCmd_CmdType._(4, _omitEnumNames ? '' : 'STOP');
+
+  static const $core.List<GameModeCmd_CmdType> values = <GameModeCmd_CmdType>[
+    START,
+    PAUSE,
+    RESUME,
+    STOP,
+  ];
+
+  static final $core.List<GameModeCmd_CmdType?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 4);
+  static GameModeCmd_CmdType? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const GameModeCmd_CmdType._(super.value, super.name);
+}
+
+class GameModeCmdResponse_Status extends $pb.ProtobufEnum {
+  static const GameModeCmdResponse_Status SUCCESS =
+      GameModeCmdResponse_Status._(0, _omitEnumNames ? '' : 'SUCCESS');
+  static const GameModeCmdResponse_Status FAIL =
+      GameModeCmdResponse_Status._(1, _omitEnumNames ? '' : 'FAIL');
+  static const GameModeCmdResponse_Status EXCLUSION =
+      GameModeCmdResponse_Status._(2, _omitEnumNames ? '' : 'EXCLUSION');
+
+  static const $core.List<GameModeCmdResponse_Status> values =
+      <GameModeCmdResponse_Status>[
+    SUCCESS,
+    FAIL,
+    EXCLUSION,
+  ];
+
+  static final $core.List<GameModeCmdResponse_Status?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static GameModeCmdResponse_Status? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const GameModeCmdResponse_Status._(super.value, super.name);
+}
+
+class GameModeState_State extends $pb.ProtobufEnum {
+  static const GameModeState_State NOT_IN_GAME_MODE =
+      GameModeState_State._(0, _omitEnumNames ? '' : 'NOT_IN_GAME_MODE');
+  static const GameModeState_State IN_GAME_MODE =
+      GameModeState_State._(1, _omitEnumNames ? '' : 'IN_GAME_MODE');
+  static const GameModeState_State PAUSED =
+      GameModeState_State._(2, _omitEnumNames ? '' : 'PAUSED');
+
+  static const $core.List<GameModeState_State> values = <GameModeState_State>[
+    NOT_IN_GAME_MODE,
+    IN_GAME_MODE,
+    PAUSED,
+  ];
+
+  static final $core.List<GameModeState_State?> _byValue =
+      $pb.ProtobufEnum.$_initByValueList(values, 2);
+  static GameModeState_State? valueOf($core.int value) =>
+      value < 0 || value >= _byValue.length ? null : _byValue[value];
+
+  const GameModeState_State._(super.value, super.name);
 }
 
 const $core.bool _omitEnumNames =

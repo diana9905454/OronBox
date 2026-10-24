@@ -544,6 +544,12 @@ class WatchFaceItem extends $pb.GeneratedMessage {
     $0.ImageFormat? supportImageFormat,
     $core.Iterable<$core.String>? backgroundImageList,
     $core.Iterable<WatchFaceSlot_Item>? slotItemList,
+    $core.List<$core.int>? foregroundColor,
+    $core.int? styleColorIndex,
+    $core.bool? supportImageGroup,
+    WatchFaceImage_GroupList? imageGroupList,
+    $core.bool? onTrial,
+    $core.int? supportVideoFormat,
   }) {
     final result = create();
     if (id != null) result.id = id;
@@ -561,6 +567,13 @@ class WatchFaceItem extends $pb.GeneratedMessage {
     if (backgroundImageList != null)
       result.backgroundImageList.addAll(backgroundImageList);
     if (slotItemList != null) result.slotItemList.addAll(slotItemList);
+    if (foregroundColor != null) result.foregroundColor = foregroundColor;
+    if (styleColorIndex != null) result.styleColorIndex = styleColorIndex;
+    if (supportImageGroup != null) result.supportImageGroup = supportImageGroup;
+    if (imageGroupList != null) result.imageGroupList = imageGroupList;
+    if (onTrial != null) result.onTrial = onTrial;
+    if (supportVideoFormat != null)
+      result.supportVideoFormat = supportVideoFormat;
     return result;
   }
 
@@ -594,7 +607,17 @@ class WatchFaceItem extends $pb.GeneratedMessage {
         enumValues: $0.ImageFormat.values)
     ..pPS(12, _omitFieldNames ? '' : 'backgroundImageList')
     ..pPM<WatchFaceSlot_Item>(13, _omitFieldNames ? '' : 'slotItemList',
-        subBuilder: WatchFaceSlot_Item.create);
+        subBuilder: WatchFaceSlot_Item.create)
+    ..a<$core.List<$core.int>>(
+        14, _omitFieldNames ? '' : 'foregroundColor', $pb.PbFieldType.OY)
+    ..aI(15, _omitFieldNames ? '' : 'styleColorIndex',
+        fieldType: $pb.PbFieldType.OU3)
+    ..aOB(16, _omitFieldNames ? '' : 'supportImageGroup')
+    ..aOM<WatchFaceImage_GroupList>(17, _omitFieldNames ? '' : 'imageGroupList',
+        subBuilder: WatchFaceImage_GroupList.create)
+    ..aOB(18, _omitFieldNames ? '' : 'onTrial')
+    ..aI(20, _omitFieldNames ? '' : 'supportVideoFormat',
+        fieldType: $pb.PbFieldType.OU3);
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
   WatchFaceItem clone() => deepCopy();
@@ -713,6 +736,62 @@ class WatchFaceItem extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(13)
   $pb.PbList<WatchFaceSlot_Item> get slotItemList => $_getList(12);
+
+  @$pb.TagNumber(14)
+  $core.List<$core.int> get foregroundColor => $_getN(13);
+  @$pb.TagNumber(14)
+  set foregroundColor($core.List<$core.int> value) => $_setBytes(13, value);
+  @$pb.TagNumber(14)
+  $core.bool hasForegroundColor() => $_has(13);
+  @$pb.TagNumber(14)
+  void clearForegroundColor() => $_clearField(14);
+
+  @$pb.TagNumber(15)
+  $core.int get styleColorIndex => $_getIZ(14);
+  @$pb.TagNumber(15)
+  set styleColorIndex($core.int value) => $_setUnsignedInt32(14, value);
+  @$pb.TagNumber(15)
+  $core.bool hasStyleColorIndex() => $_has(14);
+  @$pb.TagNumber(15)
+  void clearStyleColorIndex() => $_clearField(15);
+
+  @$pb.TagNumber(16)
+  $core.bool get supportImageGroup => $_getBF(15);
+  @$pb.TagNumber(16)
+  set supportImageGroup($core.bool value) => $_setBool(15, value);
+  @$pb.TagNumber(16)
+  $core.bool hasSupportImageGroup() => $_has(15);
+  @$pb.TagNumber(16)
+  void clearSupportImageGroup() => $_clearField(16);
+
+  @$pb.TagNumber(17)
+  WatchFaceImage_GroupList get imageGroupList => $_getN(16);
+  @$pb.TagNumber(17)
+  set imageGroupList(WatchFaceImage_GroupList value) => $_setField(17, value);
+  @$pb.TagNumber(17)
+  $core.bool hasImageGroupList() => $_has(16);
+  @$pb.TagNumber(17)
+  void clearImageGroupList() => $_clearField(17);
+  @$pb.TagNumber(17)
+  WatchFaceImage_GroupList ensureImageGroupList() => $_ensure(16);
+
+  @$pb.TagNumber(18)
+  $core.bool get onTrial => $_getBF(17);
+  @$pb.TagNumber(18)
+  set onTrial($core.bool value) => $_setBool(17, value);
+  @$pb.TagNumber(18)
+  $core.bool hasOnTrial() => $_has(17);
+  @$pb.TagNumber(18)
+  void clearOnTrial() => $_clearField(18);
+
+  @$pb.TagNumber(20)
+  $core.int get supportVideoFormat => $_getIZ(18);
+  @$pb.TagNumber(20)
+  set supportVideoFormat($core.int value) => $_setUnsignedInt32(18, value);
+  @$pb.TagNumber(20)
+  $core.bool hasSupportVideoFormat() => $_has(18);
+  @$pb.TagNumber(20)
+  void clearSupportVideoFormat() => $_clearField(20);
 }
 
 class WatchFaceInfo_List extends $pb.GeneratedMessage {

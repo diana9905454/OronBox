@@ -52,6 +52,7 @@ extension _HealthDetailVitalsSection on _XiaomiHealthDetailPageState {
     BuildContext context,
     HealthAbnormalHealthKind kind,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final records = _abnormalRecords({kind});
     final content = <Widget>[_series(context)];
     final summary = _periodVitalsCard(context, args.metric);
@@ -67,7 +68,7 @@ extension _HealthDetailVitalsSection on _XiaomiHealthDetailPageState {
           _abnormalEventSection(
             context,
             records,
-            _abnormalLabelForKind(AppLocalizations.of(context)!, kind),
+            _abnormalLabelForKind(l10n, kind),
             kind,
           ),
         );
@@ -357,57 +358,184 @@ extension _HealthDetailVitalsSection on _XiaomiHealthDetailPageState {
     HealthAbnormalHealthKind kind,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    final sorted = [...records]
-      ..sort((left, right) => right.timestamp.compareTo(left.timestamp));
+    final episodes = _groupAbnormalEpisodes(records, kind);
+    if (episodes.isEmpty) return const SizedBox.shrink();
+
+    final theme = Theme.of(context);
+    final indicatorColor = _abnormalColor(context, kind);
+
     return _DetailCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(_abnormalIcon(kind), color: _abnormalColor(context, kind)),
-              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   title,
-                  style: Theme.of(context).textTheme.titleMedium,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-              Text('${sorted.length} ${l10n.deviceHealthRecordCount}'),
+              Text(
+                l10n.deviceHealthSleepWakeCount(episodes.length),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          for (final (index, record) in sorted.indexed) ...[
-            if (index > 0) const SizedBox(height: 12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: Text(
-                    _abnormalValue(record, l10n),
-                    style: Theme.of(context).textTheme.titleSmall,
+          for (final (index, episode) in episodes.indexed) ...[
+            if (index > 0)
+              Divider(
+                height: 16,
+                thickness: 0.5,
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _formatEpisodeValue(episode, l10n),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: indicatorColor,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Flexible(
-                  child: Text(
-                    _abnormalDetails(record),
-                    textAlign: TextAlign.end,
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Text(
+                    _formatEpisodeTime(episode),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Icon(
-                  Icons.chevron_right,
-                  size: 20,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ],
       ),
     );
+  }
+
+  List<_AbnormalHealthEpisode> _groupAbnormalEpisodes(
+    List<HealthAbnormalHealthRecord> records,
+    HealthAbnormalHealthKind kind,
+  ) {
+    if (records.isEmpty) return const [];
+    // Sort chronological first so segment boundaries and point-clustering
+    // follow the true event order, aligning with Mi Fitness AbnormalRecord
+    // segmentation and time-window separation.
+    final sorted = [...records]
+      ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    final groups = <List<HealthAbnormalHealthRecord>>[];
+    for (final record in sorted) {
+      if (groups.isEmpty) {
+        groups.add([record]);
+        continue;
+      }
+      final currentGroup = groups.last;
+      final prev = currentGroup.last;
+
+      final prevHasSegment =
+          prev.startedAt != null &&
+          prev.endedAt != null &&
+          !prev.startedAt!.isAtSameMomentAs(prev.endedAt!);
+      final currHasSegment =
+          record.startedAt != null &&
+          record.endedAt != null &&
+          !record.startedAt!.isAtSameMomentAs(record.endedAt!);
+
+      if (prevHasSegment && currHasSegment) {
+        // Both declare explicit segment ranges: check if they belong to the same episode
+        final sameSegment =
+            prev.startedAt!.isAtSameMomentAs(record.startedAt!) &&
+            prev.endedAt!.isAtSameMomentAs(record.endedAt!) &&
+            prev.threshold == record.threshold;
+        if (sameSegment) {
+          currentGroup.add(record);
+        } else {
+          groups.add([record]);
+        }
+      } else {
+        // Either record lacks segment markers: partition by temporal proximity (<= 5 minutes gap)
+        // and identical threshold, matching Mi Fitness's event-clustering convention.
+        final diff = record.timestamp.difference(prev.timestamp).abs();
+        final sameThreshold = prev.threshold == record.threshold;
+        if (diff <= const Duration(minutes: 5) && sameThreshold) {
+          currentGroup.add(record);
+        } else {
+          groups.add([record]);
+        }
+      }
+    }
+
+    final episodes = <_AbnormalHealthEpisode>[];
+    for (final group in groups) {
+      final first = group.first;
+      final last = group.last;
+      final start = first.startedAt ?? first.timestamp;
+      final end = first.endedAt ?? last.timestamp;
+      episodes.add(
+        _AbnormalHealthEpisode(
+          kind: kind,
+          startedAt: start,
+          endedAt: end.isBefore(start) ? start : end,
+          threshold: first.threshold,
+          records: group,
+        ),
+      );
+    }
+    episodes.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    return episodes;
+  }
+
+  String _formatEpisodeValue(
+    _AbnormalHealthEpisode episode,
+    AppLocalizations l10n,
+  ) {
+    if (episode.kind == HealthAbnormalHealthKind.irregularHeartbeat) {
+      return l10n.deviceHealthDetected;
+    }
+    final peak = episode.peakValue;
+    if (peak == null) return '—';
+    final unit = switch (episode.kind) {
+      HealthAbnormalHealthKind.highHeartRate ||
+      HealthAbnormalHealthKind.lowHeartRate => ' bpm',
+      HealthAbnormalHealthKind.lowBloodOxygen => '%',
+      HealthAbnormalHealthKind.highStress => '',
+      HealthAbnormalHealthKind.irregularHeartbeat => '',
+    };
+    final min = episode.minValue;
+    final max = episode.maxValue;
+    if (min != null && max != null && min != max) {
+      return '$min - $max$unit';
+    }
+    return '$peak$unit';
+  }
+
+  String _formatEpisodeTime(_AbnormalHealthEpisode episode) {
+    final start = episode.startedAt.toLocal();
+    final end = episode.endedAt.toLocal();
+    final isDay = _period == HealthChartPeriod.day;
+    String hhmm(DateTime dt) =>
+        '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    String mmddHhmm(DateTime dt) =>
+        '${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${hhmm(dt)}';
+
+    if (start.year == end.year && start.month == end.month && start.day == end.day) {
+      if (hhmm(start) == hhmm(end)) {
+        return isDay ? hhmm(start) : mmddHhmm(start);
+      }
+      return isDay
+          ? '${hhmm(start)} – ${hhmm(end)}'
+          : '${mmddHhmm(start)} – ${hhmm(end)}';
+    }
+    return '${mmddHhmm(start)} – ${mmddHhmm(end)}';
   }
 
   List<HealthAbnormalHealthRecord> _abnormalRecords(
@@ -427,18 +555,10 @@ extension _HealthDetailVitalsSection on _XiaomiHealthDetailPageState {
   ) => switch (kind) {
     HealthAbnormalHealthKind.highHeartRate => l10n.deviceHealthHeartRateHigh,
     HealthAbnormalHealthKind.lowHeartRate => l10n.deviceHealthHeartRateLow,
-    HealthAbnormalHealthKind.lowBloodOxygen => l10n.deviceHealthLowBloodOxygen,
-    HealthAbnormalHealthKind.highStress => l10n.deviceHealthHighStress,
     HealthAbnormalHealthKind.irregularHeartbeat =>
       l10n.deviceHealthIrregularHeartbeat,
-  };
-
-  IconData _abnormalIcon(HealthAbnormalHealthKind kind) => switch (kind) {
-    HealthAbnormalHealthKind.highHeartRate ||
-    HealthAbnormalHealthKind.highStress => Icons.trending_up,
-    HealthAbnormalHealthKind.lowHeartRate ||
-    HealthAbnormalHealthKind.lowBloodOxygen => Icons.trending_down,
-    HealthAbnormalHealthKind.irregularHeartbeat => Icons.favorite_outline,
+    HealthAbnormalHealthKind.lowBloodOxygen => l10n.deviceHealthLowBloodOxygen,
+    HealthAbnormalHealthKind.highStress => l10n.deviceHealthHighStress,
   };
 
   Color _abnormalColor(BuildContext context, HealthAbnormalHealthKind kind) =>
@@ -451,56 +571,46 @@ extension _HealthDetailVitalsSection on _XiaomiHealthDetailPageState {
           context.appColors.healthBloodOxygen,
         HealthAbnormalHealthKind.highStress => context.appColors.healthStress,
       };
+}
 
-  String _abnormalValue(
-    HealthAbnormalHealthRecord record,
-    AppLocalizations l10n,
-  ) {
-    final value = record.value;
-    if (record.kind == HealthAbnormalHealthKind.irregularHeartbeat) {
-      final start = record.startedAt ?? record.timestamp;
-      final end = record.endedAt;
-      return end == null
-          ? l10n.deviceHealthDetected
-          : _durationBetween(start, end);
-    }
-    if (value == null) return '—';
-    return switch (record.kind) {
-      HealthAbnormalHealthKind.highHeartRate ||
-      HealthAbnormalHealthKind.lowHeartRate => '$value bpm',
-      HealthAbnormalHealthKind.lowBloodOxygen => '$value%',
-      HealthAbnormalHealthKind.highStress => '$value',
-      HealthAbnormalHealthKind.irregularHeartbeat => l10n.deviceHealthDetected,
-    };
-  }
+class _AbnormalHealthEpisode {
+  const _AbnormalHealthEpisode({
+    required this.kind,
+    required this.startedAt,
+    required this.endedAt,
+    required this.threshold,
+    required this.records,
+  });
 
-  String _abnormalDetails(HealthAbnormalHealthRecord record) {
-    final start = record.startedAt ?? record.timestamp;
-    final end = record.endedAt;
-    final time = end == null
-        ? _sleepDateTime(start)
-        : '${_sleepDateTime(start)} – ${_sleepDateTime(end)}';
-    if (record.kind == HealthAbnormalHealthKind.irregularHeartbeat) {
-      return end == null ? time : '$time · ${_durationBetween(start, end)}';
-    }
-    final threshold = record.threshold;
-    if (threshold == null) return time;
-    final unit = switch (record.kind) {
+  final HealthAbnormalHealthKind kind;
+  final DateTime startedAt;
+  final DateTime endedAt;
+  final int? threshold;
+  final List<HealthAbnormalHealthRecord> records;
+
+  int? get peakValue {
+    final values = records.map((r) => r.value).whereType<int>();
+    if (values.isEmpty) return null;
+    return switch (kind) {
       HealthAbnormalHealthKind.highHeartRate ||
-      HealthAbnormalHealthKind.lowHeartRate => 'bpm',
-      HealthAbnormalHealthKind.lowBloodOxygen => '%',
-      HealthAbnormalHealthKind.highStress => '',
-      HealthAbnormalHealthKind.irregularHeartbeat => '',
-    };
-    final operator = switch (record.kind) {
-      HealthAbnormalHealthKind.highHeartRate ||
-      HealthAbnormalHealthKind.highStress => '≥',
+      HealthAbnormalHealthKind.highStress => values.reduce(math.max),
       HealthAbnormalHealthKind.lowHeartRate ||
-      HealthAbnormalHealthKind.lowBloodOxygen => '≤',
-      HealthAbnormalHealthKind.irregularHeartbeat => '',
+      HealthAbnormalHealthKind.lowBloodOxygen => values.reduce(math.min),
+      HealthAbnormalHealthKind.irregularHeartbeat => null,
     };
-    return '$time · $operator $threshold$unit';
   }
+
+  int? get minValue {
+    final values = records.map((r) => r.value).whereType<int>();
+    return values.isEmpty ? null : values.reduce(math.min);
+  }
+
+  int? get maxValue {
+    final values = records.map((r) => r.value).whereType<int>();
+    return values.isEmpty ? null : values.reduce(math.max);
+  }
+
+  Duration get duration => endedAt.difference(startedAt);
 
 
 }

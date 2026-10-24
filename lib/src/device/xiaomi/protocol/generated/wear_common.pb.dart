@@ -134,6 +134,7 @@ class Timezone extends $pb.GeneratedMessage {
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Timezone>(create);
   static Timezone? _defaultInstance;
 
+  /// Firmware uses signed ZigZag values in 15-minute units.
   @$pb.TagNumber(1)
   $core.int get offset => $_getIZ(0);
   @$pb.TagNumber(1)

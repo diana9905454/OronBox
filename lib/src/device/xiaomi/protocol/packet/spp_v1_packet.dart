@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:oronbox/src/device/xiaomi/utils/auth_utils.dart';
 import 'package:oronbox/src/device/xiaomi/protocol/crypto/miwear_crypto.dart';
 
-enum XiaomiSppV1Channel { version, protobuf, activity, data }
+enum XiaomiSppV1Channel { version, protobuf, activity, voice, data }
 
 class XiaomiSppV1Packet {
   const XiaomiSppV1Packet({
@@ -173,6 +173,7 @@ class XiaomiSppV1Codec {
     XiaomiSppV1Channel.version => 0,
     XiaomiSppV1Channel.protobuf => 2,
     XiaomiSppV1Channel.activity => 3,
+    XiaomiSppV1Channel.voice => 4,
     XiaomiSppV1Channel.data => 5,
   };
 
@@ -180,6 +181,7 @@ class XiaomiSppV1Codec {
     0 => XiaomiSppV1Channel.version,
     1 || 2 => XiaomiSppV1Channel.protobuf,
     3 => XiaomiSppV1Channel.activity,
+    4 => XiaomiSppV1Channel.voice,
     5 => XiaomiSppV1Channel.data,
     _ => XiaomiSppV1Channel.activity,
   };
