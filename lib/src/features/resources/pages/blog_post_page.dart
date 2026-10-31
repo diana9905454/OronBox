@@ -109,9 +109,13 @@ class _BlogPostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: EdgeInsets.only(
+        bottom: bottomContentPadding(context, extra: 24),
+      ),
       children: [
         _BlogPostHeader(post: post),
         PageContainer(
+          safeArea: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: _contentSegments(context),
@@ -129,9 +133,13 @@ class _BlogPostPreviewHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
+    padding: EdgeInsets.only(bottom: bottomContentPadding(context, extra: 24)),
     children: [
       _BlogPostHeader(post: post),
-      PageContainer(child: Column(children: [const LinearProgressIndicator()])),
+      PageContainer(
+        safeArea: false,
+        child: Column(children: [const LinearProgressIndicator()]),
+      ),
     ],
   );
 }

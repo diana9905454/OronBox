@@ -46,6 +46,44 @@ void main() {
     expect(find.text('Ready'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'builds child synchronously when private state is already ready',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({'app_locale': 'en'});
+      await SharedPrefsService.instance.init();
+      await SharedPrefsService.instance.reload();
+      final storage = _ReadyStore();
+      PrivateAppState.instanceForTesting = storage;
+      addTearDown(() => PrivateAppState.instanceForTesting = null);
+      var built = false;
+      await tester.pumpWidget(
+        ProviderScope(
+          child: PrivateStateGate(
+            child: Builder(
+              builder: (_) {
+                built = true;
+                return const MaterialApp(
+                  home: Scaffold(body: Text('Instant Ready')),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+      expect(built, true);
+      expect(find.text('Instant Ready'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    },
+  );
+}
+
+class _ReadyStore extends PrivateAppState {
+  @override
+  bool get isReady => true;
+
+  @override
+  Future<void> initialize() async {}
 }
 
 class _UnavailableStore extends PrivateAppState {

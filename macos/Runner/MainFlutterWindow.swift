@@ -1,6 +1,7 @@
 import Cocoa
 import FlutterMacOS
 import desktop_multi_window
+import window_manager
 
 class MainFlutterWindow: NSWindow {
   private var rfcommChannel: MacOSRfcommChannel?
@@ -76,5 +77,10 @@ class MainFlutterWindow: NSWindow {
     if noGui {
       orderOut(nil)
     }
+  }
+
+  override public func order(_ place: NSWindow.OrderingMode, relativeTo otherWin: Int) {
+    super.order(place, relativeTo: otherWin)
+    hiddenWindowAtLaunch()
   }
 }

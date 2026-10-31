@@ -54,6 +54,7 @@ class PrivateAppState {
   Map<String, Object?> _values = {};
   Future<void>? _initializing;
   bool _ready = false;
+  bool get isReady => _ready;
 
   Future<void> initialize() {
     if (_ready) return Future.value();

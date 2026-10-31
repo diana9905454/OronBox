@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
 
 import 'package:material_ui/material_ui.dart';
@@ -16,6 +19,7 @@ import 'package:oronbox/src/app/integrations/app_link_handler.dart';
 import 'package:oronbox/src/features/debug/pages/debug_window_app.dart';
 import 'package:oronbox/src/app/widgets/private_state_gate.dart';
 import 'package:oronbox/src/features/plugins/pages/plugin_window_app.dart';
+import 'package:oronbox/src/features/devices/health/health_store.dart';
 
 void main(List<String> args) async {
   final startupStopwatch = Stopwatch()..start();
@@ -28,7 +32,27 @@ void main(List<String> args) async {
   };
   await initLogging(arguments: args, process: process);
   installGlobalErrorLogging();
+  if (defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
+      ),
+    );
+  }
   await SharedPrefsService.instance.init();
+  try {
+    await PrivateAppState.instance.initialize();
+  } catch (_) {
+    // If keychain access requires user authorization or fails,
+    // PrivateStateGate handles the retry gate.
+  }
+  if (window.role == OronBoxWindowRole.main) {
+    await HealthStore().resetForStorageMigration();
+  }
   if (!await initializeWindowCoordinator(window, launchArguments: args)) return;
   if (window.role == OronBoxWindowRole.main) {
     await requestBluetoothPermissionOnStartup();
