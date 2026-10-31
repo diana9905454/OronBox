@@ -138,6 +138,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           ),
         );
       }
+      if (event case XiaomiAudioRecordReceived(:final id, :final bytes)) {
+        _events.add(
+          CommandEvent(
+            'device.xiaomi.audio_record.received',
+            data: {
+              'deviceId': event.deviceId,
+              'id': id,
+              'bytes': bytes.toList(growable: false),
+            },
+          ),
+        );
+      }
       if (event is XiaomiGnssAccountRequired) {
         _markXiaomiAccountSignedOut();
         _events.add(
@@ -649,6 +661,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'creator.review.astrobox' => _creatorRequest(
       'GET',
       '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox',
+    ),
+    'creator.review.astrobox.reopen' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/reopen',
     ),
     'creator.review.astrobox.comments' => _creatorRequest(
       'GET',
@@ -1806,6 +1822,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       bytes,
       title: params['title']?.toString() ?? 'Unknown',
       artist: params['artist']?.toString() ?? 'Unknown',
+      album: params['album']?.toString(),
+      durationSecs:
+          (params['duration'] as num?)?.toInt() ??
+          (params['durationSecs'] as num?)?.toInt(),
       onProgress: (progress) =>
           _events.add(CommandEvent('progress', data: {'progress': progress})),
     );

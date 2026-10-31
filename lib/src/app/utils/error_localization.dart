@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
@@ -142,6 +144,15 @@ const oronBoxKnownErrorCodes = <String>{
 };
 
 String localizedErrorMessage(AppLocalizations l10n, Object? error) {
+  if (error is String) {
+    final prefix = l10n
+        .errorUnknownWithDetail('')
+        .replaceAll('{detail}', '')
+        .trim();
+    if (prefix.isNotEmpty && error.startsWith(prefix)) {
+      return error;
+    }
+  }
   final raw = _flattenError(error);
   final normalized = raw.toLowerCase();
   final code = _errorCode(error, normalized);
@@ -253,15 +264,27 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'invalid_upload':
     case 'invalid_response':
     case 'invalid_app':
-    case 'invalid_operation':
     case 'invalid_url':
-    case 'not_installed':
-    case 'unsupported':
     case 'validation':
     case 'usage':
     case 'http_400':
     case 'http_422':
       return l10n.errorInvalidRequest;
+    case 'invalid_operation':
+      return l10n.errorInvalidOperation;
+    case 'not_installed':
+      return l10n.errorNotInstalled;
+    case 'unsupported':
+      if (normalized.contains('music')) {
+        return l10n.errorDeviceMusicUnsupported;
+      }
+      if (normalized.contains('record')) {
+        return l10n.errorDeviceRecordingUnsupported;
+      }
+      if (normalized.contains('mirror')) {
+        return l10n.errorDeviceScreenMirrorUnsupported;
+      }
+      return l10n.errorDeviceFeatureUnsupported;
     case 'network_error':
     case 'connection_error':
     case 'host_unavailable':
@@ -418,9 +441,12 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
       normalized.contains('timed out') ||
       normalized.contains('future not completed') ||
       normalized.contains('操作超时')) {
-    // Preserve the connection stage carried by the error instead of reducing
-    // every failure to the same unactionable timeout message.
     final detail = _trimPlatformNoise(raw);
+    if (error is TimeoutException ||
+        detail.startsWith('TimeoutException') ||
+        detail.contains('Future not completed')) {
+      return l10n.errorOperationTimeout;
+    }
     return detail.isEmpty
         ? l10n.errorOperationTimeout
         : l10n.errorUnknownWithDetail(detail);
@@ -434,6 +460,39 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
       normalized.contains('unsupported file type') ||
       normalized.contains('unsupported file')) {
     return l10n.errorUnsupportedFileType;
+  }
+
+  if (normalized.contains('music') &&
+      (normalized.contains('unsupported') ||
+          normalized.contains('not support') ||
+          normalized.contains('unavailable'))) {
+    return l10n.errorDeviceMusicUnsupported;
+  }
+
+  if ((normalized.contains('record') || normalized.contains('recording')) &&
+      (normalized.contains('unsupported') ||
+          normalized.contains('not support') ||
+          normalized.contains('unavailable'))) {
+    return l10n.errorDeviceRecordingUnsupported;
+  }
+
+  if (normalized.contains('mirror') &&
+      (normalized.contains('unsupported') ||
+          normalized.contains('not support') ||
+          normalized.contains('unavailable'))) {
+    return l10n.errorDeviceScreenMirrorUnsupported;
+  }
+
+  if (error is UnsupportedError ||
+      normalized.contains('unsupportederror') ||
+      normalized.contains('unsupported operation') ||
+      normalized.contains('operation not supported') ||
+      normalized.contains('feature not supported') ||
+      normalized.contains('does not advertise') ||
+      normalized.contains('does not support') ||
+      normalized.contains('is not supported') ||
+      normalized.contains('not supported')) {
+    return l10n.errorDeviceFeatureUnsupported;
   }
 
   if (normalized.contains('required ble characteristics not found') ||

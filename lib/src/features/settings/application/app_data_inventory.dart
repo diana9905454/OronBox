@@ -1,11 +1,5 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
-import 'package:oronbox/src/features/devices/health/health_database.dart';
-
-import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/core/storage/app_data_directory.dart';
-import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
+import 'package:oronbox/src/features/devices/health/health_store.dart';
 
 import 'app_data_inventory_stub.dart'
     if (dart.library.io) 'app_data_inventory_io.dart'
@@ -14,7 +8,6 @@ import 'app_data_inventory_stub.dart'
 
 enum AppDataCategory {
   health,
-  snapshots,
   plugins,
   zeppos,
   logs,
@@ -34,18 +27,10 @@ class AppDataUsage {
 }
 
 Future<List<AppDataUsage>> collectAppDataInventory() async {
-  final prefs = SharedPrefsService.instance;
-  var healthBytes = 0;
-  for (final key in prefs.keys.where(
-    (key) => key.startsWith('health_data_v6_'),
-  )) {
-    healthBytes += utf8.encode(prefs.getString(key) ?? '').length;
-  }
-  final snapshots = await HealthDebugSnapshotStore().storedBytes();
+  await HealthStore().resetForStorageMigration();
+  final activityBytes = await HealthStore.activityStoredBytes();
   final sizes = Map<AppDataCategory, int>.of(await platform.collectFileUsage());
-  if (kIsWeb) {
-    sizes[AppDataCategory.health] = await healthDatabase.storedBytes();
-  }
+  sizes[AppDataCategory.health] = activityBytes;
   for (final entry in {
     AppDataCategory.models: ('ai/models', AppStorageLocation.data),
     AppDataCategory.tasks: ('tasks', AppStorageLocation.data),
@@ -66,10 +51,6 @@ Future<List<AppDataUsage>> collectAppDataInventory() async {
           .fold<int>(0, (n, f) => n + f.bytes);
   return [
     for (final category in AppDataCategory.values)
-      AppDataUsage(category, switch (category) {
-        AppDataCategory.health => healthBytes + (sizes[category] ?? 0),
-        AppDataCategory.snapshots => snapshots,
-        _ => sizes[category],
-      }),
+      AppDataUsage(category, sizes[category]),
   ];
 }

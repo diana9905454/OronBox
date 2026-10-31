@@ -103,6 +103,12 @@ void main() {
         localizedErrorMessage(en, raw),
         isNot(en.errorBluetoothConnectFailed),
       );
+      expect(localizedErrorMessage(zh, raw), zh.errorOperationTimeout);
+    });
+
+    test('is idempotent when string already starts with failure prefix', () {
+      final msg = zh.errorUnknownWithDetail('Something went wrong');
+      expect(localizedErrorMessage(zh, msg), msg);
     });
 
     test('preserves structured backend session messages', () {
@@ -282,6 +288,84 @@ void main() {
           ),
         ),
         'secret',
+      );
+    });
+
+    test('localizes unsupported device capabilities and operations without blaming user input', () {
+      final musicError = UnsupportedError(
+        'This wearable does not support music transfer',
+      );
+      expect(
+        localizedErrorMessage(zh, musicError),
+        zh.errorDeviceMusicUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, musicError),
+        en.errorDeviceMusicUnsupported,
+      );
+
+      final musicServiceError = UnsupportedError(
+        'Music management service is unavailable',
+      );
+      expect(
+        localizedErrorMessage(zh, musicServiceError),
+        zh.errorDeviceMusicUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, musicServiceError),
+        en.errorDeviceMusicUnsupported,
+      );
+
+      final recordingError = UnsupportedError(
+        'Recording export is not supported on this device',
+      );
+      expect(
+        localizedErrorMessage(zh, recordingError),
+        zh.errorDeviceRecordingUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, recordingError),
+        en.errorDeviceRecordingUnsupported,
+      );
+
+      final mirrorError = UnsupportedError(
+        'Screen mirroring is not supported on this device',
+      );
+      expect(
+        localizedErrorMessage(zh, mirrorError),
+        zh.errorDeviceScreenMirrorUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, mirrorError),
+        en.errorDeviceScreenMirrorUnsupported,
+      );
+
+      final genericUnsupported = UnsupportedError(
+        'This wearable does not support this operation',
+      );
+      expect(
+        localizedErrorMessage(zh, genericUnsupported),
+        zh.errorDeviceFeatureUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, genericUnsupported),
+        en.errorDeviceFeatureUnsupported,
+      );
+
+      expect(
+        localizedErrorMessage(zh, const _TestCodedError('unsupported', '')),
+        zh.errorDeviceFeatureUnsupported,
+      );
+      expect(
+        localizedErrorMessage(zh, const _TestCodedError('not_installed', '')),
+        zh.errorNotInstalled,
+      );
+      expect(
+        localizedErrorMessage(
+          zh,
+          const _TestCodedError('invalid_operation', ''),
+        ),
+        zh.errorInvalidOperation,
       );
     });
   });

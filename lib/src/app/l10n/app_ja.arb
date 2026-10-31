@@ -232,7 +232,7 @@
   "errorBluetoothUnavailable": "Bluetoothを利用できません。Bluetoothが有効で、OronBoxに使用許可があることを確認してください",
   "errorBluetoothConnectFailed": "接続に失敗しました。Bluetooth権限を確認し、デバイスを近くに置いて使用中でない状態にし、デバイスで「新しいスマホに接続」を有効にしてから再試行してください",
   "errorBluetoothDisconnected": "Bluetoothが切断されました。デバイスを再接続して再試行してください",
-  "errorOperationTimeout": "操作がタイムアウトしました。デバイスが近くにあることを確認して再試行してください",
+  "errorOperationTimeout": "操作がタイムアウトしました",
   "errorDeviceNotReady": "デバイスの準備ができていません。先に接続して認証してください",
   "errorBleCharacteristicsMissing": "必要なBLEチャンネルが見つかりません。再接続するか、この機能に対応しているか確認してください",
   "errorWebSerialUnavailable": "このブラウザーはWeb Serialに対応していません。Chrome、Edgeなど対応ブラウザーを使用してください",
@@ -261,6 +261,12 @@
   "errorInvalidRequest": "入力内容に問題があります。確認して再試行してください",
   "errorOperationCancelled": "操作をキャンセルしました",
   "errorUnsupportedFileType": "未対応または認識できないファイル形式です",
+  "errorDeviceFeatureUnsupported": "現在のデバイスまたはファームウェアではこの機能に対応していません",
+  "errorDeviceMusicUnsupported": "現在のデバイスまたはファームウェアでは音楽転送に対応していません",
+  "errorDeviceRecordingUnsupported": "現在のデバイスまたはファームウェアでは録音のエクスポートに対応していません",
+  "errorDeviceScreenMirrorUnsupported": "現在のデバイスまたはファームウェアでは画面ミラーリングに対応していません",
+  "errorNotInstalled": "必要なコンポーネントまたはアプリがインストールされていません",
+  "errorInvalidOperation": "現在の状態ではこの操作を実行できません",
   "errorCertificateVerificationFailed": "証明書の検証に失敗しました。プロキシを使用している場合はHTTPSインターセプトを無効にするか、証明書を信頼してください",
   "errorUnknownWithDetail": "操作に失敗しました：{detail}",
   "communitySourceAstroBoxRepo": "AstroBox",
@@ -535,6 +541,8 @@
   "deviceMusicQueueProgress": "転送中 {current}/{total}：{name}",
   "deviceRecordingsTitle": "録音の同期",
   "deviceRecordingsDescription": "時計から録音を同期して書き出し",
+  "deviceRecordingsLibrary": "デバイス録音",
+  "deviceRecordingsLibraryDescription": "時計から録音を書き出します",
   "deviceRecordingsHint": "録音は1件ずつ受信・検証します。同期後に各元ファイルを書き出してください",
   "deviceRecordingsSync": "録音を同期",
   "deviceRecordingsReading": "録音一覧を読み込み中",
@@ -545,6 +553,21 @@
   "deviceRecordingsNoneOnWatch": "時計に新しい録音はありません",
   "deviceRecordingsSynced": "{count}件の録音を同期しました",
   "deviceRecordingsSaveFailed": "録音を書き出せません：{error}",
+  "deviceRecordingsSavedBadge": "保存済み",
+  "deviceRecordingsSelectAll": "すべて選択",
+  "deviceRecordingsDeselectAll": "選択解除",
+  "deviceRecordingsExportSelected": "選択項目をエクスポート ({count})",
+  "deviceRecordingsOpenDirectory": "フォルダを開く",
+  "deviceRecordingsExported": "{path} に書き出しました",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "録音を書き出しました",
+  "deviceRecordingsRefresh": "更新",
   "deviceMusicTransferTitle": "MP3ファイルを転送",
   "deviceMusicVelaDescription": "MP3ファイルをデバイスへ同期します。1ファイル100MB以下にしてください",
   "deviceMusicZeppDescription": "50MB以下のMP3に対応しています。高速転送にはBluetooth Classicを推奨します。BLEも利用できますが時間がかかります",
@@ -927,6 +950,8 @@
   "creatorOperationAuthorizing": "認証を待機中",
   "creatorResolvingPublicationTarget": "公開カテゴリーを解決中",
   "creatorStateApproved": "承認済み",
+  "creatorStateReviewing": "審査中",
+  "creatorStatePublishing": "公開中",
   "creatorStateExternalReview": "外部審査中",
   "creatorStateFailed": "公開に失敗",
   "creatorStateSuperseded": "新しい改訂に置き換え済み",
@@ -1052,6 +1077,11 @@
   "messageNeedsChangesBody": "審査で修正が必要な問題が見つかりました。",
   "messageReasonBody": "理由：{reason}",
   "messageReviewNoteBody": "審査メモ：{note}",
+  "messageReviewerPrefix": "審査員：{reviewer}",
+  "messageOperatorPrefix": "操作者：{operator}",
+  "messageReferencePrefix": "関連：{reference}",
+  "messageTargetsPrefix": "配信先：{targets}",
+  "messageUnapprovedItemsPrefix": "修正が必要な項目：{items}",
   "messageStatusChangedBody": "この項目の状態が変更されました。",
   "messageReportStatusBody": "報告の状態：{status}",
   "messageCoinAddedBody": "アカウントに {amount} コインが追加されました。",
@@ -2118,15 +2148,13 @@
   "appDataTitle": "アプリデータ",
   "appDataDescription": "保存容量の確認とファイルの書き出し",
   "appDataSpaceUsage": "分類別の使用量",
-  "appDataHealth": "ヘルスケアデータ",
+  "appDataHealth": "活動ファイル",
   "appDataPlugins": "プラグイン",
   "appDataZeppos": "ZeppOS アプリデータ",
   "appDataRecovery": "インポート復旧データ",
   "appDataDownloads": "リソースと更新のダウンロード",
   "appDataPluginCache": "プラグインキャッシュ",
   "appDataManageSnapshots": "保存された活動ファイルを管理",
-  "appDataExportSnapshots": "活動ファイルをエクスポート",
-  "appDataExportSnapshotsDescription": "保存された活動ファイルをエクスポート",
   "appDataExported": "書き出したファイルを保存しました",
   "appDataLoadFailed": "アプリデータを読み取れません",
   "appDataExportFailed": "ファイルを書き出せません",
@@ -2225,14 +2253,13 @@
   "appDataImageCache": "画像キャッシュ",
   "appDataSelectBackup": "バックアップするデータを選択",
   "appDataSettingsDescription": "テーマ、言語、機能の設定",
-  "appDataHealthDescription": "同期した健康・運動の履歴",
+  "appDataHealthDescription": "端末から同期した運動・健康データ",
   "appDataDeviceKeys": "デバイスのペアリングと鍵",
   "appDataDeviceKeysDescription": "保存したデバイスと接続用の認証情報",
   "appDataXiaomiAccount": "Xiaomi アカウント",
   "appDataXiaomiAccountDescription": "Xiaomi アカウントとログイン情報",
   "appDataSensitiveBackup": "バックアップには暗号化されていない鍵やログイン情報が含まれます\n安全に保管し、共有しないでください",
   "appDataImportDescription": "バックアップからデータを選んで復元",
-  "appDataSnapshotDescription": "保存された活動ファイル",
   "appDataPluginDescription": "インストール済みプラグインとデータ",
   "appDataZepposDescription": "デバイスアプリのスクリプトと設定",
   "appDataLogsDescription": "アプリの動作と問題調査のログ",
@@ -2280,8 +2307,7 @@
   "deviceRePair": "再ペアリング",
   "appDataClearCategoryTitle": "{category}を削除しますか？",
   "appDataClearCategoryDescription": "選択したローカルデータを削除します\n他のカテゴリは保持されます",
-  "appDataClearHealthDescription": "健康と運動の履歴を削除します\n端末に残っているデータのみ再同期できます",
-  "appDataClearRawDescription": "保存された活動ファイルを削除します\nエクスポートや再生はできなくなります",
+  "appDataClearHealthDescription": "同期された活動ファイルが削除されます\nローカルの運動・健康データが消去されます",
   "appDataClearCachedCategoryDescription": "未使用のキャッシュのみ削除します\n必要に応じて再ダウンロードされます",
   "appDataClearModelsDescription": "現在のモデルを保持します\n未使用の旧バージョンと期限切れのダウンロードを削除します",
   "settingsPermissionsTitle": "権限管理",
@@ -2297,5 +2323,40 @@
   "appOrderMoveToMain": "リストに移動",
   "appOrderHide": "非表示",
   "appOrderUnhide": "表示",
-  "appOrderCannotHide": "システム常駐アプリは非表示にできません"
+  "appOrderCannotHide": "システム常駐アプリは非表示にできません",
+  "privateStateAccessPromptTitle": "OronBox は安全なストレージで保護されたアカウント資格情報へのアクセスが必要です",
+  "privateStateAccessPromptMacOs": "システム認証ダイアログが表示された場合は、ログインパスワードを入力し、プロンプトが繰り返されないよう「常に許可」をクリックしてください",
+  "privateStateAccessPromptLinux": "システムロック解除ダイアログが表示された場合は、ユーザーパスワードを入力してキーリングを解除してください",
+  "creatorSubmissionPreview": "送信内容を確認",
+  "creatorResourceBinding": "リソースの関連付け",
+  "creatorPublicationIdentity": "公開アカウント",
+  "creatorPublicationRange": "今回の公開内容",
+  "creatorNewPublication": "初回公開",
+  "creatorUpdatePublication": "既存のリソースを更新",
+  "creatorAppendSubmission": "PR #{number} に追加",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "公開対象外のデバイス：{devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "編集に戻る",
+  "creatorPackageVersionCodeMissing": "パッケージに有効なバージョンコードがありません\n再ビルドしてアップロードしてください",
+  "creatorReopenSubmission": "再審査を申請",
+  "creatorReopenRequested": "再審査を申請しました",
+  "creatorFixesForSubmission": "今回修正した項目",
+  "creatorFixNote": "修正内容",
+  "creatorNameRequired": "リソース名を入力してください",
+  "creatorSummaryRequired": "リソースの概要を入力してください",
+  "creatorSubmitForReview": "審査に提出",
+  "creatorAstroBoxPRBody": "PR の説明（任意）"
 }

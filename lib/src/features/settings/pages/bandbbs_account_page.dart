@@ -1,4 +1,5 @@
 import 'package:segmented_list/segmented_list.dart';
+
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -10,6 +11,7 @@ import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/dialog_helper.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
@@ -86,9 +88,8 @@ class _BandBbsAccountPageState extends ConsumerState<BandBbsAccountPage> {
       );
       if (!mounted) return;
       OronBoxDialog.showToast(
-        message: AppLocalizations.of(
-          context,
-        )!.oronBoxCoinsCheckinReward(result.reward),
+        message: AppLocalizations.of(context)!
+            .oronBoxCoinsCheckinReward(result.reward),
         context: context,
       );
     } catch (error) {
@@ -169,8 +170,9 @@ class _BandBbsAccountPageState extends ConsumerState<BandBbsAccountPage> {
       appBar: SysAppBar(secondary: true, title: Text(l10n.bandBbsAccountTitle)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(
+        contentPadding: EdgeInsets.only(
           top: 8,
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(

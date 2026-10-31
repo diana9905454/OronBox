@@ -42,7 +42,8 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
   LinkTrafficMeter? _transferMeter;
   StreamSubscription<LinkTraffic>? _transferTrafficSubscription;
   int _lastProgressBytes = 0;
-  String? _error;
+  String? _libraryError;
+  String? _uploadError;
   DeviceMusicLibrary? _library;
 
   _PendingMusicFile? get _selectedFile =>
@@ -60,22 +61,32 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
 
   Future<void> _loadLibrary() async {
     if (_loadingLibrary || !mounted) return;
+    final ready =
+        ref.read(deviceManagerProvider).protocolState ==
+        proto.ProtocolState.ready;
+    if (!ready) return;
     setState(() {
       _loadingLibrary = true;
-      _error = null;
+      _libraryError = null;
     });
     try {
       final library = await ref
           .read(deviceManagerProvider.notifier)
           .loadXiaomiMusicLibrary();
-      if (mounted) setState(() => _library = library);
+      if (mounted) {
+        setState(() {
+          _library = library;
+          _libraryError = null;
+        });
+      }
     } catch (error) {
       if (mounted) {
-        setState(
-          () => _error = AppLocalizations.of(context)!.deviceMusicLoadFailed(
+        setState(() {
+          _library = null;
+          _libraryError = AppLocalizations.of(context)!.deviceMusicLoadFailed(
             localizedErrorMessage(AppLocalizations.of(context)!, error),
-          ),
-        );
+          );
+        });
       }
     } finally {
       if (mounted) setState(() => _loadingLibrary = false);
@@ -107,12 +118,14 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
     for (final file in result) {
       final bytes = await file.readAsBytes();
       if (bytes == null) {
-        setState(() => _error = l10n.deviceMusicReadFailed);
+        setState(() => _uploadError = l10n.deviceMusicReadFailed);
         return;
       }
       if (bytes.isEmpty || bytes.length > maxBytes) {
         setState(
-          () => _error = l10n.deviceMusicSizeInvalid(maxBytes ~/ (1024 * 1024)),
+          () => _uploadError = l10n.deviceMusicSizeInvalid(
+            maxBytes ~/ (1024 * 1024),
+          ),
         );
         return;
       }
@@ -133,7 +146,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
       _pendingFiles.addAll(additions);
       _selectedFileIndex = firstAdded;
       _progress = 0;
-      _error = null;
+      _uploadError = null;
     });
     _loadSelectedFileEditors();
   }
@@ -148,7 +161,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
       _uploading = true;
       _progress = 0;
       _bytesPerSecond = 0;
-      _error = null;
+      _uploadError = null;
     });
     try {
       final manager = ref.read(deviceManagerProvider.notifier);
@@ -188,7 +201,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
     } catch (error) {
       if (mounted) {
         setState(
-          () => _error = localizedErrorMessage(
+          () => _uploadError = localizedErrorMessage(
             AppLocalizations.of(context)!,
             error,
           ),
@@ -250,6 +263,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
       _pendingFiles.removeAt(index);
       if (_pendingFiles.isEmpty) {
         _selectedFileIndex = -1;
+        _uploadError = null;
       } else {
         _selectedFileIndex = _selectedFileIndex.clamp(
           0,
@@ -271,9 +285,43 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(deviceManagerProvider.select((s) => s.protocolState), (
+      previous,
+      next,
+    ) {
+      if (widget.xiaomi &&
+          next == proto.ProtocolState.ready &&
+          _library == null &&
+          !_loadingLibrary) {
+        _loadLibrary();
+      }
+    });
+    ref.listen(deviceManagerProvider.select((s) => s.currentDevice?.addr), (
+      previous,
+      next,
+    ) {
+      if (previous != null && next != previous) {
+        if (mounted) {
+          setState(() {
+            _library = null;
+            _libraryError = null;
+            _pendingFiles.clear();
+            _selectedFileIndex = -1;
+            _uploadError = null;
+          });
+          if (widget.xiaomi) {
+            _loadLibrary();
+          }
+        }
+      }
+    });
+
     final ready =
         ref.watch(deviceManagerProvider).protocolState ==
         proto.ProtocolState.ready;
+    final canTransfer = ready && (!widget.xiaomi || _library != null);
+    final canChooseFile = canTransfer && !_uploading;
+    final canSend = canTransfer && _pendingFiles.isNotEmpty && !_uploading;
     final colors = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     return PopScope(
@@ -284,6 +332,16 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
           title: Text(
             widget.xiaomi ? l10n.deviceMusicSync : l10n.deviceMusicUpload,
           ),
+          actions: [
+            if (widget.xiaomi)
+              IconButton(
+                tooltip: l10n.refresh,
+                onPressed: (!ready || _loadingLibrary || _uploading)
+                    ? null
+                    : _loadLibrary,
+                icon: const Icon(Icons.refresh),
+              ),
+          ],
         ),
         body: ListView(
           padding: EdgeInsets.zero,
@@ -298,7 +356,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
               child: Column(
                 children: [
                   if (widget.xiaomi) ...[
-                    _buildLibraryCard(context, l10n),
+                    _buildLibraryCard(context, l10n, ready: ready),
                     const SizedBox(height: StyleConstants.sectionSpacing),
                   ],
                   SectionCard(
@@ -312,9 +370,35 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
                               : l10n.deviceMusicZeppDescription,
                           style: TextStyle(color: colors.onSurfaceVariant),
                         ),
+                        if (widget.xiaomi &&
+                            ready &&
+                            !_loadingLibrary &&
+                            _library == null) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 18,
+                                color: colors.error,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  _libraryError ??
+                                      l10n.errorDeviceMusicUnsupported,
+                                  style: TextStyle(
+                                    color: colors.error,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                         const SizedBox(height: 20),
                         OutlinedButton.icon(
-                          onPressed: _uploading ? null : _chooseFile,
+                          onPressed: canChooseFile ? _chooseFile : null,
                           icon: const Icon(Icons.audio_file_outlined),
                           label: Text(
                             _pendingFiles.isEmpty
@@ -363,7 +447,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
                           const SizedBox(height: 16),
                           TextField(
                             controller: _title,
-                            enabled: !_uploading,
+                            enabled: canTransfer && !_uploading,
                             decoration: InputDecoration(
                               labelText: l10n.deviceMusicSongTitle,
                               prefixIcon: const Icon(Icons.music_note),
@@ -376,7 +460,7 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
                           const SizedBox(height: 12),
                           TextField(
                             controller: _artist,
-                            enabled: !_uploading,
+                            enabled: canTransfer && !_uploading,
                             decoration: InputDecoration(
                               labelText: l10n.deviceMusicArtist,
                               prefixIcon: const Icon(Icons.person_outline),
@@ -429,16 +513,16 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
                             ),
                           ],
                         ],
-                        if (_error != null) ...[
+                        if (_uploadError != null) ...[
                           const SizedBox(height: 16),
-                          Text(_error!, style: TextStyle(color: colors.error)),
+                          Text(
+                            _uploadError!,
+                            style: TextStyle(color: colors.error),
+                          ),
                         ],
                         const SizedBox(height: 20),
                         FilledButton.icon(
-                          onPressed:
-                              ready && _pendingFiles.isNotEmpty && !_uploading
-                              ? _upload
-                              : null,
+                          onPressed: canSend ? _upload : null,
                           icon: _uploading
                               ? const SizedBox.square(
                                   dimension: 18,
@@ -465,7 +549,12 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
     );
   }
 
-  Widget _buildLibraryCard(BuildContext context, AppLocalizations l10n) {
+  Widget _buildLibraryCard(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required bool ready,
+  }) {
+    final colors = Theme.of(context).colorScheme;
     final library = _library;
     return SectionCard(
       // spacing to the next card is handled by the SizedBox below
@@ -473,25 +562,35 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SectionHeader(
-            title: l10n.deviceMusicLibrary,
-            action: IconButton(
-              onPressed: _loadingLibrary ? null : _loadLibrary,
-              icon: _loadingLibrary
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.refresh),
-            ),
-          ),
+          SectionHeader(title: l10n.deviceMusicLibrary),
           Text(
             l10n.deviceMusicLibraryDescription,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
+            style: TextStyle(color: colors.onSurfaceVariant),
           ),
-          if (library != null) ...[
+          if (!ready) ...[
+            const SizedBox(height: 16),
+            EmptyStateView(
+              compact: true,
+              icon: Icons.bluetooth_disabled_outlined,
+              title: l10n.deviceNotConnected,
+            ),
+          ] else if (_loadingLibrary && library == null) ...[
+            const SizedBox(height: 24),
+            const Center(
+              child: SizedBox.square(
+                dimension: 28,
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ] else if (_libraryError != null && library == null) ...[
+            const SizedBox(height: 16),
+            ErrorStateView(
+              compact: true,
+              message: _libraryError!,
+              onRetry: _loadLibrary,
+            ),
+          ] else if (library != null) ...[
             const SizedBox(height: 16),
             Row(
               children: [
@@ -632,14 +731,26 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
       ),
     );
     controller.dispose();
-    if (name == null || name.isEmpty) return;
-    final manager = ref.read(deviceManagerProvider.notifier);
-    if (playlist == null) {
-      await manager.createXiaomiMusicPlaylist(name);
-    } else {
-      await manager.renameXiaomiMusicPlaylist(playlist.id, name);
+    if (name == null || name.isEmpty || !mounted) return;
+    try {
+      final manager = ref.read(deviceManagerProvider.notifier);
+      if (playlist == null) {
+        await manager.createXiaomiMusicPlaylist(name);
+      } else {
+        await manager.renameXiaomiMusicPlaylist(playlist.id, name);
+      }
+      await _loadLibrary();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              localizedErrorMessage(AppLocalizations.of(context)!, error),
+            ),
+          ),
+        );
+      }
     }
-    await _loadLibrary();
   }
 
   Future<void> _deletePlaylist(DeviceMusicPlaylist playlist) async {
@@ -650,19 +761,45 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
     )) {
       return;
     }
-    await ref
-        .read(deviceManagerProvider.notifier)
-        .removeXiaomiMusicPlaylist(playlist.id);
-    await _loadLibrary();
+    if (!mounted) return;
+    try {
+      await ref
+          .read(deviceManagerProvider.notifier)
+          .removeXiaomiMusicPlaylist(playlist.id);
+      await _loadLibrary();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              localizedErrorMessage(AppLocalizations.of(context)!, error),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _deleteSong(DeviceMusicSong song) async {
     final l10n = AppLocalizations.of(context)!;
     if (!await _confirm(l10n.deviceMusicDeleteSong, song.name)) return;
-    await ref
-        .read(deviceManagerProvider.notifier)
-        .removeXiaomiMusicSong(song.id);
-    await _loadLibrary();
+    if (!mounted) return;
+    try {
+      await ref
+          .read(deviceManagerProvider.notifier)
+          .removeXiaomiMusicSong(song.id);
+      await _loadLibrary();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              localizedErrorMessage(AppLocalizations.of(context)!, error),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _manageSongPlaylists(
@@ -716,16 +853,28 @@ class _DeviceMusicUploadPageState extends ConsumerState<DeviceMusicUploadPage> {
         );
       },
     );
-    if (changed == null) return;
-    for (final entry in changed.entries) {
-      if (entry.value == selected.contains(entry.key)) continue;
-      await manager.setXiaomiMusicSongInPlaylist(
-        playlistId: entry.key,
-        songId: song.id,
-        included: entry.value,
-      );
+    if (changed == null || !mounted) return;
+    try {
+      for (final entry in changed.entries) {
+        if (entry.value == selected.contains(entry.key)) continue;
+        await manager.setXiaomiMusicSongInPlaylist(
+          playlistId: entry.key,
+          songId: song.id,
+          included: entry.value,
+        );
+      }
+      await _loadLibrary();
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              localizedErrorMessage(AppLocalizations.of(context)!, error),
+            ),
+          ),
+        );
+      }
     }
-    await _loadLibrary();
   }
 
   Future<bool> _confirm(String title, String content) async =>

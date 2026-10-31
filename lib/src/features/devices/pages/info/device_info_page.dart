@@ -94,7 +94,9 @@ class _DeviceInfoPageState extends ConsumerState<DeviceInfoPage> {
             StyleConstants.pagePadding,
             index == 0 ? 8 : 0,
             StyleConstants.pagePadding,
-            index == items.length - 1 ? StyleConstants.pagePadding : 0,
+            index == items.length - 1
+                ? bottomContentPadding(context, extra: 0)
+                : 0,
           ),
           child: items[index],
         ),

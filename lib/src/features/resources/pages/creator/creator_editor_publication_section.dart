@@ -33,7 +33,7 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
               asset: 'assets/images/brands/bandbbs.svg',
               label: 'BandBBS',
             ),
-            title: const Text('BandBBS'),
+            title: Text(l10n.bandbbs),
             subtitle: Text(
               boundToBandBbs
                   ? l10n.creatorBandBbsBoundUpdate
@@ -95,6 +95,7 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
                                 .firstOrNull
                                 ?.categoryName ??
                             'BandBBS',
+                        url: entry.resolvedUrl,
                         subtitle: l10n.creatorBandBbsBindingIds(
                           entry.categoryId,
                           entry.resourceId,
@@ -190,7 +191,7 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
               asset: 'assets/images/brands/astrobox.svg',
               label: 'AstroBox',
             ),
-            title: const Text('AstroBox-Repo'),
+            title: Text(l10n.astroBox),
             subtitle: ValueListenableBuilder<TextEditingValue>(
               valueListenable: _astroRepository,
               builder: (context, value, _) => Text(
@@ -296,7 +297,7 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
   ) {
     final colors = Theme.of(context).colorScheme;
     final target = publication['target']?.toString() ?? '';
-    final links = _publicationLinkUrls(publication);
+    final links = creatorPublicationLinkUrls(publication);
     final error = publication['error_message']?.toString().trim() ?? '';
     final isPublished =
         target == 'oronbox' && publication['state']?.toString() == 'published';
@@ -421,6 +422,7 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
   Widget _publicationBindingRow({
     required String title,
     required String subtitle,
+    String? url,
   }) {
     final colors = Theme.of(context).colorScheme;
     return Container(
@@ -449,6 +451,15 @@ extension _CreatorEditorPublicationSection on _CreatorEditorViewState {
               ],
             ),
           ),
+          if (url != null && url.isNotEmpty)
+            IconButton(
+              onPressed: () => launchUrl(
+                Uri.parse(url),
+                mode: LaunchMode.externalApplication,
+              ),
+              icon: const Icon(Icons.open_in_new),
+              tooltip: AppLocalizations.of(context)!.open,
+            ),
         ],
       ),
     );

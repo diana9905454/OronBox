@@ -1333,25 +1333,31 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
       _showConnectionError = false;
       _connectInitiated = true;
     });
-    await ref
-        .read(deviceManagerProvider.notifier)
-        .connect(
-          endpoint.addr,
-          endpoint.name,
-          authKey,
-          connectType: _connectType,
-        );
-    if (!mounted) return;
-    widget.onComplete?.call();
-    if (mounted) {
-      final state = ref.read(deviceManagerProvider);
-      final connectedThisDevice =
-          state.protocolState == proto.ProtocolState.ready &&
-          state.currentDevice?.addr == endpoint.addr;
-      if (connectedThisDevice) {
-        if (context.canPop()) {
-          context.pop();
+    try {
+      await ref
+          .read(deviceManagerProvider.notifier)
+          .connect(
+            endpoint.addr,
+            endpoint.name,
+            authKey,
+            connectType: _connectType,
+          );
+      if (!mounted) return;
+      widget.onComplete?.call();
+      if (mounted) {
+        final state = ref.read(deviceManagerProvider);
+        final connectedThisDevice =
+            state.protocolState == proto.ProtocolState.ready &&
+            deviceAddressEquals(state.currentDevice?.addr, endpoint.addr);
+        if (connectedThisDevice) {
+          if (context.canPop()) {
+            context.pop();
+          }
         }
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _connectInitiated = false);
       }
     }
   }
@@ -1416,7 +1422,8 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
     final transportLabel = _connectType == ConnectType.spp.name
         ? l10n.deviceTransportSpp
         : l10n.deviceTransportBle;
-    final isConnectionTarget = state.connectionTargetAddr == widget.device.addr;
+    final isConnectionTarget =
+        deviceAddressEquals(state.connectionTargetAddr, widget.device.addr);
     final isConnectingThisDevice = state.connecting && isConnectionTarget;
 
     ref.listen<DeviceManagerState>(deviceManagerProvider, (previous, next) {
@@ -1424,7 +1431,11 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
           (previous?.connecting ?? false) &&
           !next.connecting &&
           next.connectStatus == 3 &&
-          next.connectionTargetAddr == widget.device.addr;
+          (deviceAddressEquals(next.connectionTargetAddr, widget.device.addr) ||
+              deviceAddressEquals(
+                previous?.connectionTargetAddr,
+                widget.device.addr,
+              ));
       if (failedThisDevice && _connectInitiated && mounted) {
         setState(() {
           _showInput = true;
@@ -1454,7 +1465,7 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
                     widget.device.authkey ?? '',
                     connectType: _connectType,
                   )
-                : connected
+                : connected || isConnectingThisDevice
                 ? null
                 : () => setState(() => _showInput = !_showInput),
             borderRadius: BorderRadius.circular(StyleConstants.cardRadius),

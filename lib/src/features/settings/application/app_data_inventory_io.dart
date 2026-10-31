@@ -16,7 +16,7 @@ Future<Map<AppDataCategory, int>> collectFileUsage() async {
       ? '$localAppData/OronBox/cache'
       : cache.path;
   final roots = {
-    AppDataCategory.health: ['${support.path}/health'],
+    AppDataCategory.health: ['${support.path}/health/raw'],
     AppDataCategory.plugins: ['$pluginSupport/plugins'],
     AppDataCategory.zeppos: ['${support.path}/zeppos'],
     AppDataCategory.logs: ['${support.path}/logs'],
@@ -37,10 +37,6 @@ Future<Map<AppDataCategory, int>> collectFileUsage() async {
     }
     sizes[entry.key] = bytes;
   }
-  // Raw activity files have their own category and share the health root.
-  sizes[AppDataCategory.health] =
-      (sizes[AppDataCategory.health] ?? 0) -
-      await _size(Directory('${support.path}/health/raw'));
   final pluginTemp = Directory('${temporary.path}/oronbox');
   if (await pluginTemp.exists()) {
     await for (final entry in pluginTemp.list(followLinks: false)) {

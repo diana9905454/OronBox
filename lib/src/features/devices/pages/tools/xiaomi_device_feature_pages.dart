@@ -868,7 +868,10 @@ class _XiaomiWeatherPageState extends ConsumerState<XiaomiWeatherPage> {
       appBar: SysAppBar(secondary: true, title: Text(l10n.weatherSyncTitle)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         sections: [
           CustomSegmentedSection(
             child: Padding(

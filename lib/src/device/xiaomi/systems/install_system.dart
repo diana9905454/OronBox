@@ -11,7 +11,8 @@ import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/xiaomi_system.dart';
 import 'package:oronbox/src/device/core/device_state.dart';
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_common.pbenum.dart'
     as pb_common;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_notification.pb.dart'
@@ -388,6 +389,7 @@ class XiaomiInstallSystem extends XiaomiPbSystem {
         case MassDataType.firmware:
         case MassDataType.notificationIcon:
         case MassDataType.music:
+        case MassDataType.audioRecord:
         case MassDataType.watchfaceImage:
         case MassDataType.watchfaceFont:
           break;

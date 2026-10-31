@@ -212,7 +212,7 @@
   "errorBluetoothUnavailable": "Bluetooth недоступен. Убедитесь, что он включён и OronBox разрешено его использовать",
   "errorBluetoothConnectFailed": "Не удалось подключиться по Bluetooth. Проверьте разрешение Bluetooth, держите устройство рядом и свободным, включите на нём «Подключить новый телефон» и повторите попытку",
   "errorBluetoothDisconnected": "Bluetooth отключён. Подключите устройство снова",
-  "errorOperationTimeout": "Время операции истекло. Убедитесь, что устройство рядом, и повторите попытку",
+  "errorOperationTimeout": "Время операции истекло",
   "errorDeviceNotReady": "Устройство не готово. Сначала подключите и авторизуйте его",
   "errorBleCharacteristicsMissing": "Не найдены необходимые характеристики BLE. Подключите устройство снова или проверьте поддержку этой функции",
   "errorWebSerialUnavailable": "Этот браузер не поддерживает Web Serial. Используйте Chrome, Edge или другой совместимый браузер",
@@ -241,6 +241,12 @@
   "errorInvalidRequest": "Некоторые отправленные данные недействительны. Проверьте их и повторите",
   "errorOperationCancelled": "Операция отменена",
   "errorUnsupportedFileType": "Неподдерживаемый или неизвестный тип файла",
+  "errorDeviceFeatureUnsupported": "Эта функция не поддерживается текущим устройством или прошивкой",
+  "errorDeviceMusicUnsupported": "Передача музыки не поддерживается текущим устройством или прошивкой",
+  "errorDeviceRecordingUnsupported": "Экспорт записей не поддерживается текущим устройством или прошивкой",
+  "errorDeviceScreenMirrorUnsupported": "Дублирование экрана не поддерживается текущим устройством или прошивкой",
+  "errorNotInstalled": "Необходимый компонент или приложение не установлены",
+  "errorInvalidOperation": "Невозможно выполнить эту операцию в текущем состоянии",
   "errorCertificateVerificationFailed": "Проверка сертификата не пройдена. При использовании прокси отключите перехват HTTPS или убедитесь, что сертификат доверенный",
   "errorUnknownWithDetail": "Операция не выполнена: {detail}",
   "@errorUnknownWithDetail": {
@@ -730,6 +736,8 @@
   },
   "deviceRecordingsTitle": "Записи с устройства",
   "deviceRecordingsDescription": "Синхронизация и экспорт записей с часов",
+  "deviceRecordingsLibrary": "Записи устройства",
+  "deviceRecordingsLibraryDescription": "Экспорт записей с устройства",
   "deviceRecordingsHint": "Записи принимаются и проверяются по одной. После синхронизации экспортируйте каждый исходный файл",
   "deviceRecordingsSync": "Синхронизировать записи",
   "deviceRecordingsReading": "Чтение записей",
@@ -777,6 +785,28 @@
       }
     }
   },
+  "deviceRecordingsSavedBadge": "Сохранено",
+  "deviceRecordingsSelectAll": "Выбрать все",
+  "deviceRecordingsDeselectAll": "Снять выбор",
+  "deviceRecordingsExportSelected": "Экспорт выбранных ({count})",
+  "@deviceRecordingsExportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRecordingsOpenDirectory": "Открыть папку",
+  "deviceRecordingsExported": "Экспортировано в {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "Запись экспортирована",
+  "deviceRecordingsRefresh": "Обновить",
   "deviceMusicTransferTitle": "Передача музыки",
   "deviceMusicVelaDescription": "Синхронизация MP3-файлов с устройством. Размер одного файла не должен превышать 100 МБ",
   "deviceMusicZeppDescription": "Поддерживаются MP3-файлы до 50 МБ. Для быстрой передачи рекомендуется Bluetooth Classic; BLE также поддерживается, но работает медленнее",
@@ -1382,6 +1412,8 @@
   "creatorOperationAuthorizing": "Ожидание авторизации",
   "creatorResolvingPublicationTarget": "Определение категории публикации",
   "creatorStateApproved": "Одобрено",
+  "creatorStateReviewing": "На проверке",
+  "creatorStatePublishing": "Публикация",
   "creatorStateExternalReview": "Внешняя проверка",
   "creatorStateFailed": "Публикация не выполнена",
   "creatorStateSuperseded": "Заменено новой редакцией",
@@ -1525,6 +1557,11 @@
   "messageNeedsChangesBody": "При проверке обнаружены проблемы, требующие исправления.",
   "messageReasonBody": "Причина: {reason}",
   "messageReviewNoteBody": "Комментарий проверки: {note}",
+  "messageReviewerPrefix": "Проверяющий: {reviewer}",
+  "messageOperatorPrefix": "Оператор: {operator}",
+  "messageReferencePrefix": "Связано: {reference}",
+  "messageTargetsPrefix": "Каналы публикации: {targets}",
+  "messageUnapprovedItemsPrefix": "Требует доработки: {items}",
   "messageStatusChangedBody": "Статус этого объекта изменился.",
   "messageReportStatusBody": "Статус жалобы: {status}",
   "messageCoinAddedBody": "На ваш аккаунт начислено {amount} монет.",
@@ -2118,15 +2155,13 @@
   "appDataTitle": "Данные приложения",
   "appDataDescription": "Просмотр занятого места и экспорт файлов",
   "appDataSpaceUsage": "Объём по категориям",
-  "appDataHealth": "Данные здоровья",
+  "appDataHealth": "Файлы активности",
   "appDataPlugins": "Плагины",
   "appDataZeppos": "Данные приложений ZeppOS",
   "appDataRecovery": "Данные восстановления импорта",
   "appDataDownloads": "Загрузки ресурсов и обновлений",
   "appDataPluginCache": "Кэш плагинов",
   "appDataManageSnapshots": "Управление сохранёнными файлами активности",
-  "appDataExportSnapshots": "Экспортировать файлы активности",
-  "appDataExportSnapshotsDescription": "Экспорт сохранённых файлов активности",
   "appDataExported": "Экспортированный файл сохранён",
   "appDataLoadFailed": "Не удалось прочитать данные приложения",
   "appDataExportFailed": "Не удалось экспортировать файлы",
@@ -2225,14 +2260,13 @@
   "appDataImageCache": "Кэш изображений",
   "appDataSelectBackup": "Выберите данные для копии",
   "appDataSettingsDescription": "Тема, язык и настройки функций",
-  "appDataHealthDescription": "История здоровья и тренировок",
+  "appDataHealthDescription": "Синхронизированные данные активности и здоровья",
   "appDataDeviceKeys": "Сопряжения и ключи устройств",
   "appDataDeviceKeysDescription": "Устройства и данные для подключения",
   "appDataXiaomiAccount": "Аккаунт Xiaomi",
   "appDataXiaomiAccountDescription": "Аккаунт Xiaomi и текущий сеанс",
   "appDataSensitiveBackup": "Копия содержит незашифрованные ключи или данные входа\nХраните её безопасно и не делитесь ею",
   "appDataImportDescription": "Выбор данных для восстановления",
-  "appDataSnapshotDescription": "Сохранённые файлы активности",
   "appDataPluginDescription": "Плагины и их локальные данные",
   "appDataZepposDescription": "Скрипты приложений устройств и настройки",
   "appDataLogsDescription": "Журналы работы и диагностики",
@@ -2280,8 +2314,7 @@
   "deviceRePair": "Сопрячь заново",
   "appDataClearCategoryTitle": "Очистить {category}?",
   "appDataClearCategoryDescription": "Локальные данные этой категории будут удалены\nДругие категории сохранятся",
-  "appDataClearHealthDescription": "История здоровья и тренировок будет удалена\nПовторно синхронизируются только данные, оставшиеся на устройстве",
-  "appDataClearRawDescription": "Сохранённые файлы активности будут удалены\nЭкспорт и воспроизведение станут недоступны",
+  "appDataClearHealthDescription": "Синхронизированные файлы активности будут удалены\nЛокальные данные активности и здоровья будут очищены",
   "appDataClearCachedCategoryDescription": "Будет удалён только неиспользуемый кэш\nПри необходимости файлы загрузятся снова",
   "appDataClearModelsDescription": "Текущая модель сохранится\nНеиспользуемые версии и устаревшие загрузки будут удалены",
   "settingsPermissionsTitle": "Разрешения",
@@ -2297,5 +2330,40 @@
   "appOrderMoveToMain": "В основной список",
   "appOrderHide": "Скрыть",
   "appOrderUnhide": "Показать",
-  "appOrderCannotHide": "Системное приложение нельзя скрыть"
+  "appOrderCannotHide": "Системное приложение нельзя скрыть",
+  "privateStateAccessPromptTitle": "OronBox требуется доступ к учетным данным аккаунта, защищенным безопасным хранилищем",
+  "privateStateAccessPromptMacOs": "При появлении системного запроса авторизации введите пароль для входа и нажмите «Разрешать всегда», чтобы избежать повторных запросов",
+  "privateStateAccessPromptLinux": "При появлении системного запроса разблокировки введите пароль пользователя для разблокировки связки ключей",
+  "creatorSubmissionPreview": "Проверить отправку",
+  "creatorResourceBinding": "Связанный ресурс",
+  "creatorPublicationIdentity": "Аккаунты публикации",
+  "creatorPublicationRange": "Состав публикации",
+  "creatorNewPublication": "Первая публикация",
+  "creatorUpdatePublication": "Обновить ресурс",
+  "creatorAppendSubmission": "Дополнить PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "Исключённые устройства: {devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "Вернуться к редактированию",
+  "creatorPackageVersionCodeMissing": "В пакете нет корректного кода версии\nПересоберите пакет и загрузите заново",
+  "creatorReopenSubmission": "Запросить повторную проверку",
+  "creatorReopenRequested": "Повторная проверка запрошена",
+  "creatorFixesForSubmission": "Исправлено в этой отправке",
+  "creatorFixNote": "Описание исправления",
+  "creatorNameRequired": "Введите название ресурса",
+  "creatorSummaryRequired": "Введите краткое описание",
+  "creatorSubmitForReview": "Отправить на проверку",
+  "creatorAstroBoxPRBody": "Описание PR (необязательно)"
 }

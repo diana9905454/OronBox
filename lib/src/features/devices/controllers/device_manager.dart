@@ -40,7 +40,7 @@ import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/media_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/report_system.dart';
 import 'package:oronbox/src/device/xiaomi/protocol/transport/mass_transfer.dart'
-    show ReceiveMassCallbackData, ReverseMassReceiveResult;
+    show ReverseMassReceiveResult;
 import 'package:oronbox/src/device/xiaomi/systems/resource_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/thirdparty_app_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/sync_system.dart';
@@ -94,10 +94,6 @@ import '../models/device_transfer_models.dart';
 
 export '../models/device_manager_state.dart';
 export '../models/device_transfer_models.dart';
-
-class _NoReverseMassActivity implements Exception {
-  const _NoReverseMassActivity();
-}
 
 class _DeviceLogTransferTimeout implements Exception {
   const _DeviceLogTransferTimeout({
@@ -291,6 +287,8 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
     Uint8List bytes, {
     required String title,
     required String artist,
+    String? album,
+    int? durationSecs,
     void Function(double progress)? onProgress,
   });
   Future<DeviceMusicLibrary> loadXiaomiMusicLibrary();
@@ -322,6 +320,12 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
   );
   Future<pb_system.AppLayout> loadXiaomiAppLayout();
   Future<void> setXiaomiAppLayout(pb_system.AppLayout_Layout layout);
+  Future<List<MediaFileDescriptor>> fetchXiaomiRecordingList();
+  Future<List<DeviceRecording>> downloadSelectedXiaomiRecordings({
+    required List<MediaFileDescriptor> files,
+    void Function(int completed, int total, String fileName)? onProgress,
+    void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
+  });
   Future<List<DeviceRecording>> downloadXiaomiRecordings({
     void Function(int completed, int total, String fileName)? onProgress,
     void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
@@ -1076,6 +1080,13 @@ class LocalDeviceManager extends DeviceManager {
         _log.warning(
           '${connectType.name.toUpperCase()} connect attempt $attempt failed: $e',
         );
+        if (connectType == ConnectType.spp) {
+          try {
+            await _bluetooth.cancelPendingSppConnection().timeout(
+              const Duration(seconds: 2),
+            );
+          } catch (_) {}
+        }
         await _resetBluetoothAfterFailedConnect(addr, connectType);
       }
 
@@ -1135,10 +1146,21 @@ class LocalDeviceManager extends DeviceManager {
     if (active != null &&
         _activeConnectAddress == connectionAddress &&
         _activeConnectType == connectionType) {
-      _log.fine(
-        'joining active $connectionType connection to $connectionAddress',
-      );
-      return active;
+      if (state.protocolState == ProtocolState.error) {
+        _log.fine(
+          'aborting stale $connectionType connection attempt to $connectionAddress',
+        );
+        _connectGeneration++;
+        _clearActiveConnect(active);
+        if (connectionType == ConnectType.spp.name) {
+          unawaited(_bluetooth.cancelPendingSppConnection());
+        }
+      } else {
+        _log.fine(
+          'joining active $connectionType connection to $connectionAddress',
+        );
+        return active;
+      }
     }
 
     final connection = _connect(
@@ -1282,54 +1304,62 @@ class LocalDeviceManager extends DeviceManager {
       if (existingConnection != null &&
           existingEntity != null &&
           pooledTransportMatches) {
-        _log.info('restoring pooled session for $addr');
-        _pooledConnections.remove(addr);
-        _pooledEntities.remove(addr);
-        _bluetoothConnection = existingConnection;
-        _currentEntity = existingEntity;
-        await _rawProtocolSubscription?.cancel();
-        await _rawProtocolOutgoingSubscription?.cancel();
-        _rawProtocolSubscription = existingEntity.rawIncomingData.listen(
-          _rawProtocolFrames.add,
-        );
-        _rawProtocolOutgoingSubscription = existingEntity.rawOutgoingData
-            .listen(_rawProtocolOutgoingFrames.add);
-        final connected = MiWearState(
-          name: displayName,
-          addr: addr,
-          connectType: effectiveConnectType,
-          authkey: authKey,
-          codename: effectiveCodename,
-          disconnected: false,
-        );
-        final existingIndex = state.pairedDevices.indexWhere(
-          (device) => device.addr == addr,
-        );
-        final updatedPaired = List<MiWearState>.from(state.pairedDevices);
-        if (existingIndex >= 0) updatedPaired.removeAt(existingIndex);
-        updatedPaired.insert(0, connected);
-        state = state.copyWith(
-          currentDevice: connected,
-          pairedDevices: updatedPaired,
-          protocolState: ProtocolState.ready,
-          connecting: false,
-          connectStatus: 2,
-          clearBattery: true,
-          clearHealth: true,
-          clearSystemInfo: true,
-          apps: const [],
-          watchfaces: const [],
-          xiaoAiActive: false,
-          xiaoAiFrameCount: 0,
-          xiaoAiCapabilities: const {},
-          clearConnectionPhase: true,
-          clearError: true,
-        );
-        await _savePairedDevices();
-        _startBatteryRefreshLoop();
-        unawaited(_loadInitialDeviceData(existingEntity));
-        _pendingConnectType = null;
-        return;
+        if (existingEntity.isDisposed) {
+          _log.info('discarding disposed pooled session for $addr');
+          await _disconnectPooledDevice(addr);
+          _throwIfConnectCancelled(generation);
+          existingConnection = null;
+          existingEntity = null;
+        } else {
+          _log.info('restoring pooled session for $addr');
+          _pooledConnections.remove(addr);
+          _pooledEntities.remove(addr);
+          _bluetoothConnection = existingConnection;
+          _currentEntity = existingEntity;
+          await _rawProtocolSubscription?.cancel();
+          await _rawProtocolOutgoingSubscription?.cancel();
+          _rawProtocolSubscription = existingEntity.rawIncomingData.listen(
+            _rawProtocolFrames.add,
+          );
+          _rawProtocolOutgoingSubscription = existingEntity.rawOutgoingData
+              .listen(_rawProtocolOutgoingFrames.add);
+          final connected = MiWearState(
+            name: displayName,
+            addr: addr,
+            connectType: effectiveConnectType,
+            authkey: authKey,
+            codename: effectiveCodename,
+            disconnected: false,
+          );
+          final existingIndex = state.pairedDevices.indexWhere(
+            (device) => device.addr == addr,
+          );
+          final updatedPaired = List<MiWearState>.from(state.pairedDevices);
+          if (existingIndex >= 0) updatedPaired.removeAt(existingIndex);
+          updatedPaired.insert(0, connected);
+          state = state.copyWith(
+            currentDevice: connected,
+            pairedDevices: updatedPaired,
+            protocolState: ProtocolState.ready,
+            connecting: false,
+            connectStatus: 2,
+            clearBattery: true,
+            clearHealth: true,
+            clearSystemInfo: true,
+            apps: const [],
+            watchfaces: const [],
+            xiaoAiActive: false,
+            xiaoAiFrameCount: 0,
+            xiaoAiCapabilities: const {},
+            clearConnectionPhase: true,
+            clearError: true,
+          );
+          await _savePairedDevices();
+          _startBatteryRefreshLoop();
+          unawaited(_loadInitialDeviceData(existingEntity));
+          _pendingConnectType = null;
+          return;
+        }
       }
       if (existingConnection != null) {
         _log.info('reusing pooled connection for $addr (no entity)');
@@ -1490,11 +1520,11 @@ class LocalDeviceManager extends DeviceManager {
       _pendingConnectType = null;
     } on _DeviceConnectCancelled {
       _log.info('connect to $addr cancelled');
-      await _finishCancelledConnect(addr);
+      await _finishCancelledConnect(addr, generation);
     } catch (e, st) {
       if (generation != _connectGeneration) {
         _log.info('connect to $addr cancelled after error: $e');
-        await _finishCancelledConnect(addr);
+        await _finishCancelledConnect(addr, generation);
         return;
       }
       _log.severe('connect to $addr failed', e, st);
@@ -1706,6 +1736,10 @@ class LocalDeviceManager extends DeviceManager {
         state = state.copyWith(findingXiaomiWearable: finding);
       case XiaomiScreenshotReceived(:final bytes):
         _log.info('event: Xiaomi screenshot received (${bytes.length} bytes)');
+      case XiaomiAudioRecordReceived(:final id, :final bytes):
+        _log.info(
+          'event: Xiaomi audio record received ($id, ${bytes.length} bytes)',
+        );
       case DeviceInfoUpdated(:final info):
         _log.info(
           'device info ${event.deviceId}: model=${info.model}, '
@@ -2023,8 +2057,19 @@ class LocalDeviceManager extends DeviceManager {
     );
   }
 
-  Future<void> _finishCancelledConnect(String targetAddress) async {
+  Future<void> _finishCancelledConnect(
+    String targetAddress,
+    int generation,
+  ) async {
+    if (generation != _connectGeneration) {
+      _log.fine(
+        'ignoring cancelled connect state reset for $targetAddress: '
+        'generation $generation superseded by $_connectGeneration',
+      );
+      return;
+    }
     _pendingConnectType = null;
+    await _cleanupConnection();
     final entity = _currentEntity;
     if (entity != null && entity.id != targetAddress) {
       state = state.copyWith(
@@ -2037,7 +2082,6 @@ class LocalDeviceManager extends DeviceManager {
       );
       return;
     }
-    await _cleanupConnection();
     final current = state.currentDevice;
     final currentIsPooled =
         current != null &&
@@ -2078,7 +2122,14 @@ class LocalDeviceManager extends DeviceManager {
       final replacingSppWithSpp =
           connection?.connectType == ConnectType.spp &&
           nextConnectType == ConnectType.spp;
-      if (keepAlive && connection != null && !replacingSppWithSpp) {
+      final canPool =
+          keepAlive &&
+          connection != null &&
+          !replacingSppWithSpp &&
+          (state.protocolState == ProtocolState.ready ||
+              (state.connecting && state.currentDevice?.addr == entity.id)) &&
+          !entity.isDisposed;
+      if (canPool) {
         _pooledConnections[entity.id] = connection;
         _pooledEntities[entity.id] = entity;
         _log.info(
@@ -2086,6 +2137,8 @@ class LocalDeviceManager extends DeviceManager {
           'for ${entity.id} to pool',
         );
       } else {
+        _pooledConnections.remove(entity.id);
+        _pooledEntities.remove(entity.id);
         disconnectedAddress = entity.id;
         _log.info('cleaning up connection to ${entity.id}');
         await _runtime.removeDevice(entity.id);
@@ -2676,6 +2729,8 @@ class LocalDeviceManager extends DeviceManager {
     Uint8List bytes, {
     required String title,
     required String artist,
+    String? album,
+    int? durationSecs,
     void Function(double progress)? onProgress,
   }) async {
     final entity = _currentEntity;
@@ -2690,7 +2745,6 @@ class LocalDeviceManager extends DeviceManager {
     if (system == null) {
       throw UnsupportedError('Music transfer service is unavailable');
     }
-    _ensureXiaomiMusicCapability();
     final id = crypto.md5.convert(bytes).bytes;
     _activeTransfers += 1;
     try {
@@ -2699,7 +2753,8 @@ class LocalDeviceManager extends DeviceManager {
           id: id,
           name: title,
           size: bytes.length,
-          duration: 0,
+          duration: durationSecs ?? 0,
+          album: album ?? '',
           artist: artist,
         ),
         bytes,
@@ -2719,34 +2774,19 @@ class LocalDeviceManager extends DeviceManager {
     if (entity == null || state.protocolState != ProtocolState.ready) {
       throw ProtocolException('Device not ready');
     }
-    _ensureXiaomiMusicCapability();
     return entity.system<XiaomiMediaSystem>() ??
         (throw UnsupportedError('Music management service is unavailable'));
-  }
-
-  void _ensureXiaomiMusicCapability() {
-    final device = state.currentDevice;
-    final profile = device == null
-        ? DeviceRegistry.unknown
-        : DeviceRegistry.resolveIdentity(
-            name: device.name,
-            codename: device.codename,
-          );
-    if (profile.id == 'xiaomi-band' ||
-        profile.id == 'xiaomi-band-pro' ||
-        profile.id == 'redmi-band') {
-      _log.warning(
-        'music operation rejected: ${device?.name ?? profile.id} '
-        'does not advertise music support',
-      );
-      throw UnsupportedError('This wearable does not support music transfer');
-    }
   }
 
   @override
   Future<DeviceMusicLibrary> loadXiaomiMusicLibrary() async {
     final system = _requireXiaomiMediaSystem();
-    final summary = await system.requestSongSummary();
+    final pb_media.SongSummary summary;
+    try {
+      summary = await system.requestSongSummary();
+    } on TimeoutException {
+      throw UnsupportedError('music_unsupported');
+    }
     final songs = <DeviceMusicSong>[];
     var index = 0;
     for (var page = 0; page < 100 && songs.length < summary.songCount; page++) {
@@ -2912,7 +2952,45 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
-  Future<List<DeviceRecording>> downloadXiaomiRecordings({
+  Future<List<MediaFileDescriptor>> fetchXiaomiRecordingList() async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final media = entity.system<XiaomiMediaSystem>();
+    if (media == null) {
+      throw UnsupportedError('Device recording service is unavailable');
+    }
+    List<MediaFileDescriptor> files;
+    try {
+      files = await media.requestMediaFileList();
+    } on TimeoutException {
+      // The device did not respond to the media file list request within timeout.
+      // Indicates the device firmware does not support media recording sync.
+      throw UnsupportedError('recording_unsupported');
+    } catch (_) {
+      files = await media.requestMediaFileListCompat();
+    }
+    return files
+        .where(
+          (file) =>
+              file.identifier != null &&
+              (file.mediaType == pb_media_enum.MediaFile_Type.OPUS ||
+                  file.mediaType == pb_media_enum.MediaFile_Type.PCM ||
+                  file.mediaType == pb_media_enum.MediaFile_Type.SBC ||
+                  file.mediaType == pb_media_enum.MediaFile_Type.MSBC ||
+                  file.name.toLowerCase().endsWith('.opus') ||
+                  file.name.toLowerCase().endsWith('.pcm') ||
+                  file.name.toLowerCase().endsWith('.sbc') ||
+                  file.name.toLowerCase().endsWith('.msbc') ||
+                  file.name.toLowerCase().endsWith('.ogg')),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<DeviceRecording>> downloadSelectedXiaomiRecordings({
+    required List<MediaFileDescriptor> files,
     void Function(int completed, int total, String fileName)? onProgress,
     void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
   }) async {
@@ -2935,78 +3013,46 @@ class LocalDeviceManager extends DeviceManager {
         throw ProtocolException('Device not ready');
       }
       final media = entity.system<XiaomiMediaSystem>();
-      final mass = entity.system<XiaomiMassSystem>();
-      if (media == null || mass == null) {
+      if (media == null) {
         throw UnsupportedError('Device recording service is unavailable');
       }
-      List<MediaFileDescriptor> files;
-      try {
-        files = await cancellable(media.requestMediaFileList());
-      } catch (_) {
-        if (cancellation.isCompleted) rethrow;
-        files = await cancellable(media.requestMediaFileListCompat());
-      }
       final recordings = files
-          .where(
-            (file) =>
-                file.identifier != null &&
-                (file.mediaType == pb_media_enum.MediaFile_Type.OPUS ||
-                    file.mediaType == pb_media_enum.MediaFile_Type.PCM ||
-                    file.mediaType == pb_media_enum.MediaFile_Type.SBC ||
-                    file.mediaType == pb_media_enum.MediaFile_Type.MSBC ||
-                    file.name.toLowerCase().endsWith('.opus') ||
-                    file.name.toLowerCase().endsWith('.pcm') ||
-                    file.name.toLowerCase().endsWith('.sbc') ||
-                    file.name.toLowerCase().endsWith('.msbc')),
-          )
+          .where((f) => f.identifier != null)
           .toList(growable: false);
       final results = <DeviceRecording>[];
-      // Xiaomi recordings are exported through the device's MASS channel.
-      // Listening on unrelated file channels allows a late transfer from a
-      // previous request to be mistaken for the current recording.
-      const channels = [L2Channel.mass];
       for (var index = 0; index < recordings.length; index++) {
         final descriptor = recordings[index];
         final identifier = descriptor.identifier!;
         onProgress?.call(index, recordings.length, descriptor.name);
-        final result = await _downloadRecordingWithFallback(
-          media: media,
-          mass: mass,
-          identifier: identifier,
-          channels: channels,
-          cancellable: cancellable,
-          onProgress: (value) {
-            final overall = recordings.isEmpty
-                ? 1.0
-                : ((index + value.progress) / recordings.length)
-                      .clamp(0, 1)
-                      .toDouble();
-            final size = descriptor.size;
-            onDetailedProgress?.call(
-              DeviceRecordingPullProgress(
-                progress: overall,
-                currentIndex: index + 1,
-                totalFiles: recordings.length,
-                fileName: value.fileName.isEmpty
-                    ? descriptor.name
-                    : value.fileName,
-                currentPart: value.currentPartNum,
-                totalParts: value.totalParts,
-                bytesDone: size == null
-                    ? null
-                    : (size * value.progress).round(),
-                bytesTotal: size,
-              ),
-            );
-          },
+        final data = await cancellable(
+          media.pullAudioRecord(
+            identifier,
+            onProgress: (progress, currentPart, totalParts) {
+              final overall = recordings.isEmpty
+                  ? 1.0
+                  : ((index + progress) / recordings.length)
+                        .clamp(0, 1)
+                        .toDouble();
+              final size = descriptor.size;
+              onDetailedProgress?.call(
+                DeviceRecordingPullProgress(
+                  progress: overall,
+                  currentIndex: index + 1,
+                  totalFiles: recordings.length,
+                  fileName: descriptor.name,
+                  currentPart: currentPart,
+                  totalParts: totalParts,
+                  bytesDone: size == null ? null : (size * progress).round(),
+                  bytesTotal: size,
+                ),
+              );
+            },
+          ),
         );
-        await media.confirmMediaFile(identifier);
         results.add(
           DeviceRecording(
-            fileName: result.fileName.isEmpty
-                ? descriptor.name
-                : result.fileName,
-            data: result.data,
+            fileName: descriptor.name,
+            data: data,
             durationSeconds: descriptor.durationSecs,
             createdAt: descriptor.createdAtMs == null
                 ? null
@@ -3023,67 +3069,17 @@ class LocalDeviceManager extends DeviceManager {
     }
   }
 
-  Future<ReverseMassReceiveResult> _downloadRecordingWithFallback({
-    required XiaomiMediaSystem media,
-    required XiaomiMassSystem mass,
-    required pb_media.MediaFile_Identifier identifier,
-    required List<L2Channel> channels,
-    required Future<T> Function<T>(Future<T> operation) cancellable,
-    void Function(ReceiveMassCallbackData progress)? onProgress,
+  @override
+  Future<List<DeviceRecording>> downloadXiaomiRecordings({
+    void Function(int completed, int total, String fileName)? onProgress,
+    void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
   }) async {
-    Object? lastError;
-    // Newer devices accept REQUEST_MEDIA_FILE_LIST while older firmware only
-    // responds to REQUEST_MEDIA_FILE.  AstroBox retries the request shape,
-    // but only after a short no-activity window rather than waiting for the
-    // full transfer timeout.
-    for (var attempt = 0; attempt < 2; attempt++) {
-      var activitySeen = false;
-      DateTime? lastProgressAt;
-      final activity = Completer<void>();
-      final receive = mass.beginReverseMassReceiveMulti(
-        channels,
-        progressCb: (value) {
-          activitySeen = true;
-          final now = DateTime.now();
-          if (lastProgressAt == null ||
-              now.difference(lastProgressAt!) >=
-                  const Duration(milliseconds: 100) ||
-              value.progress >= 1) {
-            lastProgressAt = now;
-            onProgress?.call(value);
-          }
-          if (!activity.isCompleted) activity.complete();
-        },
-      );
-      try {
-        if (attempt == 0) {
-          await media.requestMediaFiles([identifier]);
-        } else {
-          await media.requestMediaFile(identifier);
-        }
-        try {
-          await Future.any<void>([activity.future, receive.then<void>((_) {})])
-              .timeout(const Duration(seconds: 8));
-        } on TimeoutException {
-          throw const _NoReverseMassActivity();
-        }
-        return await cancellable(receive.timeout(const Duration(minutes: 5)));
-      } catch (error) {
-        lastError = error;
-        if (error is _NoReverseMassActivity && attempt == 0) continue;
-        rethrow;
-      } finally {
-        for (final channel in channels) {
-          mass.cancelReverseMassReceive(channel);
-        }
-        // Keep this read for clarity when diagnosing devices that send a
-        // completion without an intermediate progress callback.
-        if (!activitySeen) {
-          _log.fine('recording transfer ended without MASS activity');
-        }
-      }
-    }
-    throw lastError ?? const _NoReverseMassActivity();
+    final files = await fetchXiaomiRecordingList();
+    return downloadSelectedXiaomiRecordings(
+      files: files,
+      onProgress: onProgress,
+      onDetailedProgress: onDetailedProgress,
+    );
   }
 
   @override

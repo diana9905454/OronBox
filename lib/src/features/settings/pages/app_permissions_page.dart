@@ -8,14 +8,14 @@ import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/services/device_location_service.dart';
 
-class PhoneLocationPage extends ConsumerStatefulWidget {
-  const PhoneLocationPage({super.key});
+class AppPermissionsPage extends ConsumerStatefulWidget {
+  const AppPermissionsPage({super.key});
 
   @override
-  ConsumerState<PhoneLocationPage> createState() => _PhoneLocationPageState();
+  ConsumerState<AppPermissionsPage> createState() => _AppPermissionsPageState();
 }
 
-class _PhoneLocationPageState extends ConsumerState<PhoneLocationPage>
+class _AppPermissionsPageState extends ConsumerState<AppPermissionsPage>
     with WidgetsBindingObserver {
   LocationPermission? _permission;
   bool _precise = false;

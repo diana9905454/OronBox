@@ -95,7 +95,9 @@ class _ResourceCollectionPageState extends State<ResourceCollectionPage> {
         title: Text(l10n.resourceCollectionDetails),
       ),
       body: ListView(
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         children: [
           ResourceDetailHeader(
             resource: headerResource,
@@ -115,6 +117,7 @@ class _ResourceCollectionPageState extends State<ResourceCollectionPage> {
             )
           else
             PageContainer(
+              safeArea: false,
               padding: const EdgeInsets.all(StyleConstants.pagePadding),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

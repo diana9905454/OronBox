@@ -8,6 +8,35 @@ Map<String, Uint8List> readDataArchive(
   int maxBytes = 128 * 1024 * 1024,
   int maxFiles = 2048,
 }) {
+  final result = <String, Uint8List>{};
+  _readDataArchiveEntries(
+    bytes,
+    maxBytes: maxBytes,
+    maxFiles: maxFiles,
+    onEntry: (name, data) => result[name] = data,
+  );
+  return result;
+}
+
+void validateDataArchive(
+  Uint8List bytes, {
+  int maxBytes = 128 * 1024 * 1024,
+  int maxFiles = 2048,
+}) {
+  _readDataArchiveEntries(
+    bytes,
+    maxBytes: maxBytes,
+    maxFiles: maxFiles,
+    onEntry: (_, _) {},
+  );
+}
+
+void _readDataArchiveEntries(
+  Uint8List bytes, {
+  required int maxBytes,
+  required int maxFiles,
+  required void Function(String name, Uint8List data) onEntry,
+}) {
   if (bytes.length > maxBytes) {
     throw const FormatException('Archive is too large');
   }
@@ -16,21 +45,32 @@ Map<String, Uint8List> readDataArchive(
       directory.fileHeaders.length > maxFiles) {
     throw const FormatException('Invalid archive entry count');
   }
-  final result = <String, Uint8List>{};
+  final names = <String>{};
   var total = 0;
   for (final header in directory.fileHeaders) {
     final name = header.filename;
+    final directoryEntry = name.endsWith('/');
     if (name.startsWith('/') ||
         name.contains('\\') ||
         name.contains(':') ||
         name
             .split('/')
-            .any((part) => part.isEmpty || part == '.' || part == '..') ||
+            .asMap()
+            .entries
+            .any(
+              (entry) =>
+                  entry.value == '.' ||
+                  entry.value == '..' ||
+                  (entry.value.isEmpty &&
+                      !(directoryEntry &&
+                          entry.key == name.split('/').length - 1)),
+            ) ||
         ((header.externalFileAttributes >> 16) & 0xf000) == 0xa000 ||
-        result.containsKey(name) ||
+        !names.add(name) ||
         header.uncompressedSize > maxBytes - total) {
       throw const FormatException('Invalid archive entry');
     }
+    if (directoryEntry) continue;
     final output = _BoundedOutput(maxBytes - total);
     header.file!.decompress(output);
     final data = output.getBytes();
@@ -38,10 +78,9 @@ Map<String, Uint8List> readDataArchive(
         getCrc32(data) != header.crc32) {
       throw const FormatException('Archive checksum mismatch');
     }
-    result[name] = data;
+    onEntry(name, data);
     total += data.length;
   }
-  return result;
 }
 
 class _BoundedOutput extends OutputMemoryStream {

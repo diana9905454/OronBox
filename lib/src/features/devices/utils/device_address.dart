@@ -25,7 +25,9 @@ String formatDeviceAddress(String address) {
 
 /// Compares two endpoint addresses ignoring case and separator style, so
 /// `0C:07:DF:F5:A0:F6` and `0c-07-df-f5-a0-f6` count as the same device.
-bool deviceAddressEquals(String a, String b) {
+/// Returns false if either address is null.
+bool deviceAddressEquals(String? a, String? b) {
+  if (a == null || b == null) return false;
   return formatDeviceAddress(a).toUpperCase() ==
       formatDeviceAddress(b).toUpperCase();
 }

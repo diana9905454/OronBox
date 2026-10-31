@@ -549,8 +549,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'Bluetoothが切断されました。デバイスを再接続して再試行してください';
 
   @override
-  String get errorOperationTimeout =>
-      '操作がタイムアウトしました。デバイスが近くにあることを確認して再試行してください';
+  String get errorOperationTimeout => '操作がタイムアウトしました';
 
   @override
   String get errorDeviceNotReady => 'デバイスの準備ができていません。先に接続して認証してください';
@@ -641,6 +640,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get errorUnsupportedFileType => '未対応または認識できないファイル形式です';
+
+  @override
+  String get errorDeviceFeatureUnsupported =>
+      '現在のデバイスまたはファームウェアではこの機能に対応していません';
+
+  @override
+  String get errorDeviceMusicUnsupported => '現在のデバイスまたはファームウェアでは音楽転送に対応していません';
+
+  @override
+  String get errorDeviceRecordingUnsupported =>
+      '現在のデバイスまたはファームウェアでは録音のエクスポートに対応していません';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported =>
+      '現在のデバイスまたはファームウェアでは画面ミラーリングに対応していません';
+
+  @override
+  String get errorNotInstalled => '必要なコンポーネントまたはアプリがインストールされていません';
+
+  @override
+  String get errorInvalidOperation => '現在の状態ではこの操作を実行できません';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -1498,6 +1518,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceRecordingsDescription => '時計から録音を同期して書き出し';
 
   @override
+  String get deviceRecordingsLibrary => 'デバイス録音';
+
+  @override
+  String get deviceRecordingsLibraryDescription => '時計から録音を書き出します';
+
+  @override
   String get deviceRecordingsHint => '録音は1件ずつ受信・検証します。同期後に各元ファイルを書き出してください';
 
   @override
@@ -1534,6 +1560,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String deviceRecordingsSaveFailed(String error) {
     return '録音を書き出せません：$error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => '保存済み';
+
+  @override
+  String get deviceRecordingsSelectAll => 'すべて選択';
+
+  @override
+  String get deviceRecordingsDeselectAll => '選択解除';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return '選択項目をエクスポート ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => 'フォルダを開く';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return '$path に書き出しました';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => '録音を書き出しました';
+
+  @override
+  String get deviceRecordingsRefresh => '更新';
 
   @override
   String get deviceMusicTransferTitle => 'MP3ファイルを転送';
@@ -2777,6 +2831,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get creatorStateApproved => '承認済み';
 
   @override
+  String get creatorStateReviewing => '審査中';
+
+  @override
+  String get creatorStatePublishing => '公開中';
+
+  @override
   String get creatorStateExternalReview => '外部審査中';
 
   @override
@@ -3204,6 +3264,31 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String messageReviewNoteBody(String note) {
     return '審査メモ：$note';
+  }
+
+  @override
+  String messageReviewerPrefix(String reviewer) {
+    return '審査員：$reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return '操作者：$operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return '関連：$reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return '配信先：$targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return '修正が必要な項目：$items';
   }
 
   @override
@@ -4932,7 +5017,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appDataSpaceUsage => '分類別の使用量';
 
   @override
-  String get appDataHealth => 'ヘルスケアデータ';
+  String get appDataHealth => '活動ファイル';
 
   @override
   String get appDataPlugins => 'プラグイン';
@@ -4951,12 +5036,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appDataManageSnapshots => '保存された活動ファイルを管理';
-
-  @override
-  String get appDataExportSnapshots => '活動ファイルをエクスポート';
-
-  @override
-  String get appDataExportSnapshotsDescription => '保存された活動ファイルをエクスポート';
 
   @override
   String get appDataExported => '書き出したファイルを保存しました';
@@ -5184,7 +5263,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appDataSettingsDescription => 'テーマ、言語、機能の設定';
 
   @override
-  String get appDataHealthDescription => '同期した健康・運動の履歴';
+  String get appDataHealthDescription => '端末から同期した運動・健康データ';
 
   @override
   String get appDataDeviceKeys => 'デバイスのペアリングと鍵';
@@ -5204,9 +5283,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appDataImportDescription => 'バックアップからデータを選んで復元';
-
-  @override
-  String get appDataSnapshotDescription => '保存された活動ファイル';
 
   @override
   String get appDataPluginDescription => 'インストール済みプラグインとデータ';
@@ -5355,11 +5431,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appDataClearHealthDescription =>
-      '健康と運動の履歴を削除します\n端末に残っているデータのみ再同期できます';
-
-  @override
-  String get appDataClearRawDescription =>
-      '保存された活動ファイルを削除します\nエクスポートや再生はできなくなります';
+      '同期された活動ファイルが削除されます\nローカルの運動・健康データが消去されます';
 
   @override
   String get appDataClearCachedCategoryDescription =>
@@ -5410,4 +5482,75 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appOrderCannotHide => 'システム常駐アプリは非表示にできません';
+
+  @override
+  String get privateStateAccessPromptTitle =>
+      'OronBox は安全なストレージで保護されたアカウント資格情報へのアクセスが必要です';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      'システム認証ダイアログが表示された場合は、ログインパスワードを入力し、プロンプトが繰り返されないよう「常に許可」をクリックしてください';
+
+  @override
+  String get privateStateAccessPromptLinux =>
+      'システムロック解除ダイアログが表示された場合は、ユーザーパスワードを入力してキーリングを解除してください';
+
+  @override
+  String get creatorSubmissionPreview => '送信内容を確認';
+
+  @override
+  String get creatorResourceBinding => 'リソースの関連付け';
+
+  @override
+  String get creatorPublicationIdentity => '公開アカウント';
+
+  @override
+  String get creatorPublicationRange => '今回の公開内容';
+
+  @override
+  String get creatorNewPublication => '初回公開';
+
+  @override
+  String get creatorUpdatePublication => '既存のリソースを更新';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return 'PR #$number に追加';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return '公開対象外のデバイス：$devices';
+  }
+
+  @override
+  String get creatorBackToEdit => '編集に戻る';
+
+  @override
+  String get creatorPackageVersionCodeMissing =>
+      'パッケージに有効なバージョンコードがありません\n再ビルドしてアップロードしてください';
+
+  @override
+  String get creatorReopenSubmission => '再審査を申請';
+
+  @override
+  String get creatorReopenRequested => '再審査を申請しました';
+
+  @override
+  String get creatorFixesForSubmission => '今回修正した項目';
+
+  @override
+  String get creatorFixNote => '修正内容';
+
+  @override
+  String get creatorNameRequired => 'リソース名を入力してください';
+
+  @override
+  String get creatorSummaryRequired => 'リソースの概要を入力してください';
+
+  @override
+  String get creatorSubmitForReview => '審査に提出';
+
+  @override
+  String get creatorAstroBoxPRBody => 'PR の説明（任意）';
 }

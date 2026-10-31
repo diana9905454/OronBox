@@ -9,6 +9,7 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/dialog_helper.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
@@ -80,7 +81,10 @@ class SettingsPage extends ConsumerWidget {
       ),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: StyleConstants.pagePadding),
+        contentPadding: EdgeInsets.only(
+          top: StyleConstants.pagePadding,
+          bottom: bottomContentPadding(context, extra: 16),
+        ),
         sections: [
           if (category == null || category == SettingsCategory.accounts)
             _buildSection(

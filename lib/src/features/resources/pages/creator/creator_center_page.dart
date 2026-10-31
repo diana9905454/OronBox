@@ -47,31 +47,9 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     ]);
   }
 
-  Future<void> _confirmExit() async {
-    final l10n = AppLocalizations.of(context)!;
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.creatorCenterExitTitle),
-        content: Text(l10n.creatorCenterExitMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.creatorConfirm),
-          ),
-        ],
-      ),
-    );
-    if (leave == true && mounted) context.pop();
-  }
-
   void _handleBack() {
     if (_tab == 1) {
-      unawaited(_confirmExit());
+      context.pop();
     } else {
       context.replace('/resources/creator/resources');
     }
@@ -105,8 +83,8 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
       },
     );
     return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
+      canPop: _tab == 1,
+      onPopInvokedWithResult: (didPop, result) {
         if (!didPop) _handleBack();
       },
       child: Scaffold(
@@ -659,26 +637,33 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
         CreatorBottomBar(
           children: [
             Expanded(
-              child: InkWell(
-                onTap: _bottomReached
-                    ? () => setState(() => _checked = !_checked)
-                    : null,
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: _checked,
-                      onChanged: _bottomReached
-                          ? (value) => setState(() => _checked = value == true)
-                          : null,
-                    ),
-                    Flexible(
-                      child: Text(
-                        _bottomReached
-                            ? l10n.creatorTermsAccept
-                            : l10n.oobeAgreementHint,
+              child: MouseRegion(
+                cursor: _bottomReached
+                    ? SystemMouseCursors.click
+                    : SystemMouseCursors.basic,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _bottomReached
+                      ? () => setState(() => _checked = !_checked)
+                      : null,
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _checked,
+                        onChanged: _bottomReached
+                            ? (value) =>
+                                  setState(() => _checked = value == true)
+                            : null,
                       ),
-                    ),
-                  ],
+                      Flexible(
+                        child: Text(
+                          _bottomReached
+                              ? l10n.creatorTermsAccept
+                              : l10n.oobeAgreementHint,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

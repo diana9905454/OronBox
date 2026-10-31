@@ -170,6 +170,7 @@ class CommentThreadPageState extends ConsumerState<CommentThreadPage> {
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(l10n.commentThreadTitle)),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
             if (thread != null)

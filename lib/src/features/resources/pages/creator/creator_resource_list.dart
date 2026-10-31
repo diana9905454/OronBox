@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
@@ -255,77 +253,6 @@ class _CreatorListEntry {
   final CreatorWorkspace workspace;
   final Map<String, Object?>? collection;
   final int collectionResourceCount;
-}
-
-class CreatorResourceThumbnail extends StatefulWidget {
-  const CreatorResourceThumbnail({
-    super.key,
-    required this.workspace,
-    required this.controller,
-    this.size = 64,
-  });
-
-  final CreatorWorkspace workspace;
-  final CreatorWorkspaceController controller;
-  final double size;
-
-  @override
-  State<CreatorResourceThumbnail> createState() =>
-      _CreatorResourceThumbnailState();
-}
-
-class _CreatorResourceThumbnailState extends State<CreatorResourceThumbnail> {
-  Uint8List? _bytes;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
-  void didUpdateWidget(covariant CreatorResourceThumbnail oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.workspace.resource.id != widget.workspace.resource.id ||
-        creatorThumbnailMedia(oldWidget.workspace)?.sha256 !=
-            creatorThumbnailMedia(widget.workspace)?.sha256) {
-      _bytes = null;
-      _load();
-    }
-  }
-
-  Future<void> _load() async {
-    final media = creatorThumbnailMedia(widget.workspace);
-    if (media == null) return;
-    try {
-      final bytes = await widget.controller.blob(
-        widget.workspace.resource.id,
-        media.sha256,
-      );
-      if (mounted) setState(() => _bytes = bytes);
-    } catch (_) {}
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final bytes = _bytes;
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: bytes != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.memory(bytes, fit: BoxFit.cover),
-            )
-          : Icon(
-              widget.workspace.resource.kind == CreatorResourceKind.watchface
-                  ? Icons.watch_outlined
-                  : Icons.apps_outlined,
-              color: colors.onSurfaceVariant,
-            ),
-    );
-  }
 }
 
 class CreatorResourceCard extends StatelessWidget {

@@ -428,6 +428,4 @@ extension _CreatorEditorAssetCards on _CreatorEditorViewState {
       ),
     );
   }
-
-
 }

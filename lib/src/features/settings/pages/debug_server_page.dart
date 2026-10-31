@@ -5,6 +5,7 @@ import 'package:segmented_list/segmented_list.dart';
 
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/debug_server/debug_server_auth.dart';
 import 'package:oronbox/src/debug_server/debug_server_provider.dart';
@@ -22,7 +23,10 @@ class DebugServerPage extends ConsumerWidget {
       appBar: SysAppBar(secondary: true, title: Text(l10n.debugServerTitle)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         sections: [
           SegmentedSection(
             title: _SectionTitle(
@@ -174,9 +178,8 @@ class DebugServerPage extends ConsumerWidget {
   ) async {
     await Clipboard.setData(ClipboardData(text: value));
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.copied)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.copied)));
     }
   }
 }

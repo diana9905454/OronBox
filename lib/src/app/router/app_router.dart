@@ -1,4 +1,4 @@
-import 'package:oronbox/src/features/devices/pages/tools/phone_location_page.dart';
+import 'package:oronbox/src/features/settings/pages/app_permissions_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/xiaomi_app_arrangement_page.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -626,7 +626,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'permissions',
-                    builder: (context, state) => const PhoneLocationPage(),
+                    builder: (context, state) => const AppPermissionsPage(),
                   ),
                   GoRoute(
                     path: 'legal/:id',

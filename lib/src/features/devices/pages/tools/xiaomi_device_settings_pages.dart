@@ -4,6 +4,7 @@ import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
@@ -89,7 +90,10 @@ class _XiaomiAppLayoutPageState extends ConsumerState<XiaomiAppLayoutPage> {
       appBar: SysAppBar(secondary: true, title: Text(l10n.appLayoutTitle)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         sections: [
           if (_loading)
             const CustomSegmentedSection(

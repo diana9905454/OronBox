@@ -9,7 +9,7 @@ Future<BackupSelection?> showBackupSelectionDialog(
 }) {
   final l10n = AppLocalizations.of(context)!;
   var settings = backup == null || backup.settings.isNotEmpty;
-  var health = backup == null || backup.health.isNotEmpty;
+  var health = backup == null || backup.activityFiles.isNotEmpty;
   var extensions = backup == null || backup.extensions.isNotEmpty;
   var devices = false;
   var xiaomi = false;
@@ -68,7 +68,7 @@ Future<BackupSelection?> showBackupSelectionDialog(
                     l10n.appDataHealth,
                     l10n.appDataHealthDescription,
                     health,
-                    backup == null || backup.health.isNotEmpty,
+                    backup == null || backup.activityFiles.isNotEmpty,
                     (v) => health = v,
                   ),
                   option(

@@ -568,8 +568,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Bluetooth disconnected. Reconnect the device and try again';
 
   @override
-  String get errorOperationTimeout =>
-      'Operation timed out. Make sure the device is still nearby and try again';
+  String get errorOperationTimeout => 'Operation timed out';
 
   @override
   String get errorDeviceNotReady =>
@@ -674,6 +673,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorUnsupportedFileType =>
       'Unsupported or unrecognized file type';
+
+  @override
+  String get errorDeviceFeatureUnsupported =>
+      'This feature is not supported by the current device or firmware';
+
+  @override
+  String get errorDeviceMusicUnsupported =>
+      'Music transfer is not supported by the current device or firmware';
+
+  @override
+  String get errorDeviceRecordingUnsupported =>
+      'Recording export is not supported by the current device or firmware';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported =>
+      'Screen mirroring is not supported by the current device or firmware';
+
+  @override
+  String get errorNotInstalled => 'Required component or app is not installed';
+
+  @override
+  String get errorInvalidOperation =>
+      'Cannot perform this operation in the current state';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -1562,6 +1584,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Sync and export recordings from the watch';
 
   @override
+  String get deviceRecordingsLibrary => 'Device recordings';
+
+  @override
+  String get deviceRecordingsLibraryDescription =>
+      'Export recordings from the watch';
+
+  @override
   String get deviceRecordingsHint =>
       'Recordings are received and verified one by one. Export each original file after synchronization.';
 
@@ -1601,6 +1630,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String deviceRecordingsSaveFailed(String error) {
     return 'Could not export recording: $error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => 'Saved';
+
+  @override
+  String get deviceRecordingsSelectAll => 'Select all';
+
+  @override
+  String get deviceRecordingsDeselectAll => 'Deselect all';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return 'Export selected ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => 'Open folder';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return 'Exported to $path';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => 'Recording exported';
+
+  @override
+  String get deviceRecordingsRefresh => 'Refresh';
 
   @override
   String get deviceMusicTransferTitle => 'Transfer MP3 file';
@@ -2898,6 +2955,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get creatorStateApproved => 'Approved';
 
   @override
+  String get creatorStateReviewing => 'Reviewing';
+
+  @override
+  String get creatorStatePublishing => 'Publishing';
+
+  @override
   String get creatorStateExternalReview => 'External review';
 
   @override
@@ -3336,6 +3399,31 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String messageReviewNoteBody(String note) {
     return 'Review note: $note';
+  }
+
+  @override
+  String messageReviewerPrefix(String reviewer) {
+    return 'Reviewer: $reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return 'Operator: $operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return 'Related: $reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return 'Channels: $targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return 'Items needing changes: $items';
   }
 
   @override
@@ -5104,7 +5192,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appDataSpaceUsage => 'Storage by category';
 
   @override
-  String get appDataHealth => 'Health data';
+  String get appDataHealth => 'Activity files';
 
   @override
   String get appDataPlugins => 'Plugins';
@@ -5123,12 +5211,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appDataManageSnapshots => 'Manage saved activity files';
-
-  @override
-  String get appDataExportSnapshots => 'Export activity files';
-
-  @override
-  String get appDataExportSnapshotsDescription => 'Export saved activity files';
 
   @override
   String get appDataExported => 'Export saved';
@@ -5377,7 +5459,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Theme, language and feature preferences';
 
   @override
-  String get appDataHealthDescription => 'Synced health and workout history';
+  String get appDataHealthDescription =>
+      'Device-synced fitness and health data';
 
   @override
   String get appDataDeviceKeys => 'Device pairing and keys';
@@ -5399,9 +5482,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appDataImportDescription => 'Choose data to restore from a backup';
-
-  @override
-  String get appDataSnapshotDescription => 'Saved activity files';
 
   @override
   String get appDataPluginDescription =>
@@ -5567,11 +5647,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appDataClearHealthDescription =>
-      'Health history will be removed\nOnly data still on your device can be synced again';
-
-  @override
-  String get appDataClearRawDescription =>
-      'Saved activity files will be removed\nThey will no longer be available for export or replay';
+      'Synced activity files will be removed\nLocal health data will be cleared';
 
   @override
   String get appDataClearCachedCategoryDescription =>
@@ -5623,4 +5699,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get appOrderCannotHide => 'System app cannot be hidden';
+
+  @override
+  String get privateStateAccessPromptTitle =>
+      'OronBox needs to access account credentials protected by secure storage';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      'If a system authorization prompt appears, enter your user password and click \"Always Allow\" to avoid repeated prompts';
+
+  @override
+  String get privateStateAccessPromptLinux =>
+      'If a system unlock prompt appears, enter your password to unlock the keyring';
+
+  @override
+  String get creatorSubmissionPreview => 'Review submission';
+
+  @override
+  String get creatorResourceBinding => 'Resource link';
+
+  @override
+  String get creatorPublicationIdentity => 'Publishing accounts';
+
+  @override
+  String get creatorPublicationRange => 'Included in this submission';
+
+  @override
+  String get creatorNewPublication => 'First publication';
+
+  @override
+  String get creatorUpdatePublication => 'Update existing resource';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return 'Append to PR #$number';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return 'Excluded devices: $devices';
+  }
+
+  @override
+  String get creatorBackToEdit => 'Back to editing';
+
+  @override
+  String get creatorPackageVersionCodeMissing =>
+      'The package has no valid version code; rebuild it and upload again';
+
+  @override
+  String get creatorReopenSubmission => 'Request another review';
+
+  @override
+  String get creatorReopenRequested => 'Another review requested';
+
+  @override
+  String get creatorFixesForSubmission => 'Issues fixed in this submission';
+
+  @override
+  String get creatorFixNote => 'Fix details';
+
+  @override
+  String get creatorNameRequired => 'Enter a resource name';
+
+  @override
+  String get creatorSummaryRequired => 'Enter a resource summary';
+
+  @override
+  String get creatorSubmitForReview => 'Submit for review';
+
+  @override
+  String get creatorAstroBoxPRBody => 'PR description (optional)';
 }

@@ -283,8 +283,13 @@ Future<Directory> _exportDirectory() async {
     final home =
         Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home != null) {
-      final documents = Directory('$home${Platform.pathSeparator}Documents');
-      if (await documents.exists()) return documents;
+      final logsDir = Directory(
+        '$home${Platform.pathSeparator}Documents${Platform.pathSeparator}OronBox${Platform.pathSeparator}Logs',
+      );
+      if (!await logsDir.exists()) {
+        await logsDir.create(recursive: true);
+      }
+      return logsDir;
     }
   }
   return getApplicationDocumentsDirectory();

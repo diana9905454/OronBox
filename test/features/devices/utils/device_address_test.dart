@@ -50,5 +50,11 @@ void main() {
         isFalse,
       );
     });
+
+    test('returns false when either address is null', () {
+      expect(deviceAddressEquals(null, '0C:07:DF:F5:A0:F6'), isFalse);
+      expect(deviceAddressEquals('0C:07:DF:F5:A0:F6', null), isFalse);
+      expect(deviceAddressEquals(null, null), isFalse);
+    });
   });
 }

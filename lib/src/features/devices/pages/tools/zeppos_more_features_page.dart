@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
@@ -128,7 +129,10 @@ class _ZeppOsMoreFeaturesPageState
       appBar: SysAppBar(secondary: true, title: Text(l10n.zeppOsMoreFeatures)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: 8),
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 16),
+        ),
         sections: [
           SegmentedSection(
             title: Text(l10n.zeppOsDeviceFeaturesSection),

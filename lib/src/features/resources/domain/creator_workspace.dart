@@ -56,6 +56,7 @@ class CreatorWorkspace {
     this.media = const [],
     this.links = const [],
     this.review,
+    this.activeAstroBoxSubmission,
     this.publications = const [],
     this.bindings = const [],
   });
@@ -67,6 +68,7 @@ class CreatorWorkspace {
   final List<CreatorMedia> media;
   final List<CreatorLink> links;
   final Map<String, Object?>? review;
+  final Map<String, Object?>? activeAstroBoxSubmission;
   final List<Map<String, Object?>> publications;
 
   /// External identities this resource is bound to (BandBBS / AstroBox).
@@ -92,6 +94,9 @@ class CreatorWorkspace {
       media: _maps(json['media']).map(CreatorMedia.fromJson).toList(),
       links: _maps(json['links']).map(CreatorLink.fromJson).toList(),
       review: json['review'] is Map ? _map(json['review']) : null,
+      activeAstroBoxSubmission: json['active_astrobox_submission'] is Map
+          ? _map(json['active_astrobox_submission'])
+          : null,
       publications: _maps(json['publications']),
       bindings: _maps(json['bindings']),
     );
@@ -233,6 +238,7 @@ class CreatorArtifact {
     required this.devices,
     this.sizeBytes = 0,
     this.analysisKind = '',
+    this.versionCode,
   });
 
   final String id;
@@ -243,6 +249,7 @@ class CreatorArtifact {
   final List<String> devices;
   final int sizeBytes;
   final String analysisKind;
+  final int? versionCode;
 
   factory CreatorArtifact.fromJson(Map<String, Object?> json) =>
       CreatorArtifact(
@@ -256,6 +263,8 @@ class CreatorArtifact {
             .toList(),
         sizeBytes: (json['size_bytes'] as num?)?.toInt() ?? 0,
         analysisKind: (json['analysis'] as Map?)?['kind']?.toString() ?? '',
+        versionCode: ((json['analysis'] as Map?)?['version_code'] as num?)
+            ?.toInt(),
       );
 }
 

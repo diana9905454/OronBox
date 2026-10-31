@@ -19,7 +19,6 @@ import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
-import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
 
 import '../application/app_data_inventory.dart';
 import '../application/app_data_cleanup.dart';
@@ -36,11 +35,12 @@ class AppDataPage extends ConsumerStatefulWidget {
 class _AppDataPageState extends ConsumerState<AppDataPage> {
   List<AppDataUsage> _usage = const [];
   bool _busy = false;
+  bool _inventoryLoading = true;
+  bool _inventoryFailed = false;
   bool _pendingRecovery = false;
   Future<void> _maintenanceDone = Future.value();
   late final AppExtensionBackupStore _extensions;
   late final AppDataBackupService _backup;
-  final _store = HealthDebugSnapshotStore();
   final _log = getLogger('AppDataPage');
 
   @override
@@ -117,6 +117,8 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
   Future<void> _refresh() async {
     setState(() {
       _busy = true;
+      _inventoryLoading = true;
+      _inventoryFailed = false;
     });
     try {
       final usage = await collectAppDataInventory();
@@ -129,8 +131,14 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
       }
     } catch (error, stack) {
       _log.warning('Application data inventory failed', error, stack);
+      if (mounted) setState(() => _inventoryFailed = true);
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _inventoryLoading = false;
+        });
+      }
     }
   }
 
@@ -149,41 +157,6 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
       if (mounted) _message(l10n.appDataUpdateFailed);
     } finally {
       if (mounted) await _refresh();
-    }
-  }
-
-  Future<void> _export() async {
-    final l10n = AppLocalizations.of(context)!;
-    setState(() => _busy = true);
-    try {
-      final bytes = await _store.exportCollection();
-      if (!mounted) return;
-      final saved = await FilePicker.saveFile(
-        dialogTitle: l10n.appDataExportSnapshots,
-        fileName:
-            'OronBox-Activity-Files-${DateTime.now().millisecondsSinceEpoch}.zip',
-        mimeType: 'application/zip',
-        bytes: bytes,
-      );
-      if (mounted && saved != null) {
-        appScaffoldMessengerOf(context)
-            .showSnackBar(SnackBar(content: Text(l10n.appDataExported)));
-      }
-    } catch (error, stack) {
-      _log.warning('Health snapshot collection export failed', error, stack);
-      if (mounted) {
-        appScaffoldMessengerOf(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              error is SnapshotArchiveTooLarge
-                  ? l10n.appDataArchiveTooLarge
-                  : l10n.appDataExportFailed,
-            ),
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -222,7 +195,7 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
         type: FileType.custom,
         allowedExtensions: const ['zip'],
         dialogTitle: l10n.appDataRestore,
-        maxBytes: 128 * 1024 * 1024,
+        maxBytes: 512 * 1024 * 1024,
         loadBytes: true,
       );
       if (picked == null) return;
@@ -237,9 +210,12 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
       if (selection == null || !mounted) return;
       await _backup.restore(
         AppDataBackup(
-          selection.settings ? backup.settings : const {},
-          selection.health ? backup.health : const {},
+          settings: selection.settings ? backup.settings : const {},
+          activityFiles: selection.health ? backup.activityFiles : const {},
           extensions: selection.extensions ? backup.extensions : const {},
+          extensionFiles: selection.extensions
+              ? backup.extensionFiles
+              : const {},
           privateData: {
             if (selection.devices) 'devices': backup.privateData['devices'],
             if (selection.xiaomi) 'xiaomi': backup.privateData['xiaomi'],
@@ -306,7 +282,6 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
   Future<void> _confirmCategoryCleanup(AppDataCategory category) async {
     final removable = {
       AppDataCategory.health,
-      AppDataCategory.snapshots,
       AppDataCategory.cache,
       AppDataCategory.images,
       AppDataCategory.downloads,
@@ -321,7 +296,6 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
         title: Text(l10n.appDataClearCategoryTitle(_title(category, l10n))),
         content: Text(switch (category) {
           AppDataCategory.health => l10n.appDataClearHealthDescription,
-          AppDataCategory.snapshots => l10n.appDataClearRawDescription,
           AppDataCategory.models => l10n.appDataClearModelsDescription,
           _ => l10n.appDataClearCachedCategoryDescription,
         }),
@@ -343,7 +317,6 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
   String _title(AppDataCategory category, AppLocalizations l10n) =>
       switch (category) {
         AppDataCategory.health => l10n.appDataHealth,
-        AppDataCategory.snapshots => l10n.deviceHealthDebugSnapshots,
         AppDataCategory.plugins => l10n.appDataPlugins,
         AppDataCategory.zeppos => l10n.appDataZeppos,
         AppDataCategory.logs => l10n.settingsAboutLogs,
@@ -359,7 +332,6 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
   String _description(AppDataCategory category, AppLocalizations l10n) =>
       switch (category) {
         AppDataCategory.health => l10n.appDataHealthDescription,
-        AppDataCategory.snapshots => l10n.appDataSnapshotDescription,
         AppDataCategory.plugins => l10n.appDataPluginDescription,
         AppDataCategory.zeppos => l10n.appDataZepposDescription,
         AppDataCategory.logs => l10n.appDataLogsDescription,
@@ -385,103 +357,125 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
     final visibleUsage = _usage
         .where((usage) => (usage.bytes ?? 0) > 0)
         .toList();
+    final dataSections = <Widget>[
+      if (_inventoryFailed && _usage.isEmpty)
+        CustomSegmentedSection(child: Text(l10n.appDataLoadFailed)),
+      if (visibleUsage.isNotEmpty)
+        SegmentedSection(
+          tiles: [
+            for (final usage in visibleUsage)
+              SegmentedTile(
+                title: Text(_title(usage.category, l10n)),
+                description: _descriptionText(
+                  _description(usage.category, l10n),
+                ),
+                trailing: Text(usage.bytes == null ? '—' : _size(usage.bytes!)),
+                enabled: !_busy,
+                onPressed: (_) => _confirmCategoryCleanup(usage.category),
+              ),
+          ],
+        ),
+    ];
+    final actionSections = <Widget>[
+      SegmentedSection(
+        tiles: [
+          SegmentedTile(
+            leading: const Icon(Icons.backup_outlined),
+            title: Text(l10n.appDataBackup),
+            description: _descriptionText(l10n.appDataBackupDescription),
+            enabled: !_busy && !_pendingRecovery,
+            onPressed: (_) => _exportBackup(),
+          ),
+          SegmentedTile(
+            leading: const Icon(Icons.restore_outlined),
+            title: Text(l10n.appDataRestore),
+            description: _descriptionText(l10n.appDataImportDescription),
+            enabled: !_busy && !_pendingRecovery,
+            onPressed: (_) => _restoreBackup(),
+          ),
+          if (_pendingRecovery)
+            SegmentedTile(
+              leading: const Icon(Icons.history),
+              title: Text(l10n.appDataRecover),
+              description: _descriptionText(l10n.appDataRecoveryPending),
+              enabled: !_busy,
+              onPressed: (_) => _recover(),
+            ),
+        ],
+      ),
+      SegmentedSection(
+        tiles: [
+          SegmentedTile(
+            leading: const Icon(Icons.cleaning_services_outlined),
+            title: Text(l10n.appDataClearCache),
+            description: _descriptionText(l10n.appDataClearCacheDescription),
+            enabled: !_busy,
+            onPressed: (_) => _cleanup(),
+          ),
+          SegmentedTile.navigation(
+            leading: const Icon(Icons.data_object),
+            title: Text(l10n.deviceHealthDebugSnapshots),
+            description: _descriptionText(l10n.appDataManageSnapshots),
+            enabled: !_busy,
+            onPressed: (_) async {
+              await context.push('/devices/velaos-health/debug');
+              if (mounted) await _refresh();
+            },
+          ),
+          SegmentedTile.navigation(
+            leading: const Icon(Icons.description_outlined),
+            title: Text(l10n.settingsAboutLogs),
+            description: _descriptionText(l10n.settingsAboutLogsDescription),
+            onPressed: (_) => context.push('/settings/logs'),
+          ),
+        ],
+      ),
+    ];
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(l10n.appDataTitle)),
-      body: SegmentedList(
-        maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: EdgeInsets.only(
-          top: 8,
-          bottom: MediaQuery.paddingOf(context).bottom + 24,
-        ),
-        sections: [
-          if (visibleUsage.isNotEmpty)
-            SegmentedSection(
-              tiles: [
-                for (final usage in visibleUsage)
-                  SegmentedTile(
-                    title: Text(_title(usage.category, l10n)),
-                    description: _descriptionText(
-                      _description(usage.category, l10n),
+      body: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.only(top: 8),
+            sliver: SliverList.list(
+              children: [
+                for (final section in dataSections)
+                  Align(
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: StyleConstants.pageMaxWidth,
+                      ),
+                      child: section,
                     ),
-                    trailing: Text(
-                      usage.bytes == null ? '—' : _size(usage.bytes!),
-                    ),
-                    enabled: !_busy,
-                    onPressed: (_) => _confirmCategoryCleanup(usage.category),
                   ),
               ],
             ),
-          SegmentedSection(
-            tiles: [
-              SegmentedTile(
-                leading: const Icon(Icons.backup_outlined),
-                title: Text(l10n.appDataBackup),
-                description: _descriptionText(l10n.appDataBackupDescription),
-                enabled: !_busy && !_pendingRecovery,
-                onPressed: (_) => _exportBackup(),
-              ),
-              SegmentedTile(
-                leading: const Icon(Icons.restore_outlined),
-                title: Text(l10n.appDataRestore),
-                description: _descriptionText(l10n.appDataImportDescription),
-                enabled: !_busy && !_pendingRecovery,
-                onPressed: (_) => _restoreBackup(),
-              ),
-              if (_pendingRecovery)
-                SegmentedTile(
-                  leading: const Icon(Icons.history),
-                  title: Text(l10n.appDataRecover),
-                  description: _descriptionText(l10n.appDataRecoveryPending),
-                  enabled: !_busy,
-                  onPressed: (_) => _recover(),
-                ),
-            ],
           ),
-          SegmentedSection(
-            tiles: [
-              SegmentedTile(
-                leading: const Icon(Icons.cleaning_services_outlined),
-                title: Text(l10n.appDataClearCache),
-                description: _descriptionText(
-                  l10n.appDataClearCacheDescription,
-                ),
-                enabled: !_busy,
-                onPressed: (_) => _cleanup(),
-              ),
-              SegmentedTile.navigation(
-                leading: const Icon(Icons.data_object),
-                title: Text(l10n.deviceHealthDebugSnapshots),
-                description: _descriptionText(l10n.appDataManageSnapshots),
-                enabled: !_busy,
-                onPressed: (_) async {
-                  await context.push('/devices/velaos-health/debug');
-                  if (mounted) await _refresh();
-                },
-              ),
-              SegmentedTile(
-                leading: const Icon(Icons.archive_outlined),
-                title: Text(l10n.appDataExportSnapshots),
-                description: _descriptionText(
-                  l10n.appDataExportSnapshotsDescription,
-                ),
-                enabled:
-                    !_busy &&
-                    _usage.any(
-                      (item) =>
-                          item.category == AppDataCategory.snapshots &&
-                          (item.bytes ?? 0) > 0,
+          if (_inventoryLoading && _usage.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          SliverPadding(
+            padding: EdgeInsets.only(top: dataSections.isEmpty ? 8 : 0),
+            sliver: SliverList.list(
+              children: [
+                for (final section in actionSections)
+                  Align(
+                    alignment: Alignment.center,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: StyleConstants.pageMaxWidth,
+                      ),
+                      child: section,
                     ),
-                onPressed: (_) => _export(),
-              ),
-              SegmentedTile.navigation(
-                leading: const Icon(Icons.description_outlined),
-                title: Text(l10n.settingsAboutLogs),
-                description: _descriptionText(
-                  l10n.settingsAboutLogsDescription,
-                ),
-                onPressed: (_) => context.push('/settings/logs'),
-              ),
-            ],
+                  ),
+              ],
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: MediaQuery.paddingOf(context).bottom + 24),
           ),
         ],
       ),

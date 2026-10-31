@@ -2,14 +2,12 @@ import 'dart:typed_data';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/core/storage/app_data_directory_io.dart';
 import 'package:oronbox/src/core/storage/data_archive.dart';
-import 'package:oronbox/src/features/devices/health/health_database.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/features/settings/application/app_data_backup.dart';
 import 'package:oronbox/src/features/settings/application/app_private_backup.dart';
@@ -38,7 +36,6 @@ void main() {
   late Directory root;
   late PrivateAppState state;
   late AppPrivateBackupStore private;
-  late HealthDatabase db;
   late IoAppDataDirectory journal;
   late AppDataBackupService service;
   Map<String, Object?> session(String secret) => {
@@ -78,19 +75,15 @@ void main() {
       ],
     });
     private = AppPrivateBackupStore(state: state);
-    db = HealthDatabase(NativeDatabase.memory());
-    HealthStore.databaseForTesting = db;
+    HealthStore.activityStorageForTesting = IoAppDataDirectory(
+      Directory('${root.path}/health'),
+    );
     HealthStore.clearCache();
     journal = IoAppDataDirectory(Directory('${root.path}/journal'));
-    service = AppDataBackupService(
-      database: db,
-      journal: journal,
-      privateStore: private,
-    );
+    service = AppDataBackupService(journal: journal, privateStore: private);
   });
   tearDown(() async {
-    await db.close();
-    HealthStore.databaseForTesting = null;
+    HealthStore.activityStorageForTesting = null;
     HealthStore.clearCache();
     await root.delete(recursive: true);
   });
@@ -124,7 +117,7 @@ void main() {
       jsonDecode(
         utf8.decode(readDataArchive(bytes)['manifest.json']!),
       )['version'],
-      3,
+      1,
     );
     await state.update({PrivateAppState.miToken: null});
     await service.restore(backup);
@@ -135,9 +128,7 @@ void main() {
     'rejects account categories outside the explicit allowlist before writing',
     () async {
       await expectLater(
-        service.restore(
-          const AppDataBackup({}, {}, privateData: {'oronbox': 'bad'}),
-        ),
+        service.restore(const AppDataBackup(privateData: {'oronbox': 'bad'})),
         throwsFormatException,
       );
       expect(state.readString(PrivateAppState.miToken), contains('old-secret'));
@@ -146,16 +137,10 @@ void main() {
   );
   test('partial private restore rolls back through secure storage', () async {
     private = _FailOnce(state, journal);
-    service = AppDataBackupService(
-      database: db,
-      journal: journal,
-      privateStore: private,
-    );
+    service = AppDataBackupService(journal: journal, privateStore: private);
     await expectLater(
       service.restore(
         AppDataBackup(
-          {},
-          {},
           privateData: {'xiaomi': jsonEncode(session('new-secret'))},
         ),
       ),

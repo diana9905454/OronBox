@@ -33,67 +33,74 @@ class LegalDocumentPage extends ConsumerWidget {
     final colors = theme.colorScheme;
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(title)),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 840),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerLow,
-                borderRadius: BorderRadius.circular(StyleConstants.cardRadius),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(StyleConstants.cardRadius),
-                child: FutureBuilder<String>(
-                  future: loadLegalDocument(
-                    ref,
-                    id,
-                    legalDocumentLanguage(Localizations.localeOf(context)),
+      body: SafeArea(
+        top: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 840),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(
+                    StyleConstants.cardRadius,
                   ),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          localizedErrorMessage(
-                            AppLocalizations.of(context)!,
-                            snapshot.error,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    StyleConstants.cardRadius,
+                  ),
+                  child: FutureBuilder<String>(
+                    future: loadLegalDocument(
+                      ref,
+                      id,
+                      legalDocumentLanguage(Localizations.localeOf(context)),
+                    ),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Text(
+                            localizedErrorMessage(
+                              AppLocalizations.of(context)!,
+                              snapshot.error,
+                            ),
                           ),
+                        );
+                      }
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(48),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                      return Markdown(
+                        data: snapshot.data!,
+                        selectable: true,
+                        padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                        styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+                          p: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                          pPadding: const EdgeInsets.only(bottom: 12),
+                          h1: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          h1Padding: const EdgeInsets.only(top: 16, bottom: 8),
+                          h2: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                          h2Padding: const EdgeInsets.only(top: 12, bottom: 6),
                         ),
+                        onTapLink: (_, href, _) {
+                          final uri = Uri.tryParse(href ?? '');
+                          if (uri != null && uri.hasScheme) {
+                            openResourceExternalLink(context, uri);
+                          }
+                        },
                       );
-                    }
-                    if (!snapshot.hasData) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(48),
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-                    return Markdown(
-                      data: snapshot.data!,
-                      selectable: true,
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                      styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
-                        p: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
-                        pPadding: const EdgeInsets.only(bottom: 12),
-                        h1: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                        h1Padding: const EdgeInsets.only(top: 16, bottom: 8),
-                        h2: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                        h2Padding: const EdgeInsets.only(top: 12, bottom: 6),
-                      ),
-                      onTapLink: (_, href, _) {
-                        final uri = Uri.tryParse(href ?? '');
-                        if (uri != null && uri.hasScheme) {
-                          openResourceExternalLink(context, uri);
-                        }
-                      },
-                    );
-                  },
+                    },
+                  ),
                 ),
               ),
             ),

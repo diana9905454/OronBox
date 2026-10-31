@@ -806,7 +806,7 @@
   "errorBluetoothUnavailable": "無法使用 Bluetooth。請確認 Bluetooth 已開啟，且 OronBox 已獲得使用權限",
   "errorBluetoothConnectFailed": "連線失敗。請確認 Bluetooth 權限，讓裝置保持在附近且未被使用，在裝置上開啟「連線新手機」後再試一次",
   "errorBluetoothDisconnected": "Bluetooth 連線已中斷。請重新連線裝置後再試",
-  "errorOperationTimeout": "操作逾時。請確認裝置仍在附近後再試",
+  "errorOperationTimeout": "操作逾時",
   "errorDeviceNotReady": "裝置尚未就緒。請先連線並完成裝置驗證",
   "errorBleCharacteristicsMissing": "找不到必要的 BLE 通道。請重新連線裝置，或確認裝置是否支援此功能",
   "errorWebSerialUnavailable": "此瀏覽器不支援 Web Serial。請使用 Chrome、Edge 或其他相容 Web Serial 的瀏覽器",
@@ -835,6 +835,12 @@
   "errorInvalidRequest": "提交的部分資訊無效，請檢查後再試",
   "errorOperationCancelled": "操作已取消",
   "errorUnsupportedFileType": "不支援或無法辨識的檔案類型",
+  "errorDeviceFeatureUnsupported": "目前裝置或韌體暫不支援此功能",
+  "errorDeviceMusicUnsupported": "目前裝置或韌體暫不支援音樂傳輸功能",
+  "errorDeviceRecordingUnsupported": "目前裝置或韌體暫不支援錄音匯出功能",
+  "errorDeviceScreenMirrorUnsupported": "目前裝置或韌體暫不支援螢幕鏡像功能",
+  "errorNotInstalled": "未安裝所需元件或應用程式",
+  "errorInvalidOperation": "目前狀態下無法執行此操作",
   "errorCertificateVerificationFailed": "憑證驗證失敗。如果你正在使用代理伺服器，請停用此應用程式的 HTTPS 攔截，或確認代理憑證受到信任",
   "errorUnknownWithDetail": "操作失敗：{detail}",
   "communitySourceAstroBoxRepo": "AstroBox",
@@ -1039,6 +1045,8 @@
   "deviceMusicQueueProgress": "正在傳輸 {current}/{total}：{name}",
   "deviceRecordingsTitle": "錄音同步",
   "deviceRecordingsDescription": "同步並匯出手錶錄音",
+  "deviceRecordingsLibrary": "裝置錄音",
+  "deviceRecordingsLibraryDescription": "匯出裝置中的錄音",
   "deviceRecordingsHint": "錄音會逐一接收並驗證\n同步後請分別匯出每個原始檔案",
   "deviceRecordingsSync": "同步錄音",
   "deviceRecordingsReading": "正在讀取錄音清單",
@@ -1049,6 +1057,21 @@
   "deviceRecordingsNoneOnWatch": "手錶上沒有新的錄音",
   "deviceRecordingsSynced": "已同步 {count} 個錄音",
   "deviceRecordingsSaveFailed": "無法匯出錄音：{error}",
+  "deviceRecordingsSavedBadge": "已存本機",
+  "deviceRecordingsSelectAll": "全選",
+  "deviceRecordingsDeselectAll": "取消全選",
+  "deviceRecordingsExportSelected": "匯出所選 ({count})",
+  "deviceRecordingsOpenDirectory": "開啟儲存目錄",
+  "deviceRecordingsExported": "已匯出到 {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "錄音匯出完成",
+  "deviceRecordingsRefresh": "重新整理",
   "deviceMusicTransferTitle": "傳輸 MP3 檔案",
   "deviceMusicVelaDescription": "將 MP3 檔案同步至裝置。每個檔案不得超過 100 MB",
   "deviceMusicZeppDescription": "支援最大 50 MB 的 MP3 檔案。建議使用 Bluetooth Classic 以加快傳輸；BLE 也可使用，但需要較長時間",
@@ -1431,6 +1454,8 @@
   "creatorOperationAuthorizing": "等待授權",
   "creatorResolvingPublicationTarget": "正在解析發佈分類",
   "creatorStateApproved": "已通過",
+  "creatorStateReviewing": "審核中",
+  "creatorStatePublishing": "發布中",
   "creatorStateExternalReview": "外部審核中",
   "creatorStateFailed": "發佈失敗",
   "creatorStateSuperseded": "已由較新的修訂取代",
@@ -1556,6 +1581,11 @@
   "messageNeedsChangesBody": "審核發現需要修改的問題。",
   "messageReasonBody": "原因：{reason}",
   "messageReviewNoteBody": "審核意見：{note}",
+  "messageReviewerPrefix": "審核員：{reviewer}",
+  "messageOperatorPrefix": "操作人：{operator}",
+  "messageReferencePrefix": "關聯：{reference}",
+  "messageTargetsPrefix": "發布渠道：{targets}",
+  "messageUnapprovedItemsPrefix": "待改進項：{items}",
   "messageStatusChangedBody": "此項目的狀態已變更。",
   "messageReportStatusBody": "檢舉狀態：{status}",
   "messageCoinAddedBody": "你的帳號增加了 {amount} 枚硬幣。",
@@ -2118,15 +2148,13 @@
   "appDataTitle": "應用程式資料",
   "appDataDescription": "查看儲存用量與匯出檔案",
   "appDataSpaceUsage": "分類用量",
-  "appDataHealth": "健康資料",
+  "appDataHealth": "活動檔案",
   "appDataPlugins": "外掛程式",
   "appDataZeppos": "ZeppOS 應用程式資料",
   "appDataRecovery": "匯入復原資料",
   "appDataDownloads": "資源與更新下載",
   "appDataPluginCache": "外掛程式快取",
   "appDataManageSnapshots": "管理已儲存的活動檔案",
-  "appDataExportSnapshots": "匯出活動檔案",
-  "appDataExportSnapshotsDescription": "匯出已儲存的活動檔案",
   "appDataExported": "已儲存匯出檔案",
   "appDataLoadFailed": "無法讀取應用程式資料",
   "appDataExportFailed": "檔案匯出失敗",
@@ -2225,14 +2253,13 @@
   "appDataImageCache": "圖片快取",
   "appDataSelectBackup": "選擇要備份的資料",
   "appDataSettingsDescription": "主題、語言和功能偏好",
-  "appDataHealthDescription": "已同步的健康和運動歷史",
+  "appDataHealthDescription": "裝置同步的運動健康數據",
   "appDataDeviceKeys": "裝置配對與金鑰",
   "appDataDeviceKeysDescription": "裝置清單及連線所需的認證資訊",
   "appDataXiaomiAccount": "小米帳號資訊",
   "appDataXiaomiAccountDescription": "小米帳號及目前登入工作階段",
   "appDataSensitiveBackup": "備份包含金鑰或登入資訊且未加密\n請妥善保管，不要分享",
   "appDataImportDescription": "從備份檔案選擇資料進行還原",
-  "appDataSnapshotDescription": "已儲存的活動檔案",
   "appDataPluginDescription": "已安裝外掛及其本機資料",
   "appDataZepposDescription": "裝置應用程式腳本和本機設定",
   "appDataLogsDescription": "應用程式執行和問題排查記錄",
@@ -2280,8 +2307,7 @@
   "deviceRePair": "重新配對",
   "appDataClearCategoryTitle": "清理{category}？",
   "appDataClearCategoryDescription": "將移除此分類的本機資料\n其它分類不受影響",
-  "appDataClearHealthDescription": "將刪除健康與運動歷史\n僅能重新同步裝置上仍保留的資料",
-  "appDataClearRawDescription": "將刪除已儲存的原始活動檔案\n之後無法匯出或重播這些檔案",
+  "appDataClearHealthDescription": "將刪除已同步的活動檔案\n本機運動健康數據將清空",
   "appDataClearCachedCategoryDescription": "僅清理未使用的快取檔案\n需要時會重新下載",
   "appDataClearModelsDescription": "保留目前模型\n清理未使用的舊版本與過期下載",
   "settingsPermissionsTitle": "權限管理",
@@ -2297,5 +2323,40 @@
   "appOrderMoveToMain": "移入列表",
   "appOrderHide": "隱藏",
   "appOrderUnhide": "顯示",
-  "appOrderCannotHide": "系統常駐應用不可隱藏"
+  "appOrderCannotHide": "系統常駐應用不可隱藏",
+  "privateStateAccessPromptTitle": "OronBox 需要存取系統安全儲存保護的帳號憑據",
+  "privateStateAccessPromptMacOs": "若出現系統授權彈窗，請輸入使用者密碼並點擊「始終允許」以避免重複提示",
+  "privateStateAccessPromptLinux": "若出現系統解鎖彈窗，請輸入使用者密碼解鎖金鑰圈",
+  "creatorSubmissionPreview": "檢視提交預覽",
+  "creatorResourceBinding": "資源關聯",
+  "creatorPublicationIdentity": "發布帳號",
+  "creatorPublicationRange": "本次發布",
+  "creatorNewPublication": "首次發布",
+  "creatorUpdatePublication": "更新已有資源",
+  "creatorAppendSubmission": "追加至 PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "暫不發布到這些裝置：{devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "返回修改",
+  "creatorPackageVersionCodeMissing": "安裝套件缺少有效的版本代碼，請重新打包後上傳",
+  "creatorReopenSubmission": "請求重新審核",
+  "creatorReopenRequested": "已請求重新審核",
+  "creatorFixesForSubmission": "本次已修復的問題",
+  "creatorFixNote": "修復說明",
+  "creatorNameRequired": "請填寫資源名稱",
+  "creatorSummaryRequired": "請填寫資源簡介",
+  "creatorSubmitForReview": "提交審核",
+  "creatorAstroBoxPRBody": "PR 說明（選填）"
 }

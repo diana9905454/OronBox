@@ -13,6 +13,7 @@ import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/data/oronbox/oronbox_home_api.dart';
+import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/resources/application/oronbox_resource_attributes.dart';
 import 'package:oronbox/src/features/resources/controllers/resource_filter_controller.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
@@ -121,6 +122,7 @@ void main() {
           oronBoxResourceAttributesProvider.overrideWith(
             (ref) async => const [],
           ),
+          hostAccountsProvider.overrideWith(_SignedOutHost.new),
         ],
         child: MaterialApp.router(
           locale: const Locale('zh'),
@@ -167,4 +169,9 @@ class _FixedSettingsNotifier extends LocalAppSettingsNotifier {
 class _HomeModeController extends ResourceModeController {
   @override
   ResourceMode build() => ResourceMode.home;
+}
+
+class _SignedOutHost extends HostAccountsNotifier {
+  @override
+  HostAccountsState build() => const HostAccountsState();
 }

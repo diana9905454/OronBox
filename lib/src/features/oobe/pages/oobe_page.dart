@@ -507,37 +507,43 @@ class _AgreementStepState extends State<_AgreementStep> {
                 ),
               ),
               const SizedBox(height: 8),
-              InkWell(
-                onTap: _bottomReached
-                    ? () => widget.onAgreed(!widget.agreed)
-                    : null,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 16, 4),
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        value: widget.agreed,
-                        onChanged: _bottomReached
-                            ? (v) => widget.onAgreed(v ?? false)
-                            : null,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        l10n.oobeAgreeCheckbox,
-                        style: _bottomReached
-                            ? null
-                            : TextStyle(color: theme.disabledColor),
-                      ),
-                      if (!_bottomReached) ...[
-                        const Spacer(),
-                        Text(
-                          l10n.oobeAgreementHint,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
+              MouseRegion(
+                cursor: _bottomReached
+                    ? SystemMouseCursors.click
+                    : SystemMouseCursors.basic,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _bottomReached
+                      ? () => widget.onAgreed(!widget.agreed)
+                      : null,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 4, 16, 4),
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: widget.agreed,
+                          onChanged: _bottomReached
+                              ? (v) => widget.onAgreed(v ?? false)
+                              : null,
                         ),
+                        const SizedBox(width: 4),
+                        Text(
+                          l10n.oobeAgreeCheckbox,
+                          style: _bottomReached
+                              ? null
+                              : TextStyle(color: theme.disabledColor),
+                        ),
+                        if (!_bottomReached) ...[
+                          const Spacer(),
+                          Text(
+                            l10n.oobeAgreementHint,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
                 ),
               ),

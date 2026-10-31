@@ -749,6 +749,7 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
       },
     );
     final auth = ref.watch(hostAccountsProvider).bandbbs;
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -784,38 +785,83 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
           Text(l10n.commentEmpty)
         else
           for (final comment in _comments) ...[
-            InkWell(
-              onTap: () => _openThread(comment.id),
-              child: _CommentTile(
-                key: _commentKey(comment),
-                comment: comment,
-                ownUserId: int.tryParse(auth.userId ?? ''),
-                canModerate: false,
-                deleting: _deletingCommentIds.contains(comment.id),
-                onReply: comment.deleted
-                    ? null
-                    : () => _compose(parentId: comment.id),
-                onDelete: () => _delete(comment),
-                replies: [
-                  for (final reply in comment.replies)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: InkWell(
-                        onTap: () => _openThread(reply.id),
-                        child: Text(
-                          '${reply.username}: ${reply.body}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+            _CommentTile(
+              key: _commentKey(comment),
+              comment: comment,
+              ownUserId: int.tryParse(auth.userId ?? ''),
+              canModerate: false,
+              deleting: _deletingCommentIds.contains(comment.id),
+              onReply: comment.deleted
+                  ? null
+                  : () => _compose(parentId: comment.id),
+              onDelete: () => _delete(comment),
+              replies: [
+                for (final reply in comment.replies)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(4),
+                      onTap: () => _openThread(reply.id),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: reply.username,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            if (reply.replyToUsername.isNotEmpty &&
+                                reply.replyToUsername != comment.username) ...[
+                              TextSpan(
+                                text:
+                                    ' ${l10n.commentReplyTarget(reply.replyToUsername)}',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                            TextSpan(
+                              text: ': ${reply.body}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  if (comment.replyCount > 0)
-                    TextButton(
-                      onPressed: () => _openThread(comment.id),
-                      child: Text(l10n.commentViewReplies(comment.replyCount)),
+                  ),
+                if (comment.replyCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(4),
+                      onTap: () => _openThread(comment.id),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.commentViewReplies(comment.replyCount),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ],
+                      ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ],
         if (_hasMore && _comments.isNotEmpty)
@@ -856,113 +902,141 @@ class _CommentTile extends StatelessWidget {
     final date = comment.createdAt.toLocal();
     String two(int value) => value.toString().padLeft(2, '0');
     final theme = Theme.of(context);
+    final header = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          radius: isReply ? 14 : 18,
+          backgroundImage: comment.avatarUrl.isEmpty
+              ? null
+              : NetworkImage(comment.avatarUrl),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                comment.username,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                l10n.bandBbsIdLabel(comment.bandBbsUserId),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          '${two(date.year % 100)}-${two(date.month)}-${two(date.day)} ${two(date.hour)}:${two(date.minute)}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+
+    final actions = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (onReply != null)
+          IconButton(
+            tooltip: l10n.reply,
+            visualDensity: VisualDensity.compact,
+            onPressed: onReply,
+            icon: const Icon(Icons.reply_outlined, size: 19),
+          ),
+        if (!comment.deleted && (own || canModerate))
+          IconButton(
+            tooltip: l10n.delete,
+            visualDensity: VisualDensity.compact,
+            onPressed: deleting ? null : onDelete,
+            icon: deleting
+                ? const SizedBox.square(
+                    dimension: 17,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.delete_outline, size: 19),
+          )
+        else
+          IconButton(
+            tooltip: l10n.report,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => showFeedbackComposer(
+              context,
+              target: FeedbackTarget(
+                type: FeedbackTargetType.comment,
+                source: 'comment',
+                id: comment.id,
+                name: comment.username,
+              ),
+            ),
+            icon: const Icon(Icons.flag_outlined, size: 19),
+          ),
+      ],
+    );
+
+    final markdown = MarkdownBody(
+      data: comment.deleted ? l10n.commentDeletedPlaceholder : comment.body,
+      selectable: true,
+      styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+        p: theme.textTheme.bodyMedium,
+        pPadding: EdgeInsets.zero,
+        blockSpacing: 4,
+      ),
+      onTapLink: (_, href, _) {
+        final uri = Uri.tryParse(href ?? '');
+        if (uri != null && uri.hasScheme) {
+          openResourceExternalLink(context, uri);
+        }
+      },
+    );
+
+    final subRepliesBox = replies.isEmpty
+        ? null
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: replies,
+              ),
+            ),
+          );
+
     final content = Padding(
       padding: EdgeInsets.all(isReply ? 10 : 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CircleAvatar(
-            radius: isReply ? 14 : 18,
-            backgroundImage: comment.avatarUrl.isEmpty
-                ? null
-                : NetworkImage(comment.avatarUrl),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        comment.username,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${two(date.year % 100)}-${two(date.month)}-${two(date.day)} ${two(date.hour)}:${two(date.minute)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  l10n.bandBbsIdLabel(comment.bandBbsUserId),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                if (comment.replyToUsername.isNotEmpty)
-                  Text(
-                    l10n.commentReplyTarget(comment.replyToUsername),
-                    style: theme.textTheme.bodySmall,
-                  ),
-                const SizedBox(height: 8),
-                MarkdownBody(
-                  data: comment.deleted
-                      ? l10n.commentDeletedPlaceholder
-                      : comment.body,
-                  selectable: true,
-                  styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
-                    p: theme.textTheme.bodyMedium,
-                    pPadding: EdgeInsets.zero,
-                    blockSpacing: 4,
-                  ),
-                  onTapLink: (_, href, _) {
-                    final uri = Uri.tryParse(href ?? '');
-                    if (uri != null && uri.hasScheme) {
-                      openResourceExternalLink(context, uri);
-                    }
-                  },
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (onReply != null)
-                      IconButton(
-                        tooltip: l10n.reply,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: onReply,
-                        icon: const Icon(Icons.reply_outlined, size: 19),
-                      ),
-                    if (!comment.deleted && (own || canModerate))
-                      IconButton(
-                        tooltip: l10n.delete,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: deleting ? null : onDelete,
-                        icon: deleting
-                            ? const SizedBox.square(
-                                dimension: 17,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.delete_outline, size: 19),
-                      )
-                    else
-                      IconButton(
-                        tooltip: l10n.report,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => showFeedbackComposer(
-                          context,
-                          target: FeedbackTarget(
-                            type: FeedbackTargetType.comment,
-                            source: 'comment',
-                            id: comment.id,
-                            name: comment.username,
-                          ),
-                        ),
-                        icon: const Icon(Icons.flag_outlined, size: 19),
-                      ),
-                  ],
-                ),
-              ],
+          header,
+          if (comment.replyToUsername.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.commentReplyTarget(comment.replyToUsername),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
+          ],
+          const SizedBox(height: 8),
+          markdown,
+          if (subRepliesBox != null) ...[
+            const SizedBox(height: 10),
+            subRepliesBox,
+          ],
+          actions,
         ],
       ),
     );
@@ -971,9 +1045,7 @@ class _CommentTile extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: .48,
-            ),
+            color: theme.colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(12),
           ),
           child: content,
@@ -987,18 +1059,7 @@ class _CommentTile extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            content,
-            if (replies.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
-                child: Column(children: replies),
-              ),
-            ],
-          ],
-        ),
+        child: content,
       ),
     );
   }

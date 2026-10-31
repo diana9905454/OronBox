@@ -12,7 +12,10 @@ import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
+import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
 import 'package:oronbox/src/features/resources/domain/creator_review.dart';
+import 'package:oronbox/src/features/resources/domain/creator_workspace.dart';
+import 'package:oronbox/src/features/resources/pages/creator/creator_shared.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 
 class CreatorReviewListPage extends ConsumerStatefulWidget {
@@ -35,10 +38,14 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
   bool _loadingMore = false;
   bool _hasMore = true;
   late String _filter = switch (widget.initialFilter) {
+    'all' => 'all',
     'pending' => 'pending',
     'needs_changes' => 'needs_changes',
     'fixed_pending_review' => 'fixed_pending_review',
-    _ => 'active',
+    'external_review' => 'external_review',
+    'approved' => 'approved',
+    'rejected' => 'rejected',
+    _ => 'all',
   };
   Object? _error;
 
@@ -105,22 +112,52 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final availableStates = _items.map((item) => item.state).toSet();
+    final availableStates = _items.map((item) => item.displayState).toSet();
+    final hasAstroBox = _items.any(
+      (item) =>
+          item.reviewType == 'astrobox' ||
+          item.state.startsWith('external_') ||
+          item.state == 'waiting_external_review',
+    );
     final showPending = availableStates.any(
       (state) => state == 'pending' || state == 'reviewing',
     );
     final showNeedsChanges =
         availableStates.contains('needs_changes') ||
-        availableStates.contains('changes_requested');
-    final showFixedPending = availableStates.contains('fixed_pending_review');
-    final hasActive = showPending || showNeedsChanges || showFixedPending;
-    if (_filter != 'active' &&
-        ((_filter == 'pending' && !showPending) ||
-            (_filter == 'needs_changes' && !showNeedsChanges) ||
-            (_filter == 'fixed_pending_review' && !showFixedPending))) {
-      _filter = 'active';
+        availableStates.contains('changes_requested') ||
+        availableStates.contains('external_changes_requested');
+    final showFixedPending =
+        availableStates.contains('fixed_pending_review') ||
+        availableStates.contains('external_fixed_waiting');
+    final showApproved =
+        availableStates.contains('approved') ||
+        availableStates.contains('published');
+    final showRejected = availableStates.contains('rejected');
+    final showExternal =
+        hasAstroBox &&
+        availableStates.any(
+          (state) =>
+              state == 'external_review' ||
+              state == 'needs_changes' ||
+              state == 'fixed_pending_review',
+        );
+
+    final validFilters = {
+      'all',
+      'active',
+      if (showPending) 'pending',
+      if (showNeedsChanges) 'needs_changes',
+      if (showFixedPending) 'fixed_pending_review',
+      if (showExternal) 'external_review',
+      if (showApproved) 'approved',
+      if (showRejected) 'rejected',
+    };
+    if (!validFilters.contains(_filter)) {
+      _filter = 'all';
     }
-    final visible = _items.where((item) => _matchesFilter(item.state)).toList();
+    final visible = _items
+        .where((item) => _matchesFilter(item.displayState))
+        .toList();
     final body = RefreshIndicator(
       onRefresh: _load,
       child: NotificationListener<ScrollNotification>(
@@ -141,7 +178,7 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
             top: 8,
             bottom: bottomContentPadding(
               context,
-              extra: widget.embedded ? 80 : 24,
+              extra: widget.embedded ? 16 : 24,
             ),
           ),
           sections: [
@@ -152,10 +189,8 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      _chip(
-                        hasActive ? l10n.creatorReviewActive : l10n.all,
-                        'active',
-                      ),
+                      _chip(l10n.all, 'all'),
+                      _chip(l10n.creatorReviewActive, 'active'),
                       if (showPending)
                         _chip(_label(l10n, 'pending'), 'pending'),
                       if (showNeedsChanges)
@@ -165,6 +200,15 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
                           _label(l10n, 'fixed_pending_review'),
                           'fixed_pending_review',
                         ),
+                      if (showExternal)
+                        _chip(
+                          l10n.creatorStateExternalReview,
+                          'external_review',
+                        ),
+                      if (showApproved)
+                        _chip(_label(l10n, 'approved'), 'approved'),
+                      if (showRejected)
+                        _chip(_label(l10n, 'rejected'), 'rejected'),
                     ],
                   ),
                 ),
@@ -248,12 +292,23 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
 
   AbstractSegmentedTile _reviewItem(CreatorReviewCase item) {
     final l10n = AppLocalizations.of(context)!;
-    final type = item.reviewType == 'astrobox' ? l10n.astroBox : l10n.oronBox;
+    final colors = Theme.of(context).colorScheme;
+    final type = item.state == 'approved' && item.reviewType == 'astrobox'
+        ? l10n.astroBox
+        : l10n.oronBox;
     return SegmentedTile.navigation(
       leading: _icon(item),
-      title: Text(item.resourceName),
-      description: Text('$type · ${_label(l10n, item.state)}'),
-      value: Text(_date(item.updatedAt)),
+      title: Text(
+        item.resourceName,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      description: Text(
+        '$type · ${_date(item.updatedAt)}',
+        style: TextStyle(color: colors.onSurfaceVariant),
+      ),
+      trailing: CreatorStateBadge(state: item.displayState),
       onPressed: (_) => context.push(
         '/resources/creator/reviews/${Uri.encodeComponent(item.id)}',
       ),
@@ -261,12 +316,16 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
   }
 
   String _label(AppLocalizations l10n, String state) => switch (state) {
+    'all' => l10n.all,
+    'active' => l10n.creatorReviewActive,
     'pending' || 'reviewing' => l10n.pendingReview,
     'approved' => l10n.creatorStateApproved,
-    'needs_changes' => l10n.creatorReviewChangesRequested,
-    'rejected' => l10n.creatorReviewDeclined,
+    'needs_changes' ||
     'changes_requested' => l10n.creatorReviewChangesRequested,
+    'rejected' => l10n.creatorReviewDeclined,
     'fixed_pending_review' => l10n.creatorReviewFixedPending,
+    'external_review' ||
+    'waiting_external_review' => l10n.creatorStateExternalReview,
     'closed' => l10n.creatorReviewClosed,
     'superseded' => l10n.creatorStateSuperseded,
     _ => state,
@@ -276,20 +335,33 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
       creatorReviewMatchesFilter(_filter, state);
 
   Widget _icon(CreatorReviewCase item) {
-    if (item.iconUrl.isEmpty) {
-      return CircleAvatar(
-        child: Icon(
-          item.resourceKind == 'watchface'
-              ? Icons.watch_outlined
-              : Icons.apps_outlined,
-        ),
+    final workspace = ref
+        .watch(creatorWorkspaceProvider)
+        .resources
+        .where((r) => r.resource.id == item.resourceId)
+        .firstOrNull;
+    if (workspace != null) {
+      return CreatorResourceThumbnail(
+        workspace: workspace,
+        size: 48,
+        borderRadius: 12,
       );
     }
-    return NetworkImgLayer(
-      src: item.iconUrl,
-      width: 56,
-      height: 56,
-      borderRadius: BorderRadius.circular(28),
+    if (item.iconUrl.isNotEmpty) {
+      return NetworkImgLayer(
+        src: item.iconUrl,
+        width: 48,
+        height: 48,
+        borderRadius: BorderRadius.circular(12),
+      );
+    }
+    return CreatorResourceThumbnail(
+      resourceId: item.resourceId,
+      kind: item.resourceKind == 'watchface'
+          ? CreatorResourceKind.watchface
+          : CreatorResourceKind.quickApp,
+      size: 48,
+      borderRadius: 12,
     );
   }
 
@@ -306,15 +378,36 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
 /// `initialFilter`. Top-level so unit tests cover every selectable chip.
 bool creatorReviewMatchesFilter(String filter, String state) =>
     switch (filter) {
+      'all' => true,
       'active' =>
         state == 'pending' ||
             state == 'reviewing' ||
             state == 'needs_changes' ||
             state == 'changes_requested' ||
-            state == 'fixed_pending_review',
+            state == 'fixed_pending_review' ||
+            state == 'publishing' ||
+            state == 'dispatching' ||
+            state == 'waiting_external_review' ||
+            state == 'external_changes_requested' ||
+            state == 'external_fixed_waiting' ||
+            state == 'external_review',
       'pending' => state == 'pending' || state == 'reviewing',
       'needs_changes' =>
-        state == 'needs_changes' || state == 'changes_requested',
-      'fixed_pending_review' => state == 'fixed_pending_review',
+        state == 'needs_changes' ||
+            state == 'changes_requested' ||
+            state == 'external_changes_requested',
+      'fixed_pending_review' =>
+        state == 'fixed_pending_review' || state == 'external_fixed_waiting',
+      'external_review' =>
+        state == 'waiting_external_review' ||
+            state == 'external_review' ||
+            state == 'external_changes_requested' ||
+            state == 'external_fixed_waiting' ||
+            state == 'needs_changes' ||
+            state == 'fixed_pending_review',
+      'approved' => state == 'approved' || state == 'published',
+      'rejected' => state == 'rejected',
+      'closed' =>
+        state == 'closed' || state == 'superseded' || state == 'cancelled',
       _ => false,
     };

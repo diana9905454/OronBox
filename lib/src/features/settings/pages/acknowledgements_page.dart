@@ -45,8 +45,7 @@ class AcknowledgementsPage extends StatelessWidget {
       AcknowledgementItem(
         name: 'AstralSightStudios/AstroBox-NG-Module-Bluetooth',
         description: l10n.acknowledgementsAstroBoxNgBluetooth,
-        url:
-            'https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth',
+        url: 'https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth',
       ),
       AcknowledgementItem(
         name: 'AstralSightStudios/AstroBox-NG-Module-Account',
@@ -90,8 +89,12 @@ class AcknowledgementsPage extends StatelessWidget {
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(l10n.acknowledgements)),
       body: ListView.separated(
-        padding: const EdgeInsets.symmetric(
-          vertical: StyleConstants.pagePadding,
+        padding: EdgeInsets.only(
+          top: StyleConstants.pagePadding,
+          bottom: bottomContentPadding(
+            context,
+            extra: StyleConstants.pagePadding,
+          ),
         ),
         itemCount: items.length,
         separatorBuilder: (_, _) =>

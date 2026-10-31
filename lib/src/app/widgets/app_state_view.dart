@@ -167,7 +167,7 @@ class ErrorStateView extends StatelessWidget {
               SizedBox(height: compact ? 12 : 20),
               FilledButton.tonal(
                 onPressed: onRetry,
-                child: Text(retryLabel ?? l10n?.refresh ?? '重试'),
+                child: Text(retryLabel ?? l10n?.refresh ?? 'Refresh'),
               ),
             ],
           ],

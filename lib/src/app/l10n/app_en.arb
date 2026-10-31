@@ -212,7 +212,7 @@
   "errorBluetoothUnavailable": "Bluetooth is not available. Check that Bluetooth is enabled and OronBox has permission to use it",
   "errorBluetoothConnectFailed": "Connection failed. Check Bluetooth permission, keep the device nearby and not in use, enable Connect new phone on the device, then try again",
   "errorBluetoothDisconnected": "Bluetooth disconnected. Reconnect the device and try again",
-  "errorOperationTimeout": "Operation timed out. Make sure the device is still nearby and try again",
+  "errorOperationTimeout": "Operation timed out",
   "errorDeviceNotReady": "Device is not ready. Connect and authenticate the device first",
   "errorBleCharacteristicsMissing": "Required BLE channels were not found. Reconnect the device or check whether it supports this feature",
   "errorWebSerialUnavailable": "This browser does not support Web Serial. Use Chrome, Edge, or another Web Serial compatible browser",
@@ -241,6 +241,12 @@
   "errorInvalidRequest": "Some submitted information is invalid. Check it and try again",
   "errorOperationCancelled": "Operation cancelled",
   "errorUnsupportedFileType": "Unsupported or unrecognized file type",
+  "errorDeviceFeatureUnsupported": "This feature is not supported by the current device or firmware",
+  "errorDeviceMusicUnsupported": "Music transfer is not supported by the current device or firmware",
+  "errorDeviceRecordingUnsupported": "Recording export is not supported by the current device or firmware",
+  "errorDeviceScreenMirrorUnsupported": "Screen mirroring is not supported by the current device or firmware",
+  "errorNotInstalled": "Required component or app is not installed",
+  "errorInvalidOperation": "Cannot perform this operation in the current state",
   "errorCertificateVerificationFailed": "Certificate verification failed. If you are using a proxy, disable HTTPS interception for this app or make sure its certificate is trusted",
   "errorUnknownWithDetail": "Operation failed: {detail}",
   "@errorUnknownWithDetail": {
@@ -712,6 +718,8 @@
   },
   "deviceRecordingsTitle": "Recording sync",
   "deviceRecordingsDescription": "Sync and export recordings from the watch",
+  "deviceRecordingsLibrary": "Device recordings",
+  "deviceRecordingsLibraryDescription": "Export recordings from the watch",
   "deviceRecordingsHint": "Recordings are received and verified one by one. Export each original file after synchronization.",
   "deviceRecordingsSync": "Sync recordings",
   "deviceRecordingsReading": "Reading recording list",
@@ -759,6 +767,28 @@
       }
     }
   },
+  "deviceRecordingsSavedBadge": "Saved",
+  "deviceRecordingsSelectAll": "Select all",
+  "deviceRecordingsDeselectAll": "Deselect all",
+  "deviceRecordingsExportSelected": "Export selected ({count})",
+  "@deviceRecordingsExportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRecordingsOpenDirectory": "Open folder",
+  "deviceRecordingsExported": "Exported to {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "Recording exported",
+  "deviceRecordingsRefresh": "Refresh",
   "deviceMusicTransferTitle": "Transfer MP3 file",
   "deviceMusicVelaDescription": "Sync MP3 files to the device. Each file must not exceed 100 MB.",
   "deviceMusicZeppDescription": "MP3 files up to 50 MB are supported. Bluetooth Classic is recommended for faster transfers; BLE is also supported but takes longer.",
@@ -1364,6 +1394,8 @@
   "creatorOperationAuthorizing": "Waiting for authorization",
   "creatorResolvingPublicationTarget": "Resolving publication category",
   "creatorStateApproved": "Approved",
+  "creatorStateReviewing": "Reviewing",
+  "creatorStatePublishing": "Publishing",
   "creatorStateExternalReview": "External review",
   "creatorStateFailed": "Publishing failed",
   "creatorStateSuperseded": "Superseded by a newer revision",
@@ -1517,6 +1549,46 @@
   "@messageReviewNoteBody": {
     "placeholders": {
       "note": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReviewerPrefix": "Reviewer: {reviewer}",
+  "@messageReviewerPrefix": {
+    "placeholders": {
+      "reviewer": {
+        "type": "String"
+      }
+    }
+  },
+  "messageOperatorPrefix": "Operator: {operator}",
+  "@messageOperatorPrefix": {
+    "placeholders": {
+      "operator": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReferencePrefix": "Related: {reference}",
+  "@messageReferencePrefix": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "messageTargetsPrefix": "Channels: {targets}",
+  "@messageTargetsPrefix": {
+    "placeholders": {
+      "targets": {
+        "type": "String"
+      }
+    }
+  },
+  "messageUnapprovedItemsPrefix": "Items needing changes: {items}",
+  "@messageUnapprovedItemsPrefix": {
+    "placeholders": {
+      "items": {
         "type": "String"
       }
     }
@@ -2351,15 +2423,13 @@
   "appDataTitle": "App data",
   "appDataDescription": "View stored data and export files",
   "appDataSpaceUsage": "Storage by category",
-  "appDataHealth": "Health data",
+  "appDataHealth": "Activity files",
   "appDataPlugins": "Plugins",
   "appDataZeppos": "ZeppOS app data",
   "appDataRecovery": "Import recovery data",
   "appDataDownloads": "Resource and update downloads",
   "appDataPluginCache": "Plugin cache",
   "appDataManageSnapshots": "Manage saved activity files",
-  "appDataExportSnapshots": "Export activity files",
-  "appDataExportSnapshotsDescription": "Export saved activity files",
   "appDataExported": "Export saved",
   "appDataLoadFailed": "Unable to read app data",
   "appDataExportFailed": "Unable to export files",
@@ -2458,14 +2528,13 @@
   "appDataImageCache": "Image cache",
   "appDataSelectBackup": "Choose what to back up",
   "appDataSettingsDescription": "Theme, language and feature preferences",
-  "appDataHealthDescription": "Synced health and workout history",
+  "appDataHealthDescription": "Device-synced fitness and health data",
   "appDataDeviceKeys": "Device pairing and keys",
   "appDataDeviceKeysDescription": "Saved devices and connection credentials",
   "appDataXiaomiAccount": "Xiaomi account",
   "appDataXiaomiAccountDescription": "Xiaomi account and current sign-in session",
   "appDataSensitiveBackup": "The backup contains unencrypted keys or sign-in details\nKeep it secure and do not share it",
   "appDataImportDescription": "Choose data to restore from a backup",
-  "appDataSnapshotDescription": "Saved activity files",
   "appDataPluginDescription": "Installed plugins and their local data",
   "appDataZepposDescription": "Device app scripts and local settings",
   "appDataLogsDescription": "App activity and troubleshooting logs",
@@ -2513,8 +2582,7 @@
   "deviceRePair": "Re-pair",
   "appDataClearCategoryTitle": "Clear {category}?",
   "appDataClearCategoryDescription": "The selected local data will be removed\nOther categories will be kept",
-  "appDataClearHealthDescription": "Health history will be removed\nOnly data still on your device can be synced again",
-  "appDataClearRawDescription": "Saved activity files will be removed\nThey will no longer be available for export or replay",
+  "appDataClearHealthDescription": "Synced activity files will be removed\nLocal health data will be cleared",
   "appDataClearCachedCategoryDescription": "Only unused cached files will be removed\nFiles may be downloaded again when needed",
   "appDataClearModelsDescription": "The latest model will be kept\nUnused versions and expired downloads will be removed",
   "@appDataClearCategoryTitle": {
@@ -2537,5 +2605,40 @@
   "appOrderMoveToMain": "Move to Main",
   "appOrderHide": "Hide",
   "appOrderUnhide": "Show",
-  "appOrderCannotHide": "System app cannot be hidden"
+  "appOrderCannotHide": "System app cannot be hidden",
+  "privateStateAccessPromptTitle": "OronBox needs to access account credentials protected by secure storage",
+  "privateStateAccessPromptMacOs": "If a system authorization prompt appears, enter your user password and click \"Always Allow\" to avoid repeated prompts",
+  "privateStateAccessPromptLinux": "If a system unlock prompt appears, enter your password to unlock the keyring",
+  "creatorSubmissionPreview": "Review submission",
+  "creatorResourceBinding": "Resource link",
+  "creatorPublicationIdentity": "Publishing accounts",
+  "creatorPublicationRange": "Included in this submission",
+  "creatorNewPublication": "First publication",
+  "creatorUpdatePublication": "Update existing resource",
+  "creatorAppendSubmission": "Append to PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "Excluded devices: {devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "Back to editing",
+  "creatorPackageVersionCodeMissing": "The package has no valid version code; rebuild it and upload again",
+  "creatorReopenSubmission": "Request another review",
+  "creatorReopenRequested": "Another review requested",
+  "creatorFixesForSubmission": "Issues fixed in this submission",
+  "creatorFixNote": "Fix details",
+  "creatorNameRequired": "Enter a resource name",
+  "creatorSummaryRequired": "Enter a resource summary",
+  "creatorSubmitForReview": "Submit for review",
+  "creatorAstroBoxPRBody": "PR description (optional)"
 }

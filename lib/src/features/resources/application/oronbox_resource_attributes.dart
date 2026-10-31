@@ -62,3 +62,8 @@ final oronBoxResourceAttributesProvider =
     FutureProvider.autoDispose<List<OronBoxResourceAttribute>>(
       (ref) => OronBoxResourceAttributeCatalog().load(),
     );
+
+final oronBoxCreatorResourceAttributesProvider =
+    FutureProvider.autoDispose<List<OronBoxResourceAttribute>>(
+      (ref) => OronBoxResourceAttributeCatalog().load(forCreator: true),
+    );

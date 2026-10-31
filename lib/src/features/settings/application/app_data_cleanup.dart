@@ -12,8 +12,6 @@ import 'package:oronbox/src/core/asr/asr_model_store.dart';
 import 'package:oronbox/src/core/storage/app_data_directory.dart';
 import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
-import 'package:oronbox/src/features/devices/health/health_database.dart';
-import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 
 import 'app_data_inventory.dart';
@@ -22,7 +20,7 @@ Future<void> cleanupApplicationDataCategory(AppDataCategory category) async {
   switch (category) {
     case AppDataCategory.health:
       await HealthStore.maintenance(() async {
-        await healthDatabase.clearAll();
+        await HealthStore.clearActivityFiles();
         final prefs = SharedPrefsService.instance;
         for (final key
             in prefs.keys
@@ -30,12 +28,10 @@ Future<void> cleanupApplicationDataCategory(AppDataCategory category) async {
                 .toList()) {
           await prefs.remove(key);
         }
+        await HealthStore.deleteLegacyDatabaseFiles();
         HealthStore.clearCache();
-        await healthDatabase.compact();
         healthDataRevision.value++;
       });
-    case AppDataCategory.snapshots:
-      await HealthDebugSnapshotStore().clear();
     case AppDataCategory.cache:
       await _clearPluginCache();
     case AppDataCategory.images:

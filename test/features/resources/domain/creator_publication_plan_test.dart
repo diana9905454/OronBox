@@ -20,7 +20,9 @@ void main() {
             astroBoxId: 'xmb9p',
           ),
         ],
-        bandBbsCategories: const [],
+        bandBbsCategories: const [
+          {'id': 991, 'title': 'Official category', 'children': []},
+        ],
         publicationOptions: const {
           'resource_prefixes': {'quickapp': 912},
           'bandbbs': {
@@ -29,6 +31,7 @@ void main() {
         },
       );
       expect(plan.bandBbsTargets.single.categoryId, 991);
+      expect(plan.bandBbsTargets.single.categoryName, 'Official category');
       expect(plan.bandBbsTargets.single.prefixId, 912);
       expect(plan.astroBoxDeviceIds, ['xmb9p']);
     },

@@ -1,7 +1,4 @@
 import 'dart:async';
-
-import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
-
 import 'dart:convert';
 
 import 'package:archive/archive.dart';
@@ -16,6 +13,7 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
+import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
 import 'package:oronbox/src/features/resources/application/oronbox_resource_attributes.dart';
@@ -65,23 +63,6 @@ Widget _publicationLogo(String target) => switch (target) {
   _ => const CreatorOronBoxLogo(),
 };
 
-// BandBBS fan-out publishes one resource per category; the URLs live in
-// status_detail.resources.
-List<String> _publicationLinkUrls(Map<String, Object?> publication) {
-  final urls = <String>[];
-  final resources =
-      (publication['status_detail'] as Map?)?['resources'] as Map?;
-  if (resources != null) {
-    final categories = resources.keys.map((value) => value.toString()).toList()
-      ..sort((a, b) => (int.tryParse(a) ?? 0).compareTo(int.tryParse(b) ?? 0));
-    for (final category in categories) {
-      final url = (resources[category] as Map?)?['url']?.toString() ?? '';
-      if (url.isNotEmpty) urls.add(url);
-    }
-  }
-  return urls;
-}
-
 // velajs' starter project uses this identifier.  It is not a publisher-owned
 // package name and AstroBox uses package IDs as global resource identities.
 const _velajsDefaultPackageId = 'com.application.watch.demo';
@@ -124,6 +105,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
   final _astroRepository = TextEditingController();
   final _astroTags = TextEditingController();
   final _astroAuthor = TextEditingController();
+  final _astroPRBody = TextEditingController();
   final _bandBbsVersionTitle = TextEditingController();
   final _bandBbsVersionMessage = TextEditingController();
   final _externalPurchaseLink = TextEditingController();
@@ -213,6 +195,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
           _astroRepository.text = config['repo_name']?.toString() ?? '';
           _astroTags.text = (config['tags'] as List? ?? const []).join(';');
           _astroAuthor.text = config['author']?.toString() ?? '';
+          _astroPRBody.text = config['pr_body']?.toString() ?? '';
           _astroPaidType = config['paid_type']?.toString() ?? '';
           _astroBindABAccount = config['bind_ab_account'] != false;
       }
@@ -289,8 +272,8 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
 
   Future<void> _loadAttributes() async {
     try {
-      final definitions = await OronBoxResourceAttributeCatalog().load(
-        forCreator: true,
+      final definitions = await widget.ref.read(
+        oronBoxCreatorResourceAttributesProvider.future,
       );
       if (mounted) setState(() => _attributeDefinitions = definitions);
     } catch (error) {
@@ -331,6 +314,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
           sizeBytes: artifact.sizeBytes,
           packageId: artifact.packageId,
           version: artifact.version,
+          versionCode: artifact.versionCode,
           type: artifact.analysisKind == 'watchface'
               ? 'velaos_watchface'
               : 'velaos_quickapp',
@@ -383,8 +367,8 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
   }
 
   Widget _stageChip(AppLocalizations l10n, String label, int stage) => Padding(
-    padding: const EdgeInsets.only(right: 8),
-    child: FilterChip(
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    child: ChoiceChip(
       label: Text(label),
       selected: _editorStage == stage,
       showCheckmark: false,
@@ -401,6 +385,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
     _astroRepository.dispose();
     _astroTags.dispose();
     _astroAuthor.dispose();
+    _astroPRBody.dispose();
     _bandBbsVersionTitle.dispose();
     _bandBbsVersionMessage.dispose();
     _externalPurchaseLink.dispose();
@@ -481,7 +466,114 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
                         const SizedBox(height: 12),
                       ],
                       if (workspace.review case final review?) ...[
-                        CreatorReviewFeedback(review: review),
+                        Builder(
+                          builder: (context) {
+                            final state = creatorWorkspaceState(workspace);
+                            final isNeedsChanges = state == 'needs_changes';
+                            final hasAstroChanges = workspace.publications.any(
+                              (p) =>
+                                  p['target'] == 'astrobox' &&
+                                  (p['state'] == 'external_changes_requested' ||
+                                      (p['status_detail']
+                                              as Map?)?['review_state'] ==
+                                          'changes_requested'),
+                            );
+                            final note = creatorReviewNote(workspace);
+                            return CreatorEditorCard(
+                              color: isNeedsChanges
+                                  ? colors.errorContainer.withValues(alpha: .35)
+                                  : null,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(16),
+                                onTap: () => context.push(
+                                  '/resources/creator/reviews/${Uri.encodeComponent(review['id'].toString())}',
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: isNeedsChanges
+                                              ? colors.error.withValues(
+                                                  alpha: .15,
+                                                )
+                                              : colors.primary.withValues(
+                                                  alpha: .12,
+                                                ),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: Icon(
+                                          isNeedsChanges
+                                              ? Icons.rule_folder_outlined
+                                              : Icons.verified_outlined,
+                                          color: isNeedsChanges
+                                              ? colors.error
+                                              : colors.primary,
+                                          size: 22,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Text(
+                                                  l10n.creatorReviewStatus,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .titleSmall
+                                                      ?.copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                CreatorStateBadge(state: state),
+                                              ],
+                                            ),
+                                            if (hasAstroChanges ||
+                                                note.isNotEmpty) ...[
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                hasAstroChanges
+                                                    ? l10n.creatorAstroBoxReview
+                                                    : note,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodySmall
+                                                    ?.copyWith(
+                                                      color: colors
+                                                          .onSurfaceVariant,
+                                                    ),
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Icon(
+                                        Icons.chevron_right,
+                                        color: colors.onSurfaceVariant,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                         const SizedBox(height: 16),
                       ],
                       if (workspace.bindings.any((binding) {
@@ -1134,6 +1226,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
         evidence: analysis.evidence,
         name: analysis.name,
         version: analysis.version,
+        versionCode: analysis.versionCode,
         identifier: id,
         target: analysis.target,
       );
@@ -1153,6 +1246,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
       bytes: analysis.payload,
       packageId: analysis.identifier ?? '',
       version: analysis.version ?? '',
+      versionCode: analysis.versionCode,
       type: isApp ? 'velaos_quickapp' : 'velaos_watchface',
     );
     setState(() {
@@ -1346,6 +1440,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
         .where((value) => value.isNotEmpty)
         .toList(),
     'author': _astroAuthor.text.trim(),
+    'pr_body': _astroPRBody.text.trim(),
     if (_paidType != CommunityPaidType.free)
       'paid_type': communityPaidTypeToWire(_paidType),
     'bind_ab_account': _astroBindABAccount,
@@ -1690,7 +1785,7 @@ class _CreatorEditorViewState extends State<CreatorEditorView> {
                     ? l10n.creatorBandBbsTermsNotice
                     : l10n.creatorAstroBoxTermsNotice,
               ),
-              const Divider(height: 24),
+              const SizedBox(height: 16),
               Text(
                 isBandBbs
                     ? l10n.creatorBandBbsLimitsNotice

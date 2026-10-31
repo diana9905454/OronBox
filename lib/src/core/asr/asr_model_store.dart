@@ -6,7 +6,6 @@ import 'package:dio/dio.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/storage/app_data_directory.dart';
 
-import 'package:oronbox/src/core/storage/storage_capacity.dart';
 
 import 'asr.dart';
 import 'asr_model_download.dart';
@@ -84,29 +83,6 @@ class AsrModelStore {
     );
     try {
       final acquired = await store.tryExclusive(() async {
-        final stagedFiles = await store
-            .scope('.staging')
-            .files(includeTemporary: true);
-        var reusable = 0;
-        for (final file in files) {
-          final retained = stagedFiles.where(
-            (entry) =>
-                (entry.path == file.name ||
-                    entry.path == '${file.name}.part') &&
-                entry.bytes <= file.bytes,
-          );
-          final largest = retained.fold<int>(
-            0,
-            (size, entry) => entry.bytes > size ? entry.bytes : size,
-          );
-          reusable += largest;
-        }
-        final free = await availableStorageBytes();
-        if (free != null &&
-            free <
-                totalBytes - reusable + files.first.bytes + 16 * 1024 * 1024) {
-          throw const AsrFailure('storage_full');
-        }
         var completed = 0;
         for (final file in files) {
           if (cancel.isCancelled) throw const AsrFailure('cancelled');

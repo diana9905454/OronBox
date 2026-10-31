@@ -1114,7 +1114,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorOperationTimeout.
   ///
   /// In en, this message translates to:
-  /// **'Operation timed out. Make sure the device is still nearby and try again'**
+  /// **'Operation timed out'**
   String get errorOperationTimeout;
 
   /// No description provided for @errorDeviceNotReady.
@@ -1284,6 +1284,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unsupported or unrecognized file type'**
   String get errorUnsupportedFileType;
+
+  /// No description provided for @errorDeviceFeatureUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is not supported by the current device or firmware'**
+  String get errorDeviceFeatureUnsupported;
+
+  /// No description provided for @errorDeviceMusicUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Music transfer is not supported by the current device or firmware'**
+  String get errorDeviceMusicUnsupported;
+
+  /// No description provided for @errorDeviceRecordingUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording export is not supported by the current device or firmware'**
+  String get errorDeviceRecordingUnsupported;
+
+  /// No description provided for @errorDeviceScreenMirrorUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen mirroring is not supported by the current device or firmware'**
+  String get errorDeviceScreenMirrorUnsupported;
+
+  /// No description provided for @errorNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Required component or app is not installed'**
+  String get errorNotInstalled;
+
+  /// No description provided for @errorInvalidOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot perform this operation in the current state'**
+  String get errorInvalidOperation;
 
   /// No description provided for @errorCertificateVerificationFailed.
   ///
@@ -2839,6 +2875,18 @@ abstract class AppLocalizations {
   /// **'Sync and export recordings from the watch'**
   String get deviceRecordingsDescription;
 
+  /// No description provided for @deviceRecordingsLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Device recordings'**
+  String get deviceRecordingsLibrary;
+
+  /// No description provided for @deviceRecordingsLibraryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Export recordings from the watch'**
+  String get deviceRecordingsLibraryDescription;
+
   /// No description provided for @deviceRecordingsHint.
   ///
   /// In en, this message translates to:
@@ -2898,6 +2946,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not export recording: {error}'**
   String deviceRecordingsSaveFailed(String error);
+
+  /// No description provided for @deviceRecordingsSavedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get deviceRecordingsSavedBadge;
+
+  /// No description provided for @deviceRecordingsSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get deviceRecordingsSelectAll;
+
+  /// No description provided for @deviceRecordingsDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get deviceRecordingsDeselectAll;
+
+  /// No description provided for @deviceRecordingsExportSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Export selected ({count})'**
+  String deviceRecordingsExportSelected(int count);
+
+  /// No description provided for @deviceRecordingsOpenDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'Open folder'**
+  String get deviceRecordingsOpenDirectory;
+
+  /// No description provided for @deviceRecordingsExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported to {path}'**
+  String deviceRecordingsExported(String path);
+
+  /// No description provided for @deviceRecordingsSaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording exported'**
+  String get deviceRecordingsSaveSuccess;
+
+  /// No description provided for @deviceRecordingsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get deviceRecordingsRefresh;
 
   /// No description provided for @deviceMusicTransferTitle.
   ///
@@ -5190,6 +5286,18 @@ abstract class AppLocalizations {
   /// **'Approved'**
   String get creatorStateApproved;
 
+  /// No description provided for @creatorStateReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get creatorStateReviewing;
+
+  /// No description provided for @creatorStatePublishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing'**
+  String get creatorStatePublishing;
+
   /// No description provided for @creatorStateExternalReview.
   ///
   /// In en, this message translates to:
@@ -6017,6 +6125,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Review note: {note}'**
   String messageReviewNoteBody(String note);
+
+  /// No description provided for @messageReviewerPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewer: {reviewer}'**
+  String messageReviewerPrefix(String reviewer);
+
+  /// No description provided for @messageOperatorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator: {operator}'**
+  String messageOperatorPrefix(String operator);
+
+  /// No description provided for @messageReferencePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Related: {reference}'**
+  String messageReferencePrefix(String reference);
+
+  /// No description provided for @messageTargetsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels: {targets}'**
+  String messageTargetsPrefix(String targets);
+
+  /// No description provided for @messageUnapprovedItemsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Items needing changes: {items}'**
+  String messageUnapprovedItemsPrefix(String items);
 
   /// No description provided for @messageStatusChangedBody.
   ///
@@ -9223,7 +9361,7 @@ abstract class AppLocalizations {
   /// No description provided for @appDataHealth.
   ///
   /// In en, this message translates to:
-  /// **'Health data'**
+  /// **'Activity files'**
   String get appDataHealth;
 
   /// No description provided for @appDataPlugins.
@@ -9261,18 +9399,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage saved activity files'**
   String get appDataManageSnapshots;
-
-  /// No description provided for @appDataExportSnapshots.
-  ///
-  /// In en, this message translates to:
-  /// **'Export activity files'**
-  String get appDataExportSnapshots;
-
-  /// No description provided for @appDataExportSnapshotsDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Export saved activity files'**
-  String get appDataExportSnapshotsDescription;
 
   /// No description provided for @appDataExported.
   ///
@@ -9703,7 +9829,7 @@ abstract class AppLocalizations {
   /// No description provided for @appDataHealthDescription.
   ///
   /// In en, this message translates to:
-  /// **'Synced health and workout history'**
+  /// **'Device-synced fitness and health data'**
   String get appDataHealthDescription;
 
   /// No description provided for @appDataDeviceKeys.
@@ -9741,12 +9867,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose data to restore from a backup'**
   String get appDataImportDescription;
-
-  /// No description provided for @appDataSnapshotDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Saved activity files'**
-  String get appDataSnapshotDescription;
 
   /// No description provided for @appDataPluginDescription.
   ///
@@ -10033,14 +10153,8 @@ abstract class AppLocalizations {
   /// No description provided for @appDataClearHealthDescription.
   ///
   /// In en, this message translates to:
-  /// **'Health history will be removed\nOnly data still on your device can be synced again'**
+  /// **'Synced activity files will be removed\nLocal health data will be cleared'**
   String get appDataClearHealthDescription;
-
-  /// No description provided for @appDataClearRawDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Saved activity files will be removed\nThey will no longer be available for export or replay'**
-  String get appDataClearRawDescription;
 
   /// No description provided for @appDataClearCachedCategoryDescription.
   ///
@@ -10137,6 +10251,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System app cannot be hidden'**
   String get appOrderCannotHide;
+
+  /// No description provided for @privateStateAccessPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OronBox needs to access account credentials protected by secure storage'**
+  String get privateStateAccessPromptTitle;
+
+  /// No description provided for @privateStateAccessPromptMacOs.
+  ///
+  /// In en, this message translates to:
+  /// **'If a system authorization prompt appears, enter your user password and click \"Always Allow\" to avoid repeated prompts'**
+  String get privateStateAccessPromptMacOs;
+
+  /// No description provided for @privateStateAccessPromptLinux.
+  ///
+  /// In en, this message translates to:
+  /// **'If a system unlock prompt appears, enter your password to unlock the keyring'**
+  String get privateStateAccessPromptLinux;
+
+  /// No description provided for @creatorSubmissionPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review submission'**
+  String get creatorSubmissionPreview;
+
+  /// No description provided for @creatorResourceBinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource link'**
+  String get creatorResourceBinding;
+
+  /// No description provided for @creatorPublicationIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing accounts'**
+  String get creatorPublicationIdentity;
+
+  /// No description provided for @creatorPublicationRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Included in this submission'**
+  String get creatorPublicationRange;
+
+  /// No description provided for @creatorNewPublication.
+  ///
+  /// In en, this message translates to:
+  /// **'First publication'**
+  String get creatorNewPublication;
+
+  /// No description provided for @creatorUpdatePublication.
+  ///
+  /// In en, this message translates to:
+  /// **'Update existing resource'**
+  String get creatorUpdatePublication;
+
+  /// No description provided for @creatorAppendSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Append to PR #{number}'**
+  String creatorAppendSubmission(String number);
+
+  /// No description provided for @creatorPublicationExcludedDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded devices: {devices}'**
+  String creatorPublicationExcludedDevices(String devices);
+
+  /// No description provided for @creatorBackToEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to editing'**
+  String get creatorBackToEdit;
+
+  /// No description provided for @creatorPackageVersionCodeMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The package has no valid version code; rebuild it and upload again'**
+  String get creatorPackageVersionCodeMissing;
+
+  /// No description provided for @creatorReopenSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Request another review'**
+  String get creatorReopenSubmission;
+
+  /// No description provided for @creatorReopenRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Another review requested'**
+  String get creatorReopenRequested;
+
+  /// No description provided for @creatorFixesForSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues fixed in this submission'**
+  String get creatorFixesForSubmission;
+
+  /// No description provided for @creatorFixNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix details'**
+  String get creatorFixNote;
+
+  /// No description provided for @creatorNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a resource name'**
+  String get creatorNameRequired;
+
+  /// No description provided for @creatorSummaryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a resource summary'**
+  String get creatorSummaryRequired;
+
+  /// No description provided for @creatorSubmitForReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for review'**
+  String get creatorSubmitForReview;
+
+  /// No description provided for @creatorAstroBoxPRBody.
+  ///
+  /// In en, this message translates to:
+  /// **'PR description (optional)'**
+  String get creatorAstroBoxPRBody;
 }
 
 class _AppLocalizationsDelegate

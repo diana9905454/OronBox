@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+
 import 'package:material_ui/material_ui.dart';
 
 class DraftAsset {
@@ -12,6 +13,7 @@ class DraftAsset {
     this.height = 0,
     this.packageId = '',
     this.version = '',
+    this.versionCode,
     this.type = '',
   });
 
@@ -24,6 +26,7 @@ class DraftAsset {
   int height;
   final String packageId;
   final String version;
+  int? versionCode;
   final String type;
 
   int? get size => bytes?.length ?? (sizeBytes > 0 ? sizeBytes : null);

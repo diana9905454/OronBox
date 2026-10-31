@@ -9,6 +9,8 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
+import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -263,7 +265,8 @@ class _CreatorCollectionPageState extends ConsumerState<CreatorCollectionPage> {
         .whereType<Map>()
         .toList();
     return Scaffold(
-      appBar: AppBar(
+      appBar: SysAppBar(
+        secondary: true,
         title: Text(
           _new
               ? _l10n.creatorCollectionCreateTitle
@@ -273,7 +276,12 @@ class _CreatorCollectionPageState extends ConsumerState<CreatorCollectionPage> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                bottomContentPadding(context, extra: 16),
+              ),
               children: [
                 if (_error != null)
                   Text(

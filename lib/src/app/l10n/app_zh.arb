@@ -212,7 +212,7 @@
   "errorBluetoothUnavailable": "蓝牙不可用，请检查蓝牙是否已开启，并确认系统权限已允许 OronBox 使用蓝牙",
   "errorBluetoothConnectFailed": "连接失败，请确认蓝牙权限已授予且蓝牙已开启、设备在附近、未被其他工具或设备占用，并进入“连接新手机”模式后重试",
   "errorBluetoothDisconnected": "蓝牙连接已断开，请重新连接设备",
-  "errorOperationTimeout": "操作超时，请确认设备仍在附近并重试",
+  "errorOperationTimeout": "操作超时",
   "errorDeviceNotReady": "设备尚未准备好，请先连接并完成认证",
   "errorBleCharacteristicsMissing": "未找到需要的 BLE 通道，请重新连接设备或检查设备是否支持该功能",
   "errorWebSerialUnavailable": "当前浏览器不支持 Web Serial，请使用 Chrome / Edge 等支持 Web Serial 的浏览器",
@@ -241,6 +241,12 @@
   "errorInvalidRequest": "提交的信息有误，请检查后重试",
   "errorOperationCancelled": "操作已取消",
   "errorUnsupportedFileType": "不支持或无法识别的文件类型",
+  "errorDeviceFeatureUnsupported": "当前设备或固件暂不支持此功能",
+  "errorDeviceMusicUnsupported": "当前设备或固件暂不支持音乐传输功能",
+  "errorDeviceRecordingUnsupported": "当前设备或固件暂不支持录音导出功能",
+  "errorDeviceScreenMirrorUnsupported": "当前设备或固件暂不支持屏幕镜像功能",
+  "errorNotInstalled": "未安装所需组件或应用",
+  "errorInvalidOperation": "当前状态下无法执行此操作",
   "errorCertificateVerificationFailed": "证书校验失败，如正在使用代理，请关闭代理对本应用的 HTTPS 拦截，或确保证书受信任",
   "errorUnknownWithDetail": "操作失败：{detail}",
   "@errorUnknownWithDetail": {
@@ -706,6 +712,8 @@
   },
   "deviceRecordingsTitle": "录音同步",
   "deviceRecordingsDescription": "从手表同步并导出录音",
+  "deviceRecordingsLibrary": "设备录音",
+  "deviceRecordingsLibraryDescription": "导出设备中的录音",
   "deviceRecordingsHint": "录音通过设备文件通道逐条接收并校验\n完成后可单独导出原始文件",
   "deviceRecordingsSync": "同步录音",
   "deviceRecordingsReading": "正在读取录音列表",
@@ -753,6 +761,28 @@
       }
     }
   },
+  "deviceRecordingsSavedBadge": "已存本地",
+  "deviceRecordingsSelectAll": "全选",
+  "deviceRecordingsDeselectAll": "取消全选",
+  "deviceRecordingsExportSelected": "导出所选 ({count})",
+  "@deviceRecordingsExportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRecordingsOpenDirectory": "打开存储目录",
+  "deviceRecordingsExported": "已导出到 {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "录音导出完成",
+  "deviceRecordingsRefresh": "刷新",
   "deviceMusicTransferTitle": "传输 MP3 文件",
   "deviceMusicVelaDescription": "将 MP3 文件同步至设备，单个文件不得超过 100 MB。",
   "deviceMusicZeppDescription": "支持最大 50 MB 的 MP3 文件。建议使用经典蓝牙以获得更快的传输速度；也可使用 BLE，但传输时间较长。",
@@ -1358,6 +1388,8 @@
   "creatorOperationAuthorizing": "正在等待授权",
   "creatorResolvingPublicationTarget": "正在识别发布分区",
   "creatorStateApproved": "审核通过",
+  "creatorStateReviewing": "审核中",
+  "creatorStatePublishing": "发布中",
   "creatorStateExternalReview": "外部审核中",
   "creatorStateFailed": "发布失败",
   "creatorStateSuperseded": "已被新版本取代",
@@ -1511,6 +1543,46 @@
   "@messageReviewNoteBody": {
     "placeholders": {
       "note": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReviewerPrefix": "审核员：{reviewer}",
+  "@messageReviewerPrefix": {
+    "placeholders": {
+      "reviewer": {
+        "type": "String"
+      }
+    }
+  },
+  "messageOperatorPrefix": "操作人：{operator}",
+  "@messageOperatorPrefix": {
+    "placeholders": {
+      "operator": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReferencePrefix": "关联：{reference}",
+  "@messageReferencePrefix": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "messageTargetsPrefix": "发布渠道：{targets}",
+  "@messageTargetsPrefix": {
+    "placeholders": {
+      "targets": {
+        "type": "String"
+      }
+    }
+  },
+  "messageUnapprovedItemsPrefix": "待改进项：{items}",
+  "@messageUnapprovedItemsPrefix": {
+    "placeholders": {
+      "items": {
         "type": "String"
       }
     }
@@ -2270,15 +2342,13 @@
   "appDataTitle": "应用数据",
   "appDataDescription": "查看存储占用和导出文件",
   "appDataSpaceUsage": "分类占用",
-  "appDataHealth": "健康数据",
+  "appDataHealth": "活动文件",
   "appDataPlugins": "插件",
   "appDataZeppos": "ZeppOS 应用数据",
   "appDataRecovery": "导入恢复数据",
   "appDataDownloads": "资源和更新下载",
   "appDataPluginCache": "插件缓存",
   "appDataManageSnapshots": "管理已保存的活动文件",
-  "appDataExportSnapshots": "导出活动文件",
-  "appDataExportSnapshotsDescription": "导出已保存的活动文件",
   "appDataExported": "已保存导出文件",
   "appDataLoadFailed": "无法读取应用数据",
   "appDataExportFailed": "文件导出失败",
@@ -2377,14 +2447,13 @@
   "appDataImageCache": "图片缓存",
   "appDataSelectBackup": "选择要备份的数据",
   "appDataSettingsDescription": "主题、语言和功能偏好",
-  "appDataHealthDescription": "已同步的健康和运动历史",
+  "appDataHealthDescription": "设备同步的运动健康数据",
   "appDataDeviceKeys": "设备配对与密钥",
   "appDataDeviceKeysDescription": "设备列表及连接所需的认证信息",
   "appDataXiaomiAccount": "小米账号信息",
   "appDataXiaomiAccountDescription": "小米账号及当前登录会话",
   "appDataSensitiveBackup": "备份包含密钥或登录信息且未加密\n请妥善保管，不要分享",
   "appDataImportDescription": "从备份文件选择数据进行恢复",
-  "appDataSnapshotDescription": "已保存的活动文件",
   "appDataPluginDescription": "已安装插件及其本地数据",
   "appDataZepposDescription": "设备应用脚本和本地设置",
   "appDataLogsDescription": "应用运行和问题排查记录",
@@ -2432,8 +2501,7 @@
   "deviceRePair": "重新配对",
   "appDataClearCategoryTitle": "清理{category}？",
   "appDataClearCategoryDescription": "将移除此分类的本地数据\n其它分类不受影响",
-  "appDataClearHealthDescription": "将删除健康和运动历史\n仅能重新同步设备上仍保留的数据",
-  "appDataClearRawDescription": "将删除已保存的原始活动文件\n之后无法导出或重放这些文件",
+  "appDataClearHealthDescription": "将删除已同步的活动文件\n本地运动健康数据将清空",
   "appDataClearCachedCategoryDescription": "仅清理未使用的缓存文件\n需要时会重新下载",
   "appDataClearModelsDescription": "保留当前模型\n清理未使用的旧版本和过期下载",
   "settingsPermissionsTitle": "权限管理",
@@ -2449,5 +2517,40 @@
   "appOrderMoveToMain": "移入列表",
   "appOrderHide": "隐藏",
   "appOrderUnhide": "显示",
-  "appOrderCannotHide": "系统常驻应用不可隐藏"
+  "appOrderCannotHide": "系统常驻应用不可隐藏",
+  "privateStateAccessPromptTitle": "OronBox 需要访问系统安全存储保护的账号凭据",
+  "privateStateAccessPromptMacOs": "若出现系统授权弹窗，请输入用户密码并点击“始终允许”以避免重复提示",
+  "privateStateAccessPromptLinux": "若出现系统解锁弹窗，请输入用户密码解锁密钥环",
+  "creatorSubmissionPreview": "查看提交预览",
+  "creatorResourceBinding": "资源关联",
+  "creatorPublicationIdentity": "发布账号",
+  "creatorPublicationRange": "本次发布",
+  "creatorNewPublication": "首次发布",
+  "creatorUpdatePublication": "更新已有资源",
+  "creatorAppendSubmission": "追加至 PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "暂不发布到这些设备：{devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "返回修改",
+  "creatorPackageVersionCodeMissing": "安装包缺少有效的版本代码，请重新打包后上传",
+  "creatorReopenSubmission": "请求重新审核",
+  "creatorReopenRequested": "已请求重新审核",
+  "creatorFixesForSubmission": "本次已修复的问题",
+  "creatorFixNote": "修复说明",
+  "creatorNameRequired": "请填写资源名称",
+  "creatorSummaryRequired": "请填写资源简介",
+  "creatorSubmitForReview": "提交审核",
+  "creatorAstroBoxPRBody": "PR 说明（选填）"
 }

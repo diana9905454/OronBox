@@ -57,7 +57,12 @@ CreatorPublicationPlan buildCreatorPublicationPlan({
   Map<String, Object?>? publicationOptions,
 }) {
   if (publicationOptions != null) {
-    return _configuredPublicationPlan(workspace, devices, publicationOptions);
+    return _configuredPublicationPlan(
+      workspace,
+      devices,
+      publicationOptions,
+      bandBbsCategories,
+    );
   }
   final categories = _flattenCategories(bandBbsCategories);
   final deviceById = {for (final device in devices) device.id: device};
@@ -140,14 +145,15 @@ CreatorPublicationPlan buildCreatorPublicationPlan({
 }
 
 List<({int id, String title})> _flattenCategories(
-  List<Map<String, Object?>> roots,
-) {
+  List<Map<String, Object?>> roots, {
+  bool leavesOnly = true,
+}) {
   final result = <({int id, String title})>[];
   void visit(Map<String, Object?> node) {
     final id = (node['id'] as num?)?.toInt() ?? 0;
     final title = node['title']?.toString().trim() ?? '';
     final children = (node['children'] as List? ?? const []);
-    if (id > 0 && title.isNotEmpty && children.isEmpty) {
+    if (id > 0 && title.isNotEmpty && (!leavesOnly || children.isEmpty)) {
       result.add((id: id, title: title));
     }
     for (final child in children) {
@@ -165,7 +171,12 @@ CreatorPublicationPlan _configuredPublicationPlan(
   CreatorWorkspace workspace,
   List<CreatorDevice> devices,
   Map<String, Object?> config,
+  List<Map<String, Object?>> categories,
 ) {
+  final titles = {
+    for (final category in _flattenCategories(categories, leavesOnly: false))
+      category.id: category.title,
+  };
   final mappings = config['bandbbs'] as Map? ?? const {};
   final prefixes = config['resource_prefixes'] as Map? ?? const {};
   final prefix =
@@ -214,7 +225,7 @@ CreatorPublicationPlan _configuredPublicationPlan(
       for (final e in groups.entries)
         CreatorBandBbsTarget(
           categoryId: e.key,
-          categoryName: e.value.names.join(' / '),
+          categoryName: titles[e.key] ?? e.value.names.join(' / '),
           prefixId: prefix,
           packageId: e.value.artifact.packageId,
           packageName: e.value.artifact.name,

@@ -567,8 +567,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Bluetooth отключён. Подключите устройство снова';
 
   @override
-  String get errorOperationTimeout =>
-      'Время операции истекло. Убедитесь, что устройство рядом, и повторите попытку';
+  String get errorOperationTimeout => 'Время операции истекло';
 
   @override
   String get errorDeviceNotReady =>
@@ -674,6 +673,30 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get errorUnsupportedFileType =>
       'Неподдерживаемый или неизвестный тип файла';
+
+  @override
+  String get errorDeviceFeatureUnsupported =>
+      'Эта функция не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorDeviceMusicUnsupported =>
+      'Передача музыки не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorDeviceRecordingUnsupported =>
+      'Экспорт записей не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported =>
+      'Дублирование экрана не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorNotInstalled =>
+      'Необходимый компонент или приложение не установлены';
+
+  @override
+  String get errorInvalidOperation =>
+      'Невозможно выполнить эту операцию в текущем состоянии';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -1574,6 +1597,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Синхронизация и экспорт записей с часов';
 
   @override
+  String get deviceRecordingsLibrary => 'Записи устройства';
+
+  @override
+  String get deviceRecordingsLibraryDescription =>
+      'Экспорт записей с устройства';
+
+  @override
   String get deviceRecordingsHint =>
       'Записи принимаются и проверяются по одной. После синхронизации экспортируйте каждый исходный файл';
 
@@ -1612,6 +1642,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String deviceRecordingsSaveFailed(String error) {
     return 'Не удалось сохранить запись: $error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => 'Сохранено';
+
+  @override
+  String get deviceRecordingsSelectAll => 'Выбрать все';
+
+  @override
+  String get deviceRecordingsDeselectAll => 'Снять выбор';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return 'Экспорт выбранных ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => 'Открыть папку';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return 'Экспортировано в $path';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => 'Запись экспортирована';
+
+  @override
+  String get deviceRecordingsRefresh => 'Обновить';
 
   @override
   String get deviceMusicTransferTitle => 'Передача музыки';
@@ -2916,6 +2974,12 @@ class AppLocalizationsRu extends AppLocalizations {
   String get creatorStateApproved => 'Одобрено';
 
   @override
+  String get creatorStateReviewing => 'На проверке';
+
+  @override
+  String get creatorStatePublishing => 'Публикация';
+
+  @override
   String get creatorStateExternalReview => 'Внешняя проверка';
 
   @override
@@ -3358,6 +3422,31 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String messageReviewNoteBody(String note) {
     return 'Комментарий проверки: $note';
+  }
+
+  @override
+  String messageReviewerPrefix(String reviewer) {
+    return 'Проверяющий: $reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return 'Оператор: $operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return 'Связано: $reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return 'Каналы публикации: $targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return 'Требует доработки: $items';
   }
 
   @override
@@ -5134,7 +5223,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appDataSpaceUsage => 'Объём по категориям';
 
   @override
-  String get appDataHealth => 'Данные здоровья';
+  String get appDataHealth => 'Файлы активности';
 
   @override
   String get appDataPlugins => 'Плагины';
@@ -5154,13 +5243,6 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get appDataManageSnapshots =>
       'Управление сохранёнными файлами активности';
-
-  @override
-  String get appDataExportSnapshots => 'Экспортировать файлы активности';
-
-  @override
-  String get appDataExportSnapshotsDescription =>
-      'Экспорт сохранённых файлов активности';
 
   @override
   String get appDataExported => 'Экспортированный файл сохранён';
@@ -5408,7 +5490,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get appDataSettingsDescription => 'Тема, язык и настройки функций';
 
   @override
-  String get appDataHealthDescription => 'История здоровья и тренировок';
+  String get appDataHealthDescription =>
+      'Синхронизированные данные активности и здоровья';
 
   @override
   String get appDataDeviceKeys => 'Сопряжения и ключи устройств';
@@ -5430,9 +5513,6 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appDataImportDescription => 'Выбор данных для восстановления';
-
-  @override
-  String get appDataSnapshotDescription => 'Сохранённые файлы активности';
 
   @override
   String get appDataPluginDescription => 'Плагины и их локальные данные';
@@ -5594,11 +5674,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appDataClearHealthDescription =>
-      'История здоровья и тренировок будет удалена\nПовторно синхронизируются только данные, оставшиеся на устройстве';
-
-  @override
-  String get appDataClearRawDescription =>
-      'Сохранённые файлы активности будут удалены\nЭкспорт и воспроизведение станут недоступны';
+      'Синхронизированные файлы активности будут удалены\nЛокальные данные активности и здоровья будут очищены';
 
   @override
   String get appDataClearCachedCategoryDescription =>
@@ -5652,4 +5728,75 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get appOrderCannotHide => 'Системное приложение нельзя скрыть';
+
+  @override
+  String get privateStateAccessPromptTitle =>
+      'OronBox требуется доступ к учетным данным аккаунта, защищенным безопасным хранилищем';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      'При появлении системного запроса авторизации введите пароль для входа и нажмите «Разрешать всегда», чтобы избежать повторных запросов';
+
+  @override
+  String get privateStateAccessPromptLinux =>
+      'При появлении системного запроса разблокировки введите пароль пользователя для разблокировки связки ключей';
+
+  @override
+  String get creatorSubmissionPreview => 'Проверить отправку';
+
+  @override
+  String get creatorResourceBinding => 'Связанный ресурс';
+
+  @override
+  String get creatorPublicationIdentity => 'Аккаунты публикации';
+
+  @override
+  String get creatorPublicationRange => 'Состав публикации';
+
+  @override
+  String get creatorNewPublication => 'Первая публикация';
+
+  @override
+  String get creatorUpdatePublication => 'Обновить ресурс';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return 'Дополнить PR #$number';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return 'Исключённые устройства: $devices';
+  }
+
+  @override
+  String get creatorBackToEdit => 'Вернуться к редактированию';
+
+  @override
+  String get creatorPackageVersionCodeMissing =>
+      'В пакете нет корректного кода версии\nПересоберите пакет и загрузите заново';
+
+  @override
+  String get creatorReopenSubmission => 'Запросить повторную проверку';
+
+  @override
+  String get creatorReopenRequested => 'Повторная проверка запрошена';
+
+  @override
+  String get creatorFixesForSubmission => 'Исправлено в этой отправке';
+
+  @override
+  String get creatorFixNote => 'Описание исправления';
+
+  @override
+  String get creatorNameRequired => 'Введите название ресурса';
+
+  @override
+  String get creatorSummaryRequired => 'Введите краткое описание';
+
+  @override
+  String get creatorSubmitForReview => 'Отправить на проверку';
+
+  @override
+  String get creatorAstroBoxPRBody => 'Описание PR (необязательно)';
 }

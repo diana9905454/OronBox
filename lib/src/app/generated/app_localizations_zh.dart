@@ -543,7 +543,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get errorBluetoothDisconnected => '蓝牙连接已断开，请重新连接设备';
 
   @override
-  String get errorOperationTimeout => '操作超时，请确认设备仍在附近并重试';
+  String get errorOperationTimeout => '操作超时';
 
   @override
   String get errorDeviceNotReady => '设备尚未准备好，请先连接并完成认证';
@@ -630,6 +630,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get errorUnsupportedFileType => '不支持或无法识别的文件类型';
+
+  @override
+  String get errorDeviceFeatureUnsupported => '当前设备或固件暂不支持此功能';
+
+  @override
+  String get errorDeviceMusicUnsupported => '当前设备或固件暂不支持音乐传输功能';
+
+  @override
+  String get errorDeviceRecordingUnsupported => '当前设备或固件暂不支持录音导出功能';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported => '当前设备或固件暂不支持屏幕镜像功能';
+
+  @override
+  String get errorNotInstalled => '未安装所需组件或应用';
+
+  @override
+  String get errorInvalidOperation => '当前状态下无法执行此操作';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -1486,6 +1504,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deviceRecordingsDescription => '从手表同步并导出录音';
 
   @override
+  String get deviceRecordingsLibrary => '设备录音';
+
+  @override
+  String get deviceRecordingsLibraryDescription => '导出设备中的录音';
+
+  @override
   String get deviceRecordingsHint => '录音通过设备文件通道逐条接收并校验\n完成后可单独导出原始文件';
 
   @override
@@ -1522,6 +1546,34 @@ class AppLocalizationsZh extends AppLocalizations {
   String deviceRecordingsSaveFailed(String error) {
     return '导出录音失败：$error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => '已存本地';
+
+  @override
+  String get deviceRecordingsSelectAll => '全选';
+
+  @override
+  String get deviceRecordingsDeselectAll => '取消全选';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return '导出所选 ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => '打开存储目录';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return '已导出到 $path';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => '录音导出完成';
+
+  @override
+  String get deviceRecordingsRefresh => '刷新';
 
   @override
   String get deviceMusicTransferTitle => '传输 MP3 文件';
@@ -2758,6 +2810,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get creatorStateApproved => '审核通过';
 
   @override
+  String get creatorStateReviewing => '审核中';
+
+  @override
+  String get creatorStatePublishing => '发布中';
+
+  @override
   String get creatorStateExternalReview => '外部审核中';
 
   @override
@@ -3179,6 +3237,31 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String messageReviewNoteBody(String note) {
     return '审核意见：$note';
+  }
+
+  @override
+  String messageReviewerPrefix(String reviewer) {
+    return '审核员：$reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return '操作人：$operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return '关联：$reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return '发布渠道：$targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return '待改进项：$items';
   }
 
   @override
@@ -4888,7 +4971,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appDataSpaceUsage => '分类占用';
 
   @override
-  String get appDataHealth => '健康数据';
+  String get appDataHealth => '活动文件';
 
   @override
   String get appDataPlugins => '插件';
@@ -4907,12 +4990,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appDataManageSnapshots => '管理已保存的活动文件';
-
-  @override
-  String get appDataExportSnapshots => '导出活动文件';
-
-  @override
-  String get appDataExportSnapshotsDescription => '导出已保存的活动文件';
 
   @override
   String get appDataExported => '已保存导出文件';
@@ -5136,7 +5213,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appDataSettingsDescription => '主题、语言和功能偏好';
 
   @override
-  String get appDataHealthDescription => '已同步的健康和运动历史';
+  String get appDataHealthDescription => '设备同步的运动健康数据';
 
   @override
   String get appDataDeviceKeys => '设备配对与密钥';
@@ -5155,9 +5232,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appDataImportDescription => '从备份文件选择数据进行恢复';
-
-  @override
-  String get appDataSnapshotDescription => '已保存的活动文件';
 
   @override
   String get appDataPluginDescription => '已安装插件及其本地数据';
@@ -5304,10 +5378,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appDataClearCategoryDescription => '将移除此分类的本地数据\n其它分类不受影响';
 
   @override
-  String get appDataClearHealthDescription => '将删除健康和运动历史\n仅能重新同步设备上仍保留的数据';
-
-  @override
-  String get appDataClearRawDescription => '将删除已保存的原始活动文件\n之后无法导出或重放这些文件';
+  String get appDataClearHealthDescription => '将删除已同步的活动文件\n本地运动健康数据将清空';
 
   @override
   String get appDataClearCachedCategoryDescription => '仅清理未使用的缓存文件\n需要时会重新下载';
@@ -5356,6 +5427,74 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appOrderCannotHide => '系统常驻应用不可隐藏';
+
+  @override
+  String get privateStateAccessPromptTitle => 'OronBox 需要访问系统安全存储保护的账号凭据';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      '若出现系统授权弹窗，请输入用户密码并点击“始终允许”以避免重复提示';
+
+  @override
+  String get privateStateAccessPromptLinux => '若出现系统解锁弹窗，请输入用户密码解锁密钥环';
+
+  @override
+  String get creatorSubmissionPreview => '查看提交预览';
+
+  @override
+  String get creatorResourceBinding => '资源关联';
+
+  @override
+  String get creatorPublicationIdentity => '发布账号';
+
+  @override
+  String get creatorPublicationRange => '本次发布';
+
+  @override
+  String get creatorNewPublication => '首次发布';
+
+  @override
+  String get creatorUpdatePublication => '更新已有资源';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return '追加至 PR #$number';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return '暂不发布到这些设备：$devices';
+  }
+
+  @override
+  String get creatorBackToEdit => '返回修改';
+
+  @override
+  String get creatorPackageVersionCodeMissing => '安装包缺少有效的版本代码，请重新打包后上传';
+
+  @override
+  String get creatorReopenSubmission => '请求重新审核';
+
+  @override
+  String get creatorReopenRequested => '已请求重新审核';
+
+  @override
+  String get creatorFixesForSubmission => '本次已修复的问题';
+
+  @override
+  String get creatorFixNote => '修复说明';
+
+  @override
+  String get creatorNameRequired => '请填写资源名称';
+
+  @override
+  String get creatorSummaryRequired => '请填写资源简介';
+
+  @override
+  String get creatorSubmitForReview => '提交审核';
+
+  @override
+  String get creatorAstroBoxPRBody => 'PR 说明（选填）';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -5898,7 +6037,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get errorBluetoothDisconnected => 'Bluetooth 連線已中斷。請重新連線裝置後再試';
 
   @override
-  String get errorOperationTimeout => '操作逾時。請確認裝置仍在附近後再試';
+  String get errorOperationTimeout => '操作逾時';
 
   @override
   String get errorDeviceNotReady => '裝置尚未就緒。請先連線並完成裝置驗證';
@@ -5985,6 +6124,24 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get errorUnsupportedFileType => '不支援或無法辨識的檔案類型';
+
+  @override
+  String get errorDeviceFeatureUnsupported => '目前裝置或韌體暫不支援此功能';
+
+  @override
+  String get errorDeviceMusicUnsupported => '目前裝置或韌體暫不支援音樂傳輸功能';
+
+  @override
+  String get errorDeviceRecordingUnsupported => '目前裝置或韌體暫不支援錄音匯出功能';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported => '目前裝置或韌體暫不支援螢幕鏡像功能';
+
+  @override
+  String get errorNotInstalled => '未安裝所需元件或應用程式';
+
+  @override
+  String get errorInvalidOperation => '目前狀態下無法執行此操作';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -6839,6 +6996,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get deviceRecordingsDescription => '同步並匯出手錶錄音';
 
   @override
+  String get deviceRecordingsLibrary => '裝置錄音';
+
+  @override
+  String get deviceRecordingsLibraryDescription => '匯出裝置中的錄音';
+
+  @override
   String get deviceRecordingsHint => '錄音會逐一接收並驗證\n同步後請分別匯出每個原始檔案';
 
   @override
@@ -6875,6 +7038,34 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String deviceRecordingsSaveFailed(String error) {
     return '無法匯出錄音：$error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => '已存本機';
+
+  @override
+  String get deviceRecordingsSelectAll => '全選';
+
+  @override
+  String get deviceRecordingsDeselectAll => '取消全選';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return '匯出所選 ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => '開啟儲存目錄';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return '已匯出到 $path';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => '錄音匯出完成';
+
+  @override
+  String get deviceRecordingsRefresh => '重新整理';
 
   @override
   String get deviceMusicTransferTitle => '傳輸 MP3 檔案';
@@ -8112,6 +8303,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get creatorStateApproved => '已通過';
 
   @override
+  String get creatorStateReviewing => '審核中';
+
+  @override
+  String get creatorStatePublishing => '發布中';
+
+  @override
   String get creatorStateExternalReview => '外部審核中';
 
   @override
@@ -8536,6 +8733,31 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   @override
   String messageReviewNoteBody(String note) {
     return '審核意見：$note';
+  }
+
+  @override
+  String messageReviewerPrefix(String reviewer) {
+    return '審核員：$reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return '操作人：$operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return '關聯：$reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return '發布渠道：$targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return '待改進項：$items';
   }
 
   @override
@@ -9919,7 +10141,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get appDataSpaceUsage => '分類用量';
 
   @override
-  String get appDataHealth => '健康資料';
+  String get appDataHealth => '活動檔案';
 
   @override
   String get appDataPlugins => '外掛程式';
@@ -9938,12 +10160,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get appDataManageSnapshots => '管理已儲存的活動檔案';
-
-  @override
-  String get appDataExportSnapshots => '匯出活動檔案';
-
-  @override
-  String get appDataExportSnapshotsDescription => '匯出已儲存的活動檔案';
 
   @override
   String get appDataExported => '已儲存匯出檔案';
@@ -10167,7 +10383,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get appDataSettingsDescription => '主題、語言和功能偏好';
 
   @override
-  String get appDataHealthDescription => '已同步的健康和運動歷史';
+  String get appDataHealthDescription => '裝置同步的運動健康數據';
 
   @override
   String get appDataDeviceKeys => '裝置配對與金鑰';
@@ -10186,9 +10402,6 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get appDataImportDescription => '從備份檔案選擇資料進行還原';
-
-  @override
-  String get appDataSnapshotDescription => '已儲存的活動檔案';
 
   @override
   String get appDataPluginDescription => '已安裝外掛及其本機資料';
@@ -10335,10 +10548,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get appDataClearCategoryDescription => '將移除此分類的本機資料\n其它分類不受影響';
 
   @override
-  String get appDataClearHealthDescription => '將刪除健康與運動歷史\n僅能重新同步裝置上仍保留的資料';
-
-  @override
-  String get appDataClearRawDescription => '將刪除已儲存的原始活動檔案\n之後無法匯出或重播這些檔案';
+  String get appDataClearHealthDescription => '將刪除已同步的活動檔案\n本機運動健康數據將清空';
 
   @override
   String get appDataClearCachedCategoryDescription => '僅清理未使用的快取檔案\n需要時會重新下載';
@@ -10387,4 +10597,72 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get appOrderCannotHide => '系統常駐應用不可隱藏';
+
+  @override
+  String get privateStateAccessPromptTitle => 'OronBox 需要存取系統安全儲存保護的帳號憑據';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      '若出現系統授權彈窗，請輸入使用者密碼並點擊「始終允許」以避免重複提示';
+
+  @override
+  String get privateStateAccessPromptLinux => '若出現系統解鎖彈窗，請輸入使用者密碼解鎖金鑰圈';
+
+  @override
+  String get creatorSubmissionPreview => '檢視提交預覽';
+
+  @override
+  String get creatorResourceBinding => '資源關聯';
+
+  @override
+  String get creatorPublicationIdentity => '發布帳號';
+
+  @override
+  String get creatorPublicationRange => '本次發布';
+
+  @override
+  String get creatorNewPublication => '首次發布';
+
+  @override
+  String get creatorUpdatePublication => '更新已有資源';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return '追加至 PR #$number';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return '暫不發布到這些裝置：$devices';
+  }
+
+  @override
+  String get creatorBackToEdit => '返回修改';
+
+  @override
+  String get creatorPackageVersionCodeMissing => '安裝套件缺少有效的版本代碼，請重新打包後上傳';
+
+  @override
+  String get creatorReopenSubmission => '請求重新審核';
+
+  @override
+  String get creatorReopenRequested => '已請求重新審核';
+
+  @override
+  String get creatorFixesForSubmission => '本次已修復的問題';
+
+  @override
+  String get creatorFixNote => '修復說明';
+
+  @override
+  String get creatorNameRequired => '請填寫資源名稱';
+
+  @override
+  String get creatorSummaryRequired => '請填寫資源簡介';
+
+  @override
+  String get creatorSubmitForReview => '提交審核';
+
+  @override
+  String get creatorAstroBoxPRBody => 'PR 說明（選填）';
 }

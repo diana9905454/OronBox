@@ -28,6 +28,7 @@ void main() {
   late _Zepp zeppos;
   late AppExtensionBackupStore store;
   const id = 'org.example.plugin';
+
   setUp(() async {
     root = await Directory.systemTemp.createTemp('oronbox-extension-test-');
     plugins = await createIoPluginStorage(
@@ -68,36 +69,66 @@ void main() {
     zeppos = _Zepp();
     store = AppExtensionBackupStore(plugins: plugins, zeppos: zeppos);
   });
+
   tearDown(() async {
     await plugins.close();
     await root.delete(recursive: true);
   });
-  test('round-trip restores configuration and data without touching code or grants', () async {
-    final backup = await store.export();
-    expect(jsonEncode(backup), isNot(contains('test-grant')));
-    expect(jsonEncode(backup), isNot(contains('export {}')));
-    await plugins.writeConfig(id, {'color': 'blue'});
-    await plugins.writeFile(
-      id,
-      PluginStoragePath.parse('/data/new.bin'),
-      Uint8List(3),
-    );
-    zeppos.values = {'theme': 'light'};
-    await store.restore(backup);
-    expect((await plugins.loadInstalled()).single.config, {'color': 'red'});
-    expect(
-      await plugins.readFile(id, PluginStoragePath.parse('/data/file.bin')),
-      [1, 2],
-    );
-    expect(
-      await plugins.stat(id, PluginStoragePath.parse('/data/new.bin')),
-      isNull,
-    );
-    expect(await plugins.readPermissionGrants(id), {'test-grant'});
-    expect(zeppos.values, {'theme': 'dark'});
-  });
+
   test(
-    'missing matching version is rejected before any data changes',
+    'payload export and restore installs uninstalled plugin and restores data',
+    () async {
+      final payload = await store.exportPayload();
+      expect(
+        payload.files.containsKey('plugins/$id/package/manifest.json'),
+        isTrue,
+      );
+      expect(payload.files.containsKey('plugins/$id/package/main.js'), isTrue);
+      expect(payload.files.containsKey('plugins/$id/data/file.bin'), isTrue);
+      expect((payload.metadata['plugins'] as Map)[id], {
+        'version': '1.0.0',
+        'config': {'color': 'red'},
+        'permissions': ['test-grant'],
+      });
+
+      final newRoot = await Directory.systemTemp.createTemp(
+        'oronbox-new-ext-test-',
+      );
+      final newPlugins = await createIoPluginStorage(
+        installedRoot: Directory('${newRoot.path}/plugins'),
+        cacheRoot: Directory('${newRoot.path}/cache'),
+        temporaryRoot: Directory('${newRoot.path}/temp'),
+      );
+      final newZeppos = _Zepp();
+      final newStore = AppExtensionBackupStore(
+        plugins: newPlugins,
+        zeppos: newZeppos,
+      );
+      try {
+        expect(await newPlugins.loadInstalled(), isEmpty);
+        await newStore.restore(payload.metadata, files: payload.files);
+        final installed = await newPlugins.loadInstalled();
+        expect(installed.length, 1);
+        expect(installed.single.manifest.id, id);
+        expect(installed.single.config, {'color': 'red'});
+        expect(await newPlugins.readPermissionGrants(id), {'test-grant'});
+        expect(
+          await newPlugins.readFile(
+            id,
+            PluginStoragePath.parse('/data/file.bin'),
+          ),
+          [1, 2],
+        );
+        expect(newZeppos.values, {'theme': 'dark'});
+      } finally {
+        await newPlugins.close();
+        await newRoot.delete(recursive: true);
+      }
+    },
+  );
+
+  test(
+    'missing matching version is rejected when package files are absent',
     () async {
       final backup = await store.export();
       ((backup['plugins'] as Map)[id] as Map)['version'] = '9.9.9';
@@ -111,24 +142,34 @@ void main() {
       );
     },
   );
-  test('permission metadata and package paths cannot enter a data archive', () {
-    for (final path in [
-      '/plugin/main.js',
-      '/data/.oronbox/permissions.json',
-      '/data/../escape',
-    ]) {
-      expect(
-        () => validateExtensionBackup({
-          'plugins': {
-            id: {
-              'version': '1.0.0',
-              'config': {},
-              'files': {path: 'AA=='},
-            },
-          },
-        }),
-        throwsFormatException,
-      );
-    }
+
+  test('restores an explicitly empty permission set', () async {
+    final payload = await store.exportPayload();
+    final metadata = (jsonDecode(jsonEncode(payload.metadata)) as Map)
+        .cast<String, Object?>();
+    ((metadata['plugins'] as Map)[id] as Map)['permissions'] = <String>[];
+
+    await store.restore(metadata, files: payload.files);
+
+    expect(await plugins.readPermissionGrants(id), isEmpty);
+  });
+
+  test('invalid metadata structure is rejected', () {
+    expect(
+      () => validateExtensionBackup({
+        'plugins': {
+          'INVALID ID!': {'version': '1.0.0', 'config': {}},
+        },
+      }),
+      throwsFormatException,
+    );
+    expect(
+      () => validateExtensionBackup({
+        'plugins': {
+          id: {'version': 123, 'config': {}},
+        },
+      }),
+      throwsFormatException,
+    );
   });
 }
