@@ -7,6 +7,7 @@ import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/services/status_surface_bridge.dart';
@@ -263,7 +264,9 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
               child: Center(child: CircularProgressIndicator()),
             )
           else
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+            SliverToBoxAdapter(
+              child: SizedBox(height: bottomContentPadding(context, extra: 24)),
+            ),
         ],
       ),
     );

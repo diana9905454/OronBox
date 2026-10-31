@@ -30,6 +30,8 @@ class DeviceEntity {
   StreamSubscription<LinkTraffic>? _trafficSubscription;
   bool _disposed = false;
 
+  bool get isDisposed => _disposed;
+
   Stream<Uint8List> get rawIncomingData => _rawIncomingController.stream;
   Stream<Uint8List> get rawOutgoingData => _rawOutgoingController.stream;
 

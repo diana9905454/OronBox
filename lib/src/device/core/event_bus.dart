@@ -98,6 +98,17 @@ final class XiaomiScreenshotReceived extends DeviceEvent {
   final Uint8List bytes;
 }
 
+final class XiaomiAudioRecordReceived extends DeviceEvent {
+  const XiaomiAudioRecordReceived({
+    required super.deviceId,
+    required this.id,
+    required this.bytes,
+  });
+
+  final String id;
+  final Uint8List bytes;
+}
+
 /// The wearable requested Xiaomi-hosted GNSS assistance data, but the host
 /// does not have a signed-in Xiaomi account session.
 final class XiaomiGnssAccountRequired extends DeviceEvent {

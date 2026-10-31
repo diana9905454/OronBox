@@ -4,12 +4,11 @@ import 'dart:math' as math;
 
 import 'package:material_ui/material_ui.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
-import 'package:oronbox/src/features/devices/health/health_database.dart'
-    show HealthWorkoutTotals;
 import 'package:go_router/go_router.dart';
 import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/devices/health/health_cards.dart';
@@ -169,7 +168,10 @@ class _XiaomiHealthDetailPageState extends State<XiaomiHealthDetailPage> {
       ),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: 8, bottom: 24),
+        contentPadding: EdgeInsets.only(
+          top: 8,
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         sections: [
           if (_loading && _queried == null && !_hasInitialContent)
             const CustomSegmentedSection(child: LinearProgressIndicator()),

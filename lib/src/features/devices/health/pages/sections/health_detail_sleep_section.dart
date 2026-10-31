@@ -3,7 +3,7 @@ part of '../xiaomi_health_detail_page.dart';
 extension _HealthDetailSleepSection on _XiaomiHealthDetailPageState {
   Widget _sleep(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final sleeps = args.data.sleep
+    final sleeps = (_queried ?? args.data).sleep
         // Mi Fitness assigns a sleep segment to the day on which it ends.
         // Using interval overlap duplicates an overnight sleep on two days.
         .where((sleep) {
@@ -405,8 +405,9 @@ extension _HealthDetailSleepSection on _XiaomiHealthDetailPageState {
     // Deep, light, and REM percentages are relative to total asleep time
     // (excluding awake time), so that the 3 sleep stages sum to 100%,
     // matching Xiaomi / Mi Fitness standard.
-    final asleepKinds =
-        kinds.where((kind) => kind != HealthSleepStageKind.awake).toList();
+    final asleepKinds = kinds
+        .where((kind) => kind != HealthSleepStageKind.awake)
+        .toList();
     final asleepSeconds = [
       for (var i = 0; i < kinds.length; i++)
         if (kinds[i] != HealthSleepStageKind.awake) seconds[i],
@@ -421,7 +422,9 @@ extension _HealthDetailSleepSection on _XiaomiHealthDetailPageState {
 
     final wakeCount =
         sleep.wakeCount ??
-        (sleep.stages.where((s) => s.kind == HealthSleepStageKind.awake).length);
+        (sleep.stages
+            .where((s) => s.kind == HealthSleepStageKind.awake)
+            .length);
 
     return [
       for (var index = 0; index < kinds.length; index++)
@@ -444,6 +447,4 @@ extension _HealthDetailSleepSection on _XiaomiHealthDetailPageState {
             (sum, stage) =>
                 sum + (stage.durationSeconds < 0 ? 0 : stage.durationSeconds),
           );
-
-
 }

@@ -16,7 +16,8 @@ enum MassDataType {
   notificationIcon(50),
   music(52),
   watchfaceFont(53),
-  thirdPartyApp(64);
+  thirdPartyApp(64),
+  audioRecord(132);
 
   const MassDataType(this.value);
   final int value;
@@ -36,6 +37,7 @@ enum MassDataType {
       52 => MassDataType.music,
       53 => MassDataType.watchfaceFont,
       64 => MassDataType.thirdPartyApp,
+      132 => MassDataType.audioRecord,
       _ => throw ArgumentError('invalid MassDataType value: $value'),
     };
   }
@@ -98,7 +100,9 @@ void _writeUint32LE(BytesBuilder builder, int value) {
   builder.addByte((value >> 24) & 0xFF);
 }
 
-int _crc32(Uint8List data) {
+int _crc32(Uint8List data) => calculateCrc32(data);
+
+int calculateCrc32(Uint8List data) {
   const table = [
     0x00000000,
     0x77073096,

@@ -2,7 +2,6 @@ import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
-import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
 
 /// Xiaomi health synchronizer based on Xiaomi's activity-file protocol.
 ///
@@ -13,13 +12,11 @@ class XiaomiHealthSyncService {
     required String deviceId,
     String? deviceCode,
     HealthStore? store,
-    HealthDebugSnapshotStore? snapshotStore,
   }) => XiaomiHealthSyncService._(
     system: system,
     deviceId: deviceId,
     deviceCode: deviceCode,
     store: store,
-    snapshotStore: snapshotStore,
   );
 
   XiaomiHealthSyncService._({
@@ -27,16 +24,13 @@ class XiaomiHealthSyncService {
     required this._deviceId,
     required this._deviceCode,
     HealthStore? store,
-    HealthDebugSnapshotStore? snapshotStore,
   }) : _store = store ?? HealthStore(),
-       _snapshotStore = snapshotStore ?? HealthDebugSnapshotStore(),
        _log = getLogger('XiaomiHealthSyncService');
 
   final XiaomiHealthSystem _system;
   final String _deviceId;
   final String? _deviceCode;
   final HealthStore _store;
-  final HealthDebugSnapshotStore _snapshotStore;
   final Logger _log;
 
   Future<XiaomiHealthData> read() => _store.read(_deviceId);
@@ -57,14 +51,14 @@ class XiaomiHealthSyncService {
     );
     if (files.rawFiles.isNotEmpty) {
       try {
-        await _snapshotStore.add(
+        await _store.saveActivityFiles(
           deviceId: _deviceId,
           deviceCode: _deviceCode,
           files: files.rawFiles,
         );
       } catch (error, stackTrace) {
         _log.warning(
-          'Xiaomi health activity files could not be archived for $_deviceId',
+          'Xiaomi health activity files could not be saved for $_deviceId',
           error,
           stackTrace,
         );
@@ -143,7 +137,12 @@ class XiaomiHealthSyncService {
     return _store.read(_deviceId);
   }
 
-  _MappedXiaomiHealthData _mapFiles(
+  static XiaomiHealthData mapActivityFiles(
+    XiaomiActivityFileSyncResult files, {
+    XiaomiHealthData previous = const XiaomiHealthData(),
+  }) => _mapFiles(files, previous: previous).data;
+
+  static _MappedXiaomiHealthData _mapFiles(
     XiaomiActivityFileSyncResult files, {
     required XiaomiHealthData previous,
   }) {
@@ -206,6 +205,7 @@ class XiaomiHealthSyncService {
             hrvUpperQuantile: value.hrvUpperQuantile,
             hrvTimestamp: value.hrvTimestamp,
             sleepIndex: value.sleepIndex,
+            sourceSubtype: value.sourceSubtype,
             wakeCount: value.wakeCount,
             hasRem: value.hasRem,
             hasStage: value.hasStage,
@@ -434,7 +434,7 @@ class XiaomiHealthSyncService {
     );
   }
 
-  HealthDailySummary _daily(XiaomiActivityDailyRecord value) =>
+  static HealthDailySummary _daily(XiaomiActivityDailyRecord value) =>
       HealthDailySummary(
         date: _dateOnly(value.date),
         steps: value.steps,
@@ -474,7 +474,9 @@ class XiaomiHealthSyncService {
         trainingStressScore: value.trainingStressScore,
       );
 
-  Iterable<HealthSample> _samples(XiaomiActivitySampleRecord value) sync* {
+  static Iterable<HealthSample> _samples(
+    XiaomiActivitySampleRecord value,
+  ) sync* {
     if (value.heartRate != null) {
       yield HealthSample(
         timestamp: value.timestamp,
@@ -512,7 +514,7 @@ class XiaomiHealthSyncService {
     }
   }
 
-  XiaomiHealthCapabilities _capabilities(
+  static XiaomiHealthCapabilities _capabilities(
     List<HealthDailySummary> daily,
     List<HealthSample> samples,
     List<HealthSleepSummary> sleep,
@@ -561,12 +563,14 @@ class XiaomiHealthSyncService {
     );
   }
 
-  DateTime _dateOnly(DateTime value) {
+  static DateTime _dateOnly(DateTime value) {
     final local = value.toLocal();
     return DateTime(local.year, local.month, local.day);
   }
 
-  List<HealthSleepStageSegment> _stages(XiaomiActivitySleepRecord value) {
+  static List<HealthSleepStageSegment> _stages(
+    XiaomiActivitySleepRecord value,
+  ) {
     final points = [...value.stages]
       ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
     final result = <HealthSleepStageSegment>[];

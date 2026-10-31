@@ -767,6 +767,18 @@ void main() {
     u8(0x14); // has REM and device stages
     u8(0); // reserved duration
 
+    // A later type-16 packet with the same source timestamp is a progressive
+    // snapshot of the first segment, not another sleep session.
+    packetHeader(timestamp: startedSeconds, type: 16, dataLength: 13);
+    u8(0x11);
+    packetU16(420);
+    packetU16(30);
+    packetU16(120);
+    packetU16(90);
+    packetU16(180);
+    u8(0x14);
+    u8(0);
+
     packetHeader(
       timestamp: startedSeconds + (420 + 30) * 60,
       type: 16,
@@ -804,7 +816,7 @@ void main() {
     expect(records, hasLength(2));
     expect(records.first.sleepIndex, 1);
     expect(records.last.sleepIndex, 2);
-    expect(parsed!.durationSeconds, 7 * 60 * 60);
+    expect(parsed!.durationSeconds, 420 * 60);
     expect(parsed.startedAt, xiaomiActivityTimestamp(startedSeconds));
     // The device type-16 summary includes the 30-minute awake interval in
     // the report end, while durationSeconds remains sleep duration.

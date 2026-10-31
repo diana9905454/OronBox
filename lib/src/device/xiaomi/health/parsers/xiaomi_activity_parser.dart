@@ -90,9 +90,15 @@ XiaomiParsedActivityFile parseXiaomiActivityFile(Uint8List data) {
   final subtype = (flags & 0x7f) >> 2;
   final detail = flags & 3;
 
-  final dailyParser = XiaomiDailyParser(timezoneOffset15Min: timezoneOffset15Min);
-  final sleepParser = XiaomiSleepParser(timezoneOffset15Min: timezoneOffset15Min);
-  final workoutParser = XiaomiWorkoutParser(timezoneOffset15Min: timezoneOffset15Min);
+  final dailyParser = XiaomiDailyParser(
+    timezoneOffset15Min: timezoneOffset15Min,
+  );
+  final sleepParser = XiaomiSleepParser(
+    timezoneOffset15Min: timezoneOffset15Min,
+  );
+  final workoutParser = XiaomiWorkoutParser(
+    timezoneOffset15Min: timezoneOffset15Min,
+  );
 
   if (type == 0 && subtype == 0 && detail == 1) {
     return XiaomiParsedActivityFile(
@@ -113,9 +119,11 @@ XiaomiParsedActivityFile parseXiaomiActivityFile(Uint8List data) {
     );
   }
   if (type == 0 && (subtype == 3 || subtype == 8)) {
-    return XiaomiParsedActivityFile(
-      sleep: sleepParser.parseSleep(data, timestamp, version, subtype),
-    );
+    final sleep = sleepParser
+        .parseSleep(data, timestamp, version, subtype)
+        .map((record) => record.copyWith(sourceSubtype: subtype))
+        .toList(growable: false);
+    return XiaomiParsedActivityFile(sleep: sleep);
   }
   if (type == 0 && subtype == 9) {
     return XiaomiParsedActivityFile(
@@ -123,19 +131,34 @@ XiaomiParsedActivityFile parseXiaomiActivityFile(Uint8List data) {
     );
   }
   if (type == 1 && detail == 1) {
-    final workout = workoutParser.parseWorkoutSummary(data, timestamp, subtype, version);
+    final workout = workoutParser.parseWorkoutSummary(
+      data,
+      timestamp,
+      subtype,
+      version,
+    );
     return XiaomiParsedActivityFile(
       workouts: workout == null ? const [] : [workout],
     );
   }
   if (type == 1 && detail == 0) {
-    final workout = workoutParser.parseWorkoutSamples(data, timestamp, subtype, version);
+    final workout = workoutParser.parseWorkoutSamples(
+      data,
+      timestamp,
+      subtype,
+      version,
+    );
     return XiaomiParsedActivityFile(
       workouts: workout == null ? const [] : [workout],
     );
   }
   if (type == 1 && detail == 2) {
-    final workout = workoutParser.parseWorkoutRoute(data, timestamp, subtype, version);
+    final workout = workoutParser.parseWorkoutRoute(
+      data,
+      timestamp,
+      subtype,
+      version,
+    );
     return XiaomiParsedActivityFile(
       workouts: workout == null ? const [] : [workout],
     );

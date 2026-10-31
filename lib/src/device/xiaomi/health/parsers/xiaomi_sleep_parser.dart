@@ -359,7 +359,11 @@ class XiaomiSleepParser {
       sleepScoreVersion: packetSummary?.sleepScoreVersion,
       averageHrv:
           version == 6 &&
-              _sleepValidity(validity, version, _SleepValidityField.hrvAverage) &&
+              _sleepValidity(
+                validity,
+                version,
+                _SleepValidityField.hrvAverage,
+              ) &&
               hrvAverageRaw! > 0
           ? hrvAverageRaw
           : null,
@@ -416,13 +420,21 @@ class XiaomiSleepParser {
           : null,
       hrvMax:
           version == 6 &&
-              _sleepValidity(validity, version, _SleepValidityField.hrvMaximum) &&
+              _sleepValidity(
+                validity,
+                version,
+                _SleepValidityField.hrvMaximum,
+              ) &&
               hrvMaximumRaw! > 0
           ? hrvMaximumRaw
           : null,
       hrvMin:
           version == 6 &&
-              _sleepValidity(validity, version, _SleepValidityField.hrvMinimum) &&
+              _sleepValidity(
+                validity,
+                version,
+                _SleepValidityField.hrvMinimum,
+              ) &&
               hrvMinimumRaw! > 0
           ? hrvMinimumRaw
           : null,
@@ -813,7 +825,10 @@ class XiaomiSleepParser {
     // this stream is sent, so this parser only decodes the wire records.
     final view = ByteData.sublistView(data);
     final stages = <XiaomiActivitySleepStageRecord>[];
-    final summaries = <_SleepPacketSummary>[];
+    // Type-16 packets are progressive snapshots of the same sleep source.
+    // Keep the last cumulative packet for each source timestamp; the official
+    // parser exposes only the final SleepStageSummary list.
+    final summaryPackets = <int, List<_SleepPacketSummary>>{};
     var sleepScoreVersion = 0;
     while (offset + 17 <= limit) {
       if (view.getUint32(offset, Endian.little) != 0xfffcfafb) {
@@ -849,6 +864,7 @@ class XiaomiSleepParser {
         // trailing one-byte gap.
         var currentTimestamp = timestamp;
         final payloadEnd = offset + dataLength;
+        final packetSummaries = <_SleepPacketSummary>[];
         for (
           var recordOffset = offset;
           recordOffset + 13 <= payloadEnd;
@@ -880,7 +896,7 @@ class XiaomiSleepParser {
           final unknownDurationMinutes = data[recordOffset + 12];
           final endedTimestamp =
               currentTimestamp + (durationMinutes + awakeDurationMinutes) * 60;
-          summaries.add(
+          packetSummaries.add(
             _SleepPacketSummary(
               startedAtSeconds: currentTimestamp,
               endedAtSeconds: endedTimestamp,
@@ -901,6 +917,7 @@ class XiaomiSleepParser {
           );
           currentTimestamp = endedTimestamp + unknownDurationMinutes * 60;
         }
+        summaryPackets[timestamp] = packetSummaries;
       } else if (type == 17) {
         var current = timestamp * 1000;
         for (var index = 0; index + 1 < dataLength; index += 2) {
@@ -925,6 +942,7 @@ class XiaomiSleepParser {
       }
       offset += dataLength;
     }
+    final summaries = summaryPackets.values.expand((value) => value).toList();
     final finalSummaries = sleepScoreVersion == 0
         ? summaries
         : summaries
@@ -1161,13 +1179,10 @@ class XiaomiSleepParser {
     );
   }
 
-
-
   bool _validHeaderBit(Uint8List header, int index) =>
       index >= 0 && index < header.length * 8
       ? (header[index ~/ 8] & (1 << (7 - index % 8))) != 0
       : false;
-
 }
 
 class _SleepByteSeries {
@@ -1342,4 +1357,3 @@ class _SleepPacketSummary {
     sleepScoreVersion: sleepScoreVersion ?? this.sleepScoreVersion,
   );
 }
-

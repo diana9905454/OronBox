@@ -477,6 +477,7 @@ class HealthSleepSummary {
     this.hrvUpperQuantile,
     this.hrvTimestamp,
     this.sleepIndex,
+    this.sourceSubtype,
     this.wakeCount,
     this.hasRem,
     this.hasStage,
@@ -517,6 +518,10 @@ class HealthSleepSummary {
   final int? hrvUpperQuantile;
   final DateTime? hrvTimestamp;
   final int? sleepIndex;
+
+  /// Protocol source used to build this canonical segment. 8 is the report
+  /// boundary source; 3 is a stage-only fallback.
+  final int? sourceSubtype;
   final int? wakeCount;
   final bool? hasRem;
   final bool? hasStage;
@@ -564,6 +569,7 @@ class HealthSleepSummary {
     if (hrvUpperQuantile != null) 'hrvUpperQuantile': hrvUpperQuantile,
     if (hrvTimestamp != null) 'hrvTimestamp': hrvTimestamp!.toIso8601String(),
     if (sleepIndex != null) 'sleepIndex': sleepIndex,
+    if (sourceSubtype != null) 'sourceSubtype': sourceSubtype,
     if (wakeCount != null) 'wakeCount': wakeCount,
     if (hasRem != null) 'hasRem': hasRem,
     if (hasStage != null) 'hasStage': hasStage,
@@ -612,6 +618,7 @@ class HealthSleepSummary {
         hrvUpperQuantile: _int(json['hrvUpperQuantile']),
         hrvTimestamp: _dateTime(json['hrvTimestamp']),
         sleepIndex: _int(json['sleepIndex']),
+        sourceSubtype: _int(json['sourceSubtype']),
         wakeCount: _int(json['wakeCount']),
         hasRem: _bool(json['hasRem']),
         hasStage: _bool(json['hasStage']),
@@ -1357,11 +1364,13 @@ class XiaomiHealthData {
     DateTime? latestTimestamp;
     void add(HealthSample sample) {
       if (!sample.isUsable) return;
-      final key = (sample.metric.index << 48) |
+      final key =
+          (sample.metric.index << 48) |
           (sample.timestamp.millisecondsSinceEpoch & 0xffffffffffff);
       if (byKey.containsKey(key)) return;
       byKey[key] = sample;
-      if (latestTimestamp == null || sample.timestamp.isAfter(latestTimestamp!)) {
+      if (latestTimestamp == null ||
+          sample.timestamp.isAfter(latestTimestamp!)) {
         latestTimestamp = sample.timestamp;
       }
     }
@@ -1394,8 +1403,9 @@ class XiaomiHealthData {
         );
       }
     }
-    final sampleDate =
-        latestTimestamp == null ? null : _dateOnly(latestTimestamp!);
+    final sampleDate = latestTimestamp == null
+        ? null
+        : _dateOnly(latestTimestamp!);
     final day = latestDay;
     final referenceDate =
         day == null || (sampleDate != null && sampleDate.isAfter(day.date))
@@ -1540,13 +1550,18 @@ class XiaomiHealthData {
   Map<String, Object?> toJson() {
     List<Map<String, Object?>>? cachedSamples = _samplesJsonCache[samples];
     if (cachedSamples == null) {
-      cachedSamples = samples.map((value) => value.toJson()).toList(growable: false);
+      cachedSamples = samples
+          .map((value) => value.toJson())
+          .toList(growable: false);
       _samplesJsonCache[samples] = cachedSamples;
     }
 
-    List<Map<String, Object?>>? cachedActivity = _activitySamplesJsonCache[activitySamples];
+    List<Map<String, Object?>>? cachedActivity =
+        _activitySamplesJsonCache[activitySamples];
     if (cachedActivity == null) {
-      cachedActivity = activitySamples.map((value) => value.toJson()).toList(growable: false);
+      cachedActivity = activitySamples
+          .map((value) => value.toJson())
+          .toList(growable: false);
       _activitySamplesJsonCache[activitySamples] = cachedActivity;
     }
 
@@ -1556,7 +1571,9 @@ class XiaomiHealthData {
       'samples': cachedSamples,
       'activitySamples': cachedActivity,
       'sleep': sleep.map((value) => value.toJson()).toList(growable: false),
-      'workouts': workouts.map((value) => value.toJson()).toList(growable: false),
+      'workouts': workouts
+          .map((value) => value.toJson())
+          .toList(growable: false),
       'abnormalHealthRecords': abnormalHealthRecords
           .map((value) => value.toJson())
           .toList(growable: false),
@@ -1608,7 +1625,8 @@ class XiaomiHealthData {
 final _healthDataCaches = Expando<_XiaomiHealthDataCache>();
 final _samplesJsonCache = Expando<List<Map<String, Object?>>>();
 final _activitySamplesJsonCache = Expando<List<Map<String, Object?>>>();
-final _sampleListCaches = Expando<Map<XiaomiHealthMetric, List<HealthSample>>>();
+final _sampleListCaches =
+    Expando<Map<XiaomiHealthMetric, List<HealthSample>>>();
 
 extension on XiaomiHealthData {
   _XiaomiHealthDataCache get _cache =>
@@ -1755,3 +1773,16 @@ List<T> _list<T>(Object? value, T Function(Map<String, Object?> json) decode) =>
         .whereType<Map>()
         .map((item) => decode(item.cast()))
         .toList(growable: false);
+
+class HealthWorkoutTotals {
+  const HealthWorkoutTotals({
+    this.durationSeconds = 0,
+    this.distanceMeters,
+    this.calories,
+    this.averageHeartRate,
+  });
+  final int durationSeconds;
+  final int? distanceMeters;
+  final int? calories;
+  final int? averageHeartRate;
+}

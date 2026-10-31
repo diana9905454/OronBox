@@ -1,6 +1,5 @@
 import 'dart:typed_data';
 
-
 /// A single activity file that could not be completely synchronized.
 ///
 /// A failed file must not discard the other files returned by the wearable.
@@ -273,6 +272,7 @@ class XiaomiActivitySleepRecord {
     this.hrvUpperQuantile,
     this.hrvTimestamp,
     this.sleepIndex,
+    this.sourceSubtype,
     this.wakeCount,
     this.hasRem,
     this.hasStage,
@@ -316,6 +316,10 @@ class XiaomiActivitySleepRecord {
   /// The device-provided sleep summary index.  Mi Fitness prefers index 1 as
   /// the main night when a report contains more than one sleep segment.
   final int? sleepIndex;
+
+  /// Health subtype that produced this record: 3 is stage data, 8 is the
+  /// all-day sleep report used as the session boundary source.
+  final int? sourceSubtype;
   final int? wakeCount;
   final bool? hasRem;
   final bool? hasStage;
@@ -356,6 +360,7 @@ class XiaomiActivitySleepRecord {
     int? hrvUpperQuantile,
     DateTime? hrvTimestamp,
     int? sleepIndex,
+    int? sourceSubtype,
     int? wakeCount,
     bool? hasRem,
     bool? hasStage,
@@ -398,6 +403,7 @@ class XiaomiActivitySleepRecord {
     hrvUpperQuantile: hrvUpperQuantile ?? this.hrvUpperQuantile,
     hrvTimestamp: hrvTimestamp ?? this.hrvTimestamp,
     sleepIndex: sleepIndex ?? this.sleepIndex,
+    sourceSubtype: sourceSubtype ?? this.sourceSubtype,
     wakeCount: wakeCount ?? this.wakeCount,
     hasRem: hasRem ?? this.hasRem,
     hasStage: hasStage ?? this.hasStage,

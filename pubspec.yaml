@@ -105,7 +105,6 @@ dependencies:
   sqlite3: ">=3.5.2 <3.6.0"
   sherpa_onnx: ^1.13.8
   web_socket_channel: ^3.0.3
-  disk_usage: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

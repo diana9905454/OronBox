@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothSocket
 import android.app.Dialog
 import android.content.BroadcastReceiver
 import android.content.ClipData
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
@@ -352,6 +353,25 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            PlatformChannelNames.DEVICE_RECORDINGS,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "save" -> {
+                    val bytes = call.argument<ByteArray>("bytes")
+                    val fileName = call.argument<String>("fileName")
+                    if (bytes == null || bytes.isEmpty() || fileName.isNullOrBlank()) {
+                        result.error("INVALID_ARGUMENT", "bytes and fileName are required", null)
+                    } else {
+                        saveDeviceRecording(bytes, fileName, result)
+                    }
+                }
+                "list" -> listDeviceRecordings(result)
+                "open" -> openDeviceRecordingsDirectory(result)
+                else -> result.notImplemented()
+            }
+        }
         xmsWearableChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             PlatformChannelNames.XMS_WEARABLE,
@@ -529,7 +549,7 @@ class MainActivity : FlutterActivity() {
                         val values = ContentValues().apply {
                             put(MediaStore.MediaColumns.DISPLAY_NAME, source.name)
                             put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
-                            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOCUMENTS)
+                            put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Logs")
                             put(MediaStore.MediaColumns.IS_PENDING, 1)
                         }
                         var uri: android.net.Uri? = null
@@ -545,7 +565,7 @@ class MainActivity : FlutterActivity() {
                             values.clear()
                             values.put(MediaStore.MediaColumns.IS_PENDING, 0)
                             contentResolver.update(uri, values, null, null)
-                            result.success("${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/${source.name}")
+                            result.success("${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/OronBox/Logs/${source.name}")
                         } catch (error: Exception) {
                             if (uri != null) contentResolver.delete(uri, null, null)
                             result.error("LOG_EXPORT_FAILED", error.message, null)
@@ -774,6 +794,145 @@ class MainActivity : FlutterActivity() {
             }
         } catch (error: Exception) {
             result.error("SCREENSHOT_SAVE_FAILED", error.message, null)
+        }
+    }
+
+    private fun saveDeviceRecording(
+        bytes: ByteArray,
+        requestedName: String,
+        result: MethodChannel.Result,
+    ) {
+        val fileName = requestedName
+            .substringAfterLast('/')
+            .substringAfterLast('\\')
+            .trim()
+        val extension = fileName.substringAfterLast('.', "opus").lowercase()
+        val mimeType = when (extension) {
+            "opus" -> "audio/opus"
+            "pcm" -> "audio/x-raw"
+            "wav" -> "audio/wav"
+            "sbc" -> "audio/sbc"
+            "aac" -> "audio/aac"
+            "mp3" -> "audio/mpeg"
+            else -> "audio/*"
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Recordings"
+                val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+                contentResolver.query(
+                    collectionUri,
+                    arrayOf(MediaStore.MediaColumns._ID),
+                    selection,
+                    arrayOf("$relativePath%", fileName),
+                    null,
+                )?.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getLong(0)
+                        val deleteUri = ContentUris.withAppendedId(collectionUri, id)
+                        contentResolver.delete(deleteUri, null, null)
+                    }
+                }
+
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+                val uri = contentResolver.insert(collectionUri, values)
+                    ?: throw java.io.IOException("Unable to create recording media entry")
+                try {
+                    contentResolver.openOutputStream(uri, "w").use { output ->
+                        if (output == null) throw java.io.IOException("Unable to open recording file output stream")
+                        output.write(bytes)
+                    }
+                    values.clear()
+                    values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    contentResolver.update(uri, values, null, null)
+                    result.success(
+                        "${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/OronBox/Recordings/$fileName",
+                    )
+                } catch (error: Exception) {
+                    contentResolver.delete(uri, null, null)
+                    throw error
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                    "OronBox/Recordings",
+                )
+                if (!dir.exists() && !dir.mkdirs()) {
+                    throw java.io.IOException("Unable to create recordings directory")
+                }
+                val file = File(dir, fileName)
+                file.writeBytes(bytes)
+                MediaScannerConnection.scanFile(this, arrayOf(file.absolutePath), arrayOf(mimeType), null)
+                result.success(file.absolutePath)
+            }
+        } catch (error: Exception) {
+            result.error("SAVE_RECORDING_FAILED", error.message, null)
+        }
+    }
+
+    private fun listDeviceRecordings(result: MethodChannel.Result) {
+        try {
+            val names = mutableListOf<String>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Recordings"
+                val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
+                val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?"
+                val selectionArgs = arrayOf("$relativePath%")
+                contentResolver.query(collectionUri, projection, selection, selectionArgs, null)?.use { cursor ->
+                    val nameIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+                    while (cursor.moveToNext()) {
+                        val name = cursor.getString(nameIdx)
+                        if (!name.isNullOrBlank()) {
+                            names.add(name)
+                        }
+                    }
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                    "OronBox/Recordings",
+                )
+                if (dir.exists() && dir.isDirectory) {
+                    dir.listFiles()?.filter { it.isFile }?.forEach { names.add(it.name) }
+                }
+            }
+            result.success(names)
+        } catch (error: Exception) {
+            result.error("LIST_RECORDINGS_FAILED", error.message, null)
+        }
+    }
+
+    private fun openDeviceRecordingsDirectory(result: MethodChannel.Result) {
+        try {
+            val path = "${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/OronBox/Recordings"
+            val uri = Uri.parse(path)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "resource/folder")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            result.success(true)
+        } catch (_: Exception) {
+            try {
+                val fallbackUri = Uri.parse("${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}")
+                val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(fallbackUri, "resource/folder")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(fallbackIntent)
+                result.success(true)
+            } catch (fallbackError: Exception) {
+                result.error("OPEN_RECORDINGS_FAILED", fallbackError.message, null)
+            }
         }
     }
 

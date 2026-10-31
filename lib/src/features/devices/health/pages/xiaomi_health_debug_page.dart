@@ -13,7 +13,7 @@ import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
-import 'package:oronbox/src/features/devices/health/health_debug_snapshot_store.dart';
+import 'package:oronbox/src/features/devices/health/health_store.dart';
 
 class XiaomiHealthDebugPage extends ConsumerStatefulWidget {
   const XiaomiHealthDebugPage({super.key});
@@ -24,9 +24,8 @@ class XiaomiHealthDebugPage extends ConsumerStatefulWidget {
 }
 
 class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
-  final _store = HealthDebugSnapshotStore();
   final _log = getLogger('HealthDebugPage');
-  List<HealthSnapshotSummary> _snapshots = const [];
+  List<HealthActivityBatch> _snapshots = const [];
   String? _error;
   String? _exportingSnapshotId;
   bool _loading = false;
@@ -44,14 +43,14 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final snapshots = await _store.list();
+      final snapshots = await HealthStore.listActivityBatches();
       if (!mounted) return;
       setState(() {
         _snapshots = snapshots;
         _error = null;
       });
     } catch (error, stack) {
-      _log.warning('Health snapshot operation failed', error, stack);
+      _log.warning('Health activity operation failed', error, stack);
       if (mounted) {
         setState(
           () => _error = AppLocalizations.of(context)!.appDataLoadFailed,
@@ -62,14 +61,14 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
     }
   }
 
-  Future<void> _export(HealthSnapshotSummary snapshot) async {
+  Future<void> _export(HealthActivityBatch snapshot) async {
     final l10n = AppLocalizations.of(context)!;
     setState(() {
       _exportingSnapshotId = snapshot.id;
       _error = null;
     });
     try {
-      final bytes = await _store.export(snapshot.id);
+      final bytes = await HealthStore.exportActivityBatch(snapshot.id);
       final saved = await FilePicker.saveFile(
         dialogTitle: l10n.deviceHealthDebugExport,
         fileName:
@@ -80,7 +79,7 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
       if (!mounted) return;
       if (saved == null) return;
       _log.info(
-        'Exported activity snapshot ${snapshot.id} (${snapshot.files.length} files) to $saved',
+        'Exported activity files ${snapshot.id} (${snapshot.files.length} files) to $saved',
       );
       appScaffoldMessengerOf(context).showSnackBar(
         SnackBar(
@@ -92,7 +91,7 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
         ),
       );
     } catch (error, stack) {
-      _log.warning('Health snapshot export failed', error, stack);
+      _log.warning('Health activity export failed', error, stack);
       if (mounted) {
         setState(() {
           _error = l10n.appDataExportFailed;
@@ -121,9 +120,9 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
       if (bytes == null || bytes.isEmpty) {
         throw const FormatException('Selected file is empty');
       }
-      final snapshot = await _store.import(bytes);
+      final snapshot = await HealthStore.importActivityBatch(bytes);
       _log.info(
-        'Imported activity snapshot ${snapshot.id} for device ${snapshot.deviceId} (${snapshot.files.length} files)',
+        'Imported activity files ${snapshot.id} for device ${snapshot.deviceId} (${snapshot.files.length} files)',
       );
       if (!mounted) return;
       await _load();
@@ -140,7 +139,7 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
         ),
       );
     } catch (error, stack) {
-      _log.warning('Health snapshot import failed', error, stack);
+      _log.warning('Health activity import failed', error, stack);
       if (mounted) {
         setState(() {
           _error = l10n.appDataLoadFailed;
@@ -151,11 +150,11 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
     }
   }
 
-  Future<void> _delete(HealthSnapshotSummary snapshot) async {
+  Future<void> _delete(HealthActivityBatch snapshot) async {
     _log.info(
-      'Deleting activity snapshot ${snapshot.id} for device ${snapshot.deviceId}',
+      'Deleting activity files ${snapshot.id} for device ${snapshot.deviceId}',
     );
-    await _changeSnapshots(() => _store.delete(snapshot.id));
+    await _changeSnapshots(() => HealthStore.deleteActivityBatch(snapshot.id));
   }
 
   Future<void> _changeSnapshots(Future<void> Function() action) async {

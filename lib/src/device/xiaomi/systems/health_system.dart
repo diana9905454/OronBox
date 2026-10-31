@@ -511,7 +511,7 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
     return XiaomiActivityFileSyncResult(
       daily: daily,
       samples: samples,
-      sleep: sleep,
+      sleep: _mergeSleepSources(sleep),
       workouts: _mergeWorkoutRecords(workouts),
       abnormalHealthRecords: abnormalHealthRecords,
       rawFiles: List.unmodifiable(rawFiles),
@@ -818,7 +818,7 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
     return XiaomiActivityFileSyncResult(
       daily: daily,
       samples: samples,
-      sleep: sleep,
+      sleep: _mergeSleepSources(sleep),
       workouts: _mergeWorkoutRecords(workouts),
       abnormalHealthRecords: abnormalHealthRecords,
       rawFiles: List.unmodifiable(rawFiles),
@@ -830,6 +830,63 @@ class XiaomiHealthSystem extends XiaomiPbSystem {
   List<XiaomiActivityWorkoutRecord> _mergeWorkoutRecords(
     List<XiaomiActivityWorkoutRecord> values,
   ) => XiaomiWorkoutParser.mergeWorkoutRecords(values);
+
+  List<XiaomiActivitySleepRecord> _mergeSleepSources(
+    List<XiaomiActivitySleepRecord> values,
+  ) {
+    final reports = <XiaomiActivitySleepRecord>[];
+    final stageRecords = <XiaomiActivitySleepRecord>[];
+    for (final value in values) {
+      if (value.sourceSubtype == 3) {
+        stageRecords.add(value);
+      } else {
+        reports.add(value);
+      }
+    }
+
+    for (final stageRecord in stageRecords) {
+      final index = reports.indexWhere(
+        (report) => _sameSleepSegment(report, stageRecord),
+      );
+      if (index < 0) {
+        reports.add(stageRecord);
+        continue;
+      }
+      final report = reports[index];
+      reports[index] = report.copyWith(
+        hasStage: report.hasStage == true
+            ? true
+            : stageRecord.hasStage ?? report.hasStage,
+        stages: report.stages.isNotEmpty ? report.stages : stageRecord.stages,
+        averageHeartRate:
+            report.averageHeartRate ?? stageRecord.averageHeartRate,
+        minimumHeartRate:
+            report.minimumHeartRate ?? stageRecord.minimumHeartRate,
+        maximumHeartRate:
+            report.maximumHeartRate ?? stageRecord.maximumHeartRate,
+        averageBloodOxygen:
+            report.averageBloodOxygen ?? stageRecord.averageBloodOxygen,
+        minimumBloodOxygen:
+            report.minimumBloodOxygen ?? stageRecord.minimumBloodOxygen,
+        maximumBloodOxygen:
+            report.maximumBloodOxygen ?? stageRecord.maximumBloodOxygen,
+      );
+    }
+    return reports;
+  }
+
+  bool _sameSleepSegment(
+    XiaomiActivitySleepRecord left,
+    XiaomiActivitySleepRecord right,
+  ) {
+    if (left.startedAt != right.startedAt) return false;
+    if (left.sleepIndex != null && right.sleepIndex != null) {
+      return left.sleepIndex == right.sleepIndex;
+    }
+    return left.endedAt == right.endedAt ||
+        (left.startedAt.isBefore(right.endedAt) &&
+            right.startedAt.isBefore(left.endedAt));
+  }
 
   XiaomiActivitySleepRecord? _primarySleepRecord(
     List<XiaomiActivitySleepRecord> records,

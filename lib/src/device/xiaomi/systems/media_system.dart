@@ -2,11 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
+import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
 import 'package:oronbox/src/device/xiaomi/systems/xiaomi_system.dart';
 import 'package:oronbox/src/device/core/device_state.dart';
-import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart' as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_common.pbenum.dart'
     as pb_common;
 import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pb.dart'
@@ -49,8 +52,19 @@ class MediaUploadProgress {
   final int bytesTotal;
 }
 
+class _AudioRecordPullWaiter {
+  _AudioRecordPullWaiter({required this.completer, this.onProgress});
+  final Completer<Uint8List> completer;
+  final void Function(double progress, int currentPart, int totalParts)?
+  onProgress;
+}
+
 class XiaomiMediaSystem extends XiaomiSystem {
   static final _log = getLogger('XiaomiMediaSystem');
+
+  static const _audioRecordVersion = 0;
+  static const _audioRecordCommand = 132;
+  static const _audioRecordTimeout = Duration(seconds: 20);
 
   final _songSummaryWaiters = <Completer<pb_media.SongSummary>>[];
   final _mediaFileSummaryWaiters = <Completer<pb_media.MediaFile_Summary>>[];
@@ -61,26 +75,44 @@ class XiaomiMediaSystem extends XiaomiSystem {
   final _songAddWaiters = <Completer<pb_media.Song_AddResponse>>[];
   final _songReportWaiters = <Completer<pb_media.Song_ReportResult>>[];
 
+  Timer? _audioRecordTimeoutTimer;
+  final _audioRecordSegments = <Uint8List>[];
+  int? _audioRecordTotalSegments;
+  int _audioRecordCurrentSegment = 0;
+  final _pendingAudioPulls = <String, _AudioRecordPullWaiter>{};
+
   XiaomiMassSystem get _massSystem => entity.system<XiaomiMassSystem>()!;
 
   Future<pb_media.SongSummary> requestSongSummary() async {
     _log.info('[${entity.id}] request song summary');
     final completer = Completer<pb_media.SongSummary>();
     _songSummaryWaiters.add(completer);
-    await component.sendPbPacket(
-      _buildMediaPacket(pb_media_enum.Media_MediaID.GET_SONG_SUMMARY),
-    );
-    return completer.future.timeout(const Duration(seconds: 10));
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(pb_media_enum.Media_MediaID.GET_SONG_SUMMARY),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songSummaryWaiters.remove(completer);
+      }
+    }
   }
 
   Future<pb_media.MediaFile_Summary> requestMediaFileSummary() async {
     _log.info('[${entity.id}] request media file summary');
     final completer = Completer<pb_media.MediaFile_Summary>();
     _mediaFileSummaryWaiters.add(completer);
-    await component.sendPbPacket(
-      _buildMediaPacket(pb_media_enum.Media_MediaID.GET_MEDIA_FILE_SUMMARY),
-    );
-    return completer.future.timeout(const Duration(seconds: 10));
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(pb_media_enum.Media_MediaID.GET_MEDIA_FILE_SUMMARY),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _mediaFileSummaryWaiters.remove(completer);
+      }
+    }
   }
 
   Future<List<MediaFileDescriptor>> requestMediaFileList() async {
@@ -156,17 +188,48 @@ class XiaomiMediaSystem extends XiaomiSystem {
     );
   }
 
+  Future<Uint8List> pullAudioRecord(
+    pb_media.MediaFile_Identifier identifier, {
+    void Function(double progress, int currentPart, int totalParts)? onProgress,
+    Duration timeout = const Duration(minutes: 2),
+  }) async {
+    _log.info('[${entity.id}] pull audio record: ${identifier.id}');
+    final completer = Completer<Uint8List>();
+    final key = identifier.id;
+    _pendingAudioPulls[key] = _AudioRecordPullWaiter(
+      completer: completer,
+      onProgress: onProgress,
+    );
+
+    try {
+      try {
+        await requestMediaFiles([identifier]);
+      } catch (_) {
+        await requestMediaFile(identifier);
+      }
+      return await completer.future.timeout(timeout);
+    } finally {
+      _pendingAudioPulls.remove(key);
+    }
+  }
+
   Future<pb_media.Song_GetResponse> requestSongPage(int index) async {
     _log.info('[${entity.id}] request song page $index');
     final completer = Completer<pb_media.Song_GetResponse>();
     _songPageWaiters.add(completer);
-    await component.sendPbPacket(
-      _buildMediaPacket(
-        pb_media_enum.Media_MediaID.GET_SONG,
-        songGetRequest: pb_media.Song_GetRequest(index: index),
-      ),
-    );
-    return completer.future.timeout(const Duration(seconds: 10));
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(
+          pb_media_enum.Media_MediaID.GET_SONG,
+          songGetRequest: pb_media.Song_GetRequest(index: index),
+        ),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songPageWaiters.remove(completer);
+      }
+    }
   }
 
   Future<pb_media.Songlist_Response> requestSonglistOperation(
@@ -176,10 +239,16 @@ class XiaomiMediaSystem extends XiaomiSystem {
     _log.info('[${entity.id}] request songlist operation $mediaId');
     final completer = Completer<pb_media.Songlist_Response>();
     _songlistWaiters.add(completer);
-    await component.sendPbPacket(
-      _buildMediaPacket(mediaId, songlistRequest: request),
-    );
-    return completer.future.timeout(const Duration(seconds: 10));
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(mediaId, songlistRequest: request),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songlistWaiters.remove(completer);
+      }
+    }
   }
 
   Future<pb_media.Song_RemoveResponse> requestRemoveSong(
@@ -188,13 +257,19 @@ class XiaomiMediaSystem extends XiaomiSystem {
     _log.info('[${entity.id}] request remove song');
     final completer = Completer<pb_media.Song_RemoveResponse>();
     _songRemoveWaiters.add(completer);
-    await component.sendPbPacket(
-      _buildMediaPacket(
-        pb_media_enum.Media_MediaID.REMOVE_SONG,
-        songRemoveRequest: pb_media.Song_RemoveRequest(id: songId),
-      ),
-    );
-    return completer.future.timeout(const Duration(seconds: 10));
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(
+          pb_media_enum.Media_MediaID.REMOVE_SONG,
+          songRemoveRequest: pb_media.Song_RemoveRequest(id: songId),
+        ),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songRemoveWaiters.remove(completer);
+      }
+    }
   }
 
   Future<MediaUploadResult> uploadSongWithProgress(
@@ -277,6 +352,10 @@ class XiaomiMediaSystem extends XiaomiSystem {
 
   @override
   void onLayer2Packet(L2Channel channel, L2OpCode opcode, Uint8List payload) {
+    if (channel == L2Channel.mass) {
+      _handleMassPacket(payload);
+      return;
+    }
     if (channel != L2Channel.pb) return;
 
     final packetId = _extractVarintField(payload, 2);
@@ -305,6 +384,189 @@ class XiaomiMediaSystem extends XiaomiSystem {
     _handlePbPacket(packet);
   }
 
+  void _handleMassPacket(Uint8List data) {
+    if (data.length < 6) return;
+    if (data[0] != _audioRecordVersion || data[1] != _audioRecordCommand) {
+      return;
+    }
+    _handleAudioRecordSegment(data);
+  }
+
+  void _handleAudioRecordSegment(Uint8List data) {
+    final byteData = ByteData.sublistView(data);
+    final total = byteData.getUint16(2, Endian.little);
+    final sequence = byteData.getUint16(4, Endian.little);
+
+    if (total <= 0 || sequence <= 0 || sequence > total) {
+      _log.warning(
+        '[${entity.id}] invalid Xiaomi audio record segment: sequence=$sequence, total=$total',
+      );
+      _resetAudioRecordAssembly();
+      return;
+    }
+
+    _postAudioRecordTimeout();
+
+    if (_audioRecordTotalSegments == null) {
+      _audioRecordTotalSegments = total;
+      _log.info(
+        '[${entity.id}] Xiaomi audio record transfer started: segments=$total',
+      );
+    } else if (_audioRecordTotalSegments != total && sequence == 1) {
+      _log.info(
+        '[${entity.id}] Xiaomi audio record transfer restarted: segments=$total',
+      );
+      _resetAudioRecordAssembly();
+      _audioRecordTotalSegments = total;
+    } else if (_audioRecordTotalSegments != total) {
+      _log.warning('[${entity.id}] Xiaomi audio record segment total changed');
+      _resetAudioRecordAssembly();
+      return;
+    }
+
+    if (sequence <= _audioRecordCurrentSegment) {
+      _log.fine(
+        '[${entity.id}] ignoring duplicate Xiaomi audio record segment: '
+        'sequence=$sequence, current=$_audioRecordCurrentSegment',
+      );
+      return;
+    }
+
+    if (sequence != _audioRecordCurrentSegment + 1) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record segment out of order: '
+        'sequence=$sequence, expected=${_audioRecordCurrentSegment + 1}',
+      );
+      _resetAudioRecordAssembly();
+      return;
+    }
+
+    _audioRecordCurrentSegment = sequence;
+    _audioRecordSegments.add(
+      Uint8List.fromList(Uint8List.sublistView(data, 6)),
+    );
+
+    for (final waiter in _pendingAudioPulls.values) {
+      waiter.onProgress?.call(sequence / total, sequence, total);
+    }
+
+    if (sequence == total) {
+      _finishAudioRecordAssembly();
+    }
+  }
+
+  void _postAudioRecordTimeout() {
+    _audioRecordTimeoutTimer?.cancel();
+    _audioRecordTimeoutTimer = Timer(_audioRecordTimeout, () {
+      _log.warning('[${entity.id}] Xiaomi audio record transfer timed out');
+      _failAllAudioPulls(
+        TimeoutException('Xiaomi audio record transfer timed out'),
+      );
+      _resetAudioRecordAssembly();
+    });
+  }
+
+  void _resetAudioRecordAssembly() {
+    _audioRecordTimeoutTimer?.cancel();
+    _audioRecordTimeoutTimer = null;
+    _audioRecordSegments.clear();
+    _audioRecordTotalSegments = null;
+    _audioRecordCurrentSegment = 0;
+  }
+
+  void _finishAudioRecordAssembly() {
+    final merged = BytesBuilder();
+    for (final segment in _audioRecordSegments) {
+      merged.add(segment);
+    }
+    final bytes = merged.toBytes();
+    _resetAudioRecordAssembly();
+
+    if (bytes.length < 10) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record payload too short: ${bytes.length} bytes',
+      );
+      return;
+    }
+
+    final byteData = ByteData.sublistView(bytes);
+    final expectedCrc = byteData.getUint32(bytes.length - 4, Endian.little);
+    final content = Uint8List.sublistView(bytes, 0, bytes.length - 4);
+    final calculatedCrc = calculateCrc32(content);
+    if (calculatedCrc != expectedCrc) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record checksum mismatch: expected=$expectedCrc, calculated=$calculatedCrc',
+      );
+      return;
+    }
+
+    final idLength = content[0];
+    if (1 + idLength + 5 > content.length) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record header invalid: idLength=$idLength',
+      );
+      return;
+    }
+
+    final idBytes = Uint8List.sublistView(content, 1, 1 + idLength);
+    final id = utf8.decode(idBytes, allowMalformed: true);
+    final audioData = Uint8List.fromList(
+      Uint8List.sublistView(content, 1 + idLength + 5),
+    );
+
+    _log.info(
+      '[${entity.id}] Xiaomi audio record assembled successfully: id=$id, size=${audioData.length} bytes',
+    );
+
+    final identifier = pb_media.MediaFile_Identifier(id: id, thumbnail: false);
+    unawaited(confirmMediaFile(identifier));
+
+    entity.emit(
+      XiaomiAudioRecordReceived(deviceId: entity.id, id: id, bytes: audioData),
+    );
+
+    _fulfillAudioPull(id, audioData);
+  }
+
+  void _fulfillAudioPull(String id, Uint8List audioData) {
+    final waiter =
+        _pendingAudioPulls.remove(id) ??
+        _pendingAudioPulls.remove(_extractMediaFileName(id)) ??
+        (_pendingAudioPulls.length == 1
+            ? _pendingAudioPulls.remove(_pendingAudioPulls.keys.first)
+            : null);
+    if (waiter != null && !waiter.completer.isCompleted) {
+      waiter.completer.complete(audioData);
+    }
+  }
+
+  void _failAllAudioPulls(Object error) {
+    for (final waiter in _pendingAudioPulls.values) {
+      if (!waiter.completer.isCompleted) {
+        waiter.completer.completeError(error);
+      }
+    }
+    _pendingAudioPulls.clear();
+  }
+
+  @override
+  Future<void> dispose() async {
+    _audioRecordTimeoutTimer?.cancel();
+    _failAllAudioPulls(StateError('XiaomiMediaSystem disposed'));
+    _resetAudioRecordAssembly();
+    _failAll(_songSummaryWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(
+      _mediaFileSummaryWaiters,
+      StateError('XiaomiMediaSystem disposed'),
+    );
+    _failAll(_mediaFileListWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songPageWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songlistWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songRemoveWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songAddWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songReportWaiters, StateError('XiaomiMediaSystem disposed'));
+  }
+
   void _handlePbPacket(pb.WearPacket packet) {
     if (packet.whichPayload() != pb.WearPacket_Payload.media) return;
     final media = packet.media;
@@ -324,6 +586,13 @@ class XiaomiMediaSystem extends XiaomiSystem {
         _fulfillSingle(_songRemoveWaiters, media.songRemoveResponse);
       case pb_media.Media_Payload.songReportResult:
         _fulfillSingle(_songReportWaiters, media.songReportResult);
+      case pb_media.Media_Payload.recordStatus:
+        _log.fine(
+          '[${entity.id}] device reported record status: '
+          'duration=${media.recordStatus.hasDuration() ? media.recordStatus.duration.current : null}, '
+          'size=${media.recordStatus.hasSize() ? media.recordStatus.size.current : null}',
+        );
+        break;
       default:
         _log.warning(
           '[${entity.id}] unsupported media payload ${media.whichPayload()} '
@@ -440,12 +709,18 @@ MediaFileDescriptor _decodeMediaFileDescriptor(Uint8List raw) {
         buf = Uint8List.sublistView(buf, value.$2);
         final v = value.$1;
         varintFields.add((tag, v));
-        if (tag == 2 && v <= 0x7FFFFFFF) {
-          mediaType = pb_media_enum.MediaFile_Type.valueOf(v);
+        switch (tag) {
+          case 2:
+            if (v <= 0x7FFFFFFF) {
+              mediaType = pb_media_enum.MediaFile_Type.valueOf(v);
+            }
+          case 3:
+            size = v;
+          case 4:
+            createdAtMs = _normalizeTimestamp(v);
+          case 5:
+            durationSecs = _normalizeDuration(v);
         }
-        if (tag == 3) size = v;
-        if (tag == 4) createdAtMs = _normalizeTimestamp(v);
-        if (tag == 5) durationSecs = _normalizeDuration(v);
       case 2: // Length-delimited
         final len = _decodeProtobufVarint(buf);
         if (len == null) break;
@@ -460,30 +735,30 @@ MediaFileDescriptor _decodeMediaFileDescriptor(Uint8List raw) {
             if (candidate.id.isNotEmpty) identifier = candidate;
           } catch (_) {}
         }
-        // Media metadata strings are UTF-8 protobuf fields.  Decoding each
-        // byte as a Unicode code point corrupts non-ASCII names and later
-        // causes exported recordings to inherit mojibake filenames.
         try {
           final trimmed = utf8
               .decode(field, allowMalformed: false)
               .replaceAll('\u0000', '')
               .trim();
-          if (trimmed.isNotEmpty) {
+          if (tag != 1 && trimmed.isNotEmpty) {
             stringFields.add((tag, trimmed));
           }
         } on FormatException {
-          // Identifiers and vendor-specific binary fields can also be
-          // length-delimited.  Ignore those instead of presenting garbage as
-          // a filename.
+          // Vendor-specific binary fields are not media names.
         }
       default:
-        // Skip unknown wire types conservatively
+        final skipped = _skipProtobufField(buf, wireType);
+        if (skipped == null) {
+          buf = Uint8List(0);
+        } else {
+          buf = Uint8List.sublistView(buf, skipped);
+        }
         break;
     }
   }
 
-  final identifierId = identifier?.id;
-  final name = _inferMediaFileName(stringFields, identifierId);
+  final id = identifier?.id ?? '';
+  final name = _inferMediaFileName(stringFields, id);
   mediaType ??= _inferMediaFileType(varintFields);
   createdAtMs ??= _inferTimestamp(varintFields);
   size ??= _inferSize(varintFields, createdAtMs);
@@ -499,30 +774,24 @@ MediaFileDescriptor _decodeMediaFileDescriptor(Uint8List raw) {
   );
 }
 
-String _inferMediaFileName(List<(int, String)> fields, String? identifierId) {
-  final id = identifierId ?? '';
+String _inferMediaFileName(List<(int, String)> fields, String identifierId) {
   final preferred = fields
-      .map((e) => e.$2)
+      .map((entry) => entry.$2)
       .firstWhere(
-        (value) => value != id && _looksLikeMediaName(value),
+        (value) => value != identifierId && _looksLikeMediaName(value),
         orElse: () => '',
       );
   if (preferred.isNotEmpty) return preferred;
-
   final any = fields
-      .map((e) => e.$2)
+      .map((entry) => entry.$2)
       .firstWhere((value) => value.trim().isNotEmpty, orElse: () => '');
   if (any.isNotEmpty) return any;
-
-  if (id.isEmpty) return 'record';
-  final idx = id.lastIndexOf('/');
-  if (idx >= 0) return id.substring(idx + 1);
-  return id;
+  return _extractMediaFileName(identifierId);
 }
 
 pb_media_enum.MediaFile_Type? _inferMediaFileType(List<(int, int)> fields) {
   for (final (_, value) in fields) {
-    if (value <= 0x7FFFFFFF) {
+    if (value <= 0x7fffffff) {
       final type = pb_media_enum.MediaFile_Type.valueOf(value);
       if (type != null) return type;
     }
@@ -546,9 +815,7 @@ int? _inferSize(List<(int, int)> fields, int? timestampMs) {
   int? best;
   for (final (_, value) in fields) {
     if (value == timestampMs) continue;
-    if (value >= 1024 && (best == null || value > best)) {
-      best = value;
-    }
+    if (value >= 1024 && (best == null || value > best)) best = value;
   }
   return best;
 }
@@ -557,17 +824,25 @@ int? _inferDuration(List<(int, int)> fields, int? timestampMs, int? size) {
   int? best;
   for (final (_, value) in fields) {
     if (value == timestampMs || value == size) continue;
-    int? secs;
-    if (value <= 86_400) {
-      secs = value;
-    } else if (value % 1000 == 0 && value ~/ 1000 <= 86_400) {
-      secs = value ~/ 1000;
-    }
-    if (secs != null && secs > 0) {
-      best = best == null ? secs : (secs < best ? secs : best);
+    final seconds = value <= 86_400
+        ? value
+        : value % 1000 == 0 && value ~/ 1000 <= 86_400
+        ? value ~/ 1000
+        : null;
+    if (seconds != null && seconds > 0) {
+      best = best == null || seconds < best ? seconds : best;
     }
   }
   return best;
+}
+
+String _extractMediaFileName(String id) {
+  if (id.isEmpty) return 'record';
+  final lastSlash = id.lastIndexOf('/');
+  if (lastSlash >= 0 && lastSlash + 1 < id.length) {
+    return id.substring(lastSlash + 1);
+  }
+  return id;
 }
 
 int? _normalizeTimestamp(int value) {
@@ -577,7 +852,7 @@ int? _normalizeTimestamp(int value) {
 }
 
 int? _normalizeDuration(int value) {
-  if (value == 0) return null;
+  if (value <= 0) return null;
   if (value <= 86_400) return value;
   if (value % 1000 == 0 && value ~/ 1000 <= 86_400) return value ~/ 1000;
   return null;
@@ -596,6 +871,10 @@ bool _looksLikeMediaName(String value) {
   );
   return !ascii;
 }
+
+@visibleForTesting
+List<MediaFileDescriptor> decodeMediaFileListForTesting(Uint8List payload) =>
+    _decodeMediaFileList(payload);
 
 int? _extractVarintField(Uint8List raw, int targetTag) {
   var buf = raw;

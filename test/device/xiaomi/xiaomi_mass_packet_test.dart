@@ -114,13 +114,12 @@ void main() {
   test('aborting the queue completes active and pending callers', () async {
     final releaseFirst = Completer<void>();
     final queue = XiaomiMassSendQueue(
-      execute:
-          ({
-            required fileData,
-            required dataType,
-            expectedSliceLength,
-            onProgress,
-          }) => releaseFirst.future,
+      execute: ({
+        required fileData,
+        required dataType,
+        expectedSliceLength,
+        onProgress,
+      }) => releaseFirst.future,
     );
     final first = queue.enqueue(
       fileData: Uint8List.fromList([1]),
@@ -138,6 +137,13 @@ void main() {
     releaseFirst.complete();
 
     await Future.wait([firstError, secondError]);
+  });
+
+  test('supports MassDataType.audioRecord value 132 and calculateCrc32', () {
+    expect(MassDataType.audioRecord.value, 132);
+    expect(MassDataType.fromValue(132), MassDataType.audioRecord);
+    final data = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(calculateCrc32(data), _crc32(data));
   });
 }
 

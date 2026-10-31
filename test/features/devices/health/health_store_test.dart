@@ -1,5 +1,6 @@
-import 'package:drift/native.dart';
-import 'package:oronbox/src/features/devices/health/health_database.dart';
+import 'dart:io';
+
+import 'package:oronbox/src/core/storage/app_data_directory_io.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
@@ -10,8 +11,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  late Directory tempDir;
   setUp(() async {
-    HealthStore.databaseForTesting = HealthDatabase(NativeDatabase.memory());
+    tempDir = await Directory.systemTemp.createTemp('health_store_test_');
+    HealthStore.activityStorageForTesting = IoAppDataDirectory(tempDir);
     HealthStore.clearCache();
     SharedPreferences.setMockInitialValues({});
     await SharedPrefsService.instance.init();
@@ -19,10 +22,11 @@ void main() {
   });
 
   tearDown(() async {
-    await HealthStore.flush();
-    await HealthStore.databaseForTesting?.close();
-    HealthStore.databaseForTesting = null;
+    HealthStore.activityStorageForTesting = null;
     HealthStore.clearCache();
+    if (await tempDir.exists()) {
+      await tempDir.delete(recursive: true);
+    }
   });
 
   test(
@@ -107,14 +111,6 @@ void main() {
       expect(saved.latestSample(XiaomiHealthMetric.heartRate)?.value, 82);
       expect(saved.abnormalHealthRecords, hasLength(1));
       expect(saved.abnormalHealthRecords.single.value, 132);
-
-      await HealthStore.flush();
-      HealthStore.clearCache();
-      final fromDisk = await store.read(deviceId);
-      expect(fromDisk.daily.single.steps, 250);
-      expect(fromDisk.latestSample(XiaomiHealthMetric.heartRate)?.value, 82);
-      expect(fromDisk.abnormalHealthRecords, hasLength(1));
-      expect(fromDisk.abnormalHealthRecords.single.value, 132);
     },
   );
 
@@ -229,10 +225,6 @@ void main() {
     await store.resetForStorageMigration();
     final data = await store.read(id);
     expect(data.daily, isEmpty);
-    final source = await HealthStore.databaseForTesting!
-        .customSelect('SELECT source FROM health_legacy_archive')
-        .get();
-    expect(source, isEmpty);
     expect(SharedPrefsService.instance.getString(key), isNull);
   });
 

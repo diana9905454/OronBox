@@ -9,6 +9,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/devices/health/health_cards.dart';
 
@@ -145,7 +146,12 @@ class WorkoutDetailPage extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
+        padding: EdgeInsets.fromLTRB(
+          16,
+          8,
+          16,
+          bottomContentPadding(context, extra: 32),
+        ),
         child: Align(
           alignment: Alignment.topCenter,
           child: ConstrainedBox(
