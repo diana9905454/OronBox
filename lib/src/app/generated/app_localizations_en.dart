@@ -3189,7 +3189,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oobeLoginLocalNote =>
-      'Xiaomi and Amazfit sign-in run entirely on this device; related data is never sent to any third party other than Xiaomi/Amazfit';
+      'Xiaomi and Amazfit sign-in run entirely on this device\nRelated data is never sent to any third party other than Xiaomi/Amazfit';
 
   @override
   String get oobeLoginXiaomiDesc =>
@@ -3216,6 +3216,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get oobeFinish => 'Finish';
+
+  @override
+  String get oobeRestoreAction => 'Restore from backup';
+
+  @override
+  String get oobeRestoreSuccess => 'Backup restored successfully';
 
   @override
   String get settingsReplayOobe => 'Restart guide';
@@ -3557,56 +3563,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAdvancedDescription => 'View logs and developer tools';
 
   @override
-  String get debugServerTitle => 'Debug service';
+  String get localServerTitle => 'Local API Server';
 
   @override
-  String get debugServerDescription =>
-      'Expose a local API for trusted development tools';
+  String get localServerDescription =>
+      'Expose a local API for external CLI and development tools';
 
   @override
-  String get debugServerEnable => 'Enable debug service';
+  String get localServerEnable => 'Enable Local API Server';
 
   @override
-  String get debugServerEnableDescription =>
+  String get localServerEnableDescription =>
       'Allow approved clients on the local network to inspect and control OronBox';
 
   @override
-  String get debugServerEndpoint => 'Endpoint';
+  String get localServerEndpoint => 'Endpoint';
 
   @override
-  String get debugServerFingerprint => 'Server fingerprint';
+  String get localServerFingerprint => 'Server fingerprint';
 
   @override
-  String get debugServerPendingClients => 'Pending approvals';
+  String get localServerPendingClients => 'Pending approvals';
 
   @override
-  String get debugServerAuthorizedClients => 'Approved clients';
+  String get localServerAuthorizedClients => 'Approved clients';
 
   @override
-  String get debugServerApprove => 'Approve';
+  String get localServerApprove => 'Approve';
 
   @override
-  String get debugServerReject => 'Reject';
+  String get localServerReject => 'Reject';
 
   @override
-  String get debugServerRevoke => 'Revoke access';
+  String get localServerRevoke => 'Revoke access';
 
   @override
-  String get debugServerNoPendingClients =>
+  String get localServerNoPendingClients =>
       'No clients are waiting for approval';
 
   @override
-  String get debugServerNoAuthorizedClients => 'No approved clients';
+  String get localServerNoAuthorizedClients => 'No approved clients';
 
   @override
-  String get debugServerSecurityNotice =>
+  String get localServerSecurityNotice =>
       'Only enable this service on a trusted network';
 
   @override
-  String get debugServerStartFailed => 'Could not start the debug service';
+  String get localServerStartFailed => 'Could not start the Local API Server';
 
   @override
-  String get debugServerStopFailed => 'Could not stop the debug service';
+  String get localServerStopFailed => 'Could not stop the Local API Server';
+
+  @override
+  String get localServerPairingTitle => 'Allow Local API Access?';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '“$clientName” is requesting control over wearable services and command bus';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Ed25519 SHA-256 Fingerprint';
+
+  @override
+  String get localServerPairingAlwaysAllow => 'Always allow from this computer';
+
+  @override
+  String get localServerPairingAllow => 'Allow';
+
+  @override
+  String get localServerPairingDeny => 'Deny';
+
+  @override
+  String get localServerPairingScopes => 'Requested permissions';
+
+  @override
+  String get wifiPasswordInputPlaceholder => 'Enter Wi-Fi password';
+
+  @override
+  String get wifiConnectButton => 'Connect';
+
+  @override
+  String get wifiCancelButton => 'Cancel';
 
   @override
   String get xmsDeveloperMode => 'XMS developer mode';

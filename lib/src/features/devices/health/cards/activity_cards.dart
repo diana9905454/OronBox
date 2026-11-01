@@ -33,8 +33,6 @@ class AdaptiveHealthCardWrap extends StatelessWidget {
   }
 }
 
-
-
 class ActivityOverviewCard extends StatelessWidget {
   const ActivityOverviewCard({
     required this.summary,
@@ -355,8 +353,6 @@ String _activityAxisTime(DateTime start, int hours, DateTime end) {
   return '${local.hour.toString().padLeft(2, '0')}:00';
 }
 
-
-
 class _ActivityValue extends StatelessWidget {
   const _ActivityValue({
     required this.label,
@@ -432,5 +428,3 @@ class _ActivityRingsPainter extends CustomPainter {
       oldDelegate.colors != colors ||
       oldDelegate.trackColor != trackColor;
 }
-
-

@@ -3,18 +3,19 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:mdns_dart/mdns_dart.dart';
-import 'package:oronbox/src/core/logging/logging_service.dart';
 
-const debugMdnsServiceType = '_oronbox-debug._tcp';
+import '../core/logging/logging_service.dart';
 
-/// LAN mDNS advertisement for the ODS endpoint.
+const localServerMdnsServiceType = '_oronbox-api._tcp';
+
+/// LAN mDNS advertisement for the Local API Server endpoint.
 ///
 /// Delegates to [MDNSServer] so only genuine DNS queries are answered and
 /// self-announcement loops can never feed back into the server. Interface
-/// enumeration is moved to a background isolate because it can stall on
-/// Android; mDNS remains an enhancement and must never block the UI.
-class DebugMdnsAdvertiser {
-  DebugMdnsAdvertiser({
+/// enumeration is executed in a background isolate because it can stall on
+/// mobile; mDNS remains an enhancement and never blocks the UI.
+class LocalServerMdnsAdvertiser {
+  LocalServerMdnsAdvertiser({
     required this.serverId,
     required this.displayName,
     required this.platform,
@@ -29,7 +30,7 @@ class DebugMdnsAdvertiser {
   final String fingerprint;
 
   MDNSServer? _server;
-  static final _log = getLogger('DebugMdnsAdvertiser');
+  static final _log = getLogger('LocalServerMdnsAdvertiser');
 
   Future<bool> start() async {
     if (_server != null) return true;
@@ -45,12 +46,12 @@ class DebugMdnsAdvertiser {
       'name': displayName,
       'platform': platform,
       'proto': 'http',
-      'auth': 'challenge-rsa',
+      'auth': 'ed25519-challenge',
       'secure': '0',
     };
     final service = MDNSService(
       instance: _serviceInstance(displayName, serverId),
-      service: debugMdnsServiceType,
+      service: localServerMdnsServiceType,
       domain: 'local.',
       hostName: _hostname(),
       port: port,
@@ -67,8 +68,6 @@ class DebugMdnsAdvertiser {
     try {
       await server.start();
     } catch (error, stackTrace) {
-      // mDNS is an enhancement. A restricted network must not prevent ODS
-      // from starting or serving a manually entered address.
       _log.warning('mDNS advertisement failed', error, stackTrace);
       return false;
     }
@@ -90,18 +89,15 @@ class DebugMdnsAdvertiser {
 
   Future<List<InternetAddress>> _localAddresses() async {
     try {
-      // NetworkInterface.list performs a synchronous interface enumeration
-      // that can stall the caller's isolate for seconds on Android. Run it on
-      // a separate isolate so mDNS startup never freezes the UI.
       return await Isolate.run<List<InternetAddress>>(() async {
         final interfaces = await NetworkInterface.list(
           includeLoopback: false,
           type: InternetAddressType.IPv4,
         );
         interfaces.sort(
-          (left, right) => _interfacePriority(
-            left.name,
-          ).compareTo(_interfacePriority(right.name)),
+          (left, right) =>
+              _interfacePriority(left.name)
+                  .compareTo(_interfacePriority(right.name)),
         );
         final addresses = <InternetAddress>[];
         for (final networkInterface in interfaces) {
@@ -147,21 +143,24 @@ int _interfacePriority(String name) {
   if (RegExp(r'^(en\d+|eth\d+|wlan\d+|wi-?fi)').hasMatch(normalized)) {
     return 0;
   }
-  if (RegExp(
-    r'^(utun|tun|tap|awdl|llw|bridge|docker|veth|vmnet|virbr|ap\d)',
-  ).hasMatch(normalized)) {
+  if (RegExp(r'^(ap\d+|p2p\d+|awdl\d+|llw\d+)').hasMatch(normalized)) {
+    return 1;
+  }
+  if (RegExp(r'^(bridge\d+|docker\d+|veth\d+|utun\d+|tun\d+|tap\d+)')
+      .hasMatch(normalized)) {
     return 2;
   }
-  return 1;
+  return 3;
 }
 
 bool _isUsableLanAddress(InternetAddress address) {
-  final parts = address.address.split('.').map(int.tryParse).toList();
-  if (parts.length != 4 || parts.any((part) => part == null)) return false;
-  final first = parts[0]!;
-  final second = parts[1]!;
-  if (first == 0 || first == 127 || first >= 224) return false;
-  if (first == 169 && second == 254) return false;
-  if (first == 198 && (second == 18 || second == 19)) return false;
-  return true;
+  if (address.type != InternetAddressType.IPv4) return false;
+  final raw = address.rawAddress;
+  if (raw.length != 4) return false;
+  final first = raw[0];
+  final second = raw[1];
+  if (first == 10) return true;
+  if (first == 172 && second >= 16 && second <= 31) return true;
+  if (first == 192 && second == 168) return true;
+  return false;
 }

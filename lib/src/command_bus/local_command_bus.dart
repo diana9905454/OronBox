@@ -533,7 +533,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'device.xiaomi.alarm.enable' => _setXiaomiAlarmEnabled(command.params),
     'device.xiaomi.weather.sync' => _syncXiaomiWeather(command.params),
     'app.uninstall' => _uninstallApp(command.params['package']?.toString()),
-    'app.launch' => _launchApp(command.params['package']?.toString()),
+    'app.launch' => _launchApp(
+      command.params['package']?.toString(),
+      page: command.params['page']?.toString() ?? '',
+    ),
     'watchface.list' => _listWatchfaces(),
     'watchface.remove' => _removeWatchface(command.params['id']?.toString()),
     'watchface.set' => _setWatchface(command.params['id']?.toString()),
@@ -1290,11 +1293,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
 
   Map<String, Object?> _status() {
     final current = _state.currentDevice;
+    final storage = _state.systemInfo?.storageInfo;
     return {
       'connected': _state.protocolState == ProtocolState.ready,
       'protocolState': _state.protocolState.name,
       if (current != null) 'device': _deviceJson(current),
       if (_state.battery != null) 'battery': _state.battery!.capacity,
+      if (storage != null)
+        'storage': {
+          'totalBytes': storage.total,
+          'freeBytes': storage.total - storage.used,
+          'usedBytes': storage.used,
+        },
       if (_state.error != null) 'error': _state.error,
     };
   }
@@ -1454,7 +1464,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     final device = _state.currentDevice;
     final info = _state.systemInfo;
     final battery = _state.battery;
+    final storage = info?.storageInfo;
     return {
+      'connected': _state.protocolState == ProtocolState.ready,
+      'protocolState': _state.protocolState.name,
       if (device != null)
         'device': {
           'name': device.name,
@@ -1463,29 +1476,19 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           'connectionType': device.connectType,
           if (device.codename != null) 'codename': device.codename,
         },
+      if (battery != null) 'battery': battery.capacity,
+      if (storage != null)
+        'storage': {
+          'totalBytes': storage.total,
+          'freeBytes': storage.total - storage.used,
+          'usedBytes': storage.used,
+        },
       if (info != null)
         'system': {
           'model': info.model,
           'imei': info.imei,
           'firmwareVersion': info.firmwareVersion,
           'serialNumber': info.serialNumber,
-          if (info.storageInfo != null)
-            'storage': {
-              'used': info.storageInfo!.used,
-              'total': info.storageInfo!.total,
-              'free': info.storageInfo!.total - info.storageInfo!.used,
-            },
-        },
-      if (battery != null)
-        'status': {
-          'battery': battery.capacity,
-          'chargeStatus': battery.chargeStatus.name,
-          if (battery.chargeInfo != null)
-            'chargeInfo': {
-              'state': battery.chargeInfo!.state,
-              if (battery.chargeInfo!.timestamp != null)
-                'timestamp': battery.chargeInfo!.timestamp,
-            },
         },
     };
   }
@@ -1559,30 +1562,6 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       );
       rethrow;
     }
-    String directory;
-    try {
-      final path = await getLogDirectoryPath();
-      if (path == null) {
-        throw const CommandFailure(
-          'storage_unavailable',
-          'The runtime log directory is unavailable',
-        );
-      }
-      directory = path;
-    } catch (error) {
-      _events.add(
-        CommandEvent(
-          'device.log.progress',
-          data: {
-            'stage': 'failed',
-            'message': error.toString(),
-            if (operationId != null) 'operationId': operationId,
-            if (deviceId != null) 'deviceId': deviceId,
-          },
-        ),
-      );
-      rethrow;
-    }
     final sourceName = pulled.fileName.trim();
     final safeName = sourceName
         .split(RegExp(r'[/\\]'))
@@ -1607,27 +1586,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         .replaceFirst(RegExp(r'[. ]+$'), '');
     final name =
         'device-${codename.isEmpty ? 'unknown' : codename}-$stamp-'
-        '${safeName.isEmpty ? 'logs.zip' : safeName}';
-    late final File file;
-    try {
-      file = await _uniqueOutputFile(
-        File('$directory${Platform.pathSeparator}$name'),
-      );
-    } catch (error) {
-      _events.add(
-        CommandEvent(
-          'device.log.progress',
-          data: {
-            'stage': 'failed',
-            'message': error.toString(),
-            if (operationId != null) 'operationId': operationId,
-            if (deviceId != null) 'deviceId': deviceId,
-          },
-        ),
-      );
-      rethrow;
-    }
-    final temporary = File('${file.path}.part');
+        '${safeName.isEmpty ? 'logs.tar.gz' : safeName}';
+
     _events.add(
       CommandEvent(
         'device.log.progress',
@@ -1640,11 +1600,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         },
       ),
     );
+
+    late final String savedPath;
     try {
-      await temporary.writeAsBytes(pulled.data, flush: true);
-      await temporary.rename(file.path);
+      final path = await saveDeviceLogFile(name, pulled.data);
+      if (path == null) {
+        throw const CommandFailure(
+          'storage_unavailable',
+          'Failed to store device log archive',
+        );
+      }
+      savedPath = path;
     } catch (error) {
-      if (await temporary.exists()) await temporary.delete();
       _events.add(
         CommandEvent(
           'device.log.progress',
@@ -1658,6 +1625,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       );
       rethrow;
     }
+
     final currentLog = extractCurrentDeviceLog(pulled.data);
     if (currentLog == null) {
       _log.warning(
@@ -1668,22 +1636,12 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     String? currentLogName;
     if (currentLog != null && currentLog.isNotEmpty) {
       try {
-        currentLogName =
-            await _uniqueOutputFile(
-              File(
-                '$directory${Platform.pathSeparator}${name.replaceFirst(RegExp(r'(?:\.tar\.gz|\.tgz|\.zip)$'), '')}-tmp.log',
-              ),
-            ).then((target) async {
-              final temporary = File('${target.path}.part');
-              try {
-                await temporary.writeAsBytes(currentLog, flush: true);
-                await temporary.rename(target.path);
-              } catch (_) {
-                if (await temporary.exists()) await temporary.delete();
-                rethrow;
-              }
-              return target.path.split(Platform.pathSeparator).last;
-            });
+        final tmpName =
+            '${name.replaceFirst(RegExp(r'(?:\.tar\.gz|\.tgz|\.zip)$'), '')}-tmp.log';
+        final tmpPath = await saveDeviceLogFile(tmpName, currentLog);
+        if (tmpPath != null) {
+          currentLogName = tmpPath.split(Platform.pathSeparator).last;
+        }
       } catch (error, stackTrace) {
         _log.warning(
           'failed to save extracted current device log',
@@ -1708,7 +1666,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     );
     return {
       'name': name,
-      'path': file.path,
+      'path': savedPath,
       'size': pulled.data.length,
       'stored': true,
       if (currentLogName != null) 'currentLogName': currentLogName,
@@ -2159,7 +2117,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     );
   }
 
-  Future<Object?> _launchApp(String? packageName) async {
+  Future<Object?> _launchApp(String? packageName, {String page = ''}) async {
     await _ensureConnected(null);
     await _manager.fetchApps();
     final app = _state.apps
@@ -2168,8 +2126,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     if (app == null) {
       throw CommandFailure('not_found', 'App not found: $packageName');
     }
-    await _manager.openApp(app);
-    return {'launched': packageName};
+    await _manager.openApp(app, page: page);
+    return {'launched': packageName, if (page.isNotEmpty) 'page': page};
   }
 
   Future<Object?> _removeWatchface(String? id) async {
@@ -3066,22 +3024,6 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     await _deviceEventSubscription.cancel();
     await _events.close();
   }
-}
-
-Future<File> _uniqueOutputFile(File requested) async {
-  if (!await requested.exists()) return requested;
-  final directory = requested.parent;
-  final name = requested.uri.pathSegments.last;
-  final dot = name.lastIndexOf('.');
-  final stem = dot > 0 ? name.substring(0, dot) : name;
-  final extension = dot > 0 ? name.substring(dot) : '';
-  for (var index = 2; index < 100000; index++) {
-    final candidate = File(
-      '${directory.path}${Platform.pathSeparator}$stem ($index)$extension',
-    );
-    if (!await candidate.exists()) return candidate;
-  }
-  throw StateError('Unable to allocate a unique output file name');
 }
 
 String _hexPreview(List<int> bytes) {

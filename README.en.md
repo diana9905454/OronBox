@@ -83,10 +83,25 @@ OronBox is a cross-platform wearable device management tool that connects to and
 | Access AstroBox-Repo and BandBBS resources | Browse and obtain community resources |
 | Sign in to BandBBS with OAuth | Obtain BandBBS community resources |
 | Publish resources from the creator center | Publish to BandBBS and AstroBox-Repo |
+| Local API Server | Provide a local HTTP and SSE API server for external tools, featuring mDNS broadcast and Ed25519 challenge authentication |
 
-## CLI usage
+## CLI Tool
 
-OronBox provides a powerful, scriptable command-line interface for managing devices, installing resources, accessing community sources and controlling background tasks without the GUI. See the [OronBox documentation site](https://oronbox.zxor.org/user/cli) for usage details.
+OronBox provides an official standalone cross-platform command-line client, [OronBox-CLI](https://github.com/zxor-org/OronBox-CLI)
+Once **Local API Server** is enabled in the OronBox client under **Settings** -> **Advanced** -> **Local API Server**, you can manage wearable devices, install apps and watch faces, and pull diagnostic logs directly from your computer terminal over the local network:
+
+```bash
+# Install globally (recommended)
+npm install -g oronbox-cli
+
+# Automatically discover and pair
+oronbox-cli pair
+
+# Or run directly without installing
+npx oronbox-cli pair
+```
+
+For more details, see the [OronBox-CLI repository](https://github.com/zxor-org/OronBox-CLI) and its [User Guide](https://github.com/zxor-org/OronBox-CLI/blob/main/GUIDE.en.md) and [API Specification](https://github.com/zxor-org/OronBox-CLI/blob/main/API.en.md).
 
 ## Build from source
 

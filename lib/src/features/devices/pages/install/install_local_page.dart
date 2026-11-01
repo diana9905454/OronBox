@@ -141,9 +141,9 @@ class _InstallLocalPageState extends ConsumerState<InstallLocalPage> {
                               child: Text(
                                 '${(_fileSize! / 1024).toStringAsFixed(1)} KB',
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ),

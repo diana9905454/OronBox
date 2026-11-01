@@ -4,42 +4,45 @@ import 'package:material_ui/material_ui.dart';
 /// Builds the markdown package's stylesheet from the application's Material UI
 /// theme without converting the theme through the legacy Flutter Material API.
 MarkdownStyleSheet markdownStyleSheetFromTheme(ThemeData theme) {
-  final body = theme.textTheme.bodyMedium;
-  final bodySize = body?.fontSize ?? 14;
-  final code = body?.copyWith(
+  final textColor = theme.colorScheme.onSurface;
+  final body = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
+    color: textColor,
+  );
+  final bodySize = body.fontSize ?? 14;
+  final code = body.copyWith(
     backgroundColor: theme.cardTheme.color,
     fontFamily: 'monospace',
     fontSize: bodySize * 0.85,
   );
 
   return MarkdownStyleSheet(
-    a: const TextStyle(color: Colors.blue),
+    a: TextStyle(color: theme.colorScheme.primary),
     p: body,
     pPadding: EdgeInsets.zero,
     code: code,
-    h1: theme.textTheme.headlineSmall,
+    h1: theme.textTheme.headlineSmall?.copyWith(color: textColor),
     h1Padding: EdgeInsets.zero,
-    h2: theme.textTheme.titleLarge,
+    h2: theme.textTheme.titleLarge?.copyWith(color: textColor),
     h2Padding: EdgeInsets.zero,
-    h3: theme.textTheme.titleMedium,
+    h3: theme.textTheme.titleMedium?.copyWith(color: textColor),
     h3Padding: EdgeInsets.zero,
-    h4: theme.textTheme.bodyLarge,
+    h4: theme.textTheme.bodyLarge?.copyWith(color: textColor),
     h4Padding: EdgeInsets.zero,
-    h5: theme.textTheme.bodyLarge,
+    h5: theme.textTheme.bodyLarge?.copyWith(color: textColor),
     h5Padding: EdgeInsets.zero,
-    h6: theme.textTheme.bodyLarge,
+    h6: theme.textTheme.bodyLarge?.copyWith(color: textColor),
     h6Padding: EdgeInsets.zero,
-    em: const TextStyle(fontStyle: FontStyle.italic),
-    strong: const TextStyle(fontWeight: FontWeight.bold),
-    del: const TextStyle(decoration: TextDecoration.lineThrough),
+    em: TextStyle(color: textColor, fontStyle: FontStyle.italic),
+    strong: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+    del: TextStyle(color: textColor, decoration: TextDecoration.lineThrough),
     blockquote: body,
     img: body,
-    checkbox: body?.copyWith(color: theme.primaryColor),
+    checkbox: body.copyWith(color: theme.primaryColor),
     blockSpacing: 8,
     listIndent: 24,
     listBullet: body,
     listBulletPadding: const EdgeInsets.only(right: 4),
-    tableHead: const TextStyle(fontWeight: FontWeight.w600),
+    tableHead: TextStyle(color: textColor, fontWeight: FontWeight.w600),
     tableBody: body,
     tableHeadAlign: TextAlign.center,
     tablePadding: const EdgeInsets.only(bottom: 4),

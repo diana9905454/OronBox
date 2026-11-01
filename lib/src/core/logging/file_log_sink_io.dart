@@ -146,17 +146,17 @@ Future<List<LogFileInfo>> listLogFiles() async {
 }
 
 Future<String?> saveDeviceLogFile(String name, List<int> bytes) async {
-  final directoryPath = await getLogDirectoryPath();
-  if (directoryPath == null || bytes.isEmpty) return null;
+  if (bytes.isEmpty) return null;
   final safeName = name
       .split(RegExp(r'[/\\]'))
       .last
       .replaceAll(RegExp(r'[\x00-\x1F<>:"/\\|?*]'), '_')
       .trim()
       .replaceFirst(RegExp(r'[. ]+$'), '');
-  final fileName = safeName.isEmpty ? 'device-logs.zip' : safeName;
+  final fileName = safeName.isEmpty ? 'device-logs.tar.gz' : safeName;
+  final directory = await _exportDirectory();
   final file = await _uniqueLogFile(
-    File('$directoryPath${Platform.pathSeparator}$fileName'),
+    File('${directory.path}${Platform.pathSeparator}$fileName'),
   );
   final temporary = File('${file.path}.part');
   try {
@@ -168,6 +168,25 @@ Future<String?> saveDeviceLogFile(String name, List<int> bytes) async {
     } catch (_) {}
     rethrow;
   }
+
+  if (Platform.isAndroid) {
+    try {
+      final exportedPath = await _androidLogsChannel.invokeMethod<String>(
+        'export',
+        {'name': file.uri.pathSegments.last},
+      );
+      if (exportedPath != null && exportedPath.isNotEmpty) {
+        return exportedPath;
+      }
+    } catch (_) {
+      // Fallback to internal file path if export fails
+    } finally {
+      try {
+        await file.delete();
+      } catch (_) {}
+    }
+  }
+
   return file.path;
 }
 

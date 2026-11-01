@@ -3126,9 +3126,7 @@ class LocalDeviceManager extends DeviceManager {
     try {
       onStage?.call('waiting_response');
       final reportFuture = report.requestDeviceLogExport(
-        // AstroBox-NG treats this as the report-response phase only.  It is
-        // never allowed to cancel an already active MASS transfer.
-        timeout: const Duration(seconds: 30),
+        timeout: const Duration(seconds: 180),
       );
       final startEvent = await Future.any<Object>([
         reportFuture,

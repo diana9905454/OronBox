@@ -92,7 +92,7 @@ class _XiaomiAppLayoutPageState extends ConsumerState<XiaomiAppLayoutPage> {
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: EdgeInsets.only(
           top: 8,
-          bottom: bottomContentPadding(context, extra: 24),
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           if (_loading)

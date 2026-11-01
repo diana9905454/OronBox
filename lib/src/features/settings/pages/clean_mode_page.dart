@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 
@@ -28,7 +29,7 @@ class CleanModePage extends ConsumerWidget {
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: EdgeInsets.only(
           top: 8,
-          bottom: MediaQuery.paddingOf(context).bottom + 16,
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(

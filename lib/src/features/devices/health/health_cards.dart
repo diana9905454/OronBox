@@ -1,4 +1,3 @@
-
 import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
@@ -281,8 +280,6 @@ class HealthAbnormalHealthCard extends StatelessWidget {
   }
 }
 
-
-
 class HealthVitalityCard extends StatelessWidget {
   const HealthVitalityCard({
     required this.title,
@@ -371,8 +368,6 @@ class HealthVitalityCard extends StatelessWidget {
 
 String _localizedVitality(BuildContext context, String zh, String fallback) =>
     Localizations.localeOf(context).languageCode == 'zh' ? zh : fallback;
-
-
 
 class HealthWorkoutCard extends StatelessWidget {
   const HealthWorkoutCard({
@@ -477,5 +472,3 @@ List<Color> healthHeartRateZoneColors(BuildContext context) {
     semantic.healthHeartRate,
   ];
 }
-
-

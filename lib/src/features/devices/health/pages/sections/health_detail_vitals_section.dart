@@ -527,7 +527,9 @@ extension _HealthDetailVitalsSection on _XiaomiHealthDetailPageState {
     String mmddHhmm(DateTime dt) =>
         '${dt.month.toString().padLeft(2, '0')}/${dt.day.toString().padLeft(2, '0')} ${hhmm(dt)}';
 
-    if (start.year == end.year && start.month == end.month && start.day == end.day) {
+    if (start.year == end.year &&
+        start.month == end.month &&
+        start.day == end.day) {
       if (hhmm(start) == hhmm(end)) {
         return isDay ? hhmm(start) : mmddHhmm(start);
       }
@@ -611,6 +613,4 @@ class _AbnormalHealthEpisode {
   }
 
   Duration get duration => endedAt.difference(startedAt);
-
-
 }

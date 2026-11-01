@@ -3,6 +3,7 @@ import 'package:oronbox/src/features/accounts/services/activity_reporter.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dynamic_color/dynamic_color.dart';
+import 'package:oronbox/src/app/modal/global_modal_host.dart';
 import 'package:oronbox/src/app/router/app_router.dart';
 import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/app/theme/app_theme.dart';
@@ -17,6 +18,7 @@ import 'package:oronbox/src/features/devices/widgets/xms_wearable_bridge.dart';
 import 'package:oronbox/src/features/devices/widgets/xiaomi_screenshot_handler.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_host_request_handler.dart';
 import 'package:oronbox/src/features/settings/services/update_check_service.dart';
+import 'package:oronbox/src/local_server/local_server_provider.dart';
 import 'package:oronbox/src/app/widgets/app_error_gate.dart';
 import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 
@@ -34,6 +36,7 @@ class OronBoxApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(localServerProvider);
     final router = ref.watch(appRouterProvider);
     final themeSettings = ref.watch(themeSettingsProvider);
     final localeSettings = ref.watch(localeSettingsProvider);
@@ -68,15 +71,17 @@ class OronBoxApp extends ConsumerWidget {
           builder: (context, child) => OronBoxScaffoldMessenger(
             child: DesktopWindowHost(
               child: AppErrorGate(
-                child: XiaomiScreenshotHandler(
-                  child: PluginHostRequestHandler(
-                    child: XmsWearableBridge(
-                      child: UpdateCheckHandler(
-                        child: FileOpenHandler(
-                          child: XiaomiAutomaticSyncScheduler(
-                            child: AppLinkHandler(
-                              child: ActivityReportHandler(
-                                child: child ?? const SizedBox.shrink(),
+                child: GlobalModalHost(
+                  child: XiaomiScreenshotHandler(
+                    child: PluginHostRequestHandler(
+                      child: XmsWearableBridge(
+                        child: UpdateCheckHandler(
+                          child: FileOpenHandler(
+                            child: XiaomiAutomaticSyncScheduler(
+                              child: AppLinkHandler(
+                                child: ActivityReportHandler(
+                                  child: child ?? const SizedBox.shrink(),
+                                ),
                               ),
                             ),
                           ),

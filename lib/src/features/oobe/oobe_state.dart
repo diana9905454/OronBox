@@ -23,6 +23,14 @@ bool isOobeCompleted([SharedPrefsService? prefs]) {
 Future<void> markLegalAccepted([SharedPrefsService? prefs]) async {
   final store = prefs ?? SharedPrefsService.instance;
   await store.setInt(_legalVersionKey, currentLegalVersion);
+  await store.setInt(
+    'legal.accepted.terms',
+    LegalAgreements.requiredRevision('terms'),
+  );
+  await store.setInt(
+    'legal.accepted.privacy',
+    LegalAgreements.requiredRevision('privacy'),
+  );
 }
 
 Future<void> markOobeCompleted([SharedPrefsService? prefs]) async {

@@ -460,16 +460,13 @@ class _XiaomiAppArrangementPageState
                                   SegmentedTile(
                                     leading: Icon(_layoutIcon(value)),
                                     title: Text(_layoutName(l10n, value)),
-                                    trailing:
-                                        Radio<pb_system.AppLayout_Layout>(
-                                          value: value,
-                                        ),
+                                    trailing: Radio<pb_system.AppLayout_Layout>(
+                                      value: value,
+                                    ),
                                     enabled: !_saving,
                                     onPressed: (_) {
                                       if (!_saving) {
-                                        setState(
-                                          () => _selectedLayout = value,
-                                        );
+                                        setState(() => _selectedLayout = value);
                                       }
                                     },
                                   ),
@@ -639,24 +636,26 @@ class _ReorderableAppTile extends StatelessWidget {
                                   onPressed: enabled ? onToggleHide : null,
                                 )
                               : (isPersist
-                                  ? Icon(
-                                      Icons.lock_outline,
-                                      size: 18,
-                                      color: theme
-                                          .colorScheme
-                                          .onSurfaceVariant
-                                          .withAlpha(128),
-                                    )
-                                  : IconButton(
-                                      icon: Icon(
-                                        Icons.remove_circle_outline,
+                                    ? Icon(
+                                        Icons.lock_outline,
+                                        size: 18,
                                         color: theme
                                             .colorScheme
-                                            .onSurfaceVariant,
-                                        size: 20,
-                                      ),
-                                      onPressed: enabled ? onToggleHide : null,
-                                    )),
+                                            .onSurfaceVariant
+                                            .withAlpha(128),
+                                      )
+                                    : IconButton(
+                                        icon: Icon(
+                                          Icons.remove_circle_outline,
+                                          color: theme
+                                              .colorScheme
+                                              .onSurfaceVariant,
+                                          size: 20,
+                                        ),
+                                        onPressed: enabled
+                                            ? onToggleHide
+                                            : null,
+                                      )),
                         ),
                       ),
                       Expanded(

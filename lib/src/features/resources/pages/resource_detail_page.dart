@@ -349,6 +349,12 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
               ResourceContentFormat.markdown => MarkdownBody(
                 data: detail.content.value,
                 selectable: true,
+                styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+                  p: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.55,
+                  ),
+                ),
                 onTapLink: (_, href, _) {
                   final uri = Uri.tryParse(href ?? '');
                   if (uri != null &&

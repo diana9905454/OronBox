@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:uuid/uuid.dart';
+import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/core/storage/app_data_directory.dart';
 import 'package:oronbox/src/device/core/device_state.dart'
@@ -96,5 +97,54 @@ class AppDataMaintenance {
       _token = null;
       ZeppOsLocalDataGuard.active = false;
     }
+  }
+}
+
+/// Acquires host data maintenance, runs [action] under exclusive lock, then releases it.
+Future<T> runWithAppDataMaintenance<T>(
+  OronBoxCommandBus host,
+  Future<T> Function() action,
+) async {
+  final acquired = await host.execute(
+    const OronBoxCommand(method: 'appdata.maintenance.begin'),
+  );
+  if (!acquired.ok || acquired.value is! String) {
+    throw StateError('Unable to acquire data maintenance');
+  }
+  final token = acquired.value as String;
+  var ended = false;
+  Future<void> end() async {
+    ended = true;
+    final released = await host.execute(
+      OronBoxCommand(
+        method: 'appdata.maintenance.end',
+        params: {'token': token},
+      ),
+    );
+    if (!released.ok) {
+      throw StateError('Unable to release data maintenance');
+    }
+  }
+
+  try {
+    final lease = await openAppDataDirectory('storage/maintenance/app-data');
+    return await lease.exclusive(() async {
+      final valid = await host.execute(
+        OronBoxCommand(
+          method: 'appdata.maintenance.validate',
+          params: {'token': token},
+        ),
+      );
+      if (!valid.ok || valid.value != true) {
+        throw StateError('Data maintenance ownership changed');
+      }
+      try {
+        return await action();
+      } finally {
+        await end();
+      }
+    });
+  } finally {
+    if (!ended) await end();
   }
 }

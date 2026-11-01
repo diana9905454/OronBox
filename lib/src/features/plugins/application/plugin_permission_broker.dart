@@ -3,11 +3,14 @@ import 'dart:async';
 import 'package:oronbox/src/features/plugins/domain/plugin_package.dart';
 import 'package:oronbox/src/features/plugins/domain/plugin_permission.dart';
 
-typedef PluginPermissionPrompt =
-    Future<PluginPermissionDecision> Function(PluginPermissionRequest request);
+typedef PluginPermissionPrompt = Future<PluginPermissionDecision> Function(
+  PluginPermissionRequest request,
+);
 typedef PluginPermissionGrantReader = Future<Set<String>> Function(String id);
-typedef PluginPermissionGrantWriter =
-    Future<void> Function(String id, Set<String> grants);
+typedef PluginPermissionGrantWriter = Future<void> Function(
+  String id,
+  Set<String> grants,
+);
 
 class PluginPermissionBroker {
   PluginPermissionBroker({

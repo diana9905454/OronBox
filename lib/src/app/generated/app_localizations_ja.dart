@@ -3060,7 +3060,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get oobeLoginLocalNote =>
-      'XiaomiとAmazfitのサインインはこのデバイス上だけで実行されます。関連データはXiaomi/Amazfit以外の第三者へ送信されません';
+      'XiaomiとAmazfitのサインインはこのデバイス上だけで実行されます\n関連データはXiaomi/Amazfit以外の第三者へ送信されません';
 
   @override
   String get oobeLoginXiaomiDesc => 'バインド済みXiaomiデバイスを同期するためXiaomiアカウントにサインイン';
@@ -3086,6 +3086,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get oobeFinish => '完了';
+
+  @override
+  String get oobeRestoreAction => 'バックアップから復元';
+
+  @override
+  String get oobeRestoreSuccess => 'バックアップを復元しました';
 
   @override
   String get settingsReplayOobe => 'ガイドを再表示';
@@ -3419,53 +3425,85 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsAdvancedDescription => 'ログと開発者ツールを表示します';
 
   @override
-  String get debugServerTitle => 'デバッグサービス';
+  String get localServerTitle => 'ローカル API サービス';
 
   @override
-  String get debugServerDescription => '信頼できる開発ツール向けにローカル API を提供します';
+  String get localServerDescription => '外部の開発ツールや自動化向けにローカル API を提供します';
 
   @override
-  String get debugServerEnable => 'デバッグサービスを有効にする';
+  String get localServerEnable => 'ローカル API サービスを有効にする';
 
   @override
-  String get debugServerEnableDescription =>
+  String get localServerEnableDescription =>
       '承認したローカルネットワーク上のクライアントに OronBox の確認と操作を許可します';
 
   @override
-  String get debugServerEndpoint => '接続先';
+  String get localServerEndpoint => '接続先';
 
   @override
-  String get debugServerFingerprint => 'サーバーフィンガープリント';
+  String get localServerFingerprint => 'サーバーフィンガープリント';
 
   @override
-  String get debugServerPendingClients => '承認待ちクライアント';
+  String get localServerPendingClients => '承認待ちペアリング';
 
   @override
-  String get debugServerAuthorizedClients => '承認済みクライアント';
+  String get localServerAuthorizedClients => '承認済みクライアント';
 
   @override
-  String get debugServerApprove => '承認';
+  String get localServerApprove => '承認';
 
   @override
-  String get debugServerReject => '拒否';
+  String get localServerReject => '拒否';
 
   @override
-  String get debugServerRevoke => 'アクセスを取り消す';
+  String get localServerRevoke => 'アクセスを取り消す';
 
   @override
-  String get debugServerNoPendingClients => '承認を待っているクライアントはありません';
+  String get localServerNoPendingClients => '承認を待っているリクエストはありません';
 
   @override
-  String get debugServerNoAuthorizedClients => '承認済みクライアントはありません';
+  String get localServerNoAuthorizedClients => '承認済みクライアントはありません';
 
   @override
-  String get debugServerSecurityNotice => '信頼できるネットワークでのみ有効にしてください';
+  String get localServerSecurityNotice => '信頼できるネットワークでのみ有効にしてください';
 
   @override
-  String get debugServerStartFailed => 'デバッグサービスを起動できませんでした';
+  String get localServerStartFailed => 'ローカル API サービスを起動できませんでした';
 
   @override
-  String get debugServerStopFailed => 'デバッグサービスを停止できませんでした';
+  String get localServerStopFailed => 'ローカル API サービスを停止できませんでした';
+
+  @override
+  String get localServerPairingTitle => 'ローカル API による制御を許可しますか？';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '「$clientName」がウェアラブル管理サービスへのアクセスを要求しています';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Ed25519 SHA-256 フィンガープリント';
+
+  @override
+  String get localServerPairingAlwaysAllow => 'このコンピューターからの接続を常に許可する';
+
+  @override
+  String get localServerPairingAllow => '許可';
+
+  @override
+  String get localServerPairingDeny => '拒否';
+
+  @override
+  String get localServerPairingScopes => '要求された権限';
+
+  @override
+  String get wifiPasswordInputPlaceholder => 'Wi-Fi パスワードを入力';
+
+  @override
+  String get wifiConnectButton => '接続';
+
+  @override
+  String get wifiCancelButton => 'キャンセル';
 
   @override
   String get xmsDeveloperMode => 'XMS開発者モード';

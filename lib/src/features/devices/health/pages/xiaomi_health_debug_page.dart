@@ -200,8 +200,8 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
                 _filterCurrentDeviceOnly
                     ? l10n.all
                     : (currentDevice?.name ??
-                        currentDevice?.addr ??
-                        l10n.pairedDevices),
+                          currentDevice?.addr ??
+                          l10n.pairedDevices),
               ),
             ),
         ],
@@ -210,7 +210,7 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: EdgeInsets.only(
           top: 8,
-          bottom: bottomContentPadding(context, extra: 24),
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(

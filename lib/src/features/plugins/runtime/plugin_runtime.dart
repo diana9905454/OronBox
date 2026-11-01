@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-typedef PluginHostCall =
-    FutureOr<Object?> Function(String method, List<Object?> arguments);
+typedef PluginHostCall = FutureOr<Object?> Function(
+  String method,
+  List<Object?> arguments,
+);
 
 abstract interface class PluginRuntime {
   Map<String, Object?> get diagnostics;

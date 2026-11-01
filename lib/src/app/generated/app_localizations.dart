@@ -5727,7 +5727,7 @@ abstract class AppLocalizations {
   /// No description provided for @oobeLoginLocalNote.
   ///
   /// In en, this message translates to:
-  /// **'Xiaomi and Amazfit sign-in run entirely on this device; related data is never sent to any third party other than Xiaomi/Amazfit'**
+  /// **'Xiaomi and Amazfit sign-in run entirely on this device\nRelated data is never sent to any third party other than Xiaomi/Amazfit'**
   String get oobeLoginLocalNote;
 
   /// No description provided for @oobeLoginXiaomiDesc.
@@ -5777,6 +5777,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish'**
   String get oobeFinish;
+
+  /// No description provided for @oobeRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup'**
+  String get oobeRestoreAction;
+
+  /// No description provided for @oobeRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored successfully'**
+  String get oobeRestoreSuccess;
 
   /// No description provided for @settingsReplayOobe.
   ///
@@ -6390,101 +6402,161 @@ abstract class AppLocalizations {
   /// **'View logs and developer tools'**
   String get settingsAdvancedDescription;
 
-  /// No description provided for @debugServerTitle.
+  /// No description provided for @localServerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Debug service'**
-  String get debugServerTitle;
+  /// **'Local API Server'**
+  String get localServerTitle;
 
-  /// No description provided for @debugServerDescription.
+  /// No description provided for @localServerDescription.
   ///
   /// In en, this message translates to:
-  /// **'Expose a local API for trusted development tools'**
-  String get debugServerDescription;
+  /// **'Expose a local API for external CLI and development tools'**
+  String get localServerDescription;
 
-  /// No description provided for @debugServerEnable.
+  /// No description provided for @localServerEnable.
   ///
   /// In en, this message translates to:
-  /// **'Enable debug service'**
-  String get debugServerEnable;
+  /// **'Enable Local API Server'**
+  String get localServerEnable;
 
-  /// No description provided for @debugServerEnableDescription.
+  /// No description provided for @localServerEnableDescription.
   ///
   /// In en, this message translates to:
   /// **'Allow approved clients on the local network to inspect and control OronBox'**
-  String get debugServerEnableDescription;
+  String get localServerEnableDescription;
 
-  /// No description provided for @debugServerEndpoint.
+  /// No description provided for @localServerEndpoint.
   ///
   /// In en, this message translates to:
   /// **'Endpoint'**
-  String get debugServerEndpoint;
+  String get localServerEndpoint;
 
-  /// No description provided for @debugServerFingerprint.
+  /// No description provided for @localServerFingerprint.
   ///
   /// In en, this message translates to:
   /// **'Server fingerprint'**
-  String get debugServerFingerprint;
+  String get localServerFingerprint;
 
-  /// No description provided for @debugServerPendingClients.
+  /// No description provided for @localServerPendingClients.
   ///
   /// In en, this message translates to:
   /// **'Pending approvals'**
-  String get debugServerPendingClients;
+  String get localServerPendingClients;
 
-  /// No description provided for @debugServerAuthorizedClients.
+  /// No description provided for @localServerAuthorizedClients.
   ///
   /// In en, this message translates to:
   /// **'Approved clients'**
-  String get debugServerAuthorizedClients;
+  String get localServerAuthorizedClients;
 
-  /// No description provided for @debugServerApprove.
+  /// No description provided for @localServerApprove.
   ///
   /// In en, this message translates to:
   /// **'Approve'**
-  String get debugServerApprove;
+  String get localServerApprove;
 
-  /// No description provided for @debugServerReject.
+  /// No description provided for @localServerReject.
   ///
   /// In en, this message translates to:
   /// **'Reject'**
-  String get debugServerReject;
+  String get localServerReject;
 
-  /// No description provided for @debugServerRevoke.
+  /// No description provided for @localServerRevoke.
   ///
   /// In en, this message translates to:
   /// **'Revoke access'**
-  String get debugServerRevoke;
+  String get localServerRevoke;
 
-  /// No description provided for @debugServerNoPendingClients.
+  /// No description provided for @localServerNoPendingClients.
   ///
   /// In en, this message translates to:
   /// **'No clients are waiting for approval'**
-  String get debugServerNoPendingClients;
+  String get localServerNoPendingClients;
 
-  /// No description provided for @debugServerNoAuthorizedClients.
+  /// No description provided for @localServerNoAuthorizedClients.
   ///
   /// In en, this message translates to:
   /// **'No approved clients'**
-  String get debugServerNoAuthorizedClients;
+  String get localServerNoAuthorizedClients;
 
-  /// No description provided for @debugServerSecurityNotice.
+  /// No description provided for @localServerSecurityNotice.
   ///
   /// In en, this message translates to:
   /// **'Only enable this service on a trusted network'**
-  String get debugServerSecurityNotice;
+  String get localServerSecurityNotice;
 
-  /// No description provided for @debugServerStartFailed.
+  /// No description provided for @localServerStartFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not start the debug service'**
-  String get debugServerStartFailed;
+  /// **'Could not start the Local API Server'**
+  String get localServerStartFailed;
 
-  /// No description provided for @debugServerStopFailed.
+  /// No description provided for @localServerStopFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not stop the debug service'**
-  String get debugServerStopFailed;
+  /// **'Could not stop the Local API Server'**
+  String get localServerStopFailed;
+
+  /// No description provided for @localServerPairingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Local API Access?'**
+  String get localServerPairingTitle;
+
+  /// No description provided for @localServerPairingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'“{clientName}” is requesting control over wearable services and command bus'**
+  String localServerPairingDescription(String clientName);
+
+  /// No description provided for @localServerPairingFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ed25519 SHA-256 Fingerprint'**
+  String get localServerPairingFingerprint;
+
+  /// No description provided for @localServerPairingAlwaysAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Always allow from this computer'**
+  String get localServerPairingAlwaysAllow;
+
+  /// No description provided for @localServerPairingAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get localServerPairingAllow;
+
+  /// No description provided for @localServerPairingDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get localServerPairingDeny;
+
+  /// No description provided for @localServerPairingScopes.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested permissions'**
+  String get localServerPairingScopes;
+
+  /// No description provided for @wifiPasswordInputPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Wi-Fi password'**
+  String get wifiPasswordInputPlaceholder;
+
+  /// No description provided for @wifiConnectButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get wifiConnectButton;
+
+  /// No description provided for @wifiCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get wifiCancelButton;
 
   /// No description provided for @xmsDeveloperMode.
   ///

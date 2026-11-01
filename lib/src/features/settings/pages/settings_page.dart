@@ -531,10 +531,10 @@ class SettingsPage extends ConsumerWidget {
                   description: Text(l10n.settingsAboutLogsDescription),
                 ),
                 SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/settings/debug-server'),
+                  onPressed: (_) => context.push('/settings/local-server'),
                   leading: const Icon(Icons.developer_mode_outlined),
-                  title: Text(l10n.debugServerTitle),
-                  description: Text(l10n.debugServerDescription),
+                  title: Text(l10n.localServerTitle),
+                  description: Text(l10n.localServerDescription),
                 ),
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/settings/labs'),

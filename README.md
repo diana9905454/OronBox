@@ -84,10 +84,25 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 | 访问 AstroBox-Repo 与米坛资源 | 浏览和获取社区资源 |
 | 通过 OAuth 登录米坛社区 | 获取米坛社区资源 |
 | 从创作者中心发布资源 | 支持同步发布到米坛和 AstroBox-Repo |
+| 本地 API 服务 | 为外部开发与自动化工具提供局域网 HTTP / SSE 服务，支持 mDNS 自动发现与 Ed25519 签名质询认证 |
 
-## CLI 使用
+## CLI 工具
 
-OronBox 提供功能完整且可脚本化的命令行界面，可在无 GUI 模式下管理设备、安装资源、访问社区源以及控制后台任务，用法参见 [OronBox 文档站](https://oronbox.zxor.org/user/cli)
+OronBox 提供独立的跨平台官方命令行客户端 [OronBox-CLI](https://github.com/zxor-org/OronBox-CLI)
+在 OronBox 客户端开启【设置】->【高级设置】->【本地 API 服务】后，即可在计算机终端通过局域网免密质询连接，执行穿戴设备管理、应用与表盘安装、实时系统诊断日志导出等操作：
+
+```bash
+# 全局安装（推荐）
+npm install -g oronbox-cli
+
+# 自动发现并配对
+oronbox-cli pair
+
+# 或无需安装直接执行
+npx oronbox-cli pair
+```
+
+详细用法参见 [OronBox-CLI 仓库](https://github.com/zxor-org/OronBox-CLI) 及其[使用指南](https://github.com/zxor-org/OronBox-CLI/blob/main/GUIDE.md)与 [API 规范](https://github.com/zxor-org/OronBox-CLI/blob/main/API.md)
 
 ## 从源码构建
 

@@ -12,7 +12,7 @@ class XiaomiReportSystem extends XiaomiPbSystem {
   Completer<pb_system.ReportData_Result>? _deviceLogWaiter;
 
   Future<pb_system.ReportData_Result> requestDeviceLogExport({
-    Duration timeout = const Duration(seconds: 90),
+    Duration timeout = const Duration(seconds: 180),
   }) async {
     _log.info('[${entity.id}] requesting device log export');
     if (_deviceLogWaiter != null) {

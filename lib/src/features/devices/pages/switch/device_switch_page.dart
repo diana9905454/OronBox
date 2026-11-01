@@ -1422,8 +1422,10 @@ class _DeviceCardState extends ConsumerState<_DeviceCard> {
     final transportLabel = _connectType == ConnectType.spp.name
         ? l10n.deviceTransportSpp
         : l10n.deviceTransportBle;
-    final isConnectionTarget =
-        deviceAddressEquals(state.connectionTargetAddr, widget.device.addr);
+    final isConnectionTarget = deviceAddressEquals(
+      state.connectionTargetAddr,
+      widget.device.addr,
+    );
     final isConnectingThisDevice = state.connecting && isConnectionTarget;
 
     ref.listen<DeviceManagerState>(deviceManagerProvider, (previous, next) {

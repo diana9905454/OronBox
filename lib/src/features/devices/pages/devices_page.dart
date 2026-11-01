@@ -230,7 +230,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
 
           return ListView(
             padding: EdgeInsets.only(
-              bottom: bottomContentPadding(context, extra: 24),
+              bottom: bottomContentPadding(context, extra: 16),
             ),
             children: [
               PageContainer(
@@ -847,156 +847,149 @@ class _DeviceFeaturesPanelState extends ConsumerState<_DeviceFeaturesPanel> {
     final appCount = state.apps
         .where((app) => !app.packageName.startsWith('com.xiaomi.miwear.'))
         .length;
-    final isNarrow = widget.compact;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: isNarrow ? 0 : 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.showInstall)
-            _InstallSection(
-              compact: widget.compact,
-              enabled: widget.enabled,
-              appCount: appCount,
-              watchfaceCount: state.watchfaces.length,
-              onManageApps: () => context.push('/devices/apps'),
-              onManageWatchfaces: () => context.push('/devices/watchfaces'),
-              onInstallApp: () =>
-                  _pickAndEnqueue(context, ref, LocalDeviceInstallType.app),
-              onInstallWatchface: () => _pickAndEnqueue(
-                context,
-                ref,
-                LocalDeviceInstallType.watchface,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (widget.showInstall)
+          _InstallSection(
+            compact: widget.compact,
+            enabled: widget.enabled,
+            appCount: appCount,
+            watchfaceCount: state.watchfaces.length,
+            onManageApps: () => context.push('/devices/apps'),
+            onManageWatchfaces: () => context.push('/devices/watchfaces'),
+            onInstallApp: () =>
+                _pickAndEnqueue(context, ref, LocalDeviceInstallType.app),
+            onInstallWatchface: () =>
+                _pickAndEnqueue(context, ref, LocalDeviceInstallType.watchface),
+          ),
+        SegmentedSection(
+          margin: const EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            bottom: 16,
+          ),
+          tiles: [
+            if (widget.isZeppOs) ...[
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/zeppos-more'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.functions),
+                title: Text(l10n.zeppOsMoreFeatures),
+                description: Text(l10n.zeppOsMoreFeaturesDescription),
               ),
-            ),
-          SegmentedSection(
-            margin: const EdgeInsetsDirectional.only(
-              start: 16,
-              end: 16,
-              bottom: 16,
-            ),
-            tiles: [
-              if (widget.isZeppOs) ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/zeppos-more'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.functions),
-                  title: Text(l10n.zeppOsMoreFeatures),
-                  description: Text(l10n.zeppOsMoreFeaturesDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/zeppos-more/music'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.music_note_outlined),
-                  title: Text(l10n.deviceMusicSync),
-                  description: Text(l10n.deviceMusicSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) =>
-                      context.push('/devices/zeppos-more/voice-memos'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.mic_none),
-                  title: Text(l10n.deviceRecordingsTitle),
-                  description: Text(l10n.deviceRecordingsDescription),
-                ),
-              ] else ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-health'),
-                  enabled: widget.enabled,
-                  leading: const XiaomiFitnessLogo(),
-                  title: Text(l10n.deviceHealthTitle),
-                  description: Text(l10n.deviceHealthFeatureDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-weather'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: Text(l10n.weatherSyncTitle),
-                  description: Text(l10n.weatherSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-music'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.music_note_outlined),
-                  title: Text(l10n.deviceMusicSync),
-                  description: Text(l10n.deviceMusicSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-recordings'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.mic_none),
-                  title: Text(l10n.deviceRecordingsTitle),
-                  description: Text(l10n.deviceRecordingsDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-alarms'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.alarm_outlined),
-                  title: Text(l10n.alarmManagementTitle),
-                  description: Text(l10n.alarmManagementDescription),
-                ),
-              ],
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/zeppos-more/music'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.music_note_outlined),
+                title: Text(l10n.deviceMusicSync),
+                description: Text(l10n.deviceMusicSyncDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) =>
+                    context.push('/devices/zeppos-more/voice-memos'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.mic_none),
+                title: Text(l10n.deviceRecordingsTitle),
+                description: Text(l10n.deviceRecordingsDescription),
+              ),
+            ] else ...[
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-health'),
+                enabled: widget.enabled,
+                leading: const XiaomiFitnessLogo(),
+                title: Text(l10n.deviceHealthTitle),
+                description: Text(l10n.deviceHealthFeatureDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-weather'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.cloud_outlined),
+                title: Text(l10n.weatherSyncTitle),
+                description: Text(l10n.weatherSyncDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-music'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.music_note_outlined),
+                title: Text(l10n.deviceMusicSync),
+                description: Text(l10n.deviceMusicSyncDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-recordings'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.mic_none),
+                title: Text(l10n.deviceRecordingsTitle),
+                description: Text(l10n.deviceRecordingsDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-alarms'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.alarm_outlined),
+                title: Text(l10n.alarmManagementTitle),
+                description: Text(l10n.alarmManagementDescription),
+              ),
             ],
+          ],
+        ),
+        SegmentedSection(
+          margin: const EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            bottom: 16,
           ),
-          SegmentedSection(
-            margin: const EdgeInsetsDirectional.only(
-              start: 16,
-              end: 16,
-              bottom: 16,
-            ),
-            tiles: [
-              if (widget.isZeppOs) ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/firmware'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.memory_outlined),
-                  title: Text(l10n.deviceFeaturesInstallFirmware),
-                  description: Text(l10n.deviceFeaturesInstallFirmwareDesc),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/info'),
-                  enabled: widget.hasDevice,
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(l10n.deviceFeaturesDeviceInfo),
-                  description: Text(l10n.deviceFeaturesDeviceInfoDesc),
-                ),
-              ] else ...[
-                SegmentedTile.switchTile(
-                  leading: const Icon(Icons.vibration),
-                  title: Text(l10n.zeppOsFindDevice),
-                  description: Text(l10n.findDeviceDescription),
-                  initialValue: state.findingXiaomiWearable,
-                  enabled: widget.enabled && !_findingBusy,
-                  onToggle: (value) => _setFinding(value ?? false),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) =>
-                      context.push('/devices/velaos-app-arrangement'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.dashboard_customize_outlined),
-                  title: Text(l10n.appArrangementTitle),
-                  description: Text(l10n.appArrangementDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/firmware'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.memory_outlined),
-                  title: Text(l10n.deviceFeaturesInstallFirmware),
-                  description: Text(l10n.firmwareUpdateDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/info'),
-                  enabled: widget.hasDevice,
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(l10n.deviceAboutTitle),
-                  description: Text(l10n.deviceAboutDescription),
-                ),
-              ],
+          tiles: [
+            if (widget.isZeppOs) ...[
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/firmware'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.memory_outlined),
+                title: Text(l10n.deviceFeaturesInstallFirmware),
+                description: Text(l10n.deviceFeaturesInstallFirmwareDesc),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/info'),
+                enabled: widget.hasDevice,
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.deviceFeaturesDeviceInfo),
+                description: Text(l10n.deviceFeaturesDeviceInfoDesc),
+              ),
+            ] else ...[
+              SegmentedTile.switchTile(
+                leading: const Icon(Icons.vibration),
+                title: Text(l10n.zeppOsFindDevice),
+                description: Text(l10n.findDeviceDescription),
+                initialValue: state.findingXiaomiWearable,
+                enabled: widget.enabled && !_findingBusy,
+                onToggle: (value) => _setFinding(value ?? false),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) =>
+                    context.push('/devices/velaos-app-arrangement'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.dashboard_customize_outlined),
+                title: Text(l10n.appArrangementTitle),
+                description: Text(l10n.appArrangementDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/firmware'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.memory_outlined),
+                title: Text(l10n.deviceFeaturesInstallFirmware),
+                description: Text(l10n.firmwareUpdateDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/info'),
+                enabled: widget.hasDevice,
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.deviceAboutTitle),
+                description: Text(l10n.deviceAboutDescription),
+              ),
             ],
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 

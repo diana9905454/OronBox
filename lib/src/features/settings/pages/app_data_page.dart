@@ -1,14 +1,12 @@
 import 'app_data_backup_dialog.dart';
 
-import 'package:oronbox/src/core/storage/app_data_directory.dart';
-
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 
 import '../application/app_extension_backup.dart';
+import '../application/app_data_maintenance.dart';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:go_router/go_router.dart';
@@ -63,52 +61,11 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
   Future<T> _withMaintenance<T>(Future<T> Function() action) async {
     final completion = Completer<void>();
     _maintenanceDone = completion.future;
-    final host = ref.read(applicationHostProvider);
     try {
-      final acquired = await host.execute(
-        const OronBoxCommand(method: 'appdata.maintenance.begin'),
+      return await runWithAppDataMaintenance(
+        ref.read(applicationHostProvider),
+        action,
       );
-      if (!acquired.ok || acquired.value is! String) {
-        throw StateError('Unable to acquire data maintenance');
-      }
-      final token = acquired.value as String;
-      var ended = false;
-      Future<void> end() async {
-        ended = true;
-        final released = await host.execute(
-          OronBoxCommand(
-            method: 'appdata.maintenance.end',
-            params: {'token': token},
-          ),
-        );
-        if (!released.ok) {
-          throw StateError('Unable to release data maintenance');
-        }
-      }
-
-      try {
-        final lease = await openAppDataDirectory(
-          'storage/maintenance/app-data',
-        );
-        return await lease.exclusive(() async {
-          final valid = await host.execute(
-            OronBoxCommand(
-              method: 'appdata.maintenance.validate',
-              params: {'token': token},
-            ),
-          );
-          if (!valid.ok || valid.value != true) {
-            throw StateError('Data maintenance ownership changed');
-          }
-          try {
-            return await action();
-          } finally {
-            await end();
-          }
-        });
-      } finally {
-        if (!ended) await end();
-      }
     } finally {
       completion.complete();
     }

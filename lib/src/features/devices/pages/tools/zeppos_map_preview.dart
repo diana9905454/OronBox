@@ -136,9 +136,8 @@ class _ZeppOsMapPreviewState extends State<ZeppOsMapPreview> {
                               color: colors.surfaceContainerHighest,
                               child: Center(
                                 child: Text(
-                                  AppLocalizations.of(
-                                    context,
-                                  )!.zeppOsMapPreviewTooLarge,
+                                  AppLocalizations.of(context)!
+                                      .zeppOsMapPreviewTooLarge,
                                   style: TextStyle(
                                     color: colors.onSurfaceVariant,
                                   ),
@@ -167,9 +166,8 @@ class _ZeppOsMapPreviewState extends State<ZeppOsMapPreview> {
         const SizedBox(height: 8),
         Text(
           '© OpenStreetMap contributors',
-          style: Theme.of(
-            context,
-          ).textTheme.labelMedium?.copyWith(color: colors.onSurfaceVariant),
+          style: Theme.of(context).textTheme.labelMedium
+              ?.copyWith(color: colors.onSurfaceVariant),
         ),
       ],
     );

@@ -149,12 +149,13 @@ class XiaomiAutomaticSyncService {
     }
     _log.info('automatic Xiaomi weather synchronization started: city=$city');
     try {
-      final weather = await (weatherFetchTask ??
-          XiaomiWeatherSyncService().fetch(
-            city,
-            model: manager.systemInfo?.model,
-            firmwareVersion: manager.systemInfo?.firmwareVersion,
-          ));
+      final weather =
+          await (weatherFetchTask ??
+              XiaomiWeatherSyncService().fetch(
+                city,
+                model: manager.systemInfo?.model,
+                firmwareVersion: manager.systemInfo?.firmwareVersion,
+              ));
       await manager.syncXiaomiWeather(weather);
       await XiaomiSyncPreferences.setWeatherLastCity(weather.cityName);
       await XiaomiSyncPreferences.setCachedWeather(weather, DateTime.now());

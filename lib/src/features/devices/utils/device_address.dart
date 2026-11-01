@@ -18,9 +18,8 @@ String formatDeviceAddress(String address) {
     return address;
   }
   final upper = address.replaceAll(_nonHex, '').toUpperCase();
-  return [
-    for (var i = 0; i < upper.length; i += 2) upper.substring(i, i + 2),
-  ].join(':');
+  return [for (var i = 0; i < upper.length; i += 2) upper.substring(i, i + 2)]
+      .join(':');
 }
 
 /// Compares two endpoint addresses ignoring case and separator style, so

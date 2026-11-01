@@ -325,9 +325,11 @@ class _HomeAllResourcesFooter extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final colors = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: StyleConstants.pagePadding,
-        vertical: 24,
+      padding: const EdgeInsets.fromLTRB(
+        StyleConstants.pagePadding,
+        16,
+        StyleConstants.pagePadding,
+        0,
       ),
       child: Center(
         child: FilledButton.tonal(

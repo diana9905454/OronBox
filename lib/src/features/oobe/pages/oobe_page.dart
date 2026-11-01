@@ -1,29 +1,51 @@
-import 'package:segmented_list/segmented_list.dart';
+import 'dart:async';
+
 import 'package:dio/dio.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:segmented_list/segmented_list.dart';
+
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
-import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/utils/picked_file.dart';
 import 'package:oronbox/src/app/widgets/app_icon.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
-import 'package:oronbox/src/core/constants/style_constants.dart';
+import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
+import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/utils/app_exit.dart';
-import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/accounts/services/mi_account_two_factor_resolver.dart';
 import 'package:oronbox/src/features/oobe/oobe_state.dart';
-import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
+import 'package:oronbox/src/features/settings/application/app_data_backup.dart';
+import 'package:oronbox/src/features/settings/application/app_data_maintenance.dart';
+import 'package:oronbox/src/features/settings/application/app_extension_backup.dart';
+import 'package:oronbox/src/features/settings/pages/app_data_backup_dialog.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
+import 'package:oronbox/src/host/application_host_provider.dart';
 
-/// First-run experience: welcome → terms → privacy → optional account sign-in
-/// → done. Uses PageView for smooth animated transitions and Material 3
-/// components throughout.
+Widget _oobeProgressIndicator({double size = 20, double strokeWidth = 2.0}) {
+  final isTesting = WidgetsBinding.instance.runtimeType.toString().contains(
+    'Test',
+  );
+  return SizedBox.square(
+    dimension: size,
+    child: CircularProgressIndicator(
+      strokeWidth: strokeWidth,
+      value: isTesting ? 0.7 : null,
+    ),
+  );
+}
+
+/// OronBox 初次使用引导流程
 class OobePage extends ConsumerStatefulWidget {
   const OobePage({super.key});
 
@@ -32,43 +54,66 @@ class OobePage extends ConsumerStatefulWidget {
 }
 
 class _OobePageState extends ConsumerState<OobePage> {
-  static const _welcomeStep = 0;
-  static const _termsStep = 1;
-  static const _privacyStep = 2;
+  static const _totalSteps = 5;
 
-  int _currentStep = _welcomeStep;
+  final _pageController = PageController();
+  int _currentStep = 0;
   bool _termsAgreed = false;
   bool _privacyAgreed = false;
-  late final bool _preAccepted = isLegalAccepted();
+  bool _preAccepted = false;
 
-  bool get _agreementReady =>
-      _preAccepted ||
-      (_currentStep == _termsStep ? _termsAgreed : _privacyAgreed);
+  @override
+  void initState() {
+    super.initState();
+    _preAccepted = isLegalAccepted();
+    if (_preAccepted) {
+      _termsAgreed = true;
+      _privacyAgreed = true;
+    }
+  }
 
   @override
   void dispose() {
+    _pageController.dispose();
     super.dispose();
   }
 
-  Future<void> _next() async {
-    if (!_preAccepted &&
-        (_currentStep == _termsStep || _currentStep == _privacyStep)) {
-      if (!await LegalAgreements.acceptShown(
-        _currentStep == _termsStep ? 'terms' : 'privacy',
-      )) {
-        return;
-      }
+  bool get _agreementReady {
+    if (_preAccepted) return true;
+    if (_currentStep == 1) return _termsAgreed;
+    if (_currentStep == 2) return _privacyAgreed;
+    return true;
+  }
+
+  Future<void> _goToPage(int page) async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _currentStep = page);
+    if (!mounted) return;
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _pageController.jumpToPage(page);
+    } else {
+      await _pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 360),
+        curve: Curves.easeInOutCubicEmphasized,
+      );
     }
-    if (_currentStep == _privacyStep && !_preAccepted) {
+  }
+
+  Future<void> _next() async {
+    if (!_agreementReady) return;
+    if (_currentStep == 2 && !_preAccepted) {
       await markLegalAccepted();
     }
     if (!mounted) return;
-    setState(() => _currentStep += 1);
+    if (_currentStep < _totalSteps - 1) {
+      await _goToPage(_currentStep + 1);
+    }
   }
 
-  void _back() {
-    if (_currentStep > _welcomeStep) {
-      setState(() => _currentStep -= 1);
+  Future<void> _back() async {
+    if (_currentStep > 0) {
+      await _goToPage(_currentStep - 1);
     }
   }
 
@@ -84,51 +129,43 @@ class _OobePageState extends ConsumerState<OobePage> {
 
   Future<void> _finish() async {
     await markOobeCompleted();
-    if (mounted) {
-      context.go('/resources');
-    }
+    if (!mounted) return;
+    context.go('/resources');
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    Widget body;
-    String title;
-    switch (_currentStep) {
-      case 0:
-        body = const _WelcomeStep();
-        title = 'OronBox';
-      case 1:
-        body = _AgreementStep(
-          key: const ValueKey('terms'),
-          documentId: 'terms',
-          agreed: _termsAgreed,
-          onAgreed: (v) => setState(() => _termsAgreed = v),
-        );
-        title = l10n.termsTitle;
-      case 2:
-        body = _AgreementStep(
-          key: const ValueKey('privacy'),
-          documentId: 'privacy',
-          agreed: _privacyAgreed,
-          onAgreed: (v) => setState(() => _privacyAgreed = v),
-        );
-        title = l10n.privacyTitle;
-      case 3:
-        body = const _LoginStep();
-        title = l10n.oobeLoginTitle;
-      default:
-        body = const _DoneStep();
-        title = l10n.oobeDoneTitle;
-    }
+    final steps = [
+      const _WelcomeStep(),
+      _AgreementStep(
+        key: const ValueKey('terms'),
+        documentId: 'terms',
+        agreed: _termsAgreed,
+        onAgreed: (v) => setState(() => _termsAgreed = v),
+      ),
+      _AgreementStep(
+        key: const ValueKey('privacy'),
+        documentId: 'privacy',
+        agreed: _privacyAgreed,
+        onAgreed: (v) => setState(() => _privacyAgreed = v),
+      ),
+      const _LoginStep(),
+      const _DoneStep(),
+    ];
 
     return Scaffold(
-      appBar: SysAppBar(secondary: true, fullWindow: true, title: Text(title)),
+      appBar: const SysAppBar(secondary: true, fullWindow: true),
       body: SafeArea(
         top: false,
         child: Column(
           children: [
-            Expanded(child: body),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: steps,
+              ),
+            ),
             _OobeBottomBar(
               currentStep: _currentStep,
               agreementReady: _agreementReady,
@@ -144,6 +181,7 @@ class _OobePageState extends ConsumerState<OobePage> {
   }
 }
 
+/// 底部栏：统一遵循项目标准三段式（左退出/返回，中指示点，右继续/完成）
 class _OobeBottomBar extends StatelessWidget {
   const _OobeBottomBar({
     required this.currentStep,
@@ -170,17 +208,48 @@ class _OobeBottomBar extends StatelessWidget {
 
     final left = currentStep == 0
         ? TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: cs.surfaceContainerLow,
+              foregroundColor: cs.error,
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              textStyle: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
             onPressed: onDecline,
-            style: TextButton.styleFrom(foregroundColor: cs.error),
             child: Text(l10n.oobeDeclineExit),
           )
-        : currentStep > 0
-        ? TextButton(onPressed: onBack, child: Text(l10n.oobeBack))
-        : null;
+        : TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: cs.surfaceContainerLow,
+              foregroundColor: cs.onSurfaceVariant,
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              textStyle: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            onPressed: onBack,
+            child: Text(l10n.oobeBack),
+          );
 
     final right = currentStep == 4
-        ? FilledButton(onPressed: onFinish, child: Text(l10n.oobeFinish))
+        ? FilledButton(
+            style: FilledButton.styleFrom(
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              textStyle: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+            onPressed: onFinish,
+            child: Text(l10n.oobeFinish),
+          )
         : FilledButton(
+            style: FilledButton.styleFrom(
+              shape: const StadiumBorder(),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              textStyle: Theme.of(context).textTheme.labelLarge
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
             onPressed: _onAgreement && !agreementReady ? null : onNext,
             child: Text(l10n.oobeNext),
           );
@@ -205,18 +274,43 @@ class _OobeBottomBar extends StatelessWidget {
     );
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          SizedBox(width: 88, child: left ?? const SizedBox.shrink()),
-          Expanded(child: Center(child: dotsRow)),
-          right,
+          dotsRow,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [left, right],
+          ),
         ],
       ),
     );
   }
 }
 
+/// 步骤裸图标（无背景容器）
+class _StepIcon extends StatelessWidget {
+  const _StepIcon({
+    required this.icon,
+    this.backgroundColor,
+    this.foregroundColor,
+    this.size = 60,
+  });
+
+  final IconData icon;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Icon(icon, size: size, color: foregroundColor ?? cs.primary);
+  }
+}
+
+/// Step 0: 欢迎页，展示核心能力（上下分明单列，顶栏固定标头 + 底栏弹性列表）
 class _WelcomeStep extends StatelessWidget {
   const _WelcomeStep();
 
@@ -226,146 +320,290 @@ class _WelcomeStep extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    final features = [
+    final items = [
       (
-        Icons.watch_outlined,
-        l10n.oobeFeatureDevicesTitle,
-        l10n.oobeFeatureDevicesBody,
+        icon: Icons.watch_outlined,
+        bg: cs.secondaryContainer,
+        fg: cs.onSecondaryContainer,
+        title: l10n.oobeFeatureDevicesTitle,
+        desc: l10n.oobeFeatureDevicesBody,
       ),
       (
-        Icons.storefront_outlined,
-        l10n.oobeFeatureResourcesTitle,
-        l10n.oobeFeatureResourcesBody,
+        icon: Icons.storefront_outlined,
+        bg: cs.tertiaryContainer,
+        fg: cs.onTertiaryContainer,
+        title: l10n.oobeFeatureResourcesTitle,
+        desc: l10n.oobeFeatureResourcesBody,
       ),
       (
-        Icons.extension_outlined,
-        l10n.oobeFeaturePluginsTitle,
-        l10n.oobeFeaturePluginsBody,
+        icon: Icons.extension_outlined,
+        bg: cs.primaryContainer,
+        fg: cs.onPrimaryContainer,
+        title: l10n.oobeFeaturePluginsTitle,
+        desc: l10n.oobeFeaturePluginsBody,
       ),
       (
-        Icons.devices_outlined,
-        l10n.oobeFeaturePlatformsTitle,
-        l10n.oobeFeaturePlatformsBody,
+        icon: Icons.devices_outlined,
+        bg: cs.secondaryContainer,
+        fg: cs.onSecondaryContainer,
+        title: l10n.oobeFeaturePlatformsTitle,
+        desc: l10n.oobeFeaturePlatformsBody,
+      ),
+      (
+        icon: Icons.code_rounded,
+        bg: cs.tertiaryContainer,
+        fg: cs.onTertiaryContainer,
+        title: l10n.oobeOpenSourceTitle,
+        desc: l10n.oobeOpenSourceBody,
       ),
     ];
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const AppIcon(size: 96),
-                      const SizedBox(height: 16),
-                      Text(
-                        'OronBox',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        l10n.oobeWelcomeSlogan,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          color: cs.onSurfaceVariant,
-                          height: 1.45,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Open source
-                      _FeatureCard(
-                        icon: Icons.code,
-                        title: l10n.oobeOpenSourceTitle,
-                        body: l10n.oobeOpenSourceBody,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Feature cards
-                      for (final f in features) ...[
-                        _FeatureCard(icon: f.$1, title: f.$2, body: f.$3),
-                        const SizedBox(height: 12),
-                      ],
-                    ],
+    final contentWidget = DecoratedBox(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 680),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                for (var i = 0; i < items.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 16),
+                  _WelcomeItem(
+                    icon: items[i].icon,
+                    iconBg: items[i].bg,
+                    iconFg: items[i].fg,
+                    title: items[i].title,
+                    description: items[i].desc,
                   ),
-                ),
-              ),
+                ],
+              ],
             ),
           ),
-        );
-      },
+        ),
+      ),
     );
-  }
-}
 
-class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({
-    required this.icon,
-    required this.title,
-    required this.body,
-  });
-
-  final IconData icon;
-  final String title;
-  final String body;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return Card(
-      color: cs.surfaceContainerLow,
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DecoratedBox(
-              decoration: BoxDecoration(
-                color: cs.primaryContainer,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: Icon(icon, size: 28, color: cs.onPrimaryContainer),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 840),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 8),
+              Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: const AppIcon(size: 64),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 16),
                   Text(
-                    body,
-                    style: Theme.of(context).textTheme.bodyMedium
-                        ?.copyWith(color: cs.onSurfaceVariant, height: 1.35),
+                    'OronBox',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.oobeWelcomeSlogan,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: cs.onSurfaceVariant,
+                      height: 1.45,
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Expanded(child: Center(child: contentWidget)),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
+class _RestoreBackupButton extends ConsumerStatefulWidget {
+  const _RestoreBackupButton();
+
+  @override
+  ConsumerState<_RestoreBackupButton> createState() =>
+      _RestoreBackupButtonState();
+}
+
+class _RestoreBackupButtonState extends ConsumerState<_RestoreBackupButton> {
+  bool _busy = false;
+
+  Future<void> _restore() async {
+    final l10n = AppLocalizations.of(context)!;
+    setState(() => _busy = true);
+    final extStore = AppExtensionBackupStore();
+    final backupService = AppDataBackupService(
+      extensions: extStore,
+      maintenance: <T>(action) => runWithAppDataMaintenance<T>(
+        ref.read(applicationHostProvider),
+        action,
+      ),
+    );
+    try {
+      final picked = await pickFileData(
+        type: FileType.custom,
+        allowedExtensions: const ['zip'],
+        dialogTitle: l10n.appDataRestore,
+        maxBytes: 512 * 1024 * 1024,
+        loadBytes: true,
+      );
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (bytes == null) return;
+      final backup = await backupService.inspect(bytes);
+      if (!mounted) return;
+      final selection = await showBackupSelectionDialog(
+        context,
+        backup: backup,
+      );
+      if (selection == null || !mounted) return;
+      await backupService.restore(
+        AppDataBackup(
+          settings: selection.settings ? backup.settings : const {},
+          activityFiles: selection.health ? backup.activityFiles : const {},
+          extensions: selection.extensions ? backup.extensions : const {},
+          extensionFiles: selection.extensions
+              ? backup.extensionFiles
+              : const {},
+          privateData: {
+            if (selection.devices) 'devices': backup.privateData['devices'],
+            if (selection.xiaomi) 'xiaomi': backup.privateData['xiaomi'],
+          },
+        ),
+      );
+      if (!mounted) return;
+      ref.invalidate(hostAccountsProvider);
+      appScaffoldMessengerOf(context)
+          .showSnackBar(SnackBar(content: Text(l10n.oobeRestoreSuccess)));
+    } catch (error, stack) {
+      getLogger('OobeRestore').warning('Restore failed', error, stack);
+      if (mounted) {
+        appScaffoldMessengerOf(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              error is PickedFileTooLarge
+                  ? l10n.appDataArchiveTooLarge
+                  : error is ExtensionBackupTargetMissing
+                  ? l10n.appDataExtensionMissing
+                  : l10n.appDataRestoreFailed,
+            ),
+          ),
+        );
+      }
+    } finally {
+      await extStore.close();
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    return FilledButton.tonalIcon(
+      style: FilledButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+        textStyle: theme.textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onPressed: _busy ? null : _restore,
+      icon: _busy
+          ? SizedBox.square(
+              dimension: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: cs.onSecondaryContainer,
+              ),
+            )
+          : const Icon(Icons.settings_backup_restore_outlined, size: 20),
+      label: Text(l10n.oobeRestoreAction),
+    );
+  }
+}
+
+class _WelcomeItem extends StatelessWidget {
+  const _WelcomeItem({
+    required this.icon,
+    required this.iconBg,
+    required this.iconFg,
+    required this.title,
+    required this.description,
+  });
+
+  final IconData icon;
+  final Color iconBg;
+  final Color iconFg;
+  final String title;
+  final String description;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Center(child: Icon(icon, size: 22, color: iconFg)),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: cs.onSurfaceVariant,
+                  height: 1.45,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Step 1 & 2: 条款与隐私协议（自适应高度，零分割线）
 class _AgreementStep extends StatefulWidget {
   const _AgreementStep({
     super.key,
@@ -392,6 +630,9 @@ class _AgreementStepState extends State<_AgreementStep> {
   void initState() {
     super.initState();
     _scrollController.addListener(_markBottomReached);
+    if (widget.agreed) {
+      _bottomReached = true;
+    }
   }
 
   @override
@@ -402,8 +643,17 @@ class _AgreementStepState extends State<_AgreementStep> {
 
   @override
   void dispose() {
+    _scrollController.removeListener(_markBottomReached);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _markBottomReached() {
+    if (_bottomReached || !_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.maxScrollExtent - position.pixels <= 1) {
+      setState(() => _bottomReached = true);
+    }
   }
 
   Future<void> _load() async {
@@ -412,7 +662,12 @@ class _AgreementStepState extends State<_AgreementStep> {
     try {
       final data = await LegalAgreements.read(widget.documentId, language);
       if (!mounted) return;
-      setState(() => _data = data);
+      setState(() {
+        _data = data;
+        if (widget.agreed) {
+          _bottomReached = true;
+        }
+      });
     } catch (error) {
       if (mounted) {
         setState(
@@ -424,24 +679,89 @@ class _AgreementStepState extends State<_AgreementStep> {
       }
       return;
     }
-    // A document that fits the viewport without scrolling counts as read.
     WidgetsBinding.instance.addPostFrameCallback((_) => _markBottomReached());
-  }
-
-  void _markBottomReached() {
-    if (_bottomReached || !_scrollController.hasClients) return;
-    final position = _scrollController.position;
-    if (position.maxScrollExtent - position.pixels <= 1) {
-      setState(() => _bottomReached = true);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final cs = theme.colorScheme;
     final data = _data;
+    final isTerms = widget.documentId == 'terms';
+
+    final contentWidget = DecoratedBox(
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: data == null
+            ? Center(
+                child: _loadError == null
+                    ? _oobeProgressIndicator()
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_loadError!),
+                          const SizedBox(height: 8),
+                          FilledButton.tonal(
+                            onPressed: _load,
+                            child: Text(l10n.retry),
+                          ),
+                        ],
+                      ),
+              )
+            : Markdown(
+                data: data,
+                controller: _scrollController,
+                padding: const EdgeInsets.all(20),
+                styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+                  p: theme.textTheme.bodyMedium?.copyWith(height: 1.55),
+                  pPadding: const EdgeInsets.only(bottom: 12),
+                  h1: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  h1Padding: const EdgeInsets.only(top: 16, bottom: 8),
+                  h2: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                  h2Padding: const EdgeInsets.only(top: 12, bottom: 6),
+                ),
+              ),
+      ),
+    );
+
+    final checkboxWidget = Padding(
+      padding: const EdgeInsets.fromLTRB(4, 4, 12, 4),
+      child: Row(
+        children: [
+          Checkbox(
+            value: widget.agreed,
+            onChanged: _bottomReached
+                ? (v) => widget.onAgreed(v ?? false)
+                : null,
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              l10n.oobeAgreeCheckbox,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          if (!_bottomReached)
+            Text(
+              l10n.oobeAgreementHint,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: cs.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
+    );
 
     return Center(
       child: ConstrainedBox(
@@ -451,98 +771,152 @@ class _AgreementStepState extends State<_AgreementStep> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 12),
-              Expanded(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: cs.surfaceContainerLow,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: data == null
-                        ? Center(
-                            child: _loadError == null
-                                ? const CircularProgressIndicator()
-                                : Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(_loadError!),
-                                      TextButton(
-                                        onPressed: _load,
-                                        child: Text(
-                                          AppLocalizations.of(context)!.retry,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                          )
-                        : Markdown(
-                            data: data,
-                            controller: _scrollController,
-                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                            styleSheet: markdownStyleSheetFromTheme(theme)
-                                .copyWith(
-                                  p: theme.textTheme.bodyMedium?.copyWith(
-                                    height: 1.5,
-                                  ),
-                                  pPadding: const EdgeInsets.only(bottom: 12),
-                                  h1: theme.textTheme.headlineSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  h1Padding: const EdgeInsets.only(
-                                    top: 16,
-                                    bottom: 8,
-                                  ),
-                                  h2: theme.textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                  h2Padding: const EdgeInsets.only(
-                                    top: 12,
-                                    bottom: 6,
-                                  ),
-                                ),
-                          ),
-                  ),
-                ),
-              ),
               const SizedBox(height: 8),
-              MouseRegion(
-                cursor: _bottomReached
-                    ? SystemMouseCursors.click
-                    : SystemMouseCursors.basic,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: _bottomReached
-                      ? () => widget.onAgreed(!widget.agreed)
-                      : null,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 4, 16, 4),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: widget.agreed,
-                          onChanged: _bottomReached
-                              ? (v) => widget.onAgreed(v ?? false)
-                              : null,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          l10n.oobeAgreeCheckbox,
-                          style: _bottomReached
-                              ? null
-                              : TextStyle(color: theme.disabledColor),
-                        ),
-                        if (!_bottomReached) ...[
-                          const Spacer(),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _StepIcon(
+                    icon: isTerms
+                        ? Icons.description_outlined
+                        : Icons.shield_outlined,
+                    backgroundColor: cs.secondaryContainer,
+                    foregroundColor: cs.onSecondaryContainer,
+                    size: 60,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    isTerms ? l10n.termsTitle : l10n.privacyTitle,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(child: contentWidget),
+              const SizedBox(height: 8),
+              checkboxWidget,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Step 3: 账号设置（上下单列结构，层级对齐条款页）
+class _LoginStep extends ConsumerStatefulWidget {
+  const _LoginStep();
+
+  @override
+  ConsumerState<_LoginStep> createState() => _LoginStepState();
+}
+
+class _LoginStepState extends ConsumerState<_LoginStep> {
+  final _dio = createAppHttpTransport(
+    options: BaseOptions(
+      connectTimeout: githubCdnProbeTimeout,
+      sendTimeout: githubCdnProbeTimeout,
+      receiveTimeout: githubCdnProbeTimeout,
+    ),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _runSilentCdnTest();
+  }
+
+  @override
+  void dispose() {
+    _dio.close();
+    super.dispose();
+  }
+
+  Future<void> _runSilentCdnTest() async {
+    final results = await testGithubCdns(dio: _dio);
+    if (!mounted) return;
+    final fastest = fastestGithubCdn(results);
+    if (fastest != null &&
+        ref.read(appSettingsProvider).cdn == GitHubCdn.auto) {
+      await ref.read(appSettingsProvider.notifier).setEffectiveCdn(fastest);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+
+    final content = SegmentedList(
+      contentPadding: EdgeInsets.zero,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      sections: [
+        SegmentedSection(
+          tiles: [
+            _bandBbsTile(context, ref, l10n),
+            _xiaomiTile(context, ref, l10n),
+            _huamiTile(context, ref, l10n),
+          ],
+        ),
+      ],
+    );
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 840),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 8),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _StepIcon(
+                    icon: Icons.manage_accounts_outlined,
+                    backgroundColor: cs.tertiaryContainer,
+                    foregroundColor: cs.onTertiaryContainer,
+                    size: 60,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.oobeLoginTitle,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 520),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          content,
+                          const SizedBox(height: 16),
                           Text(
-                            l10n.oobeAgreementHint,
-                            style: theme.textTheme.bodySmall?.copyWith(
+                            l10n.oobeLoginLocalNote,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               color: cs.onSurfaceVariant,
+                              height: 1.4,
                             ),
                           ),
+                          const SizedBox(height: 20),
+                          const _RestoreBackupButton(),
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -555,172 +929,7 @@ class _AgreementStepState extends State<_AgreementStep> {
   }
 }
 
-class _LoginStep extends ConsumerStatefulWidget {
-  const _LoginStep();
-
-  @override
-  ConsumerState<_LoginStep> createState() => _LoginStepState();
-}
-
-class _LoginStepState extends ConsumerState<_LoginStep> {
-  final _dio = _createOobeDio();
-  final _cdnResults = <GitHubCdn, int?>{};
-  bool _cdnTesting = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _runCdnTests();
-  }
-
-  Future<void> _runCdnTests() async {
-    final results = await testGithubCdns(dio: _dio);
-    if (!mounted) return;
-
-    final fastest = fastestGithubCdn(results);
-    if (fastest != null &&
-        ref.read(appSettingsProvider).cdn == GitHubCdn.auto) {
-      await ref.read(appSettingsProvider.notifier).setEffectiveCdn(fastest);
-    }
-    if (!mounted) return;
-
-    setState(() {
-      for (final (cdn, ms) in results) {
-        _cdnResults[cdn] = ms;
-      }
-      _cdnTesting = false;
-    });
-  }
-
-  @override
-  void dispose() {
-    _dio.close();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-
-    final cs = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
-
-    final cdnTiles = <SegmentedTile>[];
-    final fastest = _cdnResults.entries.where((e) => e.value != null).toList()
-      ..sort((a, b) => a.value!.compareTo(b.value!));
-    final fastestCdn = fastest.isNotEmpty ? fastest.first.key : null;
-
-    for (final cdn in GitHubCdn.values.where((cdn) => cdn != GitHubCdn.auto)) {
-      final ms = _cdnResults[cdn];
-      final isFastest = cdn == fastestCdn;
-      cdnTiles.add(
-        SegmentedTile(
-          title: Text(
-            cdn.displayName,
-            style: isFastest
-                ? theme.textTheme.bodyMedium?.copyWith(
-                    color: cs.primary,
-                    fontWeight: FontWeight.w600,
-                  )
-                : null,
-          ),
-          enabled: !_cdnTesting,
-          trailing: _cdnTesting
-              ? const SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(
-                  ms == null ? l10n.oobeCdnTestFailed : '${ms}ms',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isFastest ? cs.primary : cs.onSurfaceVariant,
-                  ),
-                ),
-        ),
-      );
-    }
-
-    final cdnHeaderTile = _cdnTesting
-        ? SegmentedTile(
-            title: Text(l10n.oobeCdnTesting),
-            trailing: const SizedBox.square(
-              dimension: 18,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          )
-        : SegmentedTile(
-            title: Text(l10n.oobeCdnSelected),
-            trailing: Icon(Icons.check, color: cs.primary),
-          );
-
-    final list = SegmentedList(
-      maxWidth: StyleConstants.pageMaxWidth,
-      contentPadding: const EdgeInsets.symmetric(
-        vertical: StyleConstants.pagePadding,
-      ),
-      sections: [
-        SegmentedSection(
-          title: Text(l10n.oobeLoginTitle),
-          tiles: [
-            _bandBbsTile(context, ref, l10n),
-            _xiaomiTile(context, ref, l10n),
-            _huamiTile(context, ref, l10n),
-          ],
-        ),
-        SegmentedSection(
-          title: Text(l10n.oobeCdnTitle),
-          tiles: [cdnHeaderTile, ...cdnTiles],
-        ),
-      ],
-    );
-
-    final note = Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: StyleConstants.pagePadding,
-      ),
-      child: Text(
-        l10n.oobeLoginLocalNote,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodyMedium
-            ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
-      ),
-    );
-
-    return Column(
-      children: [
-        Expanded(child: list),
-        const SizedBox(height: 8),
-        note,
-      ],
-    );
-  }
-}
-
-Dio _createOobeDio() {
-  return createAppHttpTransport(
-    options: BaseOptions(
-      connectTimeout: githubCdnProbeTimeout,
-      sendTimeout: githubCdnProbeTimeout,
-      receiveTimeout: githubCdnProbeTimeout,
-    ),
-  );
-}
-
-Future<void> _startBandBbsLogin(BuildContext context, WidgetRef ref) async {
-  final l10n = AppLocalizations.of(context)!;
-  try {
-    await ref.read(hostAccountsProvider.notifier).startBandBbsLogin();
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.settingsAccountBandBbsOpenedBrowser)),
-    );
-  } catch (e) {
-    if (!context.mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(localizedErrorMessage(l10n, e))));
-  }
-}
-
+/// 具体的三个 Item 完整采用 HEAD 版实现
 SegmentedTile _bandBbsTile(
   BuildContext context,
   WidgetRef ref,
@@ -731,7 +940,7 @@ SegmentedTile _bandBbsTile(
     onPressed: account.isSignedIn || account.isBusy
         ? null
         : (_) => _startBandBbsLogin(context, ref),
-    leading: _BrandLogo(
+    leading: const _BrandLogo(
       asset: 'assets/images/brands/bandbbs.svg',
       semanticsLabel: 'BandBBS',
     ),
@@ -873,6 +1082,21 @@ class _BrandLogo extends StatelessWidget {
   }
 }
 
+Future<void> _startBandBbsLogin(BuildContext context, WidgetRef ref) async {
+  final l10n = AppLocalizations.of(context)!;
+  try {
+    await ref.read(hostAccountsProvider.notifier).startBandBbsLogin();
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.settingsAccountBandBbsOpenedBrowser)),
+    );
+  } catch (e) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(localizedErrorMessage(l10n, e))));
+  }
+}
+
 Future<void> _showMiAccountLogin(BuildContext context, WidgetRef ref) async {
   final rootContext = context;
   final l10n = AppLocalizations.of(context)!;
@@ -997,7 +1221,6 @@ Future<void> _showMiAccountLogin(BuildContext context, WidgetRef ref) async {
                     initialValue: username,
                     onChanged: (value) => username = value,
                     enabled: !running,
-                    keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
                       labelText: l10n.settingsMiAccountUsername,
                       prefixIcon: const Icon(Icons.account_circle_outlined),
@@ -1042,8 +1265,11 @@ Future<void> _showMiAccountLogin(BuildContext context, WidgetRef ref) async {
                             });
                           },
                     contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      l10n.settingsMiAccountRememberCredentials,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                     controlAffinity: ListTileControlAffinity.leading,
-                    title: Text(l10n.settingsMiAccountRememberCredentials),
                     dense: true,
                   ),
                   if (running) ...[
@@ -1203,8 +1429,11 @@ Future<void> _showHuamiAccountLogin(BuildContext context, WidgetRef ref) async {
                             });
                           },
                     contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      l10n.settingsHuamiAccountRememberCredentials,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                     controlAffinity: ListTileControlAffinity.leading,
-                    title: Text(l10n.settingsHuamiAccountRememberCredentials),
                     dense: true,
                   ),
                   if (running) ...[
@@ -1244,6 +1473,7 @@ Future<void> _showHuamiAccountLogin(BuildContext context, WidgetRef ref) async {
   );
 }
 
+/// Step 4: 一切就绪完成页（居中图标 + 标题 + 描述）
 class _DoneStep extends StatelessWidget {
   const _DoneStep();
 
@@ -1254,25 +1484,33 @@ class _DoneStep extends StatelessWidget {
     final cs = theme.colorScheme;
 
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 480),
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(Icons.check, size: 72, color: cs.primary),
+            _StepIcon(
+              icon: Icons.check_rounded,
+              backgroundColor: cs.primaryContainer,
+              foregroundColor: cs.onPrimaryContainer,
+              size: 80,
+            ),
             const SizedBox(height: 16),
             Text(
               l10n.oobeDoneTitle,
-              style: theme.textTheme.headlineSmall?.copyWith(
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Text(
               l10n.oobeDoneBody,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyLarge?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: cs.onSurfaceVariant,
+                height: 1.45,
               ),
             ),
           ],

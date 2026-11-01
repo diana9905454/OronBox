@@ -443,7 +443,6 @@ DateTime _dateOnly(DateTime value) {
   return DateTime(local.year, local.month, local.day);
 }
 
-
 typedef _DetailCard = HealthDetailCard;
 typedef _ActivityMetricCard = ActivityMetricCard;
 typedef _HealthSummaryStats = HealthSummaryStats;
@@ -451,6 +450,7 @@ typedef _WorkoutChartAxis = HealthChartAxis;
 typedef _WorkoutChartSeries = HealthChartSeries;
 typedef _WorkoutFlChart = HealthFlChart;
 typedef _WorkoutDetailPage = WorkoutDetailPage;
+
 class _MetricGrid extends StatelessWidget {
   const _MetricGrid({required this.values});
 
@@ -565,4 +565,3 @@ List<int> _sleepPercentages(List<int> values, int total) {
   }
   return result;
 }
-

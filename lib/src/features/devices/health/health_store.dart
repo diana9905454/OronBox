@@ -18,13 +18,11 @@ class HealthActivityFile {
     required this.id,
     required this.path,
     required this.bytes,
-    required this.digest,
   });
 
   final String id;
   final String path;
   final int bytes;
-  final String digest;
 
   /// Extracts the capture timestamp from the 14-hex-character activity file ID.
   /// Xiaomi file IDs store a 32-bit little-endian Unix timestamp in bytes 0..3.
@@ -42,19 +40,13 @@ class HealthActivityFile {
     }
   }
 
-  Map<String, Object?> toJson() => {
-    'id': id,
-    'path': path,
-    'bytes': bytes,
-    'sha256': digest,
-  };
+  Map<String, Object?> toJson() => {'id': id, 'path': path, 'bytes': bytes};
 
   factory HealthActivityFile.fromJson(Map<String, Object?> json) =>
       HealthActivityFile(
         id: json['id'] as String,
         path: json['path'] as String,
         bytes: json['bytes'] as int,
-        digest: json['sha256'] as String,
       );
 }
 
@@ -612,8 +604,7 @@ class HealthStore {
         final flatPath = _activityFilePath(batch.deviceId, file.id);
         if (file.path != flatPath) {
           final oldData = await storage.read(file.path);
-          if (oldData != null &&
-              sha256.convert(oldData).toString() == file.digest) {
+          if (oldData != null) {
             await storage.write(flatPath, oldData);
             await storage.remove(file.path);
             updatedFiles.add(
@@ -621,7 +612,6 @@ class HealthStore {
                 id: file.id,
                 path: flatPath,
                 bytes: file.bytes,
-                digest: file.digest,
               ),
             );
             migrated = true;
@@ -690,12 +680,7 @@ class HealthStore {
           await storage.write(path, file.data);
         }
         fileEntries.add(
-          HealthActivityFile(
-            id: file.id,
-            path: path,
-            bytes: file.data.length,
-            digest: digest,
-          ),
+          HealthActivityFile(id: file.id, path: path, bytes: file.data.length),
         );
       }
       final previous = await _loadActivityIndex(storage);
@@ -977,28 +962,6 @@ class HealthStore {
       final path = entry.key.replaceFirst(RegExp(r'^(health/raw/|raw/)'), '');
       if (path == 'index.json' || !path.endsWith('.bin')) continue;
       rawFiles[path] = entry.value;
-    }
-    final rawBatches =
-        decoded['snapshots'] as List? ?? decoded['batches'] as List? ?? [];
-    final referenced = <String>{};
-    for (final item in rawBatches) {
-      final batch = (item as Map).cast<String, Object?>();
-      for (final file in (batch['files'] as List? ?? const [])) {
-        final descriptor = file as Map;
-        final path = (descriptor['path'] ?? '').toString();
-        final data = rawFiles[path];
-        if (data == null) {
-          throw const FormatException('Activity index references missing file');
-        }
-        if (data.length != descriptor['bytes'] ||
-            sha256.convert(data).toString() != descriptor['sha256']) {
-          throw const FormatException('Activity file checksum mismatch');
-        }
-        referenced.add(path);
-      }
-    }
-    if (referenced.length != rawFiles.length) {
-      throw const FormatException('Activity archive contains unindexed files');
     }
 
     final storage = await _openActivityStorage();

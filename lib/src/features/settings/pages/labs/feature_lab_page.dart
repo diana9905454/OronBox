@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 
 class FeatureLabPage extends StatelessWidget {
@@ -17,7 +18,7 @@ class FeatureLabPage extends StatelessWidget {
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: EdgeInsets.only(
           top: 8,
-          bottom: MediaQuery.paddingOf(context).bottom + 24,
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(

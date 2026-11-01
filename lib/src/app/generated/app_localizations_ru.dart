@@ -3211,7 +3211,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get oobeLoginLocalNote =>
-      'Вход в Xiaomi и Amazfit выполняется только на этом устройстве; соответствующие данные не передаются третьим сторонам, кроме Xiaomi/Amazfit';
+      'Вход в Xiaomi и Amazfit выполняется только на этом устройстве\nСоответствующие данные не передаются третьим сторонам, кроме Xiaomi/Amazfit';
 
   @override
   String get oobeLoginXiaomiDesc =>
@@ -3238,6 +3238,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get oobeFinish => 'Готово';
+
+  @override
+  String get oobeRestoreAction => 'Восстановить из копии';
+
+  @override
+  String get oobeRestoreSuccess => 'Резервная копия восстановлена';
 
   @override
   String get settingsReplayOobe => 'Повторить знакомство';
@@ -3581,55 +3587,90 @@ class AppLocalizationsRu extends AppLocalizations {
       'Журналы и инструменты разработчика';
 
   @override
-  String get debugServerTitle => 'Сервис отладки';
+  String get localServerTitle => 'Локальный API сервер';
 
   @override
-  String get debugServerDescription =>
-      'Локальный API для доверенных инструментов разработки';
+  String get localServerDescription =>
+      'Локальный API для внешних CLI и инструментов разработки';
 
   @override
-  String get debugServerEnable => 'Включить сервис отладки';
+  String get localServerEnable => 'Включить локальный API сервер';
 
   @override
-  String get debugServerEnableDescription =>
-      'Разрешить одобренным клиентам в локальной сети просматривать и управлять OronBox';
+  String get localServerEnableDescription =>
+      'Разрешить одобренным клиентам в локальной сети управлять OronBox';
 
   @override
-  String get debugServerEndpoint => 'Адрес';
+  String get localServerEndpoint => 'Адрес';
 
   @override
-  String get debugServerFingerprint => 'Отпечаток сервера';
+  String get localServerFingerprint => 'Отпечаток сервера';
 
   @override
-  String get debugServerPendingClients => 'Ожидают одобрения';
+  String get localServerPendingClients => 'Ожидают одобрения';
 
   @override
-  String get debugServerAuthorizedClients => 'Одобренные клиенты';
+  String get localServerAuthorizedClients => 'Одобренные клиенты';
 
   @override
-  String get debugServerApprove => 'Одобрить';
+  String get localServerApprove => 'Одобрить';
 
   @override
-  String get debugServerReject => 'Отклонить';
+  String get localServerReject => 'Отклонить';
 
   @override
-  String get debugServerRevoke => 'Отозвать доступ';
+  String get localServerRevoke => 'Отозвать доступ';
 
   @override
-  String get debugServerNoPendingClients => 'Нет клиентов, ожидающих одобрения';
+  String get localServerNoPendingClients => 'Нет запросов, ожидающих одобрения';
 
   @override
-  String get debugServerNoAuthorizedClients => 'Нет одобренных клиентов';
+  String get localServerNoAuthorizedClients => 'Нет одобренных клиентов';
 
   @override
-  String get debugServerSecurityNotice =>
+  String get localServerSecurityNotice =>
       'Включайте сервис только в доверенной сети';
 
   @override
-  String get debugServerStartFailed => 'Не удалось запустить сервис отладки';
+  String get localServerStartFailed =>
+      'Не удалось запустить локальный API сервер';
 
   @override
-  String get debugServerStopFailed => 'Не удалось остановить сервис отладки';
+  String get localServerStopFailed =>
+      'Не удалось остановить локальный API сервер';
+
+  @override
+  String get localServerPairingTitle => 'Разрешить доступ через локальный API?';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '«$clientName» запрашивает управление сервисами носимых устройств';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Отпечаток Ed25519 SHA-256';
+
+  @override
+  String get localServerPairingAlwaysAllow =>
+      'Всегда разрешать подключение с этого компьютера';
+
+  @override
+  String get localServerPairingAllow => 'Разрешить';
+
+  @override
+  String get localServerPairingDeny => 'Отклонить';
+
+  @override
+  String get localServerPairingScopes => 'Запрашиваемые разрешения';
+
+  @override
+  String get wifiPasswordInputPlaceholder => 'Введите пароль Wi-Fi';
+
+  @override
+  String get wifiConnectButton => 'Подключить';
+
+  @override
+  String get wifiCancelButton => 'Отмена';
 
   @override
   String get xmsDeveloperMode => 'Режим разработчика XMS';

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -115,8 +116,6 @@ class HealthSummaryStats extends StatelessWidget {
   }
 }
 
-
-
 enum HealthChartAxis { left, right }
 
 const _chartYAxisReservedSize = 28.0;
@@ -180,8 +179,7 @@ class HealthFlChart extends StatelessWidget {
       bounds[axis] = (lower, upper);
     }
     final chartPoints = [
-      for (final value in series)
-        _buildChartPoints(value, first, span, bounds),
+      for (final value in series) _buildChartPoints(value, first, span, bounds),
     ];
     final bars = [
       for (final (index, value) in series.indexed)
@@ -294,10 +292,7 @@ class HealthFlChart extends StatelessWidget {
 }
 
 class HealthChartPoints {
-  const HealthChartPoints({
-    required this.spots,
-    required this.sourceIndexes,
-  });
+  const HealthChartPoints({required this.spots, required this.sourceIndexes});
 
   final List<FlSpot> spots;
   final List<int?> sourceIndexes;
@@ -353,8 +348,11 @@ LineTooltipItem? _buildTooltipItem(
   }
   final sourcePoint = series[spot.barIndex].points[sourceIndex];
   final local = sourcePoint.$1.toLocal();
-  final clock = '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
-  final numStr = sourcePoint.$2.toStringAsFixed(sourcePoint.$2 == sourcePoint.$2.roundToDouble() ? 0 : 1);
+  final clock =
+      '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+  final numStr = sourcePoint.$2.toStringAsFixed(
+    sourcePoint.$2 == sourcePoint.$2.roundToDouble() ? 0 : 1,
+  );
   return LineTooltipItem(
     '$clock · $numStr ${series[spot.barIndex].unit}',
     TextStyle(color: spot.bar.color, fontWeight: FontWeight.w600),

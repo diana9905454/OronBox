@@ -7,31 +7,31 @@ import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
-import 'package:oronbox/src/debug_server/debug_server_auth.dart';
-import 'package:oronbox/src/debug_server/debug_server_provider.dart';
+import 'package:oronbox/src/local_server/local_server_protocol.dart';
+import 'package:oronbox/src/local_server/local_server_provider.dart';
 
-class DebugServerPage extends ConsumerWidget {
-  const DebugServerPage({super.key});
+class LocalServerPage extends ConsumerWidget {
+  const LocalServerPage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final value = ref.watch(debugServerProvider);
-    final controller = ref.read(debugServerProvider.notifier);
+    final value = ref.watch(localServerProvider);
+    final controller = ref.read(localServerProvider.notifier);
 
     return Scaffold(
-      appBar: SysAppBar(secondary: true, title: Text(l10n.debugServerTitle)),
+      appBar: SysAppBar(secondary: true, title: Text(l10n.localServerTitle)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: EdgeInsets.only(
           top: 8,
-          bottom: bottomContentPadding(context, extra: 24),
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(
             title: _SectionTitle(
               icon: Icons.warning_amber_outlined,
-              text: l10n.debugServerSecurityNotice,
+              text: l10n.localServerSecurityNotice,
             ),
             tiles: [
               SegmentedTile.switchTile(
@@ -45,8 +45,8 @@ class DebugServerPage extends ConsumerWidget {
                 },
                 enabled: !value.isBusy,
                 leading: const Icon(Icons.lan_outlined),
-                title: Text(l10n.debugServerEnable),
-                description: Text(l10n.debugServerEnableDescription),
+                title: Text(l10n.localServerEnable),
+                description: Text(l10n.localServerEnableDescription),
               ),
             ],
           ),
@@ -55,7 +55,7 @@ class DebugServerPage extends ConsumerWidget {
               tiles: [
                 SegmentedTile(
                   leading: const Icon(Icons.error_outline),
-                  title: Text(l10n.debugServerStartFailed),
+                  title: Text(l10n.localServerStartFailed),
                   description: Text(value.error!),
                   enabled: false,
                 ),
@@ -63,46 +63,46 @@ class DebugServerPage extends ConsumerWidget {
             ),
           if (value.isRunning && value.info != null) ...[
             SegmentedSection(
-              title: Text(l10n.debugServerEndpoint),
+              title: Text(l10n.localServerEndpoint),
               tiles: [
                 for (final address in value.addresses)
                   _endpointTile(context, l10n, address),
                 SegmentedTile(
                   leading: const Icon(Icons.fingerprint_outlined),
-                  title: Text(l10n.debugServerFingerprint),
+                  title: Text(l10n.localServerFingerprint),
                   description: SelectableText(value.info!.fingerprint),
                   enabled: false,
                 ),
               ],
             ),
             SegmentedSection(
-              title: Text(l10n.debugServerPendingClients),
+              title: Text(l10n.localServerPendingClients),
               tiles: [
-                if (value.pendingClients.isEmpty)
-                  _emptyTile(l10n.debugServerNoPendingClients)
+                if (value.pendingPairings.isEmpty)
+                  _emptyTile(l10n.localServerNoPendingClients)
                 else
-                  for (final client in value.pendingClients)
-                    _clientTile(
-                      client,
-                      actionLabel: l10n.debugServerApprove,
-                      onAction: controller.approve,
+                  for (final pairing in value.pendingPairings)
+                    _pairingTile(
+                      pairing,
+                      actionLabel: l10n.localServerApprove,
+                      onAction: controller.approvePairing,
                       actionIcon: Icons.check_outlined,
-                      secondaryActionLabel: l10n.debugServerReject,
-                      onSecondaryAction: controller.reject,
+                      secondaryActionLabel: l10n.localServerReject,
+                      onSecondaryAction: controller.rejectPairing,
                       secondaryActionIcon: Icons.close_outlined,
                     ),
               ],
             ),
             SegmentedSection(
-              title: Text(l10n.debugServerAuthorizedClients),
+              title: Text(l10n.localServerAuthorizedClients),
               tiles: [
                 if (value.authorizedClients.isEmpty)
-                  _emptyTile(l10n.debugServerNoAuthorizedClients)
+                  _emptyTile(l10n.localServerNoAuthorizedClients)
                 else
                   for (final client in value.authorizedClients)
                     _clientTile(
                       client,
-                      actionLabel: l10n.debugServerRevoke,
+                      actionLabel: l10n.localServerRevoke,
                       onAction: controller.revoke,
                       actionIcon: Icons.person_remove_outlined,
                     ),
@@ -119,7 +119,7 @@ class DebugServerPage extends ConsumerWidget {
     AppLocalizations l10n,
     String address,
   ) {
-    final endpoint = '$address/debug/v1/info';
+    final endpoint = '$address/v1/info';
     return SegmentedTile.navigation(
       leading: const Icon(Icons.link_outlined),
       title: SelectableText(endpoint),
@@ -132,14 +132,44 @@ class DebugServerPage extends ConsumerWidget {
     );
   }
 
+  SegmentedTile _pairingTile(
+    LocalServerPairingRequest pairing, {
+    required String actionLabel,
+    required Future<void> Function(String pairingId) onAction,
+    required IconData actionIcon,
+    String? secondaryActionLabel,
+    Future<void> Function(String pairingId)? onSecondaryAction,
+    IconData? secondaryActionIcon,
+  }) {
+    return SegmentedTile.navigation(
+      leading: const Icon(Icons.phonelink_ring_outlined),
+      title: Text(pairing.clientName),
+      description: SelectableText(pairing.fingerprint),
+      value: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (secondaryActionLabel != null && secondaryActionIcon != null)
+            IconButton(
+              onPressed: () => onSecondaryAction!(pairing.pairingId),
+              tooltip: secondaryActionLabel,
+              icon: Icon(secondaryActionIcon),
+            ),
+          IconButton.filledTonal(
+            onPressed: () => onAction(pairing.pairingId),
+            tooltip: actionLabel,
+            icon: Icon(actionIcon),
+          ),
+        ],
+      ),
+      onPressed: null,
+    );
+  }
+
   SegmentedTile _clientTile(
-    DebugAuthorizedClient client, {
+    LocalAuthorizedClient client, {
     required String actionLabel,
     required Future<void> Function(String fingerprint) onAction,
     required IconData actionIcon,
-    String? secondaryActionLabel,
-    Future<void> Function(String fingerprint)? onSecondaryAction,
-    IconData? secondaryActionIcon,
   }) {
     return SegmentedTile.navigation(
       leading: const Icon(Icons.computer_outlined),
@@ -148,12 +178,6 @@ class DebugServerPage extends ConsumerWidget {
       value: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (secondaryActionLabel != null && secondaryActionIcon != null)
-            IconButton(
-              onPressed: () => onSecondaryAction!(client.fingerprint),
-              tooltip: secondaryActionLabel,
-              icon: Icon(secondaryActionIcon),
-            ),
           IconButton.filledTonal(
             onPressed: () => onAction(client.fingerprint),
             tooltip: actionLabel,

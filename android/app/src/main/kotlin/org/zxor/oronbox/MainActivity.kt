@@ -539,16 +539,34 @@ class MainActivity : FlutterActivity() {
                 "export" -> {
                     val name = call.argument<String>("name")
                     val source = name?.takeIf {
-                        !it.contains('/') && !it.contains('\\') && it.endsWith(".zip")
+                        !it.contains('/') && !it.contains('\\') &&
+                            (it.endsWith(".zip") || it.endsWith(".tar.gz") || it.endsWith(".tgz") || it.endsWith(".log"))
                     }?.let { java.io.File(filesDir, "logs/$it") }
                     if (source == null || !source.isFile) {
                         result.error("LOG_EXPORT_NOT_FOUND", name, null)
                     } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                        result.error("LOG_EXPORT_UNSUPPORTED", "Android 10 or newer is required", null)
+                        @Suppress("DEPRECATION")
+                        val dir = java.io.File(
+                            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                            "OronBox/Logs",
+                        )
+                        if (!dir.exists() && !dir.mkdirs()) {
+                            result.error("LOG_EXPORT_FAILED", "Unable to create logs directory", null)
+                        } else {
+                            val target = java.io.File(dir, source.name)
+                            source.copyTo(target, overwrite = true)
+                            MediaScannerConnection.scanFile(this, arrayOf(target.absolutePath), null, null)
+                            result.success(target.absolutePath)
+                        }
                     } else {
+                        val mimeType = when {
+                            source.name.endsWith(".tar.gz") || source.name.endsWith(".tgz") -> "application/gzip"
+                            source.extension == "zip" -> "application/zip"
+                            else -> "text/plain"
+                        }
                         val values = ContentValues().apply {
                             put(MediaStore.MediaColumns.DISPLAY_NAME, source.name)
-                            put(MediaStore.MediaColumns.MIME_TYPE, "application/zip")
+                            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
                             put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Logs")
                             put(MediaStore.MediaColumns.IS_PENDING, 1)
                         }

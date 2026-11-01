@@ -176,10 +176,7 @@ class _CreatorReviewListPageState extends ConsumerState<CreatorReviewListPage> {
           physics: const AlwaysScrollableScrollPhysics(),
           contentPadding: EdgeInsets.only(
             top: 8,
-            bottom: bottomContentPadding(
-              context,
-              extra: widget.embedded ? 16 : 24,
-            ),
+            bottom: bottomContentPadding(context, extra: 16),
           ),
           sections: [
             CustomSegmentedSection(

@@ -508,9 +508,8 @@ class _PropertyTable extends StatelessWidget {
                 Expanded(
                   child: SelectableText(
                     entry.value is Map || entry.value is List
-                        ? const JsonEncoder.withIndent(
-                            '  ',
-                          ).convert(entry.value)
+                        ? const JsonEncoder.withIndent('  ')
+                              .convert(entry.value)
                         : _propertyValue(entry.key.toString(), entry.value),
                     style: const TextStyle(fontFamily: 'monospace'),
                   ),

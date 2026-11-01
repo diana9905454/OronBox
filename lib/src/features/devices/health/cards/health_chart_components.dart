@@ -59,8 +59,6 @@ class HealthDailyLineChart extends StatelessWidget {
   }
 }
 
-
-
 class HealthLineChart extends StatelessWidget {
   const HealthLineChart({
     required this.metric,
@@ -1057,8 +1055,6 @@ class _HealthDailyLinePainter extends CustomPainter {
       oldDelegate.compact != compact;
 }
 
-
-
 class _HealthCard extends StatelessWidget {
   const _HealthCard({
     required this.child,
@@ -1089,8 +1085,6 @@ class _HealthCard extends StatelessWidget {
     );
   }
 }
-
-
 
 class HealthRangeBucket {
   const HealthRangeBucket({required this.minimum, required this.maximum});
@@ -1333,4 +1327,3 @@ int? _averageSleepHrv(HealthSleepSummary summary) {
   if (values.isEmpty) return null;
   return (values.reduce((left, right) => left + right) / values.length).round();
 }
-

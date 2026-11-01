@@ -3034,7 +3034,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get oobeLoginBandBbsDesc => '登录米坛账号以访问米坛资源并准备使用创作者服务';
 
   @override
-  String get oobeLoginLocalNote => '小米和华米账号登录均在本地完成，相关数据不会被发送给小米/华米以外的第三方';
+  String get oobeLoginLocalNote => '小米和华米账号登录均在本地完成\n相关数据不会被发送给小米/华米以外的第三方';
 
   @override
   String get oobeLoginXiaomiDesc => '登录小米账号以同步已绑定的小米设备';
@@ -3059,6 +3059,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get oobeFinish => '完成';
+
+  @override
+  String get oobeRestoreAction => '从备份恢复';
+
+  @override
+  String get oobeRestoreSuccess => '备份恢复成功';
 
   @override
   String get settingsReplayOobe => '重新引导';
@@ -3392,52 +3398,84 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsAdvancedDescription => '查看日志与开发者工具';
 
   @override
-  String get debugServerTitle => '调试服务';
+  String get localServerTitle => '本地 API 服务';
 
   @override
-  String get debugServerDescription => '为可信开发工具提供本地调试接口';
+  String get localServerDescription => '为外部开发与自动化工具提供本地 API 服务';
 
   @override
-  String get debugServerEnable => '启用调试服务';
+  String get localServerEnable => '启用本地 API 服务';
 
   @override
-  String get debugServerEnableDescription => '允许局域网内已批准的客户端检查和控制 OronBox';
+  String get localServerEnableDescription => '允许局域网内已批准的客户端检查和控制 OronBox';
 
   @override
-  String get debugServerEndpoint => '访问地址';
+  String get localServerEndpoint => '访问地址';
 
   @override
-  String get debugServerFingerprint => '服务指纹';
+  String get localServerFingerprint => '服务指纹';
 
   @override
-  String get debugServerPendingClients => '待批准客户端';
+  String get localServerPendingClients => '待批准配对';
 
   @override
-  String get debugServerAuthorizedClients => '已批准客户端';
+  String get localServerAuthorizedClients => '已批准客户端';
 
   @override
-  String get debugServerApprove => '批准';
+  String get localServerApprove => '批准';
 
   @override
-  String get debugServerReject => '拒绝';
+  String get localServerReject => '拒绝';
 
   @override
-  String get debugServerRevoke => '撤销访问';
+  String get localServerRevoke => '撤销访问';
 
   @override
-  String get debugServerNoPendingClients => '没有等待批准的客户端';
+  String get localServerNoPendingClients => '没有等待批准的配对请求';
 
   @override
-  String get debugServerNoAuthorizedClients => '暂无已批准客户端';
+  String get localServerNoAuthorizedClients => '暂无已批准客户端';
 
   @override
-  String get debugServerSecurityNotice => '请只在可信网络中启用此服务';
+  String get localServerSecurityNotice => '请只在可信网络中启用此服务';
 
   @override
-  String get debugServerStartFailed => '调试服务启动失败';
+  String get localServerStartFailed => '本地 API 服务启动失败';
 
   @override
-  String get debugServerStopFailed => '调试服务停止失败';
+  String get localServerStopFailed => '本地 API 服务停止失败';
+
+  @override
+  String get localServerPairingTitle => '允许通过本地 API 控制 OronBox 吗';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '“$clientName” 正在请求管理此设备上的可穿戴服务与命令总线';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Ed25519 SHA-256 指纹';
+
+  @override
+  String get localServerPairingAlwaysAllow => '始终允许来自此计算机的连接';
+
+  @override
+  String get localServerPairingAllow => '允许';
+
+  @override
+  String get localServerPairingDeny => '拒绝';
+
+  @override
+  String get localServerPairingScopes => '请求权限';
+
+  @override
+  String get wifiPasswordInputPlaceholder => '请输入 Wi-Fi 密码';
+
+  @override
+  String get wifiConnectButton => '连接';
+
+  @override
+  String get wifiCancelButton => '取消';
 
   @override
   String get xmsDeveloperMode => 'XMS 开发模式';
@@ -8530,7 +8568,7 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get oobeLoginLocalNote =>
-      'Xiaomi 與 Amazfit 登入完全在此裝置上進行；除 Xiaomi／Amazfit 外，相關資料不會傳送給任何第三方';
+      'Xiaomi 與 Amazfit 登入完全在此裝置上進行\n除 Xiaomi／Amazfit 外，相關資料不會傳送給任何第三方';
 
   @override
   String get oobeLoginXiaomiDesc => '登入 Xiaomi 帳號以同步已繫結的 Xiaomi 裝置';
@@ -8555,6 +8593,12 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get oobeFinish => '完成';
+
+  @override
+  String get oobeRestoreAction => '從備份還原';
+
+  @override
+  String get oobeRestoreSuccess => '備份復原成功';
 
   @override
   String get settingsReplayOobe => '重新開始導覽';
@@ -8888,52 +8932,84 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get settingsAdvancedDescription => '檢視日誌與開發者工具';
 
   @override
-  String get debugServerTitle => '除錯服務';
+  String get localServerTitle => '本機 API 服務';
 
   @override
-  String get debugServerDescription => '為可信任的開發工具提供本機 API';
+  String get localServerDescription => '為外部開發與自動化工具提供本機 API 服務';
 
   @override
-  String get debugServerEnable => '啟用除錯服務';
+  String get localServerEnable => '啟用本機 API 服務';
 
   @override
-  String get debugServerEnableDescription => '允許區域網路中已核准的用戶端檢視及控制 OronBox';
+  String get localServerEnableDescription => '允許區域網路中已核准的用戶端檢視及控制 OronBox';
 
   @override
-  String get debugServerEndpoint => '連線位址';
+  String get localServerEndpoint => '連線位址';
 
   @override
-  String get debugServerFingerprint => '服務指紋';
+  String get localServerFingerprint => '服務指紋';
 
   @override
-  String get debugServerPendingClients => '待核准用戶端';
+  String get localServerPendingClients => '待核准配對';
 
   @override
-  String get debugServerAuthorizedClients => '已核准用戶端';
+  String get localServerAuthorizedClients => '已核准用戶端';
 
   @override
-  String get debugServerApprove => '核准';
+  String get localServerApprove => '核准';
 
   @override
-  String get debugServerReject => '拒絕';
+  String get localServerReject => '拒絕';
 
   @override
-  String get debugServerRevoke => '撤銷存取權';
+  String get localServerRevoke => '撤銷存取權';
 
   @override
-  String get debugServerNoPendingClients => '沒有等待核准的用戶端';
+  String get localServerNoPendingClients => '沒有等待核准的配對請求';
 
   @override
-  String get debugServerNoAuthorizedClients => '目前沒有已核准的用戶端';
+  String get localServerNoAuthorizedClients => '目前沒有已核准的用戶端';
 
   @override
-  String get debugServerSecurityNotice => '請只在可信任的網路中啟用此服務';
+  String get localServerSecurityNotice => '請只在可信任的網路中啟用此服務';
 
   @override
-  String get debugServerStartFailed => '無法啟動除錯服務';
+  String get localServerStartFailed => '無法啟動本機 API 服務';
 
   @override
-  String get debugServerStopFailed => '無法停止除錯服務';
+  String get localServerStopFailed => '無法停止本機 API 服務';
+
+  @override
+  String get localServerPairingTitle => '允許透過本機 API 控制 OronBox 嗎';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '「$clientName」正在要求管理此裝置上的穿戴服務與命令匯流排';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Ed25519 SHA-256 指紋';
+
+  @override
+  String get localServerPairingAlwaysAllow => '一律允許來自這部電腦的連線';
+
+  @override
+  String get localServerPairingAllow => '允許';
+
+  @override
+  String get localServerPairingDeny => '拒絕';
+
+  @override
+  String get localServerPairingScopes => '請求權限';
+
+  @override
+  String get wifiPasswordInputPlaceholder => '請輸入 Wi-Fi 密碼';
+
+  @override
+  String get wifiConnectButton => '連線';
+
+  @override
+  String get wifiCancelButton => '取消';
 
   @override
   String get xmsDeveloperMode => 'XMS 開發者模式';

@@ -129,7 +129,6 @@ class HealthSleepCard extends StatelessWidget {
 /// daily score, not a 24-hour sampled signal, so a sparkline would imply a
 /// precision the device does not provide.
 
-
 class _SleepCardStatsRow extends StatelessWidget {
   const _SleepCardStatsRow({required this.entries});
 
@@ -178,8 +177,6 @@ class _SleepCardStatsRow extends StatelessWidget {
     );
   }
 }
-
-
 
 class HealthSleepTimeline extends StatelessWidget {
   const HealthSleepTimeline({
@@ -241,9 +238,7 @@ class HealthSleepHrvChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final points = summary.hrvPoints
-        .where((point) => point.value > 0)
-        .toList()
+    final points = summary.hrvPoints.where((point) => point.value > 0).toList()
       ..sort((left, right) => left.timestamp.compareTo(right.timestamp));
     final pointValues = points.map((point) => point.value).toList();
     final average = (summary.averageHrv != null && summary.averageHrv! > 0)
@@ -379,8 +374,6 @@ class _SleepStageLegend extends StatelessWidget {
     );
   }
 }
-
-
 
 class _SleepTimelinePainter extends CustomPainter {
   _SleepTimelinePainter({
@@ -807,5 +800,3 @@ List<HealthSleepHrvPoint> _downsampleSleepHrvPoints(
 int _minInt(int left, int right) => left < right ? left : right;
 
 int _maxInt(int left, int right) => left > right ? left : right;
-
-

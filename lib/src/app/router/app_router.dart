@@ -59,7 +59,7 @@ import 'package:oronbox/src/features/settings/pages/app_data_page.dart';
 import 'package:oronbox/src/features/settings/pages/bandbbs_account_page.dart';
 import 'package:oronbox/src/features/settings/pages/feedback_page.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
-import 'package:oronbox/src/features/settings/pages/debug_server_page.dart';
+import 'package:oronbox/src/features/settings/pages/local_server_page.dart';
 import 'package:oronbox/src/features/settings/services/oronbox_support_api.dart';
 import 'package:oronbox/src/features/plugins/pages/plugin_detail_page.dart';
 import 'package:oronbox/src/features/plugins/pages/plugins_page.dart';
@@ -650,8 +650,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     ],
                   ),
                   GoRoute(
-                    path: 'debug-server',
-                    builder: (context, state) => const DebugServerPage(),
+                    path: 'local-server',
+                    builder: (context, state) => const LocalServerPage(),
                   ),
                   GoRoute(
                     path: 'bandbbs',

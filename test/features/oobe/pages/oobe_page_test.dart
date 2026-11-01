@@ -96,6 +96,7 @@ void main() {
 
     // Accounts.
     expect(find.text('登录账号'), findsWidgets);
+    expect(find.text('从备份恢复'), findsOneWidget);
     expect(find.text('登录小米账号以同步已绑定的小米设备'), findsOneWidget);
     expect(find.text('登录华米账号以访问华米应用商店资源'), findsOneWidget);
     await tester.tap(find.text('下一步'));

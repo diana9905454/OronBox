@@ -265,7 +265,7 @@ class _XiaomiHealthPageState extends ConsumerState<XiaomiHealthPage> {
             )
           else
             SliverToBoxAdapter(
-              child: SizedBox(height: bottomContentPadding(context, extra: 24)),
+              child: SizedBox(height: bottomContentPadding(context, extra: 16)),
             ),
         ],
       ),

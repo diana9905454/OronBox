@@ -661,7 +661,7 @@ class _RuntimeLogsPageState extends ConsumerState<RuntimeLogsPage> {
         maxWidth: StyleConstants.pageMaxWidth,
         contentPadding: EdgeInsets.only(
           top: 8,
-          bottom: bottomContentPadding(context, extra: 24),
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(
