@@ -46,7 +46,7 @@ class OronBoxSupportApi {
       return AppReleaseInfo.fromJson(_map(response.data));
     } on DioException {
       final response = await _dio.get<Object?>(
-        'https://api.github.com/repos/zxor-org/oronbox/releases/latest',
+        'https://api.github.com/repos/OronCanopy/OronBox/releases/latest',
         options: Options(headers: {'Accept': 'application/vnd.github+json'}),
       );
       final release = GitHubRelease.fromJson(_map(response.data));

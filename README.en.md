@@ -7,20 +7,20 @@
 <p align="center">A pretty fast wearable management tool for VelaOS and ZeppOS, built with Flutter</p>
 
 <p align="center">
-  <a href="https://github.com/zxor-org/OronBox/releases"><img src="https://img.shields.io/github/v/release/zxor-org/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
-  <a href="https://github.com/zxor-org/OronBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/zxor-org/OronBox/ci.yml?label=CI" alt="CI status"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/zxor-org/OronBox" alt="License"></a>
-  <a href="https://github.com/zxor-org/OronBox/stargazers"><img src="https://img.shields.io/github/stars/zxor-org/OronBox?style=flat" alt="GitHub stars"></a>
+  <a href="https://github.com/OronCanopy/OronBox/releases"><img src="https://img.shields.io/github/v/release/OronCanopy/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
+  <a href="https://github.com/OronCanopy/OronBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/OronCanopy/OronBox/ci.yml?label=CI" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/OronCanopy/OronBox" alt="License"></a>
+  <a href="https://github.com/OronCanopy/OronBox/stargazers"><img src="https://img.shields.io/github/stars/OronCanopy/OronBox?style=flat" alt="GitHub stars"></a>
 </p>
 
 <p align="center"><a href="README.md">简体中文</a> · English</p>
 
 ## Quick links
 
-- [Download the latest release](https://github.com/zxor-org/OronBox/releases)
+- [Download the latest release](https://github.com/OronCanopy/OronBox/releases)
 - [User documentation](https://oronbox.zxor.org/user)
 - [Developer documentation](https://oronbox.zxor.org/developer)
-- [Report an issue](https://github.com/zxor-org/OronBox/issues)
+- [Report an issue](https://github.com/OronCanopy/OronBox/issues)
 
 ## What is OronBox?
 
@@ -87,7 +87,7 @@ OronBox is a cross-platform wearable device management tool that connects to and
 
 ## CLI Tool
 
-OronBox provides an official standalone cross-platform command-line client, [OronBox-CLI](https://github.com/zxor-org/OronBox-CLI)
+OronBox provides an official standalone cross-platform command-line client, [OronBox-CLI](https://github.com/OronCanopy/OronBox-CLI)
 Once **Local API Server** is enabled in the OronBox client under **Settings** -> **Advanced** -> **Local API Server**, you can manage wearable devices, install apps and watch faces, and pull diagnostic logs directly from your computer terminal over the local network:
 
 ```bash
@@ -101,7 +101,7 @@ oronbox-cli pair
 npx oronbox-cli pair
 ```
 
-For more details, see the [OronBox-CLI repository](https://github.com/zxor-org/OronBox-CLI) and its [User Guide](https://github.com/zxor-org/OronBox-CLI/blob/main/GUIDE.en.md) and [API Specification](https://github.com/zxor-org/OronBox-CLI/blob/main/API.en.md).
+For more details, see the [OronBox-CLI repository](https://github.com/OronCanopy/OronBox-CLI) and its [User Guide](https://github.com/OronCanopy/OronBox-CLI/blob/main/GUIDE.en.md) and [API Specification](https://github.com/OronCanopy/OronBox-CLI/blob/main/API.en.md).
 
 ## Build from source
 
@@ -212,10 +212,10 @@ OronBox uses or references the following projects:
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=zxor-org%2FOronBox&type=date&legend=bottom-right">
+<a href="https://www.star-history.com/?repos=OronCanopy%2FOronBox&type=date&legend=bottom-right">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&theme=dark&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHnN908" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHnN908" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&theme=dark&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHnN908" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHnN908" />
  </picture>
 </a>

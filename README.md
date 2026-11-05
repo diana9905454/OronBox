@@ -7,20 +7,20 @@
 <p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建</p>
 
 <p align="center">
-  <a href="https://github.com/zxor-org/OronBox/releases"><img src="https://img.shields.io/github/v/release/zxor-org/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
-  <a href="https://github.com/zxor-org/OronBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/zxor-org/OronBox/ci.yml?label=CI" alt="CI status"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/zxor-org/OronBox" alt="License"></a>
-  <a href="https://github.com/zxor-org/OronBox/stargazers"><img src="https://img.shields.io/github/stars/zxor-org/OronBox?style=flat" alt="GitHub stars"></a>
+  <a href="https://github.com/OronCanopy/OronBox/releases"><img src="https://img.shields.io/github/v/release/OronCanopy/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
+  <a href="https://github.com/OronCanopy/OronBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/OronCanopy/OronBox/ci.yml?label=CI" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/OronCanopy/OronBox" alt="License"></a>
+  <a href="https://github.com/OronCanopy/OronBox/stargazers"><img src="https://img.shields.io/github/stars/OronCanopy/OronBox?style=flat" alt="GitHub stars"></a>
 </p>
 
 <p align="center"><a href="README.en.md">English</a> · 简体中文</p>
 
 ## 快速入口
 
-- [下载最新版本](https://github.com/zxor-org/OronBox/releases)
+- [下载最新版本](https://github.com/OronCanopy/OronBox/releases)
 - [用户文档](https://oronbox.zxor.org/user)
 - [开发文档](https://oronbox.zxor.org/developer)
-- [问题反馈](https://github.com/zxor-org/OronBox/issues)
+- [问题反馈](https://github.com/OronCanopy/OronBox/issues)
 
 ## OronBox 是什么？
 
@@ -88,7 +88,7 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 
 ## CLI 工具
 
-OronBox 提供独立的跨平台官方命令行客户端 [OronBox-CLI](https://github.com/zxor-org/OronBox-CLI)
+OronBox 提供独立的跨平台官方命令行客户端 [OronBox-CLI](https://github.com/OronCanopy/OronBox-CLI)
 在 OronBox 客户端开启【设置】->【高级设置】->【本地 API 服务】后，即可在计算机终端通过局域网免密质询连接，执行穿戴设备管理、应用与表盘安装、实时系统诊断日志导出等操作：
 
 ```bash
@@ -102,7 +102,7 @@ oronbox-cli pair
 npx oronbox-cli pair
 ```
 
-详细用法参见 [OronBox-CLI 仓库](https://github.com/zxor-org/OronBox-CLI) 及其[使用指南](https://github.com/zxor-org/OronBox-CLI/blob/main/GUIDE.md)与 [API 规范](https://github.com/zxor-org/OronBox-CLI/blob/main/API.md)
+详细用法参见 [OronBox-CLI 仓库](https://github.com/OronCanopy/OronBox-CLI) 及其[使用指南](https://github.com/OronCanopy/OronBox-CLI/blob/main/GUIDE.md)与 [API 规范](https://github.com/OronCanopy/OronBox-CLI/blob/main/API.md)
 
 ## 从源码构建
 
@@ -213,10 +213,10 @@ OronBox 使用或参考了以下项目：
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=zxor-org%2FOronBox&type=date&legend=bottom-right">
+<a href="https://www.star-history.com/?repos=OronCanopy%2FOronBox&type=date&legend=bottom-right">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&theme=dark&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&theme=dark&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
  </picture>
 </a>

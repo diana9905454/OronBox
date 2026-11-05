@@ -22,14 +22,14 @@ deployed, or modified by third parties.
 - 应用界面：「关于软件」页面或同等显著位置
 
 署名内容为以下三项，在界面上的呈现须为文本形式，且不得折叠、隐藏或需额外操作才能查看：
-`OronBox`、`OrPudding`、`https://github.com/zxor-org/OronBox`
+`OronBox`、`OrPudding`、`https://github.com/OronCanopy/OronBox`
 仓库地址可以可点击链接或纯文本任一形式呈现；修改版本重构界面或改写说明文件后，仍须在同等显著、可发现的位置保留同样内容
 
 When you convey OronBox or a modified version, you must preserve the following attribution in all
 three of the following places: (1) a prominent place in the project description file (README or
 equivalent); (2) a legal notice file distributed with the package; and (3) the application
 interface, in the About screen or an equally prominent location. The attribution consists of the
-three items `OronBox`, `OrPudding`, and `https://github.com/zxor-org/OronBox`. On the interface it
+three items `OronBox`, `OrPudding`, and `https://github.com/OronCanopy/OronBox`. On the interface it
 must be shown as text, without requiring the user to expand, unhide, or take any additional step;
 the repository address may be shown as a clickable link or as plain text. If a modified version
 restructures the interface or rewrites the description file, it must still preserve the same

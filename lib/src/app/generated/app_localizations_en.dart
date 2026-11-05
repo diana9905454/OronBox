@@ -5426,6 +5426,19 @@ class AppLocalizationsEn extends AppLocalizations {
       'Unable to save account or device changes\nPlease retry';
 
   @override
+  String get resetPrivateStorageAction => 'Reset local credentials';
+
+  @override
+  String get resetPrivateStorageTitle => 'Reset local accounts and devices';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      'You will need to sign in again and reconnect your devices after resetting\nYour saved health history and application settings will not be lost';
+
+  @override
+  String get confirmReset => 'Reset';
+
+  @override
   String get voiceAsrStorageFull =>
       'Not enough storage\nFree up space and try again';
 

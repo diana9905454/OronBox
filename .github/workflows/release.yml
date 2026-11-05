@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: 3.47.5
+  FLUTTER_VERSION: 3.47.9
   ORONBOX_RETRY_ATTEMPTS: 3
   ORONBOX_RETRY_DELAY_SECONDS: 10
 

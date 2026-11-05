@@ -44,6 +44,46 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+  testWidgets(
+    'loading indicator centers within remaining viewport when replies are empty',
+    (tester) async {
+      final completer = Completer<CommandResult>();
+      final host = _BlockingThreadHost(completer.future);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [applicationHostProvider.overrideWithValue(host)],
+          child: MaterialApp(
+            locale: const Locale('zh'),
+            localizationsDelegates: appLocalizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const CommentThreadPage(
+              resourceId: 'resource',
+              commentId: 'target-1',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final indicator = find.byType(CircularProgressIndicator);
+      expect(indicator, findsOneWidget);
+      final rect = tester.getRect(indicator);
+      expect(rect.center.dy, greaterThan(250));
+      expect(rect.center.dy, lessThan(400));
+      completer.complete(const CommandResult.success({}));
+      await tester.pumpAndSettle();
+    },
+  );
+}
+
+class _BlockingThreadHost implements OronBoxCommandBus {
+  _BlockingThreadHost(this.future);
+  final Future<CommandResult> future;
+  @override
+  Stream<CommandEvent> get events => const Stream.empty();
+  @override
+  Future<void> close() async {}
+  @override
+  Future<CommandResult> execute(OronBoxCommand c) => future;
 }
 
 class _ThreadHost implements OronBoxCommandBus {

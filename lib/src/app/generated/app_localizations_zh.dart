@@ -5187,6 +5187,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get privateStateSaveFailed => '未能保存账号或设备的更改\n请重试';
 
   @override
+  String get resetPrivateStorageAction => '重置本地凭证';
+
+  @override
+  String get resetPrivateStorageTitle => '重置本地账号与设备';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      '重置后需要重新登录账号并重新连接设备\n已保存的运动健康历史数据与应用设置不会丢失';
+
+  @override
+  String get confirmReset => '确认重置';
+
+  @override
   String get voiceAsrStorageFull => '存储空间不足\n请清理后重试';
 
   @override
@@ -10890,6 +10903,19 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get privateStateSaveFailed => '未能儲存帳號或裝置的變更\n請重試';
+
+  @override
+  String get resetPrivateStorageAction => '重設本機憑證';
+
+  @override
+  String get resetPrivateStorageTitle => '重設本機帳號與裝置';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      '重設後需要重新登入帳號並重新連接裝置\n已儲存的運動健康歷程記錄與應用程式設定不會遺失';
+
+  @override
+  String get confirmReset => '確認重設';
 
   @override
   String get voiceAsrStorageFull => '儲存空間不足\n請清理後重試';

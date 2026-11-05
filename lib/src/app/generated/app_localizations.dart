@@ -9778,6 +9778,30 @@ abstract class AppLocalizations {
   /// **'Unable to save account or device changes\nPlease retry'**
   String get privateStateSaveFailed;
 
+  /// No description provided for @resetPrivateStorageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local credentials'**
+  String get resetPrivateStorageAction;
+
+  /// No description provided for @resetPrivateStorageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local accounts and devices'**
+  String get resetPrivateStorageTitle;
+
+  /// No description provided for @resetPrivateStorageMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to sign in again and reconnect your devices after resetting\nYour saved health history and application settings will not be lost'**
+  String get resetPrivateStorageMessage;
+
+  /// No description provided for @confirmReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get confirmReset;
+
   /// No description provided for @voiceAsrStorageFull.
   ///
   /// In en, this message translates to:

@@ -50,7 +50,7 @@ The publisher must select a platform and resource type before uploading at least
 
 OronBox analyzes file contents. A submission may be rejected when the detected platform or type differs from the publisher's selection.
 
-Submission creates an immutable revision snapshot containing text, images, files, analysis results, device bindings, and external publication settings. Later changes require a new revision and a new review.
+Submission creates an immutable version archive containing text, images, files, analysis results, device bindings, and external publication settings. Later changes require a new revision and a new review.
 
 A resource cannot be changed from VelaOS to Zepp OS, or vice versa. One file may support multiple devices and one revision may contain multiple device-specific files.
 
@@ -165,4 +165,4 @@ The governing-law and dispute-resolution provisions of the OronBox Terms and Dis
 
 - Official instance operator: OronBox Operations Team
 - Publishing and complaints: t3164473115@163.com
-- Public discussion: <https://github.com/zxor-org/OronBox/discussions>
+- Public discussion: <https://github.com/OronCanopy/OronBox/discussions>

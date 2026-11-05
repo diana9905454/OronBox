@@ -5461,6 +5461,19 @@ class AppLocalizationsRu extends AppLocalizations {
       'Не удалось сохранить изменения аккаунта или устройства\nПовторите попытку';
 
   @override
+  String get resetPrivateStorageAction => 'Сбросить учётные данные';
+
+  @override
+  String get resetPrivateStorageTitle => 'Сбросить аккаунты и устройства';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      'После сброса потребуется повторно войти в аккаунт и переподключить устройства\nСохранённая история здоровья и настройки приложения не будут потеряны';
+
+  @override
+  String get confirmReset => 'Сбросить';
+
+  @override
   String get voiceAsrStorageFull =>
       'Недостаточно места\nОсвободите место и повторите попытку';
 

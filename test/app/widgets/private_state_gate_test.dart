@@ -76,6 +76,50 @@ void main() {
       expect(find.byType(CircularProgressIndicator), findsNothing);
     },
   );
+
+  testWidgets('allows user to reset corrupted storage and enter app', (
+    tester,
+  ) async {
+    SharedPreferences.setMockInitialValues({'app_locale': 'en'});
+    await SharedPrefsService.instance.init();
+    await SharedPrefsService.instance.reload();
+    final storage = _UnavailableStore();
+    PrivateAppState.instanceForTesting = storage;
+    addTearDown(() => PrivateAppState.instanceForTesting = null);
+    var built = false;
+    await tester.pumpWidget(
+      ProviderScope(
+        child: PrivateStateGate(
+          child: Builder(
+            builder: (_) {
+              built = true;
+              return const MaterialApp(home: Scaffold(body: Text('Recovered')));
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(built, false);
+    expect(find.text('Reset local credentials'), findsOneWidget);
+
+    await tester.tap(find.text('Reset local credentials'));
+    await tester.pumpAndSettle();
+    expect(find.text('Reset local accounts and devices'), findsOneWidget);
+
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(storage.resetCalled, false);
+    expect(built, false);
+
+    await tester.tap(find.text('Reset local credentials'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Reset'));
+    await tester.pumpAndSettle();
+    expect(storage.resetCalled, true);
+    expect(built, true);
+    expect(find.text('Recovered'), findsOneWidget);
+  });
 }
 
 class _ReadyStore extends PrivateAppState {
@@ -88,10 +132,20 @@ class _ReadyStore extends PrivateAppState {
 
 class _UnavailableStore extends PrivateAppState {
   bool available = false;
+  bool resetCalled = false;
+  @override
+  bool get isReady => available;
+
   @override
   Future<void> initialize() async {
     if (!available) {
       throw const PrivateStateException('private_state_read_failed');
     }
+  }
+
+  @override
+  Future<void> resetCorruptedState() async {
+    resetCalled = true;
+    available = true;
   }
 }

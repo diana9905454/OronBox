@@ -5,134 +5,143 @@ Effective date: 2026-10-19
 
 ## 1. Service overview
 
-OronBox is a community-maintained, third-party, open-source wearable-device management tool. It can connect devices, display device information, manage apps and watchfaces, install resources, and access community resource services.
+OronBox is a community-maintained, third-party, open-source wearable device management tool providing capabilities including device connectivity, status inspection, app and watchface management, resource installation, and community resource access.
 
-OronBox is unrelated to device manufacturers and is not endorsed or authorized by them. It is also independent of third-party platforms including BandBBS, AstroBox, GitHub, and Cloudflare.
+OronBox is completely independent of wearable device manufacturers, has received no endorsement or authorization from any manufacturer, and operates independently from third-party platforms such as BandBBS, AstroBox, GitHub, and Cloudflare.
 
-The official online service is separate from self-hosted OronBox Server instances. Each self-hosted operator is responsible for its own service and data processing.
+The official online service operates independently from self-hosted OronBox Server instances. Operators of self-hosted instances bear exclusive responsibility for their services and data management.
 
 ## 2. Conditions of use
 
-You may connect only devices you lawfully control, and use only accounts, credentials, and resources you are entitled to use.
+Users shall connect only wearable devices over which they possess lawful ownership or complete authorization, and utilize only lawfully acquired accounts, device authentication credentials, and resource sources.
 
-The official online service uses BandBBS OAuth login. You must use a BandBBS account you lawfully control, and must not use, rent, or resell another person's account.
+When signing in via third-party accounts, users must utilize accounts lawfully owned by themselves; impersonation, unauthorized takeover, renting, or lending of another person's account is strictly prohibited.
 
-If you act on behalf of another person or organization, you must be properly authorized and are responsible for those actions.
+When acting on behalf of any legal entity or organization, the operator must possess sufficient lawful authorization and assumes full legal liability for such actions.
 
-If your BandBBS account expires or its authorization is revoked, features that require login may become unavailable.
+If associated third-party accounts are suspended or authorizations revoked, online features dependent on login status may become unavailable.
 
-You must not use OronBox to access another person's device without authorization, bypass access controls, distribute malicious content, infringe rights, or commit any other unlawful act.
+Users must not use OronBox to penetrate external devices, bypass security access controls, distribute malware or illegal content, infringe lawful rights of others, or engage in any unlawful activities.
 
-Keep device credentials, accounts, and sessions secure, and disconnect and revoke authorizations immediately if you suspect a problem.
+Users are obligated to protect their device authentication keys, account credentials, and security tokens. If abnormal access or credential leaks are suspected, the user must promptly disconnect devices, revoke authorizations, and notify project maintainers.
 
-You must not:
+Users are strictly prohibited from engaging in the following actions:
 
-- Infringe others' intellectual property, privacy, personal rights, or other lawful rights
-- Upload malicious code, backdoors, credential stealers, or destructive content
-- Collect, upload, or share accounts, tokens, personal information, or device data without authorization
-- Attack, interfere with, or bypass security measures of OronBox or third-party services
-- Leak, resell, or abuse OAuth tokens, sessions, or publication capabilities
-- Create spam, inflate metrics, or interfere with review
-- Impersonate OronBox, device manufacturers, BandBBS, AstroBox, organizations, or creators
-- Evade review, restrictions, or bans by changing accounts or other means
+- Infringing intellectual property, privacy, personal data rights, reputation, or other lawful rights of others
+- Uploading, transmitting, or deploying resource files containing trojans, backdoors, credential-stealing payloads, or destructive commands
+- Collecting, harvesting, uploading, or distributing user accounts, credentials, personal data, or device communication logs without authorization
+- Attacking, degrading, disrupting, or attempting to bypass security mechanisms or rate limits of OronBox or affiliated third-party services
+- Disclosing, reselling, renting, or abusing authorization credentials, session tokens, or developer publishing pipelines
+- Generating fake reviews, inflating metrics via automation, fabricating interactions, or interfering with normal resource review processes
+- Impersonating OronBox maintainers, device manufacturers, BandBBS, AstroBox, other organizations, or verified creators
+- Evading review decisions, functional restrictions, or account penalties via alternate accounts or evasive mechanisms
 
 ## 3. Device operations and installation risks
 
-OronBox cannot guarantee that a third-party resource is compatible with a particular device, system version, or regional variant.
+OronBox cannot guarantee that third-party applications, watchfaces, or firmware are fully compatible with specific device models, firmware builds, or regional hardware variants.
 
-Connecting devices, installing apps or watchfaces, transferring files, and other operations may fail because of incorrect resources, device differences, interrupted connections, or system restrictions. Consequences may include feature failure, data loss, increased battery use, system instability, and in extreme cases a device that can no longer boot or operate (commonly called "bricking"), which may affect the device warranty.
+Low-level operations including device connection, firmware interaction, and watchface or app deployment may fail due to package flaws, hardware variances, wireless dropouts, or permission limits. Such failures may lead to functional degradation, local data loss, increased power consumption, or system instability; in severe cases, the device may become unbootable or unresponsive (commonly referred to as "bricking") and forfeit original manufacturer warranty eligibility.
 
-Check the device model, resource platform, type, and source before operating, and decide for yourself whether to install.
+Before initiating any installation or flashing operation, users must verify the device model, architecture, resource version, and creator reputation, independently evaluate associated risks, and make prudent decisions.
 
-When OronBox explicitly warns of a risk operation, forced installation, or platform mismatch, continuing means you understand the warning and accept the corresponding risk.
+When the client explicitly issues warnings regarding "Risk Operations", "Force Installation", or "Platform Mismatch", continuing the action signifies that the user fully understands and voluntarily assumes all attendant hardware and data risks.
 
-Necessary installation logs and diagnostics are processed under the Privacy Notice.
+Diagnostic information generated during installation and hardware interaction is handled in strict accordance with the Privacy Notice.
 
-## 4. Open-source disclaimer
+## 4. Speech experiments and local data export
 
-The OronBox client and official server source code are provided under GNU Affero General Public License v3.0. If you modify OronBox and provide the corresponding functionality to others over a network, you must provide those users the complete corresponding source as required by AGPL v3.0. The license text controls.
+The voice assistant experimental feature represents an exploratory test capability activated solely upon explicit user initiation.
 
-OronBox is provided as-is, without a promise of fitness for a particular purpose, uninterrupted availability, absence of defects, or compatibility with every device.
+Third-party online recognition test pipelines may encounter latency, transcription errors, or service termination due to provider policy changes, API alterations, rate limits, or maintenance. This capability must never serve as the basis for emergency services, medical triage, legal decisions, or high-risk scenarios. Because acoustic environments and algorithms may produce transcription discrepancies, users must independently verify text accuracy before delivering commands to wearables.
 
-Maintainers will make reasonable efforts to fix known issues, but third-party device protocols, websites, OAuth services, resource sources, and download links may not remain available.
+Application data management, local backup exports, and audio exports initiated by users produce plain files stored on user-selected local media. Users bear full responsibility for the preservation, transmission security, and subsequent processing of all exported files.
 
-To the extent permitted by law, OronBox and its maintainers are not responsible for indirect loss, lost expected benefits, or damage caused by third-party resources or services. This does not exclude liability that applicable law does not permit us to exclude.
+Offline recognition models and third-party runtimes are subject to their respective open-source or commercial licenses, reviewable within in-app notices.
 
-## 5. Third-party services
+## 5. Open-source disclaimer
 
-BandBBS, GitHub, AstroBox, Cloudflare, device manufacturers, and other providers operate under their own terms.
+The OronBox client and official server source code are licensed under the GNU Affero General Public License v3.0 (AGPL v3.0). Any entity modifying OronBox and providing corresponding functionality over computer networks must make the modified source code available to network users pursuant to AGPL v3.0 requirements.
 
-OronBox does not guarantee that third-party content is authentic, safe, or durable, or that content you submit will be accepted by BandBBS or AstroBox.
+The software and services are provided on an "AS-IS" and "AS-AVAILABLE" basis. To the maximum extent permitted by applicable law, maintainers expressly disclaim all warranties, whether express, implied, or statutory, including implied warranties of merchantability, fitness for a particular purpose, title, non-infringement, defect-free operation, or uninterrupted availability.
 
-When visiting, authorizing, or publishing to a third party, you must also follow that platform's terms and rules.
+Maintainers will make reasonable efforts to resolve known software defects, but cannot guarantee that proprietary wearable protocols, third-party websites, authorization services, community repositories, or CDN acceleration networks will remain permanently accessible or stable.
 
-Third parties may change interfaces, permissions, review standards, or service status, causing delays, interruptions, or termination of login, upload, download, publication, or search features.
+To the fullest extent permitted by law, OronBox and its contributors or maintainers shall not be liable for any indirect, incidental, punitive, special, or consequential damages resulting from the use or inability to use the software, including lost profits, goodwill impairment, data loss, device destruction, operational disruption, or disputes arising from third-party resources.
 
-## 6. Official online service
+This section does not exclude liability that cannot be excluded under applicable law, nor liability resulting from intentional misconduct or gross negligence.
 
-For security, stability, legal compliance, or community administration, the maintainers may restrict accounts, suspend publishing, reject resources, remove content, or stop part of the online service. Measures include warnings, required corrections, restricted features, revoked sessions, suspended submissions or external publication, delisted resources, revoked creator eligibility, and temporary or permanent account disabling.
+## 6. Third-party services
 
-Urgent action may be taken before notice for malware, credential theft, real device risk, serious infringement, fraud, token abuse, platform attacks, or clear enforcement evasion.
+BandBBS, GitHub, AstroBox, Cloudflare, device manufacturers, and other third-party providers operate their services independently under their own terms and policies.
 
-Measures consider the nature of the violation, intent, actual harm, impact, whether the user proactively fixed the issue, cooperation with investigation, repeat violations, and evasion attempts.
+OronBox cannot guarantee the authenticity, legality, safety, or continued availability of third-party content, nor does it guarantee that submissions will be accepted or published by BandBBS or AstroBox.
 
-Except where urgency, investigation confidentiality, or anti-evasion needs prevent it, OronBox will identify the affected item, primary reason, and appeal path.
+When navigating to third-party platforms, utilizing third-party authorization services, or publishing data externally via the client, users must concurrently comply with applicable third-party platform rules.
 
-The official online service may be adjusted or stopped. The maintainers will announce changes in advance when reasonably possible, except for urgent security measures.
+Third parties may alter service interfaces, rules, or availability at any time, which may cause latency, degradation, or termination of client features including login, uploading, downloading, synchronization, or querying.
 
-## 7. Content and intellectual property
+## 7. Official online service
 
-You remain responsible for content you submit and retain your lawful rights.
+Official maintainers reserve the right, based on reasonable needs of network security, system stability, legal compliance, or community governance, to restrict accounts, suspend publishing, reject resources, delist content, or discontinue specific online features. Available administrative measures include issuing warnings, restricting permissions, invalidating sessions, suspending submissions, revoking external publishing eligibility, delisting resources, revoking creator status, and temporary or permanent account bans.
 
-Using OronBox does not transfer ownership or copyright of your resources. Creators grant OronBox only the permissions required by the Resource Publishing Agreement, for storage, processing, review, public distribution, and user-selected third-party publication.
+Upon discovering malicious payloads, credential-harvesting mechanisms, hardware safety threats, serious intellectual property infringement, fraudulent activities, credential abuse, network attacks, or evasive behavior, maintainers reserve the right to deploy emergency protective interventions prior to notification.
 
-Review is not a guarantee of legality, security, quality, compatibility, or ownership of a resource.
+When enforcing compliance measures, maintainers will consider the severity, degree of fault, actual damage, blast radius, proactive remediation, investigative cooperation, repeat violations, and evasion attempts.
 
-The AGPL v3.0 license applies to the OronBox client and official server code, not automatically to uploaded resources, trademarks, images, or third-party content.
+Except during emergency containment, regulatory inquiries, or anti-evasion necessity, maintainers will endeavor to inform affected parties of the decision, factual grounds, and appeal channels.
 
-The OronBox name and logo must not be used to imply official endorsement, partnership, or source confusion. Third-party names and logos belong to their respective owners.
+The official online service may be adjusted or discontinued due to architectural upgrades or operational roadmaps. Maintainers will provide advance notice to the community where reasonably feasible, excluding urgent security incidents.
 
-## 8. Cooperation with third parties
+## 8. Content and intellectual property
 
-For suspected illegality, infringement, security harm, or violation of third-party rules, OronBox may report the minimum necessary resource content, file hashes, external identifiers, repositories, commits, pull requests, timestamps, and review records to relevant platforms, rightsholders, or authorities.
+Users retain full legal responsibility for all content created, uploaded, submitted, or published through the client and official online services, retaining all lawful intellectual property rights.
 
-OAuth tokens, session tokens, and unrelated data are not routinely disclosed.
+Using OronBox does not transfer ownership or copyright in user resources. Creators grant OronBox a non-exclusive license under the Resource Publishing Agreement solely for storage hosting, technical processing, compliance review, network distribution, and synchronized third-party publishing pursuant to user instructions.
 
-IP, user-agent, device, and session information is disclosed only when reasonably necessary for serious account-security, automated-abuse, ban-evasion, or other serious security investigations.
+Format verification and security reviews conducted by OronBox do not constitute express or implied warranties regarding legality, safety, utility, compatibility, or undisputed title of any resource.
 
-Third parties handle matters under their own rules; OronBox decisions and third-party decisions do not replace each other.
+The OronBox client and official server code are governed by the AGPL v3.0 license, which does not automatically extend to user-uploaded binary packages, artwork, trademarks, or third-party content.
 
-## 9. Changes and termination
+The OronBox name, logo, and visual marks are protected by law and must not be used for commercial promotion or misleading claims of endorsement, sponsorship, or affiliation without explicit authorization. Third-party trademarks and names remain the property of their respective owners.
 
-OronBox may adjust the service based on testing progress, security needs, legal requirements, third-party interface changes, and community maintenance capacity.
+## 9. Cooperation with third parties
 
-You may stop using the official online service and request account deletion. Data handling after deletion follows the Privacy Notice.
+When specific resources or user actions are suspected of violating laws, infringing intellectual property, threatening cybersecurity, or breaching partner rules, OronBox may report necessary incident data to BandBBS, AstroBox-Repo, GitHub, affected rightsholders, or regulatory authorities. Disclosures adhere strictly to the principle of least privilege, encompassing resource metadata, file hashes, external publication identifiers, repository data, git commits, pull requests, timestamps, and audit records.
 
-Network failures, third-party outages, security incidents, force majeure, or other reasonably uncontrollable factors may interrupt the service. Maintainers will attempt to restore it where reasonable.
+User authorization credentials and data unrelated to the incident are strictly excluded from routine cooperation disclosures.
 
-## 10. Document changes
+Operational logs and device identifiers are provided only when strictly necessary to address account compromise, network attacks, automated abuse, or malicious evasion.
 
-Material changes to functionality or data processing will be reflected in these documents. New OAuth scopes, broader third-party publication operations, or other material changes require renewed notice and confirmation where necessary.
+Third-party platforms investigate and resolve matters under their own governance rules. OronBox decisions and third-party actions operate independently and do not substitute for one another.
 
-## 11. Governing law and disputes
+## 10. Service changes and termination
 
-The official OronBox instance is maintained by the OronBox Operations Team, primarily from Wanzhou District, Chongqing, China.
+Maintainers may dynamically adjust service scope and capabilities based on development milestones, security baselines, regulatory shifts, API iterations, and community resources.
 
-The primary server is located in Hong Kong, China. Account, session, OAuth credential, resource, and other necessary data may be processed outside your location; public resources may be stored and distributed through Cloudflare's network.
+Users may discontinue using the official online service and request account deletion at any time, with post-deletion data handling governed by the Privacy Notice.
 
-The formation, validity, interpretation, performance, and dispute resolution of these Terms are governed by the laws of the People's Republic of China.
+Where service disruptions occur due to telecommunication failures, cloud infrastructure outages, cyber attacks, force majeure, or factors beyond reasonable control, maintainers will make reasonable recovery efforts but disclaim liability for resulting damages.
 
-The parties shall first attempt to resolve a dispute amicably through the public contact channels. If no resolution is reached, either party may bring proceedings before a competent People's Court in Wanzhou District, Chongqing.
+## 11. Document updates
 
-This section does not restrict any right to submit a lawful complaint or seek another remedy provided by law.
+When software capabilities, operational models, or legal standards undergo material changes, maintainers will update these documents accordingly.
 
-## 12. Contact
+Where modifications involve expanded third-party authorization scopes, wider third-party publishing operations, or terms materially impacting user rights, prominent notices will be presented in relevant interfaces, and renewed affirmative consent will be obtained where necessary.
+
+## 12. Governing law and dispute resolution
+
+The official OronBox instance is operated by the OronBox Operations Team, primarily managed from Wanzhou District, Chongqing, China.
+
+The primary server is situated in Hong Kong, China. Account statuses, session data, credentials, resource objects, and other necessary service data may be processed in jurisdictions outside the user's location; public resource copies may be cached and delivered across Cloudflare's global network.
+
+The formation, validity, interpretation, performance, amendment, and dispute resolution of these Terms shall be governed by the laws of the People's Republic of China, excluding conflict-of-law principles.
+
+Any dispute arising from the software or official online service shall first be addressed through amicable negotiation via public contact channels. If negotiations fail or no agreement is reached within 30 days of initial notice, either party may initiate proceedings before a People's Court of competent jurisdiction in Wanzhou District, Chongqing, China.
+
+This section does not limit lawful rights of users to lodge complaints with consumer protection authorities or regulatory bodies pursuant to mandatory laws of the People's Republic of China.
+
+## 13. Contact
 
 - Operator: OronBox Operations Team
-- Email: t3164473115@163.com
-- Discussions: <https://github.com/zxor-org/OronBox/discussions>
-
-## Speech experiments and data export
-
-Speech recognition experiments are selected by the user. Third-party online test services may change, impose limits or stop operating. Do not rely on them as the sole basis for emergency calls, medical judgments or other critical decisions. Recognition may be inaccurate; review text before sending it to a device.
-Backups and audio or health-data exports are initiated by the user, who should keep exported files secure. Local models and third-party components retain their respective licenses, available in the app's notices.
+- Contact and Feedback Email: t3164473115@163.com
+- Open Source Community Discussions: <https://github.com/OronCanopy/OronBox/discussions>

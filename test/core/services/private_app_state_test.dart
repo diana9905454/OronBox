@@ -83,14 +83,23 @@ void main() {
   test(
     'a partial migration resumes without losing completed or pending groups',
     () async {
-      secure.failKey = 'oronbox.private.devices.v1';
-      await expectLater(
-        store.initialize(),
-        throwsA(isA<PrivateStateException>()),
-      );
-      expect(prefs.getString('mi.account.token'), isNull);
+      secure.values['oronbox.private.xiaomi.v1'] = jsonEncode({
+        'version': 1,
+        'values': {PrivateAppState.miToken: 'current-xiaomi-session'},
+      });
+      await prefs.remove('mi.account.token');
+      await prefs.remove('mi_account.session');
       expect(prefs.getStringList('paired_devices'), [device]);
-      secure.failKey = null;
+
+      await store.initialize();
+      expect(
+        store.readString(PrivateAppState.miToken),
+        'current-xiaomi-session',
+      );
+      expect(store.readString(PrivateAppState.huamiToken), 'huami-session');
+      expect(store.readStringList(PrivateAppState.pairedDevices), [device]);
+      expect(prefs.getStringList('paired_devices'), isNull);
+
       final restarted = reopen();
       await restarted.initialize();
       expect(
@@ -104,7 +113,7 @@ void main() {
   test(
     'corrupt protected state does not fall back to or erase legacy data',
     () async {
-      secure.values['oronbox.private.xiaomi.v1'] = 'corrupt';
+      secure.values['oronbox.private.vault.v1'] = 'corrupt';
       await expectLater(
         store.initialize(),
         throwsA(isA<PrivateStateException>()),
@@ -136,15 +145,10 @@ void main() {
     expect(restarted.readString(PrivateAppState.huamiUsername), 'new-user');
   });
   test(
-    'reloading Xiaomi does not read or invalidate another account group',
+    'reloading with corrupt vault throws and preserves in-memory state',
     () async {
       await store.initialize();
-      secure.values['oronbox.private.huami.v1'] = 'corrupt';
-      await store.reload(key: PrivateAppState.miToken);
-      expect(
-        store.readString(PrivateAppState.miToken),
-        'current-xiaomi-session',
-      );
+      secure.values['oronbox.private.vault.v1'] = 'corrupt';
       await expectLater(
         store.reload(key: PrivateAppState.huamiToken),
         throwsA(isA<PrivateStateException>()),
@@ -159,13 +163,13 @@ void main() {
     'missing protected records cannot be mistaken for a new installation',
     () async {
       await store.initialize();
-      secure.values.remove('oronbox.private.devices.v1');
+      secure.values.remove('oronbox.private.vault.v1');
       final restarted = reopen();
       await expectLater(
         restarted.initialize(),
         throwsA(isA<PrivateStateException>()),
       );
-      expect(secure.values.containsKey('oronbox.private.devices.v1'), false);
+      expect(secure.values.containsKey('oronbox.private.vault.v1'), false);
     },
   );
   test(
@@ -201,4 +205,22 @@ void main() {
       expect(restarted.readStringList(PrivateAppState.pairedDevices), [device]);
     },
   );
+  test('keystore read failure auto-rescues legacy preferences', () async {
+    secure.failReadCount = 1;
+    await store.initialize();
+    expect(
+      store.readString(PrivateAppState.miToken),
+      'current-xiaomi-session',
+    );
+    expect(store.readString(PrivateAppState.huamiToken), 'huami-session');
+    expect(store.readStringList(PrivateAppState.pairedDevices), [device]);
+  });
+  test('resetCorruptedState wipes vault and tombstones, leaving store clean and ready', () async {
+    await store.initialize();
+    await store.resetCorruptedState();
+    expect(store.isReady, isTrue);
+    expect(store.readString(PrivateAppState.miToken), isNull);
+    expect(store.readStringList(PrivateAppState.pairedDevices), isNull);
+    expect(await File('${directory.path}/vault.present').exists(), isFalse);
+  });
 }

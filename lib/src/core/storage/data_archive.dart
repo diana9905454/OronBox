@@ -126,11 +126,13 @@ void _readDataArchiveEntries(
       header.file!.decompress(output);
     } on ArchiveException catch (e) {
       final msg = e.message.toLowerCase();
-      if (msg.contains('password is needed')) {
-        throw const ArchivePasswordRequiredException();
-      }
-      if (msg.contains('wrong password') ||
+      if (e is ArchivePasswordException ||
+          e is ArchiveMacException ||
+          msg.contains('password') ||
           msg.contains('authentication code')) {
+        if (effectivePassword == null) {
+          throw const ArchivePasswordRequiredException();
+        }
         throw const ArchiveWrongPasswordException();
       }
       rethrow;

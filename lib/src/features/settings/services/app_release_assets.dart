@@ -39,10 +39,10 @@ Future<String?> resolveAppReleaseAsset(
   if (uri?.scheme != 'https' ||
       uri?.host != 'github.com' ||
       !uri!.path.startsWith(
-            '/zxor-org/OronBox/releases/download/${Uri.encodeComponent(tag)}/',
+            '/OronCanopy/OronBox/releases/download/${Uri.encodeComponent(tag)}/',
           ) &&
           !uri.path.startsWith(
-            '/zxor-org/oronbox/releases/download/${Uri.encodeComponent(tag)}/',
+            '/OronCanopy/oronbox/releases/download/${Uri.encodeComponent(tag)}/',
           )) {
     return null;
   }

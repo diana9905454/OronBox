@@ -6,8 +6,8 @@
 #endif
 #define MyAppName "OronBox"
 #define MyAppExeName "oronbox.exe"
-#define MyAppPublisher "OronBox contributors"
-#define MyAppURL "https://github.com/zxor-org/OronBox"
+#define MyAppPublisher "OronCanopy"
+#define MyAppURL "https://github.com/OronCanopy/OronBox"
 #define MyAppId "5A3E9B7C-6D2F-4E8A-9C1B-3F7D5A0E2C4B"
 
 [Setup]

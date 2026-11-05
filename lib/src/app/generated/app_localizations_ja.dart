@@ -5235,6 +5235,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get privateStateSaveFailed => 'アカウントまたはデバイスの変更を保存できません\n再試行してください';
 
   @override
+  String get resetPrivateStorageAction => 'ローカル資格情報をリセット';
+
+  @override
+  String get resetPrivateStorageTitle => 'アカウントとデバイスをリセット';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      'リセット後にアカウントの再ログインとデバイスの再接続が必要です\n保存済みのヘルスケア履歴やアプリ設定は失われません';
+
+  @override
+  String get confirmReset => 'リセット';
+
+  @override
   String get voiceAsrStorageFull => '空き容量が不足しています\n空き容量を増やして再試行してください';
 
   @override

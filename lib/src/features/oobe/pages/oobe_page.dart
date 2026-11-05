@@ -403,7 +403,7 @@ class _WelcomeStep extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: const AppIcon(size: 64),
+                    child: const AppIcon(size: 72),
                   ),
                   const SizedBox(height: 16),
                   Text(

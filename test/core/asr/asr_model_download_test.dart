@@ -129,11 +129,12 @@ void main() {
         ),
       );
       dio.httpClientAdapter = _Adapter((options) async {
-        if (options.uri == source)
+        if (options.uri == source) {
           throw DioException(
             requestOptions: options,
             type: DioExceptionType.connectionError,
           );
+        }
         expect(options.headers['Range'], 'bytes=2-');
         expect(options.headers['If-Range'], '"m1"');
         return ResponseBody.fromBytes(

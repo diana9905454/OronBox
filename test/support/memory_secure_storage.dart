@@ -5,6 +5,9 @@ class MemorySecureStorage extends FlutterSecureStorage {
   bool failWrites = false;
   String? failKey;
   bool mismatch = false;
+  bool throwOnRead = false;
+  int failReadCount = 0;
+
   @override
   Future<String?> read({
     required String key,
@@ -14,7 +17,16 @@ class MemorySecureStorage extends FlutterSecureStorage {
     WebOptions? webOptions,
     AppleOptions? mOptions,
     WindowsOptions? wOptions,
-  }) async => mismatch && values.containsKey(key) ? 'mismatch' : values[key];
+  }) async {
+    if (failReadCount > 0) {
+      failReadCount--;
+      throw StateError('Simulated KeyStore decryption failure');
+    }
+    if (throwOnRead) {
+      throw StateError('Simulated KeyStore decryption failure');
+    }
+    return mismatch && values.containsKey(key) ? 'mismatch' : values[key];
+  }
   @override
   Future<void> write({
     required String key,
@@ -34,5 +46,30 @@ class MemorySecureStorage extends FlutterSecureStorage {
     } else {
       values[key] = value;
     }
+  }
+
+  @override
+  Future<void> delete({
+    required String key,
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    values.remove(key);
+  }
+
+  @override
+  Future<void> deleteAll({
+    AppleOptions? iOptions,
+    AndroidOptions? aOptions,
+    LinuxOptions? lOptions,
+    WebOptions? webOptions,
+    AppleOptions? mOptions,
+    WindowsOptions? wOptions,
+  }) async {
+    values.clear();
   }
 }

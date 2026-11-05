@@ -4,7 +4,7 @@
 
 ## 项目与仓库边界指令
 
-你当前操作的是 OronBox 客户端仓库（Flutter/Dart 跨平台可穿戴设备管理客户端，面向 VelaOS、ZeppOS 等设备，涵盖设备连接、运动健康、资源社区、创作者发布和插件功能；Issues 与 PRD 见 GitHub `zxor-org/oronbox`）。
+你当前操作的是 OronBox 客户端仓库（Flutter/Dart 跨平台可穿戴设备管理客户端，面向 VelaOS、ZeppOS 等设备，涵盖设备连接、运动健康、资源社区、创作者发布和插件功能；Issues 与 PRD 见 GitHub `OronCanopy/OronBox`）。
 
 - **跨仓隔离**：`OronBox-Server`、`OronBox-Server-Console` 和 `OronBox-Package-Network` 是独立仓库。遇到跨端任务时，**你必须**分别进入各自工作区检查、修改和验证，**严禁**把跨端改动塞进一个仓库里一次性提交。
 - **子模块约束**：操作 `android/xms-wearable-lib-cleanroom` 时，**必须**按 `.gitmodules` 的 Git submodule 规范管理。

@@ -79,6 +79,11 @@ class _PrivateStateGateState extends ConsumerState<PrivateStateGate> {
                                   }),
                                   child: Text(l10n.retry),
                                 ),
+                                const SizedBox(height: 8),
+                                TextButton(
+                                  onPressed: () => _confirmReset(context, l10n),
+                                  child: Text(l10n.resetPrivateStorageAction),
+                                ),
                               ],
                             )
                           : _PrivateStateLoadingIndicator(l10n: l10n),
@@ -91,6 +96,41 @@ class _PrivateStateGateState extends ConsumerState<PrivateStateGate> {
         );
       },
     );
+  }
+
+  Future<void> _confirmReset(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.resetPrivateStorageTitle),
+        content: Text(l10n.resetPrivateStorageMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.confirmReset),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await PrivateAppState.instance.resetCorruptedState();
+      if (mounted) {
+        setState(() {
+          _ready = Future.value();
+        });
+      }
+    }
   }
 }
 

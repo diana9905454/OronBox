@@ -104,8 +104,6 @@ class _ZeppOsVoiceMemosPageState extends ConsumerState<ZeppOsVoiceMemosPage> {
       await FilePicker.saveFile(
         dialogTitle: AppLocalizations.of(context)!.deviceRecordingsSave,
         fileName: _safeFilename(memo.filename),
-        type: FileType.custom,
-        allowedExtensions: const ['opus'],
         bytes: bytes,
       );
     } catch (error) {

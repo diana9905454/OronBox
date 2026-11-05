@@ -296,8 +296,6 @@ Future<void> _exportWorkout(
     final saved = await FilePicker.saveFile(
       dialogTitle: l10n.deviceHealthWorkoutExport,
       fileName: fileName,
-      type: FileType.custom,
-      allowedExtensions: const ['fit'],
       mimeType: 'application/octet-stream',
       bytes: Uint8List.fromList(bytes),
     );

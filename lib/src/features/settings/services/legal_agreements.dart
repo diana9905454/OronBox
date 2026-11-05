@@ -28,7 +28,7 @@ abstract final class LegalAgreements {
   }
 
   static int bundledRevision(String id) => switch (canonical(id)) {
-    'terms' || 'privacy' => 2,
+    'terms' || 'privacy' || 'resource-publishing' || 'review-rules' => 3,
     _ => 1,
   };
 

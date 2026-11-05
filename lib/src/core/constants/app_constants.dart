@@ -15,9 +15,9 @@ class TeamMember {
 enum TeamRole { mainDeveloperDesigner, zeppOSImplementation }
 
 abstract final class AppConstants {
-  static const String githubRepoUrl = 'https://github.com/zxor-org/OronBox';
+  static const String githubRepoUrl = 'https://github.com/OronCanopy/OronBox';
   static const String githubRepoApiUrl =
-      'https://api.github.com/repos/zxor-org/OronBox';
+      'https://api.github.com/repos/OronCanopy/OronBox';
   static const String websiteUrl = 'https://oronbox.zxor.org';
   static const String androidCloudDownloadUrl =
       'https://cpwdxbd.lanzoue.com/oronbox';

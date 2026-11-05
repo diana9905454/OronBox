@@ -13,9 +13,9 @@ BUILD_USER=""
 APP_NAME="oronbox"
 PACKAGE_NAME="org.zxor.oronbox"
 DESCRIPTION="A pretty fast wearable management tool for VelaOS and ZeppOS built with Flutter."
-MAINTAINER="OronBox Team"
+MAINTAINER="OronCanopy"
 LICENSE="AGPL-3.0"
-HOMEPAGE="https://github.com/zxor-org/OronBox"
+HOMEPAGE="https://github.com/OronCanopy/OronBox"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

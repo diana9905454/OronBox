@@ -23,12 +23,12 @@ void main() {
         ],
       }),
     );
-    expect(LegalAgreements.requiredRevision('privacy'), 2);
+    expect(LegalAgreements.requiredRevision('privacy'), 3);
     expect(LegalAgreements.accepted('privacy'), isFalse);
     expect(LegalAgreements.accepted('terms'), isFalse);
     await prefs.setInt('legal.shown.privacy', 1);
     expect(await LegalAgreements.acceptShown('privacy'), isFalse);
-    await prefs.setInt('legal.shown.privacy', 2);
+    await prefs.setInt('legal.shown.privacy', 3);
     expect(await LegalAgreements.acceptShown('privacy'), isTrue);
     expect(LegalAgreements.accepted('privacy'), isTrue);
   });
@@ -39,12 +39,12 @@ void main() {
         'legal.manifest',
         jsonEncode({
           'documents': [
-            {'id': 'privacy', 'revision': 3},
+            {'id': 'privacy', 'revision': 4},
           ],
         }),
       );
-      expect(LegalAgreements.requiredRevision('privacy'), 3);
-      expect(LegalAgreements.bundledRevision('publishing'), 1);
+      expect(LegalAgreements.requiredRevision('privacy'), 4);
+      expect(LegalAgreements.bundledRevision('publishing'), 3);
     },
   );
 }

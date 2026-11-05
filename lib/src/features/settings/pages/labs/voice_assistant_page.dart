@@ -427,8 +427,6 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
       await FilePicker.saveFile(
         dialogTitle: l10n.voiceLabSaveRecording,
         fileName: 'xiaoai-${DateTime.now().millisecondsSinceEpoch}.wav',
-        type: FileType.custom,
-        allowedExtensions: const ['wav'],
         bytes: _wavFile(_pcmBytes.toBytes()),
       );
     } catch (error) {
@@ -448,8 +446,6 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
       await FilePicker.saveFile(
         dialogTitle: l10n.voiceLabSaveOpus,
         fileName: 'xiaoai-${DateTime.now().millisecondsSinceEpoch}.opus',
-        type: FileType.custom,
-        allowedExtensions: const ['opus'],
         bytes: _oggOpusFile(_opusFrames, _opusDurations),
       );
     } catch (error) {

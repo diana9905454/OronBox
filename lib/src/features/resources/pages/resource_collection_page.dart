@@ -94,57 +94,68 @@ class _ResourceCollectionPageState extends State<ResourceCollectionPage> {
         secondary: true,
         title: Text(l10n.resourceCollectionDetails),
       ),
-      body: ListView(
-        padding: EdgeInsets.only(
-          bottom: bottomContentPadding(context, extra: 24),
-        ),
-        children: [
-          ResourceDetailHeader(
-            resource: headerResource,
-            mediaResource: mediaResource,
-            animateCover: widget.collection.coverUrl != null,
-            animateIcon: widget.collection.iconUrl != null,
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: ResourceDetailHeader(
+              resource: headerResource,
+              mediaResource: mediaResource,
+              animateCover: widget.collection.coverUrl != null,
+              animateIcon: widget.collection.iconUrl != null,
+            ),
           ),
           if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(StyleConstants.pagePadding),
-              child: Text(localizedErrorMessage(l10n, _error!)),
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(StyleConstants.pagePadding),
+                  child: Text(localizedErrorMessage(l10n, _error!)),
+                ),
+              ),
             )
           else if (_loaded == null)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 32),
+            const SliverFillRemaining(
+              hasScrollBody: false,
               child: Center(child: CircularProgressIndicator()),
             )
           else
-            PageContainer(
-              safeArea: false,
-              padding: const EdgeInsets.all(StyleConstants.pagePadding),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_loaded!.summary.isNotEmpty) ...[
-                    Text(
-                      _loaded!.summary,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+            SliverPadding(
+              padding: EdgeInsets.only(
+                bottom: bottomContentPadding(context, extra: 24),
+              ),
+              sliver: SliverToBoxAdapter(
+                child: PageContainer(
+                  safeArea: false,
+                  padding: const EdgeInsets.all(StyleConstants.pagePadding),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (_loaded!.summary.isNotEmpty) ...[
+                        Text(
+                          _loaded!.summary,
+                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (_loaded!.description.isNotEmpty)
+                        MarkdownBody(data: _loaded!.description, selectable: true),
+                      Text(
+                        l10n.creatorResourceList,
+                        style: Theme.of(context).textTheme.titleLarge,
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (_loaded!.description.isNotEmpty)
-                    MarkdownBody(data: _loaded!.description, selectable: true),
-                  Text(
-                    l10n.creatorResourceList,
-                    style: Theme.of(context).textTheme.titleLarge,
+                      const SizedBox(height: 12),
+                      ..._loaded!.resources.map(
+                        (resource) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: BandBbsResourceCard(item: resource),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 12),
-                  ..._loaded!.resources.map(
-                    (resource) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: BandBbsResourceCard(item: resource),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
         ],
