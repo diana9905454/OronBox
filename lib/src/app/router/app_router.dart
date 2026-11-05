@@ -21,6 +21,7 @@ import 'package:oronbox/src/features/devices/pages/install/install_local_page.da
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_more_features_page.dart';
 import 'package:oronbox/src/features/settings/pages/labs/voice_assistant_page.dart';
 import 'package:oronbox/src/features/settings/pages/labs/feature_lab_page.dart';
+import 'package:oronbox/src/features/ai/pages/global_ai_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_app_side_debug_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_app_settings_page.dart';
 import 'package:oronbox/src/features/devices/pages/tools/zeppos_setting_viewer_page.dart';
@@ -643,6 +644,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     path: 'labs',
                     builder: (context, state) => const FeatureLabPage(),
                     routes: [
+                      GoRoute(
+                        path: 'global-ai',
+                        builder: (context, state) => const GlobalAiPage(),
+                      ),
                       GoRoute(
                         path: 'voice-assistant',
                         builder: (context, state) => const VoiceAssistantPage(),

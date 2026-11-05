@@ -372,6 +372,42 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            PlatformChannelNames.PUBLIC_BACKUPS,
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "save" -> {
+                    val bytes = call.argument<ByteArray>("bytes")
+                    val fileName = call.argument<String>("fileName")
+                    if (bytes == null || bytes.isEmpty() || fileName.isNullOrBlank()) {
+                        result.error("INVALID_ARGUMENT", "bytes and fileName are required", null)
+                    } else {
+                        savePublicBackup(bytes, fileName, result)
+                    }
+                }
+                "list" -> listPublicBackups(result)
+                "read" -> {
+                    val fileName = call.argument<String>("fileName")
+                    if (fileName.isNullOrBlank()) {
+                        result.error("INVALID_ARGUMENT", "fileName is required", null)
+                    } else {
+                        readPublicBackup(fileName, result)
+                    }
+                }
+                "delete" -> {
+                    val fileName = call.argument<String>("fileName")
+                    if (fileName.isNullOrBlank()) {
+                        result.error("INVALID_ARGUMENT", "fileName is required", null)
+                    } else {
+                        deletePublicBackup(fileName, result)
+                    }
+                }
+                "open" -> openPublicBackupsDirectory(result)
+                "getPath" -> getPublicBackupsPath(result)
+                else -> result.notImplemented()
+            }
+        }
         xmsWearableChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             PlatformChannelNames.XMS_WEARABLE,
@@ -952,6 +988,216 @@ class MainActivity : FlutterActivity() {
                 result.error("OPEN_RECORDINGS_FAILED", fallbackError.message, null)
             }
         }
+    }
+
+    private fun savePublicBackup(
+        bytes: ByteArray,
+        requestedName: String,
+        result: MethodChannel.Result,
+    ) {
+        val fileName = requestedName
+            .substringAfterLast('/')
+            .substringAfterLast('\\')
+            .trim()
+        val mimeType = "application/zip"
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups"
+                val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+                contentResolver.query(
+                    collectionUri,
+                    arrayOf(MediaStore.MediaColumns._ID),
+                    selection,
+                    arrayOf("$relativePath%", fileName),
+                    null,
+                )?.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getLong(0)
+                        val deleteUri = ContentUris.withAppendedId(collectionUri, id)
+                        contentResolver.delete(deleteUri, null, null)
+                    }
+                }
+
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                    put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+                    put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath)
+                    put(MediaStore.MediaColumns.IS_PENDING, 1)
+                }
+                val uri = contentResolver.insert(collectionUri, values)
+                    ?: throw java.io.IOException("Unable to create backup media entry")
+                try {
+                    contentResolver.openOutputStream(uri, "w").use { output ->
+                        if (output == null) throw java.io.IOException("Unable to open backup output stream")
+                        output.write(bytes)
+                    }
+                    values.clear()
+                    values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+                    contentResolver.update(uri, values, null, null)
+                    result.success(
+                        "${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups/$fileName",
+                    )
+                } catch (error: Exception) {
+                    contentResolver.delete(uri, null, null)
+                    throw error
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                    "OronBox/Backups",
+                )
+                if (!dir.exists() && !dir.mkdirs()) {
+                    throw java.io.IOException("Unable to create backups directory")
+                }
+                val file = File(dir, fileName)
+                file.writeBytes(bytes)
+                MediaScannerConnection.scanFile(this, arrayOf(file.absolutePath), arrayOf(mimeType), null)
+                result.success(file.absolutePath)
+            }
+        } catch (error: Exception) {
+            result.error("SAVE_BACKUP_FAILED", error.message, null)
+        }
+    }
+
+    private fun listPublicBackups(result: MethodChannel.Result) {
+        try {
+            val names = mutableListOf<String>()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups"
+                val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
+                val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ?"
+                val selectionArgs = arrayOf("$relativePath%")
+                contentResolver.query(collectionUri, projection, selection, selectionArgs, null)?.use { cursor ->
+                    val nameIdx = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME)
+                    while (cursor.moveToNext()) {
+                        val name = cursor.getString(nameIdx)
+                        if (!name.isNullOrBlank()) {
+                            names.add(name)
+                        }
+                    }
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                    "OronBox/Backups",
+                )
+                if (dir.exists() && dir.isDirectory) {
+                    dir.listFiles()?.filter { it.isFile }?.forEach { names.add(it.name) }
+                }
+            }
+            result.success(names)
+        } catch (error: Exception) {
+            result.error("LIST_BACKUPS_FAILED", error.message, null)
+        }
+    }
+
+    private fun readPublicBackup(fileName: String, result: MethodChannel.Result) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups"
+                val projection = arrayOf(MediaStore.MediaColumns._ID)
+                val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+                val selectionArgs = arrayOf("$relativePath%", fileName)
+                contentResolver.query(collectionUri, projection, selection, selectionArgs, null)?.use { cursor ->
+                    if (cursor.moveToNext()) {
+                        val id = cursor.getLong(0)
+                        val uri = ContentUris.withAppendedId(collectionUri, id)
+                        contentResolver.openInputStream(uri)?.use { stream ->
+                            val bytes = stream.readBytes()
+                            result.success(bytes)
+                            return
+                        }
+                    }
+                }
+                result.error("BACKUP_NOT_FOUND", "Backup file not found", null)
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                    "OronBox/Backups",
+                )
+                val file = File(dir, fileName)
+                if (file.exists() && file.isFile) {
+                    result.success(file.readBytes())
+                } else {
+                    result.error("BACKUP_NOT_FOUND", "Backup file not found", null)
+                }
+            }
+        } catch (error: Exception) {
+            result.error("READ_BACKUP_FAILED", error.message, null)
+        }
+    }
+
+    private fun deletePublicBackup(fileName: String, result: MethodChannel.Result) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                val collectionUri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+                val relativePath = "${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups"
+                val selection = "${MediaStore.MediaColumns.RELATIVE_PATH} LIKE ? AND ${MediaStore.MediaColumns.DISPLAY_NAME} = ?"
+                contentResolver.query(
+                    collectionUri,
+                    arrayOf(MediaStore.MediaColumns._ID),
+                    selection,
+                    arrayOf("$relativePath%", fileName),
+                    null,
+                )?.use { cursor ->
+                    while (cursor.moveToNext()) {
+                        val id = cursor.getLong(0)
+                        val deleteUri = ContentUris.withAppendedId(collectionUri, id)
+                        contentResolver.delete(deleteUri, null, null)
+                    }
+                }
+                result.success(true)
+            } else {
+                @Suppress("DEPRECATION")
+                val dir = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS),
+                    "OronBox/Backups",
+                )
+                val file = File(dir, fileName)
+                if (file.exists()) {
+                    file.delete()
+                }
+                result.success(true)
+            }
+        } catch (error: Exception) {
+            result.error("DELETE_BACKUP_FAILED", error.message, null)
+        }
+    }
+
+    private fun openPublicBackupsDirectory(result: MethodChannel.Result) {
+        try {
+            val path = "${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups"
+            val uri = Uri.parse(path)
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "resource/folder")
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            startActivity(intent)
+            result.success(true)
+        } catch (_: Exception) {
+            try {
+                val fallbackUri = Uri.parse("${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}")
+                val fallbackIntent = Intent(Intent.ACTION_VIEW).apply {
+                    setDataAndType(fallbackUri, "resource/folder")
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(fallbackIntent)
+                result.success(true)
+            } catch (fallbackError: Exception) {
+                result.error("OPEN_BACKUPS_FAILED", fallbackError.message, null)
+            }
+        }
+    }
+
+    private fun getPublicBackupsPath(result: MethodChannel.Result) {
+        val path = "${Environment.getExternalStorageDirectory().path}/${Environment.DIRECTORY_DOCUMENTS}/OronBox/Backups"
+        result.success(path)
     }
 
     override fun onRequestPermissionsResult(

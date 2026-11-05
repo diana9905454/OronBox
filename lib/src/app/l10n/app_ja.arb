@@ -2275,9 +2275,9 @@
   "appDataHealthDescription": "端末から同期した運動・健康データ",
   "appDataDeviceKeys": "デバイスのペアリングと鍵",
   "appDataDeviceKeysDescription": "保存したデバイスと接続用の認証情報",
-  "appDataXiaomiAccount": "Xiaomi アカウント",
-  "appDataXiaomiAccountDescription": "Xiaomi アカウントとログイン情報",
-  "appDataSensitiveBackup": "バックアップには暗号化されていない鍵やログイン情報が含まれます\n安全に保管し、共有しないでください",
+  "appDataXiaomiAccount": "Xiaomi と Amazfit の認証情報",
+  "appDataXiaomiAccountDescription": "アカウントのパスワードと現在のログインセッション",
+  "appDataSensitiveBackup": "バックアップには暗号化されていないアカウント情報が含まれます\n安全に保管し、共有しないでください",
   "appDataImportDescription": "バックアップからデータを選んで復元",
   "appDataPluginDescription": "インストール済みプラグインとデータ",
   "appDataZepposDescription": "デバイスアプリのスクリプトと設定",
@@ -2377,5 +2377,85 @@
   "creatorNameRequired": "リソース名を入力してください",
   "creatorSummaryRequired": "リソースの概要を入力してください",
   "creatorSubmitForReview": "審査に提出",
-  "creatorAstroBoxPRBody": "PR の説明（任意）"
+  "creatorAstroBoxPRBody": "PR の説明（任意）",
+  "autoBackupTitle": "定期バックアップ",
+  "autoBackupDescription": "定期的にアプリデータをシステムドキュメントへバックアップ",
+  "autoBackupEnabled": "定期バックアップを有効化",
+  "autoBackupInterval": "バックアップ頻度",
+  "autoBackupEvery": "間隔",
+  "autoBackupUnitDay": "日ごと",
+  "autoBackupUnitWeek": "週間ごと",
+  "autoBackupUnitMonth": "か月ごと",
+  "autoBackupRetention": "保持世代数",
+  "autoBackupRetentionCount": "{count} 世代",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "制限なし",
+  "autoBackupPasswordEnable": "パスワード保護",
+  "autoBackupPasswordEnableDesc": "標準 AES-256 でバックアップを暗号化",
+  "autoBackupPassword": "パスワード",
+  "autoBackupPasswordConfirm": "パスワードの確認",
+  "autoBackupPasswordMismatch": "入力されたパスワードが一致しません",
+  "autoBackupPasswordPlaceholder": "パスワードを入力",
+  "autoBackupScope": "バックアップ範囲",
+  "autoBackupScopeSettings": "アプリ設定",
+  "autoBackupScopeHealth": "健康データ",
+  "autoBackupScopeExtensions": "拡張機能とミニアプリ",
+  "autoBackupScopeDevices": "デバイス接続情報",
+  "autoBackupStorageLocation": "保存場所",
+  "autoBackupStorageLocationDesc": "バックアップはシステムの共有ドキュメントフォルダに保存されます",
+  "autoBackupOpenFolder": "ファイルマネージャーで開く",
+  "autoBackupStatusEnabled": "有効 · {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "無効",
+  "autoBackupRunNow": "今すぐバックアップ",
+  "autoBackupRunSuccess": "定期バックアップが完了しました",
+  "autoBackupRunFailed": "定期バックアップに失敗しました",
+  "backupPasswordDialogTitle": "パスワードを入力",
+  "backupPasswordDialogMessage": "このバックアップは暗号化されています\n復元するにはパスワードを入力してください",
+  "backupPasswordIncorrect": "パスワードが正しくありません",
+  "backupPasswordRequired": "パスワードを入力してください",
+  "exportBackupPasswordOptional": "暗号化パスワード（任意）",
+  "exportBackupPasswordPlaceholder": "空欄の場合は暗号化されません",
+  "backupTargetPublicDocuments": "システム書類フォルダーに保存",
+  "backupTargetCustom": "外部ファイルとして保存",
+  "restoreFromDocumentsTitle": "復元するバックアップを選択",
+  "restorePickExternalFile": "別の外部ファイルを選択...",
+  "backupSavedToDocuments": "バックアップをシステム書類フォルダーに保存しました",
+  "appDataExporting": "バックアップをエクスポートおよび暗号化しています...",
+  "appDataDecrypting": "バックアップを復号しています...",
+  "appDataRestoring": "データを復元しています...",
+  "autoBackupRetentionInputHint": "0 で無制限",
+  "autoBackupRetentionLabel": "保持世代数（0 で無制限）",
+  "autoBackupRetentionUnit": "世代",
+  "backupTypeAuto": "定期バックアップ",
+  "backupTypeManual": "手動バックアップ",
+  "autoBackupStatusDetail": "有効 · {value} {unit} · {retentionText} 保持",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  }
 }

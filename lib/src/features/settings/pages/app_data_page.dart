@@ -1,28 +1,29 @@
-import 'app_data_backup_dialog.dart';
-
 import 'dart:async';
-
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oronbox/src/host/application_host_provider.dart';
-
-import '../application/app_extension_backup.dart';
-import '../application/app_data_maintenance.dart';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:segmented_list/segmented_list.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/utils/picked_file.dart';
 import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
+import 'package:oronbox/src/core/storage/data_archive.dart';
+import 'package:oronbox/src/host/application_host_provider.dart';
+import 'package:segmented_list/segmented_list.dart';
 
-import '../application/app_data_inventory.dart';
-import '../application/app_data_cleanup.dart';
 import '../application/app_data_backup.dart';
-
-import 'package:oronbox/src/app/utils/picked_file.dart';
+import '../application/app_data_cleanup.dart';
+import '../application/app_data_inventory.dart';
+import '../application/app_data_maintenance.dart';
+import '../application/app_extension_backup.dart';
+import '../application/auto_backup_service.dart';
+import '../services/public_backup_storage.dart';
+import 'app_data_backup_dialog.dart';
+import 'auto_backup_dialog.dart';
 
 class AppDataPage extends ConsumerStatefulWidget {
   const AppDataPage({super.key});
@@ -33,6 +34,9 @@ class AppDataPage extends ConsumerStatefulWidget {
 class _AppDataPageState extends ConsumerState<AppDataPage> {
   List<AppDataUsage> _usage = const [];
   bool _busy = false;
+  bool _exporting = false;
+  bool _decrypting = false;
+  bool _restoring = false;
   bool _inventoryLoading = true;
   bool _inventoryFailed = false;
   bool _pendingRecovery = false;
@@ -86,8 +90,8 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
           _pendingRecovery = pending;
         });
       }
-    } catch (error, stack) {
-      _log.warning('Application data inventory failed', error, stack);
+    } catch (error) {
+      _log.warning('Application data inventory failed', error);
       if (mounted) setState(() => _inventoryFailed = true);
     } finally {
       if (mounted) {
@@ -109,34 +113,75 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
             : () => cleanupApplicationDataCategory(category),
       );
       if (mounted) _message(l10n.appDataCacheCleared);
-    } catch (error, stack) {
-      _log.warning('Application cache cleanup failed', error, stack);
+    } catch (error) {
+      _log.warning('Application cache cleanup failed', error);
       if (mounted) _message(l10n.appDataUpdateFailed);
     } finally {
       if (mounted) await _refresh();
     }
   }
 
+  String _formatBackupFileName(DateTime now) {
+    final year = now.year.toString().padLeft(4, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final day = now.day.toString().padLeft(2, '0');
+    final hour = now.hour.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
+    final second = now.second.toString().padLeft(2, '0');
+    return 'OronBox-ManualBackup-$year$month$day-$hour$minute$second.zip';
+  }
+
   Future<void> _exportBackup() async {
     final selection = await showBackupSelectionDialog(context);
     if (selection == null || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _exporting = true;
+    });
+    _message(l10n.appDataExporting);
     try {
-      final bytes = await _backup.export(selection: selection);
-      if (!mounted) return;
-      final saved = await FilePicker.saveFile(
-        dialogTitle: l10n.appDataBackup,
-        fileName: 'OronBox-Backup-${DateTime.now().millisecondsSinceEpoch}.zip',
-        mimeType: 'application/zip',
-        bytes: bytes,
+      final password = selection is BackupExportSelection
+          ? selection.password
+          : null;
+      final saveToDocuments = selection is BackupExportSelection
+          ? selection.saveToDocuments
+          : true;
+      final bytes = await _backup.export(
+        selection: selection,
+        password: password,
       );
-      if (mounted && saved != null) _message(l10n.appDataExported);
-    } catch (error, stack) {
-      _log.warning('Application backup export failed', error, stack);
+      if (!mounted) return;
+      final fileName = _formatBackupFileName(DateTime.now());
+      if (saveToDocuments) {
+        final path = await savePublicBackupFile(
+          fileName: fileName,
+          bytes: bytes,
+        );
+        if (mounted && path != null) {
+          _message(l10n.backupSavedToDocuments);
+        } else if (mounted) {
+          _message(l10n.appDataExportFailed);
+        }
+      } else {
+        final saved = await FilePicker.saveFile(
+          dialogTitle: l10n.appDataBackup,
+          fileName: fileName,
+          mimeType: 'application/zip',
+          bytes: bytes,
+        );
+        if (mounted && saved != null) _message(l10n.appDataExported);
+      }
+    } catch (error) {
+      _log.warning('Application backup export failed', error);
       if (mounted) _message(l10n.appDataExportFailed);
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _exporting = false;
+        });
+      }
     }
   }
 
@@ -148,40 +193,102 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _busy = true);
     try {
-      final picked = await pickFileData(
-        type: FileType.custom,
-        allowedExtensions: const ['zip'],
-        dialogTitle: l10n.appDataRestore,
-        maxBytes: 512 * 1024 * 1024,
-        loadBytes: true,
-      );
-      if (picked == null) return;
-      final bytes = await picked.readAsBytes();
-      if (bytes == null) return;
-      final backup = await _backup.inspect(bytes);
+      Uint8List? bytes;
+      final publicFiles = await listPublicBackupFiles();
+      if (publicFiles.isNotEmpty && mounted) {
+        final publicZipFiles = publicFiles
+            .where((f) => f.toLowerCase().endsWith('.zip'))
+            .toList();
+        if (publicZipFiles.isNotEmpty) {
+          publicZipFiles.sort((a, b) => b.compareTo(a));
+          final choice = await showPublicBackupPickerDialog(
+            context,
+            publicZipFiles,
+          );
+          if (choice == null || !mounted) return;
+          if (!choice.pickExternal && choice.fileName != null) {
+            setState(() => _decrypting = true);
+            bytes = await readPublicBackupFile(choice.fileName!);
+            if (bytes == null && mounted) {
+              _message(l10n.appDataRestoreFailed);
+              return;
+            }
+          }
+        }
+      }
+      if (bytes == null) {
+        if (!mounted) return;
+        final picked = await pickFileData(
+          type: FileType.custom,
+          allowedExtensions: const ['zip'],
+          dialogTitle: l10n.appDataRestore,
+          maxBytes: 512 * 1024 * 1024,
+          loadBytes: true,
+        );
+        if (picked == null) return;
+        setState(() => _decrypting = true);
+        bytes = await picked.readAsBytes();
+        if (bytes == null) return;
+      }
       if (!mounted) return;
+      AppDataBackup backup;
+      try {
+        backup = await _backup.inspect(bytes);
+      } on ArchivePasswordRequiredException {
+        if (mounted) setState(() => _decrypting = false);
+        if (!mounted) return;
+        final password = await showBackupPasswordDialog(context);
+        if (password == null || !mounted) return;
+        if (mounted) {
+          setState(() => _decrypting = true);
+          _message(l10n.appDataDecrypting);
+        }
+        try {
+          backup = await _backup.inspect(bytes, password: password);
+        } on ArchiveWrongPasswordException {
+          if (mounted) _message(l10n.backupPasswordIncorrect);
+          return;
+        }
+      } on ArchiveWrongPasswordException {
+        if (mounted) _message(l10n.backupPasswordIncorrect);
+        return;
+      }
+      if (!mounted) return;
+      setState(() => _decrypting = false);
       final selection = await showBackupSelectionDialog(
         context,
         backup: backup,
       );
       if (selection == null || !mounted) return;
+      setState(() => _restoring = true);
+      _message(l10n.appDataRestoring);
       await _backup.restore(
         AppDataBackup(
-          settings: selection.settings ? backup.settings : const {},
+          settings: selectBackupSettings(
+            backup.settings,
+            includeSettings: selection.settings,
+            includeAccounts: selection.accountCredentials,
+          ),
           activityFiles: selection.health ? backup.activityFiles : const {},
           extensions: selection.extensions ? backup.extensions : const {},
           extensionFiles: selection.extensions
               ? backup.extensionFiles
               : const {},
           privateData: {
-            if (selection.devices) 'devices': backup.privateData['devices'],
-            if (selection.xiaomi) 'xiaomi': backup.privateData['xiaomi'],
+            if (selection.devices && backup.privateData.containsKey('devices'))
+              'devices': backup.privateData['devices'],
+            if (selection.accountCredentials) ...{
+              if (backup.privateData.containsKey('xiaomi'))
+                'xiaomi': backup.privateData['xiaomi'],
+              if (backup.privateData.containsKey('huami'))
+                'huami': backup.privateData['huami'],
+            },
           },
         ),
       );
       if (mounted) _message(l10n.appDataRestored);
-    } catch (error, stack) {
-      _log.warning('Application backup restore failed', error, stack);
+    } catch (error) {
+      _log.warning('Application backup restore failed', error);
       if (mounted) {
         _message(
           error is PickedFileTooLarge
@@ -192,7 +299,14 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
         );
       }
     } finally {
-      if (mounted) await _refresh();
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _decrypting = false;
+          _restoring = false;
+        });
+        await _refresh();
+      }
     }
   }
 
@@ -220,8 +334,8 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
     try {
       await _backup.recover();
       if (mounted) _message(l10n.appDataRestored);
-    } catch (error, stack) {
-      _log.warning('Application backup rollback failed', error, stack);
+    } catch (error) {
+      _log.warning('Application backup rollback failed', error);
       if (mounted) {
         _message(
           error is PickedFileTooLarge
@@ -340,6 +454,13 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
             leading: const Icon(Icons.backup_outlined),
             title: Text(l10n.appDataBackup),
             description: _descriptionText(l10n.appDataBackupDescription),
+            trailing: _exporting
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
             enabled: !_busy && !_pendingRecovery,
             onPressed: (_) => _exportBackup(),
           ),
@@ -347,8 +468,40 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
             leading: const Icon(Icons.restore_outlined),
             title: Text(l10n.appDataRestore),
             description: _descriptionText(l10n.appDataImportDescription),
+            trailing: (_decrypting || _restoring)
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : null,
             enabled: !_busy && !_pendingRecovery,
             onPressed: (_) => _restoreBackup(),
+          ),
+          SegmentedTile(
+            leading: const Icon(Icons.schedule_outlined),
+            title: Text(l10n.autoBackupTitle),
+            description: _descriptionText(
+              AutoBackupPreferences.enabled
+                  ? l10n.autoBackupStatusDetail(
+                      AutoBackupPreferences.intervalValue,
+                      _autoBackupUnitLabel(
+                        l10n,
+                        AutoBackupPreferences.intervalUnit,
+                      ),
+                      AutoBackupPreferences.retention <= 0
+                          ? l10n.autoBackupRetentionUnlimited
+                          : l10n.autoBackupRetentionCount(
+                              AutoBackupPreferences.retention,
+                            ),
+                    )
+                  : l10n.autoBackupStatusDisabled,
+            ),
+            enabled: !_busy && !_pendingRecovery,
+            onPressed: (_) async {
+              final changed = await showAutoBackupConfigDialog(context);
+              if (changed == true && mounted) setState(() {});
+            },
           ),
           if (_pendingRecovery)
             SegmentedTile(
@@ -437,6 +590,17 @@ class _AppDataPageState extends ConsumerState<AppDataPage> {
         ],
       ),
     );
+  }
+
+  String _autoBackupUnitLabel(AppLocalizations l10n, AutoBackupUnit unit) {
+    switch (unit) {
+      case AutoBackupUnit.day:
+        return l10n.autoBackupUnitDay;
+      case AutoBackupUnit.week:
+        return l10n.autoBackupUnitWeek;
+      case AutoBackupUnit.month:
+        return l10n.autoBackupUnitMonth;
+    }
   }
 }
 

@@ -25,6 +25,8 @@ import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart';
 import 'package:oronbox/src/features/devices/services/device_log_archive.dart';
 import 'package:oronbox/src/features/devices/services/phone_finder.dart';
+import 'package:oronbox/src/core/services/phone_location_sessions.dart';
+import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
 import 'package:oronbox/src/features/devices/controllers/interconnect_event_codec.dart';
 import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 import 'package:oronbox/src/features/accounts/services/huami_auth_service.dart';
@@ -116,8 +118,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         // can be paused or absent while Android is in the background, but the
         // local command bus remains alive with the connected device manager.
         unawaited(
-          PhoneFinder.setFinding(finding).catchError((error, stackTrace) {
-            _log.warning('phone finder playback failed', error, stackTrace);
+          PhoneFinder.setFinding(finding).catchError((error) {
+            _log.warning('phone finder playback failed', error);
           }),
         );
         _events.add(
@@ -389,10 +391,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       return CommandResult.failure(
         CommandError(error.code, error.message, details: error.details),
       );
-    } catch (error, stackTrace) {
-      _log.severe('Command ${command.method} failed', error, stackTrace);
+    } catch (error) {
+      _log.severe('Command ${command.method} failed', error);
       return CommandResult.failure(
-        CommandError('internal', error.toString(), details: '$stackTrace'),
+        CommandError('internal', error.toString()),
       );
     }
   }
@@ -472,6 +474,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'device.xiaomi.health.snapshot.replay' => _replayXiaomiHealthSnapshot(
       command.params,
     ),
+    'device.xiaomi.weather.cached' => Future.value(_cachedXiaomiWeather()),
+    'device.phone.location' => _phoneLocation(),
     'device.xiaomi.wifi.respond' => _respondXiaomiWifi(command.params),
     'device.xiaomi.appLayout.get' => _getXiaomiAppLayout(),
     'device.xiaomi.appLayout.set' => _setXiaomiAppLayout(command.params),
@@ -1743,6 +1747,34 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     }
     final value = await _manager.replayXiaomiHealthSnapshot(deviceId, files);
     return value.toJson();
+  }
+
+  Map<String, Object?> _cachedXiaomiWeather() => {
+    'available': XiaomiSyncPreferences.cachedWeather != null,
+    if (XiaomiSyncPreferences.cachedWeather != null)
+      'weather': XiaomiSyncPreferences.cachedWeather!.toJson(),
+    if (XiaomiSyncPreferences.cachedWeatherSyncedAt != null)
+      'syncedAt': XiaomiSyncPreferences.cachedWeatherSyncedAt!
+          .toIso8601String(),
+  };
+
+  Future<Object?> _phoneLocation() async {
+    final lease = Object();
+    try {
+      final sessions = PhoneLocationSessions.instance;
+      final nextPosition = sessions.positions.first;
+      await sessions.acquire(lease);
+      final position = await nextPosition.timeout(const Duration(seconds: 10));
+      return {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'accuracy': position.accuracy,
+        'altitude': position.altitude,
+        'timestamp': position.timestamp.toIso8601String(),
+      };
+    } finally {
+      await PhoneLocationSessions.instance.release(lease);
+    }
   }
 
   Future<Object?> _respondXiaomiWifi(Map<String, Object?> params) async {

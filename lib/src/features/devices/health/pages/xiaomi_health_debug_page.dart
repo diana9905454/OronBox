@@ -49,8 +49,8 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
         _snapshots = snapshots;
         _error = null;
       });
-    } catch (error, stack) {
-      _log.warning('Health activity operation failed', error, stack);
+    } catch (error) {
+      _log.warning('Health activity operation failed', error);
       if (mounted) {
         setState(
           () => _error = AppLocalizations.of(context)!.appDataLoadFailed,
@@ -90,8 +90,8 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
           ),
         ),
       );
-    } catch (error, stack) {
-      _log.warning('Health activity export failed', error, stack);
+    } catch (error) {
+      _log.warning('Health activity export failed', error);
       if (mounted) {
         setState(() {
           _error = l10n.appDataExportFailed;
@@ -138,8 +138,8 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
           ),
         ),
       );
-    } catch (error, stack) {
-      _log.warning('Health activity import failed', error, stack);
+    } catch (error) {
+      _log.warning('Health activity import failed', error);
       if (mounted) {
         setState(() {
           _error = l10n.appDataLoadFailed;
@@ -165,8 +165,8 @@ class _XiaomiHealthDebugPageState extends ConsumerState<XiaomiHealthDebugPage> {
     try {
       await action();
       if (mounted) await _load();
-    } catch (error, stack) {
-      _log.warning('Health snapshot update failed', error, stack);
+    } catch (error) {
+      _log.warning('Health snapshot update failed', error);
       if (mounted) {
         setState(
           () => _error = AppLocalizations.of(context)!.appDataUpdateFailed,

@@ -1101,6 +1101,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.1"
+  openai_dart:
+    dependency: "direct main"
+    description:
+      name: openai_dart
+      sha256: "40bbca48b592f6a0671501caf6082577a6afc7cc72a0af910580f0054609205a"
+      url: "https://pub.dev"
+    source: hosted
+    version: "11.0.1"
   oronbox_location:
     dependency: "direct main"
     description:

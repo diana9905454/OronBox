@@ -292,7 +292,7 @@ as String,
 /// @nodoc
 mixin _$MiWearState {
 
- String get name; String get addr; String get connectType; String? get authkey; String? get codename; bool get disconnected;
+ String get name; String get addr; String get connectType; String? get authkey; String? get codename; bool get disconnected; int get deviceCapability; int get deviceCapabilityV2;
 /// Create a copy of MiWearState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -306,20 +306,20 @@ $MiWearStateCopyWith<MiWearState> get copyWith => _$MiWearStateCopyWithImpl<MiWe
 @override
 bool operator ==(Object other) {
   final _this = this as MiWearState;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is MiWearState&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.addr, _this.addr) || other.addr == _this.addr)&&(identical(other.connectType, _this.connectType) || other.connectType == _this.connectType)&&(identical(other.authkey, _this.authkey) || other.authkey == _this.authkey)&&(identical(other.codename, _this.codename) || other.codename == _this.codename)&&(identical(other.disconnected, _this.disconnected) || other.disconnected == _this.disconnected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is MiWearState&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.addr, _this.addr) || other.addr == _this.addr)&&(identical(other.connectType, _this.connectType) || other.connectType == _this.connectType)&&(identical(other.authkey, _this.authkey) || other.authkey == _this.authkey)&&(identical(other.codename, _this.codename) || other.codename == _this.codename)&&(identical(other.disconnected, _this.disconnected) || other.disconnected == _this.disconnected)&&(identical(other.deviceCapability, _this.deviceCapability) || other.deviceCapability == _this.deviceCapability)&&(identical(other.deviceCapabilityV2, _this.deviceCapabilityV2) || other.deviceCapabilityV2 == _this.deviceCapabilityV2));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
   final _this = this as MiWearState;
-  return Object.hash(runtimeType,_this.name,_this.addr,_this.connectType,_this.authkey,_this.codename,_this.disconnected);
+  return Object.hash(runtimeType,_this.name,_this.addr,_this.connectType,_this.authkey,_this.codename,_this.disconnected,_this.deviceCapability,_this.deviceCapabilityV2);
 }
 
 @override
 String toString() {
   final _this = this as MiWearState;
-  return 'MiWearState(name: ${_this.name}, addr: ${_this.addr}, connectType: ${_this.connectType}, authkey: ${_this.authkey}, codename: ${_this.codename}, disconnected: ${_this.disconnected})';
+  return 'MiWearState(name: ${_this.name}, addr: ${_this.addr}, connectType: ${_this.connectType}, authkey: ${_this.authkey}, codename: ${_this.codename}, disconnected: ${_this.disconnected}, deviceCapability: ${_this.deviceCapability}, deviceCapabilityV2: ${_this.deviceCapabilityV2})';
 }
 
 
@@ -330,7 +330,7 @@ abstract mixin class $MiWearStateCopyWith<$Res>  {
   factory $MiWearStateCopyWith(MiWearState value, $Res Function(MiWearState) _then) = _$MiWearStateCopyWithImpl;
 @useResult
 $Res call({
- String name, String addr, String connectType, String? authkey, String? codename, bool disconnected
+ String name, String addr, String connectType, String? authkey, String? codename, bool disconnected, int deviceCapability, int deviceCapabilityV2
 });
 
 
@@ -347,7 +347,7 @@ class _$MiWearStateCopyWithImpl<$Res>
 
 /// Create a copy of MiWearState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? addr = null,Object? connectType = null,Object? authkey = freezed,Object? codename = freezed,Object? disconnected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? name = null,Object? addr = null,Object? connectType = null,Object? authkey = freezed,Object? codename = freezed,Object? disconnected = null,Object? deviceCapability = null,Object? deviceCapabilityV2 = null,}) {
   return _then(MiWearState(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,addr: null == addr ? _self.addr : addr // ignore: cast_nullable_to_non_nullable
@@ -355,7 +355,9 @@ as String,connectType: null == connectType ? _self.connectType : connectType // 
 as String,authkey: freezed == authkey ? _self.authkey : authkey // ignore: cast_nullable_to_non_nullable
 as String?,codename: freezed == codename ? _self.codename : codename // ignore: cast_nullable_to_non_nullable
 as String?,disconnected: null == disconnected ? _self.disconnected : disconnected // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,deviceCapability: null == deviceCapability ? _self.deviceCapability : deviceCapability // ignore: cast_nullable_to_non_nullable
+as int,deviceCapabilityV2: null == deviceCapabilityV2 ? _self.deviceCapabilityV2 : deviceCapabilityV2 // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 
@@ -440,10 +442,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String addr,  String connectType,  String? authkey,  String? codename,  bool disconnected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String name,  String addr,  String connectType,  String? authkey,  String? codename,  bool disconnected,  int deviceCapability,  int deviceCapabilityV2)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _MiWearState() when $default != null:
-return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.codename,_that.disconnected);case _:
+return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.codename,_that.disconnected,_that.deviceCapability,_that.deviceCapabilityV2);case _:
   return orElse();
 
 }
@@ -461,10 +463,10 @@ return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.code
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String addr,  String connectType,  String? authkey,  String? codename,  bool disconnected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String name,  String addr,  String connectType,  String? authkey,  String? codename,  bool disconnected,  int deviceCapability,  int deviceCapabilityV2)  $default,) {final _that = this;
 switch (_that) {
 case _MiWearState():
-return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.codename,_that.disconnected);case _:
+return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.codename,_that.disconnected,_that.deviceCapability,_that.deviceCapabilityV2);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -481,10 +483,10 @@ return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.code
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String addr,  String connectType,  String? authkey,  String? codename,  bool disconnected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String name,  String addr,  String connectType,  String? authkey,  String? codename,  bool disconnected,  int deviceCapability,  int deviceCapabilityV2)?  $default,) {final _that = this;
 switch (_that) {
 case _MiWearState() when $default != null:
-return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.codename,_that.disconnected);case _:
+return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.codename,_that.disconnected,_that.deviceCapability,_that.deviceCapabilityV2);case _:
   return null;
 
 }
@@ -496,7 +498,7 @@ return $default(_that.name,_that.addr,_that.connectType,_that.authkey,_that.code
 @JsonSerializable()
 
 class _MiWearState implements MiWearState {
-  const _MiWearState({required this.name, required this.addr, required this.connectType, this.authkey, this.codename, this.disconnected = false});
+  const _MiWearState({required this.name, required this.addr, required this.connectType, this.authkey, this.codename, this.disconnected = false, this.deviceCapability = 0, this.deviceCapabilityV2 = 0});
   factory _MiWearState.fromJson(Map<String, dynamic> json) => _$MiWearStateFromJson(json);
 
 @override final  String name;
@@ -505,6 +507,8 @@ class _MiWearState implements MiWearState {
 @override final  String? authkey;
 @override final  String? codename;
 @override@JsonKey() final  bool disconnected;
+@override@JsonKey() final  int deviceCapability;
+@override@JsonKey() final  int deviceCapabilityV2;
 
 /// Create a copy of MiWearState
 /// with the given fields replaced by the non-null parameter values.
@@ -519,18 +523,18 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MiWearState&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType)&&(identical(other.authkey, authkey) || other.authkey == authkey)&&(identical(other.codename, codename) || other.codename == codename)&&(identical(other.disconnected, disconnected) || other.disconnected == disconnected));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _MiWearState&&(identical(other.name, name) || other.name == name)&&(identical(other.addr, addr) || other.addr == addr)&&(identical(other.connectType, connectType) || other.connectType == connectType)&&(identical(other.authkey, authkey) || other.authkey == authkey)&&(identical(other.codename, codename) || other.codename == codename)&&(identical(other.disconnected, disconnected) || other.disconnected == disconnected)&&(identical(other.deviceCapability, deviceCapability) || other.deviceCapability == deviceCapability)&&(identical(other.deviceCapabilityV2, deviceCapabilityV2) || other.deviceCapabilityV2 == deviceCapabilityV2));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
 int get hashCode {
-    return Object.hash(runtimeType,name,addr,connectType,authkey,codename,disconnected);
+    return Object.hash(runtimeType,name,addr,connectType,authkey,codename,disconnected,deviceCapability,deviceCapabilityV2);
 }
 
 @override
 String toString() {
-    return 'MiWearState(name: $name, addr: $addr, connectType: $connectType, authkey: $authkey, codename: $codename, disconnected: $disconnected)';
+    return 'MiWearState(name: $name, addr: $addr, connectType: $connectType, authkey: $authkey, codename: $codename, disconnected: $disconnected, deviceCapability: $deviceCapability, deviceCapabilityV2: $deviceCapabilityV2)';
 }
 
 
@@ -541,7 +545,7 @@ abstract mixin class _$MiWearStateCopyWith<$Res> implements $MiWearStateCopyWith
   factory _$MiWearStateCopyWith(_MiWearState value, $Res Function(_MiWearState) _then) = __$MiWearStateCopyWithImpl;
 @override @useResult
 $Res call({
- String name, String addr, String connectType, String? authkey, String? codename, bool disconnected
+ String name, String addr, String connectType, String? authkey, String? codename, bool disconnected, int deviceCapability, int deviceCapabilityV2
 });
 
 
@@ -558,7 +562,7 @@ class __$MiWearStateCopyWithImpl<$Res>
 
 /// Create a copy of MiWearState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? addr = null,Object? connectType = null,Object? authkey = freezed,Object? codename = freezed,Object? disconnected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? name = null,Object? addr = null,Object? connectType = null,Object? authkey = freezed,Object? codename = freezed,Object? disconnected = null,Object? deviceCapability = null,Object? deviceCapabilityV2 = null,}) {
   return _then(_MiWearState(
 name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,addr: null == addr ? _self.addr : addr // ignore: cast_nullable_to_non_nullable
@@ -566,7 +570,9 @@ as String,connectType: null == connectType ? _self.connectType : connectType // 
 as String,authkey: freezed == authkey ? _self.authkey : authkey // ignore: cast_nullable_to_non_nullable
 as String?,codename: freezed == codename ? _self.codename : codename // ignore: cast_nullable_to_non_nullable
 as String?,disconnected: null == disconnected ? _self.disconnected : disconnected // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,deviceCapability: null == deviceCapability ? _self.deviceCapability : deviceCapability // ignore: cast_nullable_to_non_nullable
+as int,deviceCapabilityV2: null == deviceCapabilityV2 ? _self.deviceCapabilityV2 : deviceCapabilityV2 // ignore: cast_nullable_to_non_nullable
+as int,
   ));
 }
 

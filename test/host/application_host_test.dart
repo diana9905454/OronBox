@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
@@ -8,10 +10,26 @@ import 'package:oronbox/src/host/application_host.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  late Directory tempDir;
 
   setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('oronbox-app-host-test-');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (_) async => tempDir.path,
+        );
     SharedPreferences.setMockInitialValues({});
     await SharedPrefsService.instance.init();
+  });
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          null,
+        );
+    await tempDir.delete(recursive: true);
   });
 
   test(

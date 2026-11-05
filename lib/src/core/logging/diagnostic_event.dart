@@ -68,7 +68,7 @@ class DiagnosticEvent {
     );
   }
 
-  String format() {
+  String format({bool includeStackTrace = true}) {
     final buffer = StringBuffer('${_formatTime(time)} ')
       ..write(level.name.padRight(5))
       ..write(' [$scope] ')
@@ -85,7 +85,9 @@ class DiagnosticEvent {
       }
     }
     if (error != null) buffer.write('\n  error: $error');
-    if (stackTrace != null) buffer.write('\n$stackTrace');
+    if (includeStackTrace && stackTrace != null) {
+      buffer.write('\n$stackTrace');
+    }
     return buffer.toString();
   }
 

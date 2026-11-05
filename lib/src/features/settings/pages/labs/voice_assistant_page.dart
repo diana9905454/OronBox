@@ -16,6 +16,7 @@ import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/wasm/wasm_opus_decoder.dart';
 import 'package:oronbox/src/core/asr/asr.dart';
 import 'package:oronbox/src/features/voice/application/voice_recognition_controller.dart';
+import 'package:oronbox/src/features/voice/application/voice_session_coordinator.dart';
 
 import 'voice_recognition_controls.dart';
 import 'voice_replay_panel.dart';
@@ -52,6 +53,7 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
   bool _manualOverride = false;
   int _sessionGeneration = 0;
   late DeviceManager _manager;
+  late VoiceSessionCoordinator _sessionCoordinator;
   WasmOpusDecoder? _decoder;
   AudioSource? _audioSource;
   bool _playback = true;
@@ -67,8 +69,10 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _sessionCoordinator = ref.read(voiceSessionCoordinatorProvider);
+    _sessionCoordinator.claim(VoiceSessionOwner.lab);
     _manager = ref.read(deviceManagerProvider.notifier);
-    _frameSubscription = _manager.deviceEvents.listen((event) {
+    _frameSubscription = _sessionCoordinator.events.listen((event) {
       if (!mounted ||
           event.deviceId !=
               ref.read(deviceManagerProvider).currentDevice?.addr) {
@@ -189,7 +193,7 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
   void _onFrame(Uint8List frame) {
     final l10n = AppLocalizations.of(context)!;
     final decoder = _decoder;
-    if (decoder == null || _captureFull || !_foreground) return;
+    if (!mounted || decoder == null || _captureFull || !_foreground) return;
     if (_pcmSamples >= 16000 * 60 ||
         _opusBytes + frame.length > 4 * 1024 * 1024) {
       _captureFull = true;
@@ -307,6 +311,7 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
     try {
       if (!_hasSession || !_foreground || !mounted) return;
       await _manager.sendXiaoAiRecognitionResult(text, isFinal: true);
+      if (!mounted || generation != _sessionGeneration || !_foreground) return;
     } catch (error) {
       if (mounted && generation == _sessionGeneration) {
         setState(
@@ -487,9 +492,10 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
     _foreground = state == AppLifecycleState.resumed;
     _manager.setVoiceLabEnabled(false);
     if (!_foreground) {
+      ref.read(voiceSessionCoordinatorProvider).release(VoiceSessionOwner.lab);
       _recognitionTimer?.cancel();
       _sessionGeneration++;
-      unawaited(ref.read(voiceRecognitionProvider.notifier).suspend());
+      unawaited(ref.read(voiceRecognitionProvider.notifier).cancel());
       setState(() => _hasSession = false);
       final source = _audioSource;
       if (source != null && _audio.isInitialized) {
@@ -497,11 +503,7 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
       }
     }
     if (_foreground) {
-      unawaited(
-        ref
-            .read(voiceRecognitionProvider.notifier)
-            .select(ref.read(voiceRecognitionProvider).backend),
-      );
+      ref.read(voiceSessionCoordinatorProvider).claim(VoiceSessionOwner.lab);
     }
     if (state != AppLifecycleState.resumed && _continuousCapture) {
       unawaited(_manager.setXiaoAiContinuousCapture(false).catchError((_) {}));
@@ -512,6 +514,7 @@ class _VoiceAssistantPageState extends ConsumerState<VoiceAssistantPage>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _sessionCoordinator.release(VoiceSessionOwner.lab);
     _manager.setVoiceLabEnabled(false);
     _refreshTimer?.cancel();
     _recognitionTimer?.cancel();

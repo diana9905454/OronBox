@@ -24,6 +24,12 @@ class FeatureLabPage extends StatelessWidget {
           SegmentedSection(
             tiles: [
               SegmentedTile.navigation(
+                leading: const Icon(Icons.auto_awesome),
+                title: Text(l10n.globalAiTitle),
+                description: Text(l10n.globalAiDescription),
+                onPressed: (_) => context.push('/settings/labs/global-ai'),
+              ),
+              SegmentedTile.navigation(
                 leading: const Icon(Icons.record_voice_over),
                 title: Text(l10n.voiceLabTitle),
                 description: Text(l10n.voiceAssistantDescription),

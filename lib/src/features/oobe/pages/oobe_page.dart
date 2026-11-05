@@ -477,15 +477,25 @@ class _RestoreBackupButtonState extends ConsumerState<_RestoreBackupButton> {
       if (selection == null || !mounted) return;
       await backupService.restore(
         AppDataBackup(
-          settings: selection.settings ? backup.settings : const {},
+          settings: selectBackupSettings(
+            backup.settings,
+            includeSettings: selection.settings,
+            includeAccounts: selection.accountCredentials,
+          ),
           activityFiles: selection.health ? backup.activityFiles : const {},
           extensions: selection.extensions ? backup.extensions : const {},
           extensionFiles: selection.extensions
               ? backup.extensionFiles
               : const {},
           privateData: {
-            if (selection.devices) 'devices': backup.privateData['devices'],
-            if (selection.xiaomi) 'xiaomi': backup.privateData['xiaomi'],
+            if (selection.devices && backup.privateData.containsKey('devices'))
+              'devices': backup.privateData['devices'],
+            if (selection.accountCredentials) ...{
+              if (backup.privateData.containsKey('xiaomi'))
+                'xiaomi': backup.privateData['xiaomi'],
+              if (backup.privateData.containsKey('huami'))
+                'huami': backup.privateData['huami'],
+            },
           },
         ),
       );

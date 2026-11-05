@@ -298,4 +298,44 @@ void main() {
       );
     },
   );
+
+  test(
+    'encrypted backup requires password and rejects wrong credentials',
+    () async {
+      final tempDir = await Directory.systemTemp.createTemp('backup_enc_test_');
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final journal = IoAppDataDirectory(tempDir);
+      final service = AppDataBackupService(journal: journal);
+
+      final encryptedBytes = await service.export(
+        selection: const BackupSelection(
+          settings: true,
+          health: false,
+          extensions: false,
+        ),
+        password: 'MySecretPassword123',
+      );
+
+      expect(service.isEncrypted(encryptedBytes), isTrue);
+
+      // Missing password
+      expect(
+        () => service.inspect(encryptedBytes),
+        throwsA(isA<ArchivePasswordRequiredException>()),
+      );
+
+      // Wrong password
+      expect(
+        () => service.inspect(encryptedBytes, password: 'WrongPassword'),
+        throwsA(isA<ArchiveWrongPasswordException>()),
+      );
+
+      // Correct password
+      final decrypted = await service.inspect(
+        encryptedBytes,
+        password: 'MySecretPassword123',
+      );
+      expect(decrypted.settings, isA<Map<String, Object?>>());
+    },
+  );
 }

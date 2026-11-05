@@ -133,12 +133,11 @@ class HostTaskQueue {
     try {
       endExecution = await beginExecution?.call(task);
       result = await bus.execute(task.command);
-    } catch (error, stackTrace) {
+    } catch (error) {
       result = CommandResult.failure(
         CommandError(
           'task_execution',
           error.toString(),
-          details: '$stackTrace',
         ),
       );
     } finally {
@@ -148,12 +147,11 @@ class HostTaskQueue {
     if (result.ok && onCompleted != null) {
       try {
         await onCompleted!(task, result);
-      } catch (error, stackTrace) {
+      } catch (error) {
         result = CommandResult.failure(
           CommandError(
             'task_completion',
             error.toString(),
-            details: '$stackTrace',
           ),
         );
       }

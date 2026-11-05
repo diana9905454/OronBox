@@ -39,11 +39,10 @@ class XiaomiNetworkSystem extends XiaomiSystem {
     _outboundSubscription = session.outboundPackets.listen(_queueOutbound);
     _eventSubscription = session.events.listen(
       _onNetworkEvent,
-      onError: (Object error, StackTrace stackTrace) {
+      onError: (Object error) {
         _log.warning(
           '[${entity.id}] network runtime event failed',
           error,
-          stackTrace,
         );
       },
     );
@@ -64,19 +63,18 @@ class XiaomiNetworkSystem extends XiaomiSystem {
     if (session == null) return;
     try {
       session.pushInbound(payload);
-    } catch (error, stackTrace) {
-      _log.warning('[${entity.id}] network packet rejected', error, stackTrace);
+    } catch (error) {
+      _log.warning('[${entity.id}] network packet rejected', error);
     }
   }
 
   void _queueOutbound(Uint8List packet) {
     _outboundTail = _outboundTail
         .then((_) => component.sendL2NetworkData(packet))
-        .catchError((Object error, StackTrace stackTrace) {
+        .catchError((Object error) {
           _log.warning(
             '[${entity.id}] network packet send failed',
             error,
-            stackTrace,
           );
         });
   }

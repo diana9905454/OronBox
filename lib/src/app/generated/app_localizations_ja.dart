@@ -5310,14 +5310,14 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appDataDeviceKeysDescription => '保存したデバイスと接続用の認証情報';
 
   @override
-  String get appDataXiaomiAccount => 'Xiaomi アカウント';
+  String get appDataXiaomiAccount => 'Xiaomi と Amazfit の認証情報';
 
   @override
-  String get appDataXiaomiAccountDescription => 'Xiaomi アカウントとログイン情報';
+  String get appDataXiaomiAccountDescription => 'アカウントのパスワードと現在のログインセッション';
 
   @override
   String get appDataSensitiveBackup =>
-      'バックアップには暗号化されていない鍵やログイン情報が含まれます\n安全に保管し、共有しないでください';
+      'バックアップには暗号化されていないアカウント情報が含まれます\n安全に保管し、共有しないでください';
 
   @override
   String get appDataImportDescription => 'バックアップからデータを選んで復元';
@@ -5591,4 +5591,523 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get creatorAstroBoxPRBody => 'PR の説明（任意）';
+
+  @override
+  String get autoBackupTitle => '定期バックアップ';
+
+  @override
+  String get autoBackupDescription => '定期的にアプリデータをシステムドキュメントへバックアップ';
+
+  @override
+  String get autoBackupEnabled => '定期バックアップを有効化';
+
+  @override
+  String get autoBackupInterval => 'バックアップ頻度';
+
+  @override
+  String get autoBackupEvery => '間隔';
+
+  @override
+  String get autoBackupUnitDay => '日ごと';
+
+  @override
+  String get autoBackupUnitWeek => '週間ごと';
+
+  @override
+  String get autoBackupUnitMonth => 'か月ごと';
+
+  @override
+  String get autoBackupRetention => '保持世代数';
+
+  @override
+  String autoBackupRetentionCount(int count) {
+    return '$count 世代';
+  }
+
+  @override
+  String get autoBackupRetentionUnlimited => '制限なし';
+
+  @override
+  String get autoBackupPasswordEnable => 'パスワード保護';
+
+  @override
+  String get autoBackupPasswordEnableDesc => '標準 AES-256 でバックアップを暗号化';
+
+  @override
+  String get autoBackupPassword => 'パスワード';
+
+  @override
+  String get autoBackupPasswordConfirm => 'パスワードの確認';
+
+  @override
+  String get autoBackupPasswordMismatch => '入力されたパスワードが一致しません';
+
+  @override
+  String get autoBackupPasswordPlaceholder => 'パスワードを入力';
+
+  @override
+  String get autoBackupScope => 'バックアップ範囲';
+
+  @override
+  String get autoBackupScopeSettings => 'アプリ設定';
+
+  @override
+  String get autoBackupScopeHealth => '健康データ';
+
+  @override
+  String get autoBackupScopeExtensions => '拡張機能とミニアプリ';
+
+  @override
+  String get autoBackupScopeDevices => 'デバイス接続情報';
+
+  @override
+  String get autoBackupStorageLocation => '保存場所';
+
+  @override
+  String get autoBackupStorageLocationDesc => 'バックアップはシステムの共有ドキュメントフォルダに保存されます';
+
+  @override
+  String get autoBackupOpenFolder => 'ファイルマネージャーで開く';
+
+  @override
+  String autoBackupStatusEnabled(int value, String unit) {
+    return '有効 · $value $unit';
+  }
+
+  @override
+  String get autoBackupStatusDisabled => '無効';
+
+  @override
+  String get autoBackupRunNow => '今すぐバックアップ';
+
+  @override
+  String get autoBackupRunSuccess => '定期バックアップが完了しました';
+
+  @override
+  String get autoBackupRunFailed => '定期バックアップに失敗しました';
+
+  @override
+  String get backupPasswordDialogTitle => 'パスワードを入力';
+
+  @override
+  String get backupPasswordDialogMessage =>
+      'このバックアップは暗号化されています\n復元するにはパスワードを入力してください';
+
+  @override
+  String get backupPasswordIncorrect => 'パスワードが正しくありません';
+
+  @override
+  String get backupPasswordRequired => 'パスワードを入力してください';
+
+  @override
+  String get exportBackupPasswordOptional => '暗号化パスワード（任意）';
+
+  @override
+  String get exportBackupPasswordPlaceholder => '空欄の場合は暗号化されません';
+
+  @override
+  String get backupTargetPublicDocuments => 'システム書類フォルダーに保存';
+
+  @override
+  String get backupTargetCustom => '外部ファイルとして保存';
+
+  @override
+  String get restoreFromDocumentsTitle => '復元するバックアップを選択';
+
+  @override
+  String get restorePickExternalFile => '別の外部ファイルを選択...';
+
+  @override
+  String get backupSavedToDocuments => 'バックアップをシステム書類フォルダーに保存しました';
+
+  @override
+  String get appDataExporting => 'バックアップをエクスポートおよび暗号化しています...';
+
+  @override
+  String get appDataDecrypting => 'バックアップを復号しています...';
+
+  @override
+  String get appDataRestoring => 'データを復元しています...';
+
+  @override
+  String get autoBackupRetentionInputHint => '0 で無制限';
+
+  @override
+  String get autoBackupRetentionLabel => '保持世代数（0 で無制限）';
+
+  @override
+  String get autoBackupRetentionUnit => '世代';
+
+  @override
+  String get backupTypeAuto => '定期バックアップ';
+
+  @override
+  String get backupTypeManual => '手動バックアップ';
+
+  @override
+  String autoBackupStatusDetail(int value, String unit, String retentionText) {
+    return '有効 · $value $unit · $retentionText 保持';
+  }
+
+  @override
+  String get globalAiTitle => 'Global AI';
+
+  @override
+  String get globalAiDescription =>
+      'Configure LLM and wearable voice assistant integration';
+
+  @override
+  String get globalAiEnableSwitch => 'Enable Global AI';
+
+  @override
+  String get globalAiEnableSwitchDesc =>
+      'Enable client-wide LLM integration and intelligent capabilities';
+
+  @override
+  String get globalAiProviders => 'Provider Management';
+
+  @override
+  String globalAiProvidersCount(int count) {
+    return '$count providers configured';
+  }
+
+  @override
+  String get globalAiModelSettings => 'Model Settings';
+
+  @override
+  String get globalAiTestConnection => 'Test Connection';
+
+  @override
+  String get globalAiStreamResponse => 'Streaming Response';
+
+  @override
+  String get globalAiStreamResponseDesc =>
+      'Stream output progressively to wearable device';
+
+  @override
+  String get globalAiWearableSection => 'Wearable Device';
+
+  @override
+  String get globalAiWearableEnable => 'Wearable Enable';
+
+  @override
+  String get globalAiWearableEnableDesc =>
+      'Wearable voice assistant will be handled by LLM when triggered';
+
+  @override
+  String get globalAiWearableAdvancedSettings => 'Wearable Settings';
+
+  @override
+  String get globalAiToolsScope => 'Tool Permission Scopes';
+
+  @override
+  String get globalAiToolDeviceStatus => 'Device Status';
+
+  @override
+  String get globalAiToolDeviceStatusDesc =>
+      'Read device connection, battery and basic info';
+
+  @override
+  String get globalAiToolHealthData => 'Health Data';
+
+  @override
+  String get globalAiToolHealthDataDesc =>
+      'Read steps, calories, distance and heart rate';
+
+  @override
+  String get globalAiToolWeather => 'Weather Query';
+
+  @override
+  String get globalAiToolWeatherDesc => 'Query real-time weather and forecast';
+
+  @override
+  String get globalAiToolSearchResources => 'Search Resources';
+
+  @override
+  String get globalAiToolSearchResourcesDesc =>
+      'Search watch faces and third-party apps';
+
+  @override
+  String get globalAiToolInstallResources => 'Install Resources';
+
+  @override
+  String get globalAiToolInstallResourcesDesc =>
+      'Download and install watch faces or apps to device';
+
+  @override
+  String get globalAiToolDeleteResources => 'Delete Resources';
+
+  @override
+  String get globalAiToolDeleteResourcesDesc =>
+      'Uninstall or delete resources on device';
+
+  @override
+  String get globalAiToolManageAlarms => 'Manage Alarms';
+
+  @override
+  String get globalAiToolManageAlarmsDesc => 'Create or manage wearable alarms';
+
+  @override
+  String get globalAiToolFindDevice => 'Find Device';
+
+  @override
+  String get globalAiToolFindDeviceDesc =>
+      'Make wearable device vibrate or ring continuously';
+
+  @override
+  String get globalAiToolAppArrangement => 'App Layout';
+
+  @override
+  String get globalAiToolAppArrangementDesc =>
+      'Query and rearrange device app ordering';
+
+  @override
+  String get globalAiToolPhoneLocation => 'Phone Location';
+
+  @override
+  String get globalAiToolPhoneLocationDesc =>
+      'Supported on client phone only, assist queries with location';
+
+  @override
+  String get globalAiAddProvider => 'Add Provider';
+
+  @override
+  String get globalAiEditProvider => 'Edit Provider';
+
+  @override
+  String get globalAiProviderName => 'Provider Name';
+
+  @override
+  String get globalAiProviderBaseUrl => 'API Base URL';
+
+  @override
+  String get globalAiProviderApiKey => 'API Key';
+
+  @override
+  String get globalAiProviderModels => 'Model List';
+
+  @override
+  String get globalAiAddModel => 'Add Model';
+
+  @override
+  String get globalAiModelId => 'Model ID';
+
+  @override
+  String get globalAiProtocolType => 'Protocol Type';
+
+  @override
+  String get globalAiProtocolCompletions => 'Completions';
+
+  @override
+  String get globalAiProtocolResponses => 'Responses';
+
+  @override
+  String get globalAiMultimodalSupport => 'Multimodal Capabilities';
+
+  @override
+  String get globalAiSupportImages => 'Images';
+
+  @override
+  String get globalAiSupportAudio => 'Audio';
+
+  @override
+  String get globalAiContextLength => 'Context Window';
+
+  @override
+  String get globalAiWearableReplyLength => 'Wearable Reply Length';
+
+  @override
+  String get globalAiWearableLengthShort => 'Short (<50 chars)';
+
+  @override
+  String get globalAiWearableLengthMedium => 'Medium (<100 chars)';
+
+  @override
+  String get globalAiWearableLengthLong => 'Long (<200 chars)';
+
+  @override
+  String get globalAiWearableLengthUnlimited => 'Unlimited';
+
+  @override
+  String get globalAiWearableToolPolicy => 'Tool Calling Policy';
+
+  @override
+  String get globalAiToolPolicyDisabled => 'Disabled';
+
+  @override
+  String get globalAiToolPolicyReadOnly => 'Read-Only';
+
+  @override
+  String get globalAiToolPolicyReadWrite => 'Read-Write';
+
+  @override
+  String get globalAiConfirmationMode => 'Confirmation Mode';
+
+  @override
+  String get globalAiConfirmModeWearableVoice => 'Wearable Voice Confirmation';
+
+  @override
+  String get globalAiConfirmModeManual => 'Client Manual Confirmation';
+
+  @override
+  String get globalAiTesting => 'Testing connection...';
+
+  @override
+  String get globalAiTestSuccess => 'Connection successful';
+
+  @override
+  String get globalAiTestFailed => 'Connection failed';
+
+  @override
+  String globalAiTestDuration(int ms) {
+    return 'Latency $ms ms';
+  }
+
+  @override
+  String get globalAiSectionModelAndProvider => 'Model and Provider';
+
+  @override
+  String get globalAiTestConnectionDesc =>
+      'Verify connectivity and latency of current provider and model';
+
+  @override
+  String get globalAiWearableAdvancedDesc =>
+      'Reply length, tool permission mode and confirmation mode';
+
+  @override
+  String get globalAiNoModelSelected => 'No model configured or selected';
+
+  @override
+  String get globalAiSave => 'Save';
+
+  @override
+  String get globalAiCancel => 'Cancel';
+
+  @override
+  String get globalAiClose => 'Close';
+
+  @override
+  String get globalAiBack => 'Back';
+
+  @override
+  String get globalAiRetry => 'Retry';
+
+  @override
+  String get globalAiDelete => 'Delete';
+
+  @override
+  String get globalAiNoProvidersPrompt =>
+      'No providers added\nPlease add a new provider above';
+
+  @override
+  String get globalAiNoModelsPrompt =>
+      'No models available, please add a model first';
+
+  @override
+  String get globalAiSystemPrompt => 'System prompt';
+
+  @override
+  String get globalAiSystemPromptDescription =>
+      'Edit the model instructions. Device and tool safety rules are added automatically.';
+
+  @override
+  String get globalAiSystemPromptHint => 'Enter the system prompt template';
+
+  @override
+  String get globalAiSystemPromptPlaceholders => 'Available placeholders';
+
+  @override
+  String get globalAiDeleteProvider => 'Delete this Provider';
+
+  @override
+  String get globalAiDeleteModel => 'Delete Model';
+
+  @override
+  String get globalAiConnecting => 'Connecting...';
+
+  @override
+  String get globalAiReceiving => 'Receiving response...';
+
+  @override
+  String get globalAiWaitingFirstToken => 'Waiting for first token...';
+
+  @override
+  String globalAiTargetLabel(String provider, String model) {
+    return 'Target $provider / $model';
+  }
+
+  @override
+  String get globalAiNoProviderConfigured =>
+      'No valid provider or model configured';
+
+  @override
+  String get globalAiNoApiKeyConfigured =>
+      'No API key found, please check provider settings';
+
+  @override
+  String get globalAiSelectActiveModel => 'Select Active Model';
+
+  @override
+  String get globalAiContextLengthHint => 'e.g. 4096, 8192, 131072';
+
+  @override
+  String get globalAiModelNameHint => 'e.g. deepseek-flash, qwen3.8-flash';
+
+  @override
+  String get globalAiProviderNameHint => 'e.g. DeepSeek, OpenAI, SiliconFlow';
+
+  @override
+  String get globalAiBaseUrlHint => 'e.g. https://api.deepseek.com';
+
+  @override
+  String get globalAiApiKeyHint => 'sk-...';
+
+  @override
+  String get globalAiConfirmDeleteProvider =>
+      'Delete this provider and all its models?';
+
+  @override
+  String get globalAiConfirmDeleteModel => 'Delete this model configuration?';
+
+  @override
+  String get globalAiModelAlreadyExists => 'Model ID already exists';
+
+  @override
+  String get globalAiModelAdded => 'Model added';
+
+  @override
+  String get globalAiProviderAdded => 'Provider added';
+
+  @override
+  String get globalAiVoiceAssistantProcessing =>
+      'AI is thinking and streaming reply...';
+
+  @override
+  String globalAiVoiceAssistantError(String error) {
+    return 'AI reply error: $error';
+  }
+
+  @override
+  String get globalAiAsrEngine => 'Speech Recognition Engine';
+
+  @override
+  String get globalAiAsrManual => 'Manual Input';
+
+  @override
+  String get globalAiAsrNative => 'Local Offline Model';
+
+  @override
+  String get globalAiAsrWeType => 'WeType Cloud';
+
+  @override
+  String get globalAiAsrDoubao => 'Volcengine Doubao';
+
+  @override
+  String get globalAiTestRequestLabel => 'Request Sent';
+
+  @override
+  String get globalAiTestResponseLabel => 'Model Response';
+
+  @override
+  String get globalAiTestStart => 'Start Test';
 }

@@ -2550,9 +2550,9 @@
   "appDataHealthDescription": "Device-synced fitness and health data",
   "appDataDeviceKeys": "Device pairing and keys",
   "appDataDeviceKeysDescription": "Saved devices and connection credentials",
-  "appDataXiaomiAccount": "Xiaomi account",
-  "appDataXiaomiAccountDescription": "Xiaomi account and current sign-in session",
-  "appDataSensitiveBackup": "The backup contains unencrypted keys or sign-in details\nKeep it secure and do not share it",
+  "appDataXiaomiAccount": "Xiaomi and Amazfit credentials",
+  "appDataXiaomiAccountDescription": "Account password and current sign-in session",
+  "appDataSensitiveBackup": "The backup contains unencrypted account credentials\nKeep it secure and do not share it",
   "appDataImportDescription": "Choose data to restore from a backup",
   "appDataPluginDescription": "Installed plugins and their local data",
   "appDataZepposDescription": "Device app scripts and local settings",
@@ -2659,5 +2659,227 @@
   "creatorNameRequired": "Enter a resource name",
   "creatorSummaryRequired": "Enter a resource summary",
   "creatorSubmitForReview": "Submit for review",
-  "creatorAstroBoxPRBody": "PR description (optional)"
+  "creatorAstroBoxPRBody": "PR description (optional)",
+  "autoBackupTitle": "Scheduled Backup",
+  "autoBackupDescription": "Periodically back up app data to system Documents directory",
+  "autoBackupEnabled": "Enable scheduled backup",
+  "autoBackupInterval": "Backup frequency",
+  "autoBackupEvery": "Every",
+  "autoBackupUnitDay": "day(s)",
+  "autoBackupUnitWeek": "week(s)",
+  "autoBackupUnitMonth": "month(s)",
+  "autoBackupRetention": "Retention",
+  "autoBackupRetentionCount": "{count} copies",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "Unlimited",
+  "autoBackupPasswordEnable": "Password protection",
+  "autoBackupPasswordEnableDesc": "Encrypt backup with standard AES-256",
+  "autoBackupPassword": "Backup password",
+  "autoBackupPasswordConfirm": "Confirm password",
+  "autoBackupPasswordMismatch": "Passwords do not match",
+  "autoBackupPasswordPlaceholder": "Enter password",
+  "autoBackupScope": "Backup scope",
+  "autoBackupScopeSettings": "Preferences",
+  "autoBackupScopeHealth": "Health records",
+  "autoBackupScopeExtensions": "Extensions and mini-apps",
+  "autoBackupScopeDevices": "Device pairing info",
+  "autoBackupStorageLocation": "Storage location",
+  "autoBackupStorageLocationDesc": "Backups are automatically saved to public Documents directory",
+  "autoBackupOpenFolder": "Open in file manager",
+  "autoBackupStatusEnabled": "Enabled · Every {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "Disabled",
+  "autoBackupRunNow": "Back up now",
+  "autoBackupRunSuccess": "Scheduled backup completed",
+  "autoBackupRunFailed": "Scheduled backup failed",
+  "backupPasswordDialogTitle": "Enter backup password",
+  "backupPasswordDialogMessage": "This backup is encrypted; enter the password to restore",
+  "backupPasswordIncorrect": "Incorrect password",
+  "backupPasswordRequired": "Password is required",
+  "exportBackupPasswordOptional": "Password (optional)",
+  "exportBackupPasswordPlaceholder": "Leave blank for unencrypted",
+  "backupTargetPublicDocuments": "Save to system Documents folder",
+  "backupTargetCustom": "Save as external file",
+  "restoreFromDocumentsTitle": "Select Backup to Restore",
+  "restorePickExternalFile": "Choose another external file...",
+  "backupSavedToDocuments": "Backup saved to system Documents folder",
+  "appDataExporting": "Exporting and encrypting backup, please wait",
+  "appDataDecrypting": "Decrypting backup, please wait",
+  "appDataRestoring": "Restoring data, please wait",
+  "autoBackupRetentionInputHint": "0 for unlimited",
+  "autoBackupRetentionLabel": "Backup copies (0 for unlimited)",
+  "autoBackupRetentionUnit": "copies",
+  "backupTypeAuto": "Auto Backup",
+  "backupTypeManual": "Manual Backup",
+  "autoBackupStatusDetail": "Enabled · Every {value} {unit} · Keep {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiTitle": "Global AI",
+  "globalAiDescription": "Configure LLM and wearable voice assistant integration",
+  "globalAiEnableSwitch": "Enable Global AI",
+  "globalAiEnableSwitchDesc": "Enable client-wide LLM integration and intelligent capabilities",
+  "globalAiProviders": "Provider Management",
+  "globalAiProvidersCount": "{count} providers configured",
+  "@globalAiProvidersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiModelSettings": "Model Settings",
+  "globalAiTestConnection": "Test Connection",
+  "globalAiStreamResponse": "Streaming Response",
+  "globalAiStreamResponseDesc": "Stream output progressively to wearable device",
+  "globalAiWearableSection": "Wearable Device",
+  "globalAiWearableEnable": "Wearable Enable",
+  "globalAiWearableEnableDesc": "Wearable voice assistant will be handled by LLM when triggered",
+  "globalAiWearableAdvancedSettings": "Wearable Settings",
+  "globalAiToolsScope": "Tool Permission Scopes",
+  "globalAiToolDeviceStatus": "Device Status",
+  "globalAiToolDeviceStatusDesc": "Read device connection, battery and basic info",
+  "globalAiToolHealthData": "Health Data",
+  "globalAiToolHealthDataDesc": "Read steps, calories, distance and heart rate",
+  "globalAiToolWeather": "Weather Query",
+  "globalAiToolWeatherDesc": "Query real-time weather and forecast",
+  "globalAiToolSearchResources": "Search Resources",
+  "globalAiToolSearchResourcesDesc": "Search watch faces and third-party apps",
+  "globalAiToolInstallResources": "Install Resources",
+  "globalAiToolInstallResourcesDesc": "Download and install watch faces or apps to device",
+  "globalAiToolDeleteResources": "Delete Resources",
+  "globalAiToolDeleteResourcesDesc": "Uninstall or delete resources on device",
+  "globalAiToolManageAlarms": "Manage Alarms",
+  "globalAiToolManageAlarmsDesc": "Create or manage wearable alarms",
+  "globalAiToolFindDevice": "Find Device",
+  "globalAiToolFindDeviceDesc": "Make wearable device vibrate or ring continuously",
+  "globalAiToolAppArrangement": "App Layout",
+  "globalAiToolAppArrangementDesc": "Query and rearrange device app ordering",
+  "globalAiToolPhoneLocation": "Phone Location",
+  "globalAiToolPhoneLocationDesc": "Supported on client phone only, assist queries with location",
+  "globalAiAddProvider": "Add Provider",
+  "globalAiEditProvider": "Edit Provider",
+  "globalAiProviderName": "Provider Name",
+  "globalAiProviderBaseUrl": "API Base URL",
+  "globalAiProviderApiKey": "API Key",
+  "globalAiProviderModels": "Model List",
+  "globalAiAddModel": "Add Model",
+  "globalAiModelId": "Model ID",
+  "globalAiProtocolType": "Protocol Type",
+  "globalAiProtocolCompletions": "Completions",
+  "globalAiProtocolResponses": "Responses",
+  "globalAiMultimodalSupport": "Multimodal Capabilities",
+  "globalAiSupportImages": "Images",
+  "globalAiSupportAudio": "Audio",
+  "globalAiContextLength": "Context Window",
+  "globalAiWearableReplyLength": "Wearable Reply Length",
+  "globalAiWearableLengthShort": "Short (<50 chars)",
+  "globalAiWearableLengthMedium": "Medium (<100 chars)",
+  "globalAiWearableLengthLong": "Long (<200 chars)",
+  "globalAiWearableLengthUnlimited": "Unlimited",
+  "globalAiWearableToolPolicy": "Tool Calling Policy",
+  "globalAiToolPolicyDisabled": "Disabled",
+  "globalAiToolPolicyReadOnly": "Read-Only",
+  "globalAiToolPolicyReadWrite": "Read-Write",
+  "globalAiConfirmationMode": "Confirmation Mode",
+  "globalAiConfirmModeWearableVoice": "Wearable Voice Confirmation",
+  "globalAiConfirmModeManual": "Client Manual Confirmation",
+  "globalAiTesting": "Testing connection...",
+  "globalAiTestSuccess": "Connection successful",
+  "globalAiTestFailed": "Connection failed",
+  "globalAiTestDuration": "Latency {ms} ms",
+  "@globalAiTestDuration": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiSectionModelAndProvider": "Model and Provider",
+  "globalAiTestConnectionDesc": "Verify connectivity and latency of current provider and model",
+  "globalAiWearableAdvancedDesc": "Reply length, tool permission mode and confirmation mode",
+  "globalAiNoModelSelected": "No model configured or selected",
+  "globalAiSave": "Save",
+  "globalAiCancel": "Cancel",
+  "globalAiClose": "Close",
+  "globalAiBack": "Back",
+  "globalAiRetry": "Retry",
+  "globalAiDelete": "Delete",
+  "globalAiNoProvidersPrompt": "No providers added\nPlease add a new provider above",
+  "globalAiNoModelsPrompt": "No models available, please add a model first",
+  "globalAiSystemPrompt": "System prompt",
+  "globalAiSystemPromptDescription": "Edit the model instructions. Device and tool safety rules are added automatically.",
+  "globalAiSystemPromptHint": "Enter the system prompt template",
+  "globalAiSystemPromptPlaceholders": "Available placeholders",
+  "globalAiDeleteProvider": "Delete this Provider",
+  "globalAiDeleteModel": "Delete Model",
+  "globalAiConnecting": "Connecting...",
+  "globalAiReceiving": "Receiving response...",
+  "globalAiWaitingFirstToken": "Waiting for first token...",
+  "globalAiTargetLabel": "Target {provider} / {model}",
+  "@globalAiTargetLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiNoProviderConfigured": "No valid provider or model configured",
+  "globalAiNoApiKeyConfigured": "No API key found, please check provider settings",
+  "globalAiSelectActiveModel": "Select Active Model",
+  "globalAiContextLengthHint": "e.g. 4096, 8192, 131072",
+  "globalAiModelNameHint": "e.g. deepseek-flash, qwen3.8-flash",
+  "globalAiProviderNameHint": "e.g. DeepSeek, OpenAI, SiliconFlow",
+  "globalAiBaseUrlHint": "e.g. https://api.deepseek.com",
+  "globalAiApiKeyHint": "sk-...",
+  "globalAiConfirmDeleteProvider": "Delete this provider and all its models?",
+  "globalAiConfirmDeleteModel": "Delete this model configuration?",
+  "globalAiModelAlreadyExists": "Model ID already exists",
+  "globalAiModelAdded": "Model added",
+  "globalAiProviderAdded": "Provider added",
+  "globalAiVoiceAssistantProcessing": "AI is thinking and streaming reply...",
+  "globalAiVoiceAssistantError": "AI reply error: {error}",
+  "@globalAiVoiceAssistantError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiAsrEngine": "Speech Recognition Engine",
+  "globalAiAsrManual": "Manual Input",
+  "globalAiAsrNative": "Local Offline Model",
+  "globalAiAsrWeType": "WeType Cloud",
+  "globalAiAsrDoubao": "Volcengine Doubao",
+  "globalAiTestRequestLabel": "Request Sent",
+  "globalAiTestResponseLabel": "Model Response",
+  "globalAiTestStart": "Start Test"
 }

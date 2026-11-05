@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
+import 'package:oronbox/src/features/accounts/services/huami_auth_service.dart';
 
-/// An explicit allowlist: OronBox, BandBBS and other account stores are never read.
 class AppPrivateBackupStore {
   AppPrivateBackupStore({PrivateAppState? state})
     : state = state ?? PrivateAppState.instance;
@@ -12,7 +12,9 @@ class AppPrivateBackupStore {
   Future<Map<String, Object?>> export({
     bool devices = false,
     bool xiaomi = false,
+    bool accounts = false,
   }) async {
+    final includeAccounts = accounts || xiaomi;
     final result = <String, Object?>{};
     if (devices) {
       await state.reload(key: PrivateAppState.pairedDevices);
@@ -31,9 +33,12 @@ class AppPrivateBackupStore {
         throw const PrivateStateException('private_state_read_failed');
       }
     }
-    if (xiaomi) {
+    if (includeAccounts) {
       await state.reload(key: PrivateAppState.miToken);
       result['xiaomi'] = state.readString(PrivateAppState.miToken);
+      await state.reload(key: PrivateAppState.huamiToken);
+      final huami = state.readString(PrivateAppState.huamiToken);
+      if (huami != null) result['huami'] = huami;
     }
     validatePrivateBackup(result);
     return result;
@@ -50,6 +55,9 @@ class AppPrivateBackupStore {
     }
     if (data.containsKey('xiaomi')) {
       await state.update({PrivateAppState.miToken: data['xiaomi']});
+    }
+    if (data.containsKey('huami')) {
+      await state.update({PrivateAppState.huamiToken: data['huami']});
     }
   }
 
@@ -87,7 +95,9 @@ void validatePrivateBackup(Map<String, Object?> data) {
 }
 
 void _validatePrivateBackup(Map<String, Object?> data) {
-  if (data.keys.any((key) => key != 'devices' && key != 'xiaomi')) {
+  if (data.keys.any(
+    (key) => key != 'devices' && key != 'xiaomi' && key != 'huami',
+  )) {
     throw const FormatException('Invalid private backup category');
   }
   if (data.containsKey('devices')) {
@@ -109,6 +119,8 @@ void _validatePrivateBackup(Map<String, Object?> data) {
           'authkey',
           'codename',
           'disconnected',
+          'deviceCapability',
+          'deviceCapabilityV2',
         ].contains(key),
       )) {
         throw const FormatException('Invalid paired device fields');
@@ -140,6 +152,15 @@ void _validatePrivateBackup(Map<String, Object?> data) {
         json.values.any((value) => value is! String) ||
         MiAccountToken.fromJson(json) == null) {
       throw const FormatException('Invalid Xiaomi session');
+    }
+  }
+  if (data['huami'] case final Object raw) {
+    if (raw is! String || raw.length > 65536) {
+      throw const FormatException('Invalid Huami session');
+    }
+    final json = (jsonDecode(raw) as Map).cast<String, Object?>();
+    if (HuamiTokenInfo.fromJson(json)?.isValid != true) {
+      throw const FormatException('Invalid Huami session');
     }
   }
 }

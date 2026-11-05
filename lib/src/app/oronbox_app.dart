@@ -17,7 +17,9 @@ import 'package:oronbox/src/app/integrations/file_open_handler.dart';
 import 'package:oronbox/src/features/devices/widgets/xms_wearable_bridge.dart';
 import 'package:oronbox/src/features/devices/widgets/xiaomi_screenshot_handler.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_host_request_handler.dart';
+import 'package:oronbox/src/features/settings/services/auto_backup_scheduler.dart';
 import 'package:oronbox/src/features/settings/services/update_check_service.dart';
+import 'package:oronbox/src/features/voice/application/global_voice_assistant_service.dart';
 import 'package:oronbox/src/local_server/local_server_provider.dart';
 import 'package:oronbox/src/app/widgets/app_error_gate.dart';
 import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
@@ -36,6 +38,7 @@ class OronBoxApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(globalVoiceAssistantServiceProvider);
     ref.watch(localServerProvider);
     final router = ref.watch(appRouterProvider);
     final themeSettings = ref.watch(themeSettingsProvider);
@@ -78,9 +81,11 @@ class OronBoxApp extends ConsumerWidget {
                         child: UpdateCheckHandler(
                           child: FileOpenHandler(
                             child: XiaomiAutomaticSyncScheduler(
-                              child: AppLinkHandler(
-                                child: ActivityReportHandler(
-                                  child: child ?? const SizedBox.shrink(),
+                              child: AutoBackupScheduler(
+                                child: AppLinkHandler(
+                                  child: ActivityReportHandler(
+                                    child: child ?? const SizedBox.shrink(),
+                                  ),
                                 ),
                               ),
                             ),

@@ -179,9 +179,88 @@ void main() {
       expect(results[2].recognizeResult.results.list.single.text, 'question');
       input(3, []);
       expect(component.packets, hasLength(5));
-      expect(component.ackRequests, everyElement(isTrue));
+      expect(component.ackRequests, everyElement(isFalse));
     },
   );
+
+  test('large-model capability uses the streaming reply protocol', () async {
+    bus.emit(
+      const XiaomiDeviceCapabilitiesUpdated(
+        deviceId: 'watch',
+        deviceCapability: 0,
+        deviceCapabilityV2: 256,
+      ),
+    );
+    await Future<void>.delayed(Duration.zero);
+    voice.setEnabled(true);
+    input(1, [7]);
+
+    await voice.sendTextReply('answer', recognizedText: 'question');
+
+    expect(
+      component.packets
+          .expand((packet) => packet.aivs.instructionList.list)
+          .map((instruction) => instruction.resultType),
+      [
+        aivs.ResultType.STOP_CAPTURE,
+        aivs.ResultType.RECOGNIZE_RESULT,
+        aivs.ResultType.LLM_TOAST_STREAM,
+        aivs.ResultType.LLM_FINISH_STREAM,
+      ],
+    );
+  });
+
+  test(
+    'large-model reply can defer capture stop for a one-shot toast',
+    () async {
+      bus.emit(
+        const XiaomiDeviceCapabilitiesUpdated(
+          deviceId: 'watch',
+          deviceCapability: 0,
+          deviceCapabilityV2: 256,
+        ),
+      );
+      await Future<void>.delayed(Duration.zero);
+      voice.setEnabled(true);
+      input(1, [8]);
+
+      await voice.sendTextReply(
+        'answer',
+        recognizedText: 'question',
+        useStream: false,
+      );
+
+      expect(
+        component.packets
+            .expand((packet) => packet.aivs.instructionList.list)
+            .map((instruction) => instruction.resultType),
+        [
+          aivs.ResultType.RECOGNIZE_RESULT,
+          aivs.ResultType.RECOGNIZE_RESULT,
+          aivs.ResultType.TEMPLATE_TOAST,
+          aivs.ResultType.DIALOG_FINISH,
+        ],
+      );
+    },
+  );
+
+  test('a reply target cannot write into a newer voice session', () async {
+    voice.setEnabled(true);
+    input(1, [1]);
+    final target = voice.sessionTarget;
+    expect(target, isNotNull);
+    input(1, [2]);
+
+    await expectLater(
+      voice.sendTextReply(
+        'old reply',
+        recognizedText: 'question',
+        target: target,
+      ),
+      throwsStateError,
+    );
+    expect(component.packets, isEmpty);
+  });
 
   test('natural audio end keeps the session available for a reply', () async {
     voice.setEnabled(true);
@@ -318,6 +397,7 @@ void main() {
       voice.sendTextReply('second', recognizedText: 'question'),
       throwsStateError,
     );
+    await Future<void>.delayed(Duration.zero);
     expect(component.packets, hasLength(1));
     component.gate!.complete();
     await sending;
@@ -372,4 +452,23 @@ void main() {
       [aivs.ResultType.STOP_CAPTURE, aivs.ResultType.DIALOG_FINISH],
     );
   });
+
+  test(
+    'stopCapture sends STOP_CAPTURE instruction and ends recording',
+    () async {
+      voice.setEnabled(true);
+      input(1, [1]);
+
+      await voice.stopCapture();
+      expect(
+        component.packets.single.aivs.instructionList.list.single.resultType,
+        aivs.ResultType.STOP_CAPTURE,
+      );
+
+      // Audio packets arriving after stopCapture are ignored
+      input(2, List.filled(80, 1));
+      await Future<void>.delayed(Duration.zero);
+      expect(events.whereType<XiaoAiOpusFrameReceived>(), isEmpty);
+    },
+  );
 }

@@ -2282,9 +2282,9 @@
   "appDataHealthDescription": "Синхронизированные данные активности и здоровья",
   "appDataDeviceKeys": "Сопряжения и ключи устройств",
   "appDataDeviceKeysDescription": "Устройства и данные для подключения",
-  "appDataXiaomiAccount": "Аккаунт Xiaomi",
-  "appDataXiaomiAccountDescription": "Аккаунт Xiaomi и текущий сеанс",
-  "appDataSensitiveBackup": "Копия содержит незашифрованные ключи или данные входа\nХраните её безопасно и не делитесь ею",
+  "appDataXiaomiAccount": "Данные Xiaomi и Amazfit",
+  "appDataXiaomiAccountDescription": "Пароль аккаунта и текущий сеанс входа",
+  "appDataSensitiveBackup": "Копия содержит незашифрованные данные аккаунта\nХраните её безопасно и не делитесь ею",
   "appDataImportDescription": "Выбор данных для восстановления",
   "appDataPluginDescription": "Плагины и их локальные данные",
   "appDataZepposDescription": "Скрипты приложений устройств и настройки",
@@ -2384,5 +2384,85 @@
   "creatorNameRequired": "Введите название ресурса",
   "creatorSummaryRequired": "Введите краткое описание",
   "creatorSubmitForReview": "Отправить на проверку",
-  "creatorAstroBoxPRBody": "Описание PR (необязательно)"
+  "creatorAstroBoxPRBody": "Описание PR (необязательно)",
+  "autoBackupTitle": "Резервное копирование по расписанию",
+  "autoBackupDescription": "Автоматическое сохранение копий в системную папку документов",
+  "autoBackupEnabled": "Включить резервное копирование",
+  "autoBackupInterval": "Частота копирования",
+  "autoBackupEvery": "Каждые",
+  "autoBackupUnitDay": "дн.",
+  "autoBackupUnitWeek": "нед.",
+  "autoBackupUnitMonth": "мес.",
+  "autoBackupRetention": "Хранить копий",
+  "autoBackupRetentionCount": "{count} шт.",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "Без ограничений",
+  "autoBackupPasswordEnable": "Защита паролем",
+  "autoBackupPasswordEnableDesc": "Шифрование резервной копии по стандарту AES-256",
+  "autoBackupPassword": "Пароль",
+  "autoBackupPasswordConfirm": "Подтверждение пароля",
+  "autoBackupPasswordMismatch": "Введённые пароли не совпадают",
+  "autoBackupPasswordPlaceholder": "Введите пароль",
+  "autoBackupScope": "Область копирования",
+  "autoBackupScopeSettings": "Настройки приложения",
+  "autoBackupScopeHealth": "Данные здоровья",
+  "autoBackupScopeExtensions": "Расширения и мини-приложения",
+  "autoBackupScopeDevices": "Данные сопряжения устройств",
+  "autoBackupStorageLocation": "Место хранения",
+  "autoBackupStorageLocationDesc": "Копии сохраняются в общедоступную системную папку документов",
+  "autoBackupOpenFolder": "Открыть в диспетчере файлов",
+  "autoBackupStatusEnabled": "Включено · каждые {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "Отключено",
+  "autoBackupRunNow": "Создать копию сейчас",
+  "autoBackupRunSuccess": "Резервная копия успешно создана",
+  "autoBackupRunFailed": "Ошибка создания резервной копии",
+  "backupPasswordDialogTitle": "Пароль резервной копии",
+  "backupPasswordDialogMessage": "Эта копия зашифрована\nВведите пароль для восстановления",
+  "backupPasswordIncorrect": "Неверный пароль",
+  "backupPasswordRequired": "Требуется пароль",
+  "exportBackupPasswordOptional": "Пароль копии (необязательно)",
+  "exportBackupPasswordPlaceholder": "Оставьте пустым без шифрования",
+  "backupTargetPublicDocuments": "Сохранить в системную папку «Документы»",
+  "backupTargetCustom": "Сохранить как внешний файл",
+  "restoreFromDocumentsTitle": "Выберите резервную копию",
+  "restorePickExternalFile": "Выбрать другой файл...",
+  "backupSavedToDocuments": "Резервная копия сохранена в системную папку документов",
+  "appDataExporting": "Экспорт и шифрование копии, подождите...",
+  "appDataDecrypting": "Расшифровка резервной копии, подождите...",
+  "appDataRestoring": "Восстановление данных, подождите...",
+  "autoBackupRetentionInputHint": "0 — без ограничений",
+  "autoBackupRetentionLabel": "Количество копий (0 — без ограничений)",
+  "autoBackupRetentionUnit": "копий",
+  "backupTypeAuto": "Автоматическая копия",
+  "backupTypeManual": "Ручная копия",
+  "autoBackupStatusDetail": "Включено · каждые {value} {unit} · хранить {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  }
 }

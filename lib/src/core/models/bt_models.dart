@@ -26,6 +26,8 @@ abstract class MiWearState with _$MiWearState {
     String? authkey,
     String? codename,
     @Default(false) bool disconnected,
+    @Default(0) int deviceCapability,
+    @Default(0) int deviceCapabilityV2,
   }) = _MiWearState;
 
   factory MiWearState.fromJson(Map<String, dynamic> json) =>

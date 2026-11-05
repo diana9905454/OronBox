@@ -7,8 +7,9 @@ Uint8List _encodeBackup(
     Map<String, Object?>,
     Map<String, Uint8List>,
   )
-  data,
-) {
+  data, {
+  String? password,
+}) {
   _validateSettings(data.$1);
   validatePrivateBackup(data.$3);
   final files = <String, Uint8List>{
@@ -44,14 +45,20 @@ Uint8List _encodeBackup(
   archive.addFile(
     ArchiveFile('manifest.json', manifestBytes.length, manifestBytes),
   );
-  return Uint8List.fromList(ZipEncoder().encode(archive));
+  final effectivePassword = (password != null && password.trim().isNotEmpty)
+      ? password.trim()
+      : null;
+  return Uint8List.fromList(
+    ZipEncoder(password: effectivePassword).encode(archive),
+  );
 }
 
-AppDataBackup _decodeBackup(Uint8List bytes) {
+AppDataBackup _decodeBackup(Uint8List bytes, {String? password}) {
   final files = readDataArchive(
     bytes,
     maxFiles: 8192,
     maxBytes: 512 * 1024 * 1024,
+    password: password,
   );
   final manifestRaw = files['manifest.json'];
   if (manifestRaw == null) {
@@ -123,7 +130,8 @@ void _validateSettings(Map<String, Object?> settings) {
   for (final entry in settings.entries) {
     final value = entry.value;
     final valid =
-        backupPreferenceKeys.contains(entry.key) &&
+        (backupPreferenceKeys.contains(entry.key) ||
+            backupAccountPreferenceKeys.contains(entry.key)) &&
         (value == null ||
             switch (entry.key) {
               'app_theme_mode' ||
@@ -131,13 +139,37 @@ void _validateSettings(Map<String, Object?> settings) {
               'app_locale' ||
               'github_cdn' ||
               'community_source' ||
-              'wide_navigation_rail_position' => value is String,
+              'wide_navigation_rail_position' ||
+              'auto_backup_interval_unit' => value is String,
               'desktop.exit_behavior' =>
                 value is int && value >= 0 && value <= 2,
               'app_custom_seed_color' =>
                 value is int && value >= 0 && value <= 0xffffffff,
+              'zeppos.mirror.frame_interval_ms' =>
+                value is int && value >= 1 && value <= 1000,
+              'auto_backup_interval_value' => value is int && value >= 1,
+              'auto_backup_retention' => value is int && value >= 0,
+              'mi_account.username' ||
+              'mi_account.password' ||
+              'huami_account.username' ||
+              'huami_account.password' => value is String,
               _ => value is bool,
             });
     if (!valid) throw const FormatException('Invalid backup settings');
   }
 }
+
+Uint8List _encodeBackupEntry(
+  (
+    Map<String, Object?>,
+    Map<String, Object?>,
+    Map<String, Object?>,
+    Map<String, Uint8List>,
+    String?,
+  )
+  input,
+) =>
+    _encodeBackup((input.$1, input.$2, input.$3, input.$4), password: input.$5);
+
+AppDataBackup _decodeBackupEntry((Uint8List, String?) input) =>
+    _decodeBackup(input.$1, password: input.$2);

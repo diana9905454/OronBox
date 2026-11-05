@@ -151,8 +151,8 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
         'needGpsInfo=${request.needGpsInfo}',
       );
       _enqueueDataRequest(request);
-    } catch (error, stackTrace) {
-      _log.warning('[${entity.id}] invalid GNSS request', error, stackTrace);
+    } catch (error) {
+      _log.warning('[${entity.id}] invalid GNSS request', error);
     }
   }
 
@@ -256,7 +256,7 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
         if (!sent) operation?.step('location_unavailable');
       }
       operation?.complete();
-    } catch (error, stackTrace) {
+    } catch (error) {
       operation?.fail(error);
       if (error is XiaomiGnssAccountRequiredException ||
           error is MiAccountSessionExpired) {
@@ -265,7 +265,7 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
         );
         entity.emit(XiaomiGnssAccountRequired(deviceId: entity.id));
       }
-      _log.warning('[${entity.id}] GNSS request failed', error, stackTrace);
+      _log.warning('[${entity.id}] GNSS request failed', error);
     }
   }
 
@@ -288,11 +288,10 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
         // the model.  Mi Fitness uses the product metadata in exactly this
         // case, so load the model before choosing the fallback source.
         await info.fetchDeviceInfo();
-      } catch (error, stackTrace) {
+      } catch (error) {
         _log.fine(
           '[${entity.id}] could not load model before GNSS source fallback',
           error,
-          stackTrace,
         );
       }
     }
@@ -420,12 +419,11 @@ class XiaomiGnssSystem extends XiaomiPbSystem {
       } else {
         operation?.fail(StateError('GNSS phone location is unavailable'));
       }
-    } catch (error, stackTrace) {
+    } catch (error) {
       operation?.fail(error);
       _log.warning(
         '[${entity.id}] GNSS location response failed',
         error,
-        stackTrace,
       );
     }
   }

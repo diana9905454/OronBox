@@ -5260,13 +5260,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appDataDeviceKeysDescription => '设备列表及连接所需的认证信息';
 
   @override
-  String get appDataXiaomiAccount => '小米账号信息';
+  String get appDataXiaomiAccount => '小米与华米账号信息';
 
   @override
-  String get appDataXiaomiAccountDescription => '小米账号及当前登录会话';
+  String get appDataXiaomiAccountDescription => '账号密码及当前登录会话';
 
   @override
-  String get appDataSensitiveBackup => '备份包含密钥或登录信息且未加密\n请妥善保管，不要分享';
+  String get appDataSensitiveBackup => '备份包含未加密的账号凭证\n请妥善保管，不要分享';
 
   @override
   String get appDataImportDescription => '从备份文件选择数据进行恢复';
@@ -5533,6 +5533,503 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get creatorAstroBoxPRBody => 'PR 说明（选填）';
+
+  @override
+  String get autoBackupTitle => '定时备份';
+
+  @override
+  String get autoBackupDescription => '定期将应用数据备份并保存至系统文档目录';
+
+  @override
+  String get autoBackupEnabled => '启用定时备份';
+
+  @override
+  String get autoBackupInterval => '备份频率';
+
+  @override
+  String get autoBackupEvery => '每';
+
+  @override
+  String get autoBackupUnitDay => '天';
+
+  @override
+  String get autoBackupUnitWeek => '周';
+
+  @override
+  String get autoBackupUnitMonth => '月';
+
+  @override
+  String get autoBackupRetention => '保留份数';
+
+  @override
+  String autoBackupRetentionCount(int count) {
+    return '$count 份';
+  }
+
+  @override
+  String get autoBackupRetentionUnlimited => '不限制';
+
+  @override
+  String get autoBackupPasswordEnable => '密码保护';
+
+  @override
+  String get autoBackupPasswordEnableDesc => '使用标准 AES-256 为备份加密';
+
+  @override
+  String get autoBackupPassword => '备份密码';
+
+  @override
+  String get autoBackupPasswordConfirm => '确认密码';
+
+  @override
+  String get autoBackupPasswordMismatch => '两次输入的密码不一致';
+
+  @override
+  String get autoBackupPasswordPlaceholder => '请输入密码';
+
+  @override
+  String get autoBackupScope => '备份范围';
+
+  @override
+  String get autoBackupScopeSettings => '偏好设置';
+
+  @override
+  String get autoBackupScopeHealth => '健康数据';
+
+  @override
+  String get autoBackupScopeExtensions => '扩展应用数据';
+
+  @override
+  String get autoBackupScopeDevices => '设备连接信息';
+
+  @override
+  String get autoBackupStorageLocation => '存储位置';
+
+  @override
+  String get autoBackupStorageLocationDesc => '备份文件自动保存至系统公有文档目录';
+
+  @override
+  String get autoBackupOpenFolder => '在文件管理器中打开';
+
+  @override
+  String autoBackupStatusEnabled(int value, String unit) {
+    return '已开启 · 每 $value $unit';
+  }
+
+  @override
+  String get autoBackupStatusDisabled => '未开启';
+
+  @override
+  String get autoBackupRunNow => '立即备份';
+
+  @override
+  String get autoBackupRunSuccess => '自动备份完成';
+
+  @override
+  String get autoBackupRunFailed => '自动备份失败';
+
+  @override
+  String get backupPasswordDialogTitle => '输入备份密码';
+
+  @override
+  String get backupPasswordDialogMessage => '此备份已加密，请输入密码解密';
+
+  @override
+  String get backupPasswordIncorrect => '密码错误，无法解密';
+
+  @override
+  String get backupPasswordRequired => '请输入密码';
+
+  @override
+  String get exportBackupPasswordOptional => '备份密码（可选）';
+
+  @override
+  String get exportBackupPasswordPlaceholder => '留空则不加密';
+
+  @override
+  String get backupTargetPublicDocuments => '保存至系统文档目录';
+
+  @override
+  String get backupTargetCustom => '另存为外部文件';
+
+  @override
+  String get restoreFromDocumentsTitle => '选择要恢复的备份';
+
+  @override
+  String get restorePickExternalFile => '选择其他外部文件...';
+
+  @override
+  String get backupSavedToDocuments => '备份已保存至系统文档目录';
+
+  @override
+  String get appDataExporting => '正在导出并加密备份，请稍等';
+
+  @override
+  String get appDataDecrypting => '正在解密备份，请稍等';
+
+  @override
+  String get appDataRestoring => '正在恢复数据，请稍等';
+
+  @override
+  String get autoBackupRetentionInputHint => '0 为不限制';
+
+  @override
+  String get autoBackupRetentionLabel => '保留份数（0 为不限制）';
+
+  @override
+  String get autoBackupRetentionUnit => '份';
+
+  @override
+  String get backupTypeAuto => '定时备份';
+
+  @override
+  String get backupTypeManual => '手动备份';
+
+  @override
+  String autoBackupStatusDetail(int value, String unit, String retentionText) {
+    return '已开启 · 每 $value $unit · 保留 $retentionText';
+  }
+
+  @override
+  String get globalAiTitle => '全局 AI';
+
+  @override
+  String get globalAiDescription => '配置大语言模型及穿戴助手智能联动';
+
+  @override
+  String get globalAiEnableSwitch => '启用全局 AI';
+
+  @override
+  String get globalAiEnableSwitchDesc => '开启客户端全局大语言模型接入与智能能力支持';
+
+  @override
+  String get globalAiProviders => '提供商管理';
+
+  @override
+  String globalAiProvidersCount(int count) {
+    return '已配置 $count 个提供商';
+  }
+
+  @override
+  String get globalAiModelSettings => '模型设置';
+
+  @override
+  String get globalAiTestConnection => '测试连接';
+
+  @override
+  String get globalAiStreamResponse => '流式响应';
+
+  @override
+  String get globalAiStreamResponseDesc => '启用后模型将逐字打字机下发';
+
+  @override
+  String get globalAiWearableSection => '穿戴设备';
+
+  @override
+  String get globalAiWearableEnable => '穿戴侧启用';
+
+  @override
+  String get globalAiWearableEnableDesc => '开启后穿戴设备语音助手将由大语言模型接管';
+
+  @override
+  String get globalAiWearableAdvancedSettings => '穿戴侧设置';
+
+  @override
+  String get globalAiToolsScope => '工具权限范围';
+
+  @override
+  String get globalAiToolDeviceStatus => '设备状态';
+
+  @override
+  String get globalAiToolDeviceStatusDesc => '读取设备连接状态、电量与基本信息';
+
+  @override
+  String get globalAiToolHealthData => '健康数据';
+
+  @override
+  String get globalAiToolHealthDataDesc => '读取步数、活动消耗、距离与心率';
+
+  @override
+  String get globalAiToolWeather => '天气查询';
+
+  @override
+  String get globalAiToolWeatherDesc => '查询实时天气与未来预报';
+
+  @override
+  String get globalAiToolSearchResources => '搜索资源';
+
+  @override
+  String get globalAiToolSearchResourcesDesc => '搜索表盘与第三方应用';
+
+  @override
+  String get globalAiToolInstallResources => '安装资源';
+
+  @override
+  String get globalAiToolInstallResourcesDesc => '下载并安装表盘或应用到穿戴设备';
+
+  @override
+  String get globalAiToolDeleteResources => '删除资源';
+
+  @override
+  String get globalAiToolDeleteResourcesDesc => '卸载或删除设备上的资源';
+
+  @override
+  String get globalAiToolManageAlarms => '闹钟管理';
+
+  @override
+  String get globalAiToolManageAlarmsDesc => '新建或管理穿戴设备闹钟';
+
+  @override
+  String get globalAiToolFindDevice => '查找设备';
+
+  @override
+  String get globalAiToolFindDeviceDesc => '让手表或手环持续振动/响铃';
+
+  @override
+  String get globalAiToolAppArrangement => '应用排布';
+
+  @override
+  String get globalAiToolAppArrangementDesc => '查询并调整设备端应用排序';
+
+  @override
+  String get globalAiToolPhoneLocation => '手机定位';
+
+  @override
+  String get globalAiToolPhoneLocationDesc => '仅在客户端手机支持，读取定位信息辅助查询';
+
+  @override
+  String get globalAiAddProvider => '添加提供商';
+
+  @override
+  String get globalAiEditProvider => '编辑提供商';
+
+  @override
+  String get globalAiProviderName => '提供商名称';
+
+  @override
+  String get globalAiProviderBaseUrl => 'API 基础地址';
+
+  @override
+  String get globalAiProviderApiKey => 'API Key';
+
+  @override
+  String get globalAiProviderModels => '模型列表';
+
+  @override
+  String get globalAiAddModel => '添加模型';
+
+  @override
+  String get globalAiModelId => '模型 ID';
+
+  @override
+  String get globalAiProtocolType => '协议类型';
+
+  @override
+  String get globalAiProtocolCompletions => 'Completions';
+
+  @override
+  String get globalAiProtocolResponses => 'Responses';
+
+  @override
+  String get globalAiMultimodalSupport => '多模态能力';
+
+  @override
+  String get globalAiSupportImages => '图片';
+
+  @override
+  String get globalAiSupportAudio => '音频';
+
+  @override
+  String get globalAiContextLength => '上下文长度';
+
+  @override
+  String get globalAiWearableReplyLength => '穿戴侧回复长度';
+
+  @override
+  String get globalAiWearableLengthShort => '短（50 字以内）';
+
+  @override
+  String get globalAiWearableLengthMedium => '中（100 字以内）';
+
+  @override
+  String get globalAiWearableLengthLong => '长（200 字以内）';
+
+  @override
+  String get globalAiWearableLengthUnlimited => '不限';
+
+  @override
+  String get globalAiWearableToolPolicy => '工具调用策略';
+
+  @override
+  String get globalAiToolPolicyDisabled => '禁用工具';
+
+  @override
+  String get globalAiToolPolicyReadOnly => '只读模式';
+
+  @override
+  String get globalAiToolPolicyReadWrite => '读写模式';
+
+  @override
+  String get globalAiConfirmationMode => '敏感操作确认方式';
+
+  @override
+  String get globalAiConfirmModeWearableVoice => '穿戴侧语音回复确认';
+
+  @override
+  String get globalAiConfirmModeManual => '客户端侧手动确认';
+
+  @override
+  String get globalAiTesting => '正在连接...';
+
+  @override
+  String get globalAiTestSuccess => '已收到模型响应';
+
+  @override
+  String get globalAiTestFailed => '连接测试失败';
+
+  @override
+  String globalAiTestDuration(int ms) {
+    return '耗时 $ms 毫秒';
+  }
+
+  @override
+  String get globalAiSectionModelAndProvider => '模型与提供商';
+
+  @override
+  String get globalAiTestConnectionDesc => '验证当前提供商与模型的连通性与时延';
+
+  @override
+  String get globalAiWearableAdvancedDesc => '回复长度、工具权限模式与敏感操作确认方式';
+
+  @override
+  String get globalAiNoModelSelected => '未配置或未选择模型';
+
+  @override
+  String get globalAiSave => '保存';
+
+  @override
+  String get globalAiCancel => '取消';
+
+  @override
+  String get globalAiClose => '关闭';
+
+  @override
+  String get globalAiBack => '返回';
+
+  @override
+  String get globalAiRetry => '重试';
+
+  @override
+  String get globalAiDelete => '删除';
+
+  @override
+  String get globalAiNoProvidersPrompt => '暂未添加任何提供商\n请在上方添加新提供商';
+
+  @override
+  String get globalAiNoModelsPrompt => '暂无可用模型，请先添加模型';
+
+  @override
+  String get globalAiSystemPrompt => '系统提示词';
+
+  @override
+  String get globalAiSystemPromptDescription => '编辑模型指令，设备和工具安全规则会自动追加';
+
+  @override
+  String get globalAiSystemPromptHint => '输入系统提示词模板';
+
+  @override
+  String get globalAiSystemPromptPlaceholders => '可用占位符';
+
+  @override
+  String get globalAiDeleteProvider => '删除此供应商';
+
+  @override
+  String get globalAiDeleteModel => '删除模型';
+
+  @override
+  String get globalAiConnecting => '正在建立连接...';
+
+  @override
+  String get globalAiReceiving => '正在接收响应...';
+
+  @override
+  String get globalAiWaitingFirstToken => '等待首字响应...';
+
+  @override
+  String globalAiTargetLabel(String provider, String model) {
+    return '目标 $provider / $model';
+  }
+
+  @override
+  String get globalAiNoProviderConfigured => '未配置有效的提供商或模型';
+
+  @override
+  String get globalAiNoApiKeyConfigured => '未找到 API 密钥，请检查提供商设置';
+
+  @override
+  String get globalAiSelectActiveModel => '选择生效模型';
+
+  @override
+  String get globalAiContextLengthHint => '例如 4096、8192、131072';
+
+  @override
+  String get globalAiModelNameHint => '如 deepseek-flash, qwen3.8-flash';
+
+  @override
+  String get globalAiProviderNameHint => '如 DeepSeek, OpenAI, 硅基流动';
+
+  @override
+  String get globalAiBaseUrlHint => '如 https://api.deepseek.com';
+
+  @override
+  String get globalAiApiKeyHint => 'sk-...';
+
+  @override
+  String get globalAiConfirmDeleteProvider => '确定删除此提供商及其所有模型吗？';
+
+  @override
+  String get globalAiConfirmDeleteModel => '确定删除此模型配置吗？';
+
+  @override
+  String get globalAiModelAlreadyExists => '该模型 ID 已存在';
+
+  @override
+  String get globalAiModelAdded => '模型已添加';
+
+  @override
+  String get globalAiProviderAdded => '提供商已添加';
+
+  @override
+  String get globalAiVoiceAssistantProcessing => 'AI 思考并流式回复中...';
+
+  @override
+  String globalAiVoiceAssistantError(String error) {
+    return 'AI 回复出错：$error';
+  }
+
+  @override
+  String get globalAiAsrEngine => '语音识别引擎';
+
+  @override
+  String get globalAiAsrManual => '手动输入';
+
+  @override
+  String get globalAiAsrNative => '本地离线模型';
+
+  @override
+  String get globalAiAsrWeType => '微信输入法';
+
+  @override
+  String get globalAiAsrDoubao => '火山豆包';
+
+  @override
+  String get globalAiTestRequestLabel => '发送请求';
+
+  @override
+  String get globalAiTestResponseLabel => '模型响应';
+
+  @override
+  String get globalAiTestStart => '开始测试';
 }
 
 /// The translations for Chinese, as used in Taiwan (`zh_TW`).
@@ -10468,13 +10965,13 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get appDataDeviceKeysDescription => '裝置清單及連線所需的認證資訊';
 
   @override
-  String get appDataXiaomiAccount => '小米帳號資訊';
+  String get appDataXiaomiAccount => '小米與 Amazfit 帳號資訊';
 
   @override
-  String get appDataXiaomiAccountDescription => '小米帳號及目前登入工作階段';
+  String get appDataXiaomiAccountDescription => '帳號密碼及目前登入工作階段';
 
   @override
-  String get appDataSensitiveBackup => '備份包含金鑰或登入資訊且未加密\n請妥善保管，不要分享';
+  String get appDataSensitiveBackup => '備份包含未加密的帳號憑證\n請妥善保管，不要分享';
 
   @override
   String get appDataImportDescription => '從備份檔案選擇資料進行還原';
@@ -10741,4 +11238,160 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
 
   @override
   String get creatorAstroBoxPRBody => 'PR 說明（選填）';
+
+  @override
+  String get autoBackupTitle => '定時備份';
+
+  @override
+  String get autoBackupDescription => '定期將應用程式資料備份並儲存至系統文件目錄';
+
+  @override
+  String get autoBackupEnabled => '啟用定時備份';
+
+  @override
+  String get autoBackupInterval => '備份頻率';
+
+  @override
+  String get autoBackupEvery => '每';
+
+  @override
+  String get autoBackupUnitDay => '天';
+
+  @override
+  String get autoBackupUnitWeek => '週';
+
+  @override
+  String get autoBackupUnitMonth => '月';
+
+  @override
+  String get autoBackupRetention => '保留份數';
+
+  @override
+  String autoBackupRetentionCount(int count) {
+    return '$count 份';
+  }
+
+  @override
+  String get autoBackupRetentionUnlimited => '不限制';
+
+  @override
+  String get autoBackupPasswordEnable => '密碼保護';
+
+  @override
+  String get autoBackupPasswordEnableDesc => '使用標準 AES-256 為備份加密';
+
+  @override
+  String get autoBackupPassword => '備份密碼';
+
+  @override
+  String get autoBackupPasswordConfirm => '確認密碼';
+
+  @override
+  String get autoBackupPasswordMismatch => '兩次輸入的密碼不一致';
+
+  @override
+  String get autoBackupPasswordPlaceholder => '請輸入密碼';
+
+  @override
+  String get autoBackupScope => '備份範圍';
+
+  @override
+  String get autoBackupScopeSettings => '偏好設定';
+
+  @override
+  String get autoBackupScopeHealth => '健康資料';
+
+  @override
+  String get autoBackupScopeExtensions => '擴充套件資料';
+
+  @override
+  String get autoBackupScopeDevices => '裝置連線資訊';
+
+  @override
+  String get autoBackupStorageLocation => '儲存位置';
+
+  @override
+  String get autoBackupStorageLocationDesc => '備份檔案自動儲存至系統公用文件目錄';
+
+  @override
+  String get autoBackupOpenFolder => '在檔案管理器中開啟';
+
+  @override
+  String autoBackupStatusEnabled(int value, String unit) {
+    return '已開啟 · 每 $value $unit';
+  }
+
+  @override
+  String get autoBackupStatusDisabled => '未開啟';
+
+  @override
+  String get autoBackupRunNow => '立即備份';
+
+  @override
+  String get autoBackupRunSuccess => '自動備份完成';
+
+  @override
+  String get autoBackupRunFailed => '自動備份失敗';
+
+  @override
+  String get backupPasswordDialogTitle => '輸入備份密碼';
+
+  @override
+  String get backupPasswordDialogMessage => '此備份已加密，請輸入密碼解密';
+
+  @override
+  String get backupPasswordIncorrect => '密碼錯誤，無法解密';
+
+  @override
+  String get backupPasswordRequired => '請輸入密碼';
+
+  @override
+  String get exportBackupPasswordOptional => '備份密碼（選填）';
+
+  @override
+  String get exportBackupPasswordPlaceholder => '留空則不加密';
+
+  @override
+  String get backupTargetPublicDocuments => '儲存至系統文件目錄';
+
+  @override
+  String get backupTargetCustom => '另存為外部檔案';
+
+  @override
+  String get restoreFromDocumentsTitle => '選擇要還原的備份';
+
+  @override
+  String get restorePickExternalFile => '選擇其他外部檔案...';
+
+  @override
+  String get backupSavedToDocuments => '備份已儲存至系統文件目錄';
+
+  @override
+  String get appDataExporting => '正在匯出並加密備份，請稍候';
+
+  @override
+  String get appDataDecrypting => '正在解密備份，請稍候';
+
+  @override
+  String get appDataRestoring => '正在還原資料，請稍候';
+
+  @override
+  String get autoBackupRetentionInputHint => '0 為不限制';
+
+  @override
+  String get autoBackupRetentionLabel => '保留份數（0 為不限制）';
+
+  @override
+  String get autoBackupRetentionUnit => '份';
+
+  @override
+  String get backupTypeAuto => '定期備份';
+
+  @override
+  String get backupTypeManual => '手動備份';
+
+  @override
+  String autoBackupStatusDetail(int value, String unit, String retentionText) {
+    return '已開啟 · 每 $value $unit · 保留 $retentionText';
+  }
 }

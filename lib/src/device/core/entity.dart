@@ -67,6 +67,9 @@ class DeviceEntity {
 
   void emit(DeviceEvent event) => eventBus.emit(event);
 
+  Stream<T> on<T extends DeviceEvent>() =>
+      eventBus.stream.where((e) => e.deviceId == id && e is T).cast<T>();
+
   void startListening() {
     _log.fine('[$id] start listening');
     _incomingSubscription = transport.incomingData.listen(

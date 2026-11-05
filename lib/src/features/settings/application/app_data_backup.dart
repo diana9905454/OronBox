@@ -53,6 +53,64 @@ const backupPreferenceKeys = {
   'clean_source_huami_app_store',
   'clean_source_oronbox',
   'desktop.exit_behavior',
+  'remove_bond_before_spp',
+  'realtime_activity_notification',
+  'xiaomi.health.auto_sync',
+  'xiaomi.weather.auto_sync',
+  'xiaomi.phone_location.enabled',
+  'zeppos.mirror.frame_interval_ms',
+  'plugins.safe_mode',
+  'auto_backup_enabled',
+  'auto_backup_interval_value',
+  'auto_backup_interval_unit',
+  'auto_backup_retention',
+  'auto_backup_password_protected',
+  'auto_backup_scope_settings',
+  'auto_backup_scope_health',
+  'auto_backup_scope_extensions',
+  'auto_backup_scope_devices',
+  'auto_backup_scope_xiaomi',
+  'global_ai_enabled',
+  'global_ai_stream_enabled',
+  'global_ai_wearable_enabled',
+  'global_ai_active_provider_id',
+  'global_ai_active_model_id',
+  'global_ai_providers_json',
+  'global_ai_reply_length',
+  'global_ai_tool_policy',
+  'global_ai_confirm_mode',
+  'global_ai_tool_device_status',
+  'global_ai_tool_health_data',
+  'global_ai_tool_weather',
+  'global_ai_tool_search_resources',
+  'global_ai_tool_install_resources',
+  'global_ai_tool_delete_resources',
+  'global_ai_tool_manage_alarms',
+  'global_ai_tool_find_device',
+  'global_ai_tool_app_arrangement',
+  'global_ai_tool_phone_location',
+  'global_ai_asr_backend',
+  'global_ai_system_prompt_template',
+};
+
+const backupAccountPreferenceKeys = {
+  'mi_account.remember_credentials',
+  'mi_account.username',
+  'mi_account.password',
+  'huami_account.remember_credentials',
+  'huami_account.username',
+  'huami_account.password',
+};
+
+Map<String, Object?> selectBackupSettings(
+  Map<String, Object?> settings, {
+  bool includeSettings = false,
+  bool includeAccounts = false,
+}) => {
+  for (final entry in settings.entries)
+    if ((includeSettings && backupPreferenceKeys.contains(entry.key)) ||
+        (includeAccounts && backupAccountPreferenceKeys.contains(entry.key)))
+      entry.key: entry.value,
 };
 
 class BackupSelection {
@@ -62,9 +120,12 @@ class BackupSelection {
     this.extensions = true,
     this.devices = false,
     this.xiaomi = false,
+    this.accounts = false,
   });
-  final bool settings, health, extensions, devices, xiaomi;
-  bool get any => settings || health || extensions || devices || xiaomi;
+  final bool settings, health, extensions, devices, xiaomi, accounts;
+  bool get accountCredentials => accounts || xiaomi;
+  bool get any =>
+      settings || health || extensions || devices || accountCredentials;
 }
 
 class AppDataBackup {
@@ -105,12 +166,25 @@ class AppDataBackupService {
       _journal ??= openAppDataDirectory('storage/restore');
   final _prefs = SharedPrefsService.instance;
 
-  Map<String, Object?> _settings() => {
-    for (final key in backupPreferenceKeys) key: _prefs.value(key),
-  };
+  Map<String, Object?> _settings({
+    bool includeSettings = true,
+    bool includeAccounts = false,
+  }) {
+    final result = <String, Object?>{};
+    final keys = {
+      if (includeSettings) ...backupPreferenceKeys,
+      if (includeAccounts) ...backupAccountPreferenceKeys,
+    };
+    for (final key in keys) {
+      final value = _prefs.value(key);
+      if (includeSettings || value != null) result[key] = value;
+    }
+    return result;
+  }
 
   Future<Uint8List> export({
     BackupSelection selection = const BackupSelection(),
+    String? password,
   }) => _guard(() async {
     if (!selection.any) {
       throw const FormatException('No backup categories selected');
@@ -136,23 +210,31 @@ class AppDataBackupService {
       extraFiles.addAll(payload.files);
     }
 
-    final privateData = selection.devices || selection.xiaomi
+    final privateData = selection.devices || selection.accountCredentials
         ? await privateStore.export(
             devices: selection.devices,
-            xiaomi: selection.xiaomi,
+            accounts: selection.accountCredentials,
           )
         : <String, Object?>{};
 
-    return compute(_encodeBackup, (
-      selection.settings ? _settings() : <String, Object?>{},
+    return compute(_encodeBackupEntry, (
+      selection.settings || selection.accountCredentials
+          ? _settings(
+              includeSettings: selection.settings,
+              includeAccounts: selection.accountCredentials,
+            )
+          : <String, Object?>{},
       extensionMeta,
       privateData,
       extraFiles,
+      password,
     ));
   });
 
-  Future<AppDataBackup> inspect(Uint8List bytes) =>
-      compute(_decodeBackup, bytes);
+  Future<AppDataBackup> inspect(Uint8List bytes, {String? password}) =>
+      compute(_decodeBackupEntry, (bytes, password));
+
+  bool isEncrypted(Uint8List bytes) => isDataArchiveEncrypted(bytes);
 
   Future<void> restore(AppDataBackup backup) => _guard(() => _restore(backup));
 
@@ -180,7 +262,11 @@ class AppDataBackupService {
             : await extensions?.exportPayload();
         final before = {
           'privateRecovery': backup.privateData.isNotEmpty,
-          'settings': _settings(),
+          'settings': _settings(
+            includeAccounts: backup.settings.keys.any(
+              backupAccountPreferenceKeys.contains,
+            ),
+          ),
           'restoreHealth': backup.activityFiles.isNotEmpty,
           'extensions': beforeExtensions?.metadata ?? const {},
         };
@@ -194,7 +280,9 @@ class AppDataBackupService {
           await privateStore.stageRecovery(
             await privateStore.export(
               devices: backup.privateData.containsKey('devices'),
-              xiaomi: backup.privateData.containsKey('xiaomi'),
+              accounts:
+                  backup.privateData.containsKey('xiaomi') ||
+                  backup.privateData.containsKey('huami'),
             ),
           );
         }
@@ -334,7 +422,8 @@ class AppDataBackupService {
 
   Future<void> _applySettings(Map<String, Object?> settings) async {
     for (final entry in settings.entries) {
-      if (!backupPreferenceKeys.contains(entry.key)) {
+      if (!backupPreferenceKeys.contains(entry.key) &&
+          !backupAccountPreferenceKeys.contains(entry.key)) {
         throw const FormatException('Invalid preference');
       }
       final value = entry.value;

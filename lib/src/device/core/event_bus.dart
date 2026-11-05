@@ -44,6 +44,17 @@ final class DeviceAuthenticated extends DeviceEvent {
   const DeviceAuthenticated({required super.deviceId});
 }
 
+final class XiaomiDeviceCapabilitiesUpdated extends DeviceEvent {
+  const XiaomiDeviceCapabilitiesUpdated({
+    required super.deviceId,
+    required this.deviceCapability,
+    required this.deviceCapabilityV2,
+  });
+
+  final int deviceCapability;
+  final int deviceCapabilityV2;
+}
+
 final class AuthFailed extends DeviceEvent {
   const AuthFailed({required super.deviceId, required this.error});
 
@@ -225,6 +236,23 @@ final class XiaoAiSessionStarted extends DeviceEvent {
   final Map<String, Object?> capabilities;
 }
 
+/// Identifies the wearable voice session that owns a recognition request.
+/// Replies must keep this target instead of resolving the current session
+/// again after the AI request completes.
+class XiaoAiSessionTarget {
+  const XiaoAiSessionTarget({
+    required this.deviceId,
+    required this.sessionId,
+    required this.generation,
+    this.useStream,
+  });
+
+  final String deviceId;
+  final int sessionId;
+  final int generation;
+  final bool? useStream;
+}
+
 final class XiaoAiSessionEnded extends DeviceEvent {
   const XiaoAiSessionEnded({required super.deviceId, this.cancelled = false});
   final bool cancelled;
@@ -239,6 +267,17 @@ final class XiaoAiOpusFrameReceived extends DeviceEvent {
 
   final int sequence;
   final Uint8List frame;
+}
+
+final class XiaoAiRecognitionUpdated extends DeviceEvent {
+  const XiaoAiRecognitionUpdated({
+    required super.deviceId,
+    required this.text,
+    required this.isFinal,
+  });
+
+  final String text;
+  final bool isFinal;
 }
 
 class DeviceEventBus {

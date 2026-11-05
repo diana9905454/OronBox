@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:oronbox/src/core/ai/ai_settings_store.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/core/models/sync_models.dart';
@@ -258,12 +259,30 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
   Future<void> setFindingXiaomiPhone(bool finding);
   Future<void> setFindingXiaomiWearable(bool finding);
   void setVoiceLabEnabled(bool enabled) {}
-  Future<void> sendXiaoAiReply(String text, {required String recognizedText});
+  void updateVoiceSystemState() {}
+  Future<void> sendXiaoAiReply(
+    String text, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+    bool? useStream,
+  });
+  Future<void> sendXiaoAiStreamReply(
+    Stream<String> textStream, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+  }) async {}
   Future<void> sendXiaoAiRecognitionPartial(String text);
   Future<void> sendXiaoAiRecognitionResult(
     String text, {
     required bool isFinal,
+    XiaoAiSessionTarget? target,
   });
+  Future<void> stopXiaoAiCapture({
+    XiaoAiSessionTarget? target,
+    bool force = false,
+    bool notifyDevice = true,
+  }) async {}
+  bool shouldStopXiaoAiCapture({XiaoAiSessionTarget? target}) => true;
   Future<void> setXiaoAiContinuousCapture(bool enabled);
   Future<void> setXiaoAiEndpoint(int endpoint);
   Future<Uint8List> requestZeppOsScreenshot();
@@ -400,6 +419,7 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
 class LocalDeviceManager extends DeviceManager {
   static const errorBluetoothUnavailable =
       DeviceManager.errorBluetoothUnavailable;
+  bool _voiceLabEnabled = false;
 
   @override
   Stream<DeviceEvent> get deviceEvents => _runtime.eventStream;
@@ -1684,9 +1704,33 @@ class LocalDeviceManager extends DeviceManager {
     }
 
     switch (event) {
+      case XiaomiDeviceCapabilitiesUpdated(
+        :final deviceCapability,
+        :final deviceCapabilityV2,
+      ):
+        _log.info(
+          'device capabilities ${event.deviceId}: '
+          'cap=$deviceCapability, cap2=$deviceCapabilityV2',
+        );
+        final current = state.currentDevice;
+        if (current != null) {
+          final updatedCurrent = current.copyWith(
+            deviceCapability: deviceCapability,
+            deviceCapabilityV2: deviceCapabilityV2,
+          );
+          final updatedPaired = state.pairedDevices.map((device) {
+            return device.addr == current.addr ? updatedCurrent : device;
+          }).toList();
+          state = state.copyWith(
+            currentDevice: updatedCurrent,
+            pairedDevices: updatedPaired,
+          );
+          unawaited(_savePairedDevices());
+        }
       case DeviceAuthenticated _:
         _log.info('event: authenticated');
         state = state.copyWith(protocolState: ProtocolState.ready);
+        updateVoiceSystemState();
       case AuthFailed(:final error):
         _log.warning('event: auth failed: $error');
         state = state.copyWith(
@@ -2467,7 +2511,20 @@ class LocalDeviceManager extends DeviceManager {
 
   @override
   void setVoiceLabEnabled(bool enabled) {
-    _currentEntity?.system<XiaomiVoiceSystem>()?.setEnabled(enabled);
+    _voiceLabEnabled = enabled;
+    _applyVoiceSystemState();
+  }
+
+  @override
+  void updateVoiceSystemState() {
+    _applyVoiceSystemState();
+  }
+
+  void _applyVoiceSystemState() {
+    final shouldEnable =
+        _voiceLabEnabled ||
+        (AiSettingsStore.globalAiEnabled && AiSettingsStore.wearableEnabled);
+    _currentEntity?.system<XiaomiVoiceSystem>()?.setEnabled(shouldEnable);
   }
 
   @override
@@ -2479,12 +2536,17 @@ class LocalDeviceManager extends DeviceManager {
   Future<void> sendXiaoAiRecognitionResult(
     String text, {
     required bool isFinal,
+    XiaoAiSessionTarget? target,
   }) async {
     final entity = _currentEntity;
     if (entity == null || state.protocolState != ProtocolState.ready) return;
     final xiaomi = entity.system<XiaomiVoiceSystem>();
     if (xiaomi != null) {
-      await xiaomi.sendRecognitionResult(text, isFinal: isFinal);
+      await xiaomi.sendRecognitionResult(
+        text,
+        isFinal: isFinal,
+        target: target,
+      );
     } else {
       await entity.system<ZeppOsXiaoAiSystem>()?.sendRecognitionResult(
         text,
@@ -2497,6 +2559,8 @@ class LocalDeviceManager extends DeviceManager {
   Future<void> sendXiaoAiReply(
     String text, {
     required String recognizedText,
+    XiaoAiSessionTarget? target,
+    bool? useStream,
   }) async {
     final entity = _currentEntity;
     if (entity == null || state.protocolState != ProtocolState.ready) {
@@ -2504,12 +2568,74 @@ class LocalDeviceManager extends DeviceManager {
     }
     final xiaomi = entity.system<XiaomiVoiceSystem>();
     if (xiaomi != null) {
-      await xiaomi.sendTextReply(text, recognizedText: recognizedText);
+      await xiaomi.sendTextReply(
+        text,
+        recognizedText: recognizedText,
+        target: target,
+        useStream:
+            useStream ?? target?.useStream ?? AiSettingsStore.streamEnabled,
+      );
       return;
     }
     final system = entity.system<ZeppOsXiaoAiSystem>();
     if (system == null) throw UnsupportedError('Voice assistant unavailable');
     await system.sendTextReply(text, recognizedText: recognizedText);
+  }
+
+  @override
+  Future<void> sendXiaoAiStreamReply(
+    Stream<String> textStream, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final xiaomi = entity.system<XiaomiVoiceSystem>();
+    if (xiaomi != null) {
+      await xiaomi.sendStreamReply(
+        textStream,
+        recognizedText: recognizedText,
+        target: target,
+      );
+      return;
+    }
+    final buf = StringBuffer();
+    await for (final delta in textStream) {
+      buf.write(delta);
+    }
+    await sendXiaoAiReply(
+      buf.toString(),
+      recognizedText: recognizedText,
+      target: target,
+    );
+  }
+
+  @override
+  Future<void> stopXiaoAiCapture({
+    XiaoAiSessionTarget? target,
+    bool force = false,
+    bool notifyDevice = true,
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) return;
+    await entity.system<XiaomiVoiceSystem>()?.stopCapture(
+      target: target,
+      force: force,
+      notifyDevice: notifyDevice,
+    );
+  }
+
+  @override
+  bool shouldStopXiaoAiCapture({XiaoAiSessionTarget? target}) {
+    final entity = _currentEntity;
+    final system = entity?.system<XiaomiVoiceSystem>();
+    if (system == null) return true;
+    if (target != null && entity?.id != target.deviceId) return false;
+    final useStream = target?.useStream ?? AiSettingsStore.streamEnabled;
+    return system.replyMode != XiaomiVoiceReplyMode.streamAfterStop ||
+        useStream;
   }
 
   @override

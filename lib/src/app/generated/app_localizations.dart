@@ -9919,19 +9919,19 @@ abstract class AppLocalizations {
   /// No description provided for @appDataXiaomiAccount.
   ///
   /// In en, this message translates to:
-  /// **'Xiaomi account'**
+  /// **'Xiaomi and Amazfit credentials'**
   String get appDataXiaomiAccount;
 
   /// No description provided for @appDataXiaomiAccountDescription.
   ///
   /// In en, this message translates to:
-  /// **'Xiaomi account and current sign-in session'**
+  /// **'Account password and current sign-in session'**
   String get appDataXiaomiAccountDescription;
 
   /// No description provided for @appDataSensitiveBackup.
   ///
   /// In en, this message translates to:
-  /// **'The backup contains unencrypted keys or sign-in details\nKeep it secure and do not share it'**
+  /// **'The backup contains unencrypted account credentials\nKeep it secure and do not share it'**
   String get appDataSensitiveBackup;
 
   /// No description provided for @appDataImportDescription.
@@ -10449,6 +10449,972 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'PR description (optional)'**
   String get creatorAstroBoxPRBody;
+
+  /// No description provided for @autoBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled Backup'**
+  String get autoBackupTitle;
+
+  /// No description provided for @autoBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodically back up app data to system Documents directory'**
+  String get autoBackupDescription;
+
+  /// No description provided for @autoBackupEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable scheduled backup'**
+  String get autoBackupEnabled;
+
+  /// No description provided for @autoBackupInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup frequency'**
+  String get autoBackupInterval;
+
+  /// No description provided for @autoBackupEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every'**
+  String get autoBackupEvery;
+
+  /// No description provided for @autoBackupUnitDay.
+  ///
+  /// In en, this message translates to:
+  /// **'day(s)'**
+  String get autoBackupUnitDay;
+
+  /// No description provided for @autoBackupUnitWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'week(s)'**
+  String get autoBackupUnitWeek;
+
+  /// No description provided for @autoBackupUnitMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'month(s)'**
+  String get autoBackupUnitMonth;
+
+  /// No description provided for @autoBackupRetention.
+  ///
+  /// In en, this message translates to:
+  /// **'Retention'**
+  String get autoBackupRetention;
+
+  /// No description provided for @autoBackupRetentionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} copies'**
+  String autoBackupRetentionCount(int count);
+
+  /// No description provided for @autoBackupRetentionUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get autoBackupRetentionUnlimited;
+
+  /// No description provided for @autoBackupPasswordEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Password protection'**
+  String get autoBackupPasswordEnable;
+
+  /// No description provided for @autoBackupPasswordEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt backup with standard AES-256'**
+  String get autoBackupPasswordEnableDesc;
+
+  /// No description provided for @autoBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get autoBackupPassword;
+
+  /// No description provided for @autoBackupPasswordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get autoBackupPasswordConfirm;
+
+  /// No description provided for @autoBackupPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get autoBackupPasswordMismatch;
+
+  /// No description provided for @autoBackupPasswordPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get autoBackupPasswordPlaceholder;
+
+  /// No description provided for @autoBackupScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup scope'**
+  String get autoBackupScope;
+
+  /// No description provided for @autoBackupScopeSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get autoBackupScopeSettings;
+
+  /// No description provided for @autoBackupScopeHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health records'**
+  String get autoBackupScopeHealth;
+
+  /// No description provided for @autoBackupScopeExtensions.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensions and mini-apps'**
+  String get autoBackupScopeExtensions;
+
+  /// No description provided for @autoBackupScopeDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Device pairing info'**
+  String get autoBackupScopeDevices;
+
+  /// No description provided for @autoBackupStorageLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage location'**
+  String get autoBackupStorageLocation;
+
+  /// No description provided for @autoBackupStorageLocationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are automatically saved to public Documents directory'**
+  String get autoBackupStorageLocationDesc;
+
+  /// No description provided for @autoBackupOpenFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in file manager'**
+  String get autoBackupOpenFolder;
+
+  /// No description provided for @autoBackupStatusEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled · Every {value} {unit}'**
+  String autoBackupStatusEnabled(int value, String unit);
+
+  /// No description provided for @autoBackupStatusDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get autoBackupStatusDisabled;
+
+  /// No description provided for @autoBackupRunNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get autoBackupRunNow;
+
+  /// No description provided for @autoBackupRunSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled backup completed'**
+  String get autoBackupRunSuccess;
+
+  /// No description provided for @autoBackupRunFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled backup failed'**
+  String get autoBackupRunFailed;
+
+  /// No description provided for @backupPasswordDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter backup password'**
+  String get backupPasswordDialogTitle;
+
+  /// No description provided for @backupPasswordDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is encrypted; enter the password to restore'**
+  String get backupPasswordDialogMessage;
+
+  /// No description provided for @backupPasswordIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password'**
+  String get backupPasswordIncorrect;
+
+  /// No description provided for @backupPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get backupPasswordRequired;
+
+  /// No description provided for @exportBackupPasswordOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (optional)'**
+  String get exportBackupPasswordOptional;
+
+  /// No description provided for @exportBackupPasswordPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank for unencrypted'**
+  String get exportBackupPasswordPlaceholder;
+
+  /// No description provided for @backupTargetPublicDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to system Documents folder'**
+  String get backupTargetPublicDocuments;
+
+  /// No description provided for @backupTargetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as external file'**
+  String get backupTargetCustom;
+
+  /// No description provided for @restoreFromDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Backup to Restore'**
+  String get restoreFromDocumentsTitle;
+
+  /// No description provided for @restorePickExternalFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another external file...'**
+  String get restorePickExternalFile;
+
+  /// No description provided for @backupSavedToDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to system Documents folder'**
+  String get backupSavedToDocuments;
+
+  /// No description provided for @appDataExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting and encrypting backup, please wait'**
+  String get appDataExporting;
+
+  /// No description provided for @appDataDecrypting.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrypting backup, please wait'**
+  String get appDataDecrypting;
+
+  /// No description provided for @appDataRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring data, please wait'**
+  String get appDataRestoring;
+
+  /// No description provided for @autoBackupRetentionInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 for unlimited'**
+  String get autoBackupRetentionInputHint;
+
+  /// No description provided for @autoBackupRetentionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup copies (0 for unlimited)'**
+  String get autoBackupRetentionLabel;
+
+  /// No description provided for @autoBackupRetentionUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'copies'**
+  String get autoBackupRetentionUnit;
+
+  /// No description provided for @backupTypeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Backup'**
+  String get backupTypeAuto;
+
+  /// No description provided for @backupTypeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Backup'**
+  String get backupTypeManual;
+
+  /// No description provided for @autoBackupStatusDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled · Every {value} {unit} · Keep {retentionText}'**
+  String autoBackupStatusDetail(int value, String unit, String retentionText);
+
+  /// No description provided for @globalAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Global AI'**
+  String get globalAiTitle;
+
+  /// No description provided for @globalAiDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure LLM and wearable voice assistant integration'**
+  String get globalAiDescription;
+
+  /// No description provided for @globalAiEnableSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Global AI'**
+  String get globalAiEnableSwitch;
+
+  /// No description provided for @globalAiEnableSwitchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable client-wide LLM integration and intelligent capabilities'**
+  String get globalAiEnableSwitchDesc;
+
+  /// No description provided for @globalAiProviders.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider Management'**
+  String get globalAiProviders;
+
+  /// No description provided for @globalAiProvidersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} providers configured'**
+  String globalAiProvidersCount(int count);
+
+  /// No description provided for @globalAiModelSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Model Settings'**
+  String get globalAiModelSettings;
+
+  /// No description provided for @globalAiTestConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get globalAiTestConnection;
+
+  /// No description provided for @globalAiStreamResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaming Response'**
+  String get globalAiStreamResponse;
+
+  /// No description provided for @globalAiStreamResponseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream output progressively to wearable device'**
+  String get globalAiStreamResponseDesc;
+
+  /// No description provided for @globalAiWearableSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Device'**
+  String get globalAiWearableSection;
+
+  /// No description provided for @globalAiWearableEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Enable'**
+  String get globalAiWearableEnable;
+
+  /// No description provided for @globalAiWearableEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable voice assistant will be handled by LLM when triggered'**
+  String get globalAiWearableEnableDesc;
+
+  /// No description provided for @globalAiWearableAdvancedSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Settings'**
+  String get globalAiWearableAdvancedSettings;
+
+  /// No description provided for @globalAiToolsScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool Permission Scopes'**
+  String get globalAiToolsScope;
+
+  /// No description provided for @globalAiToolDeviceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Status'**
+  String get globalAiToolDeviceStatus;
+
+  /// No description provided for @globalAiToolDeviceStatusDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read device connection, battery and basic info'**
+  String get globalAiToolDeviceStatusDesc;
+
+  /// No description provided for @globalAiToolHealthData.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Data'**
+  String get globalAiToolHealthData;
+
+  /// No description provided for @globalAiToolHealthDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read steps, calories, distance and heart rate'**
+  String get globalAiToolHealthDataDesc;
+
+  /// No description provided for @globalAiToolWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather Query'**
+  String get globalAiToolWeather;
+
+  /// No description provided for @globalAiToolWeatherDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Query real-time weather and forecast'**
+  String get globalAiToolWeatherDesc;
+
+  /// No description provided for @globalAiToolSearchResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Resources'**
+  String get globalAiToolSearchResources;
+
+  /// No description provided for @globalAiToolSearchResourcesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Search watch faces and third-party apps'**
+  String get globalAiToolSearchResourcesDesc;
+
+  /// No description provided for @globalAiToolInstallResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Resources'**
+  String get globalAiToolInstallResources;
+
+  /// No description provided for @globalAiToolInstallResourcesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and install watch faces or apps to device'**
+  String get globalAiToolInstallResourcesDesc;
+
+  /// No description provided for @globalAiToolDeleteResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Resources'**
+  String get globalAiToolDeleteResources;
+
+  /// No description provided for @globalAiToolDeleteResourcesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall or delete resources on device'**
+  String get globalAiToolDeleteResourcesDesc;
+
+  /// No description provided for @globalAiToolManageAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Alarms'**
+  String get globalAiToolManageAlarms;
+
+  /// No description provided for @globalAiToolManageAlarmsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create or manage wearable alarms'**
+  String get globalAiToolManageAlarmsDesc;
+
+  /// No description provided for @globalAiToolFindDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Find Device'**
+  String get globalAiToolFindDevice;
+
+  /// No description provided for @globalAiToolFindDeviceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Make wearable device vibrate or ring continuously'**
+  String get globalAiToolFindDeviceDesc;
+
+  /// No description provided for @globalAiToolAppArrangement.
+  ///
+  /// In en, this message translates to:
+  /// **'App Layout'**
+  String get globalAiToolAppArrangement;
+
+  /// No description provided for @globalAiToolAppArrangementDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Query and rearrange device app ordering'**
+  String get globalAiToolAppArrangementDesc;
+
+  /// No description provided for @globalAiToolPhoneLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Location'**
+  String get globalAiToolPhoneLocation;
+
+  /// No description provided for @globalAiToolPhoneLocationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported on client phone only, assist queries with location'**
+  String get globalAiToolPhoneLocationDesc;
+
+  /// No description provided for @globalAiAddProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Provider'**
+  String get globalAiAddProvider;
+
+  /// No description provided for @globalAiEditProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Provider'**
+  String get globalAiEditProvider;
+
+  /// No description provided for @globalAiProviderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider Name'**
+  String get globalAiProviderName;
+
+  /// No description provided for @globalAiProviderBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API Base URL'**
+  String get globalAiProviderBaseUrl;
+
+  /// No description provided for @globalAiProviderApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key'**
+  String get globalAiProviderApiKey;
+
+  /// No description provided for @globalAiProviderModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Model List'**
+  String get globalAiProviderModels;
+
+  /// No description provided for @globalAiAddModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Model'**
+  String get globalAiAddModel;
+
+  /// No description provided for @globalAiModelId.
+  ///
+  /// In en, this message translates to:
+  /// **'Model ID'**
+  String get globalAiModelId;
+
+  /// No description provided for @globalAiProtocolType.
+  ///
+  /// In en, this message translates to:
+  /// **'Protocol Type'**
+  String get globalAiProtocolType;
+
+  /// No description provided for @globalAiProtocolCompletions.
+  ///
+  /// In en, this message translates to:
+  /// **'Completions'**
+  String get globalAiProtocolCompletions;
+
+  /// No description provided for @globalAiProtocolResponses.
+  ///
+  /// In en, this message translates to:
+  /// **'Responses'**
+  String get globalAiProtocolResponses;
+
+  /// No description provided for @globalAiMultimodalSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Multimodal Capabilities'**
+  String get globalAiMultimodalSupport;
+
+  /// No description provided for @globalAiSupportImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get globalAiSupportImages;
+
+  /// No description provided for @globalAiSupportAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get globalAiSupportAudio;
+
+  /// No description provided for @globalAiContextLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Context Window'**
+  String get globalAiContextLength;
+
+  /// No description provided for @globalAiWearableReplyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Reply Length'**
+  String get globalAiWearableReplyLength;
+
+  /// No description provided for @globalAiWearableLengthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short (<50 chars)'**
+  String get globalAiWearableLengthShort;
+
+  /// No description provided for @globalAiWearableLengthMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium (<100 chars)'**
+  String get globalAiWearableLengthMedium;
+
+  /// No description provided for @globalAiWearableLengthLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Long (<200 chars)'**
+  String get globalAiWearableLengthLong;
+
+  /// No description provided for @globalAiWearableLengthUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get globalAiWearableLengthUnlimited;
+
+  /// No description provided for @globalAiWearableToolPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool Calling Policy'**
+  String get globalAiWearableToolPolicy;
+
+  /// No description provided for @globalAiToolPolicyDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get globalAiToolPolicyDisabled;
+
+  /// No description provided for @globalAiToolPolicyReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-Only'**
+  String get globalAiToolPolicyReadOnly;
+
+  /// No description provided for @globalAiToolPolicyReadWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-Write'**
+  String get globalAiToolPolicyReadWrite;
+
+  /// No description provided for @globalAiConfirmationMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation Mode'**
+  String get globalAiConfirmationMode;
+
+  /// No description provided for @globalAiConfirmModeWearableVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Voice Confirmation'**
+  String get globalAiConfirmModeWearableVoice;
+
+  /// No description provided for @globalAiConfirmModeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Client Manual Confirmation'**
+  String get globalAiConfirmModeManual;
+
+  /// No description provided for @globalAiTesting.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing connection...'**
+  String get globalAiTesting;
+
+  /// No description provided for @globalAiTestSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection successful'**
+  String get globalAiTestSuccess;
+
+  /// No description provided for @globalAiTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get globalAiTestFailed;
+
+  /// No description provided for @globalAiTestDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency {ms} ms'**
+  String globalAiTestDuration(int ms);
+
+  /// No description provided for @globalAiSectionModelAndProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Model and Provider'**
+  String get globalAiSectionModelAndProvider;
+
+  /// No description provided for @globalAiTestConnectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify connectivity and latency of current provider and model'**
+  String get globalAiTestConnectionDesc;
+
+  /// No description provided for @globalAiWearableAdvancedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply length, tool permission mode and confirmation mode'**
+  String get globalAiWearableAdvancedDesc;
+
+  /// No description provided for @globalAiNoModelSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No model configured or selected'**
+  String get globalAiNoModelSelected;
+
+  /// No description provided for @globalAiSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get globalAiSave;
+
+  /// No description provided for @globalAiCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get globalAiCancel;
+
+  /// No description provided for @globalAiClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get globalAiClose;
+
+  /// No description provided for @globalAiBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get globalAiBack;
+
+  /// No description provided for @globalAiRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get globalAiRetry;
+
+  /// No description provided for @globalAiDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get globalAiDelete;
+
+  /// No description provided for @globalAiNoProvidersPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No providers added\nPlease add a new provider above'**
+  String get globalAiNoProvidersPrompt;
+
+  /// No description provided for @globalAiNoModelsPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No models available, please add a model first'**
+  String get globalAiNoModelsPrompt;
+
+  /// No description provided for @globalAiSystemPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'System prompt'**
+  String get globalAiSystemPrompt;
+
+  /// No description provided for @globalAiSystemPromptDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the model instructions. Device and tool safety rules are added automatically.'**
+  String get globalAiSystemPromptDescription;
+
+  /// No description provided for @globalAiSystemPromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the system prompt template'**
+  String get globalAiSystemPromptHint;
+
+  /// No description provided for @globalAiSystemPromptPlaceholders.
+  ///
+  /// In en, this message translates to:
+  /// **'Available placeholders'**
+  String get globalAiSystemPromptPlaceholders;
+
+  /// No description provided for @globalAiDeleteProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this Provider'**
+  String get globalAiDeleteProvider;
+
+  /// No description provided for @globalAiDeleteModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Model'**
+  String get globalAiDeleteModel;
+
+  /// No description provided for @globalAiConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get globalAiConnecting;
+
+  /// No description provided for @globalAiReceiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving response...'**
+  String get globalAiReceiving;
+
+  /// No description provided for @globalAiWaitingFirstToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for first token...'**
+  String get globalAiWaitingFirstToken;
+
+  /// No description provided for @globalAiTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {provider} / {model}'**
+  String globalAiTargetLabel(String provider, String model);
+
+  /// No description provided for @globalAiNoProviderConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid provider or model configured'**
+  String get globalAiNoProviderConfigured;
+
+  /// No description provided for @globalAiNoApiKeyConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No API key found, please check provider settings'**
+  String get globalAiNoApiKeyConfigured;
+
+  /// No description provided for @globalAiSelectActiveModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Active Model'**
+  String get globalAiSelectActiveModel;
+
+  /// No description provided for @globalAiContextLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 4096, 8192, 131072'**
+  String get globalAiContextLengthHint;
+
+  /// No description provided for @globalAiModelNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. deepseek-flash, qwen3.8-flash'**
+  String get globalAiModelNameHint;
+
+  /// No description provided for @globalAiProviderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. DeepSeek, OpenAI, SiliconFlow'**
+  String get globalAiProviderNameHint;
+
+  /// No description provided for @globalAiBaseUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. https://api.deepseek.com'**
+  String get globalAiBaseUrlHint;
+
+  /// No description provided for @globalAiApiKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'sk-...'**
+  String get globalAiApiKeyHint;
+
+  /// No description provided for @globalAiConfirmDeleteProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this provider and all its models?'**
+  String get globalAiConfirmDeleteProvider;
+
+  /// No description provided for @globalAiConfirmDeleteModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this model configuration?'**
+  String get globalAiConfirmDeleteModel;
+
+  /// No description provided for @globalAiModelAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Model ID already exists'**
+  String get globalAiModelAlreadyExists;
+
+  /// No description provided for @globalAiModelAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Model added'**
+  String get globalAiModelAdded;
+
+  /// No description provided for @globalAiProviderAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider added'**
+  String get globalAiProviderAdded;
+
+  /// No description provided for @globalAiVoiceAssistantProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is thinking and streaming reply...'**
+  String get globalAiVoiceAssistantProcessing;
+
+  /// No description provided for @globalAiVoiceAssistantError.
+  ///
+  /// In en, this message translates to:
+  /// **'AI reply error: {error}'**
+  String globalAiVoiceAssistantError(String error);
+
+  /// No description provided for @globalAiAsrEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech Recognition Engine'**
+  String get globalAiAsrEngine;
+
+  /// No description provided for @globalAiAsrManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Input'**
+  String get globalAiAsrManual;
+
+  /// No description provided for @globalAiAsrNative.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Offline Model'**
+  String get globalAiAsrNative;
+
+  /// No description provided for @globalAiAsrWeType.
+  ///
+  /// In en, this message translates to:
+  /// **'WeType Cloud'**
+  String get globalAiAsrWeType;
+
+  /// No description provided for @globalAiAsrDoubao.
+  ///
+  /// In en, this message translates to:
+  /// **'Volcengine Doubao'**
+  String get globalAiAsrDoubao;
+
+  /// No description provided for @globalAiTestRequestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Sent'**
+  String get globalAiTestRequestLabel;
+
+  /// No description provided for @globalAiTestResponseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model Response'**
+  String get globalAiTestResponseLabel;
+
+  /// No description provided for @globalAiTestStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Test'**
+  String get globalAiTestStart;
 }
 
 class _AppLocalizationsDelegate

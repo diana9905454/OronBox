@@ -27,6 +27,8 @@ _MiWearState _$MiWearStateFromJson(Map<String, dynamic> json) => _MiWearState(
   authkey: json['authkey'] as String?,
   codename: json['codename'] as String?,
   disconnected: json['disconnected'] as bool? ?? false,
+  deviceCapability: (json['deviceCapability'] as num?)?.toInt() ?? 0,
+  deviceCapabilityV2: (json['deviceCapabilityV2'] as num?)?.toInt() ?? 0,
 );
 
 Map<String, dynamic> _$MiWearStateToJson(_MiWearState instance) =>
@@ -37,6 +39,8 @@ Map<String, dynamic> _$MiWearStateToJson(_MiWearState instance) =>
       'authkey': instance.authkey,
       'codename': instance.codename,
       'disconnected': instance.disconnected,
+      'deviceCapability': instance.deviceCapability,
+      'deviceCapabilityV2': instance.deviceCapabilityV2,
     };
 
 _ChargeInfo _$ChargeInfoFromJson(Map<String, dynamic> json) => _ChargeInfo(

@@ -2469,9 +2469,9 @@
   "appDataHealthDescription": "设备同步的运动健康数据",
   "appDataDeviceKeys": "设备配对与密钥",
   "appDataDeviceKeysDescription": "设备列表及连接所需的认证信息",
-  "appDataXiaomiAccount": "小米账号信息",
-  "appDataXiaomiAccountDescription": "小米账号及当前登录会话",
-  "appDataSensitiveBackup": "备份包含密钥或登录信息且未加密\n请妥善保管，不要分享",
+  "appDataXiaomiAccount": "小米与华米账号信息",
+  "appDataXiaomiAccountDescription": "账号密码及当前登录会话",
+  "appDataSensitiveBackup": "备份包含未加密的账号凭证\n请妥善保管，不要分享",
   "appDataImportDescription": "从备份文件选择数据进行恢复",
   "appDataPluginDescription": "已安装插件及其本地数据",
   "appDataZepposDescription": "设备应用脚本和本地设置",
@@ -2571,5 +2571,227 @@
   "creatorNameRequired": "请填写资源名称",
   "creatorSummaryRequired": "请填写资源简介",
   "creatorSubmitForReview": "提交审核",
-  "creatorAstroBoxPRBody": "PR 说明（选填）"
+  "creatorAstroBoxPRBody": "PR 说明（选填）",
+  "autoBackupTitle": "定时备份",
+  "autoBackupDescription": "定期将应用数据备份并保存至系统文档目录",
+  "autoBackupEnabled": "启用定时备份",
+  "autoBackupInterval": "备份频率",
+  "autoBackupEvery": "每",
+  "autoBackupUnitDay": "天",
+  "autoBackupUnitWeek": "周",
+  "autoBackupUnitMonth": "月",
+  "autoBackupRetention": "保留份数",
+  "autoBackupRetentionCount": "{count} 份",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "不限制",
+  "autoBackupPasswordEnable": "密码保护",
+  "autoBackupPasswordEnableDesc": "使用标准 AES-256 为备份加密",
+  "autoBackupPassword": "备份密码",
+  "autoBackupPasswordConfirm": "确认密码",
+  "autoBackupPasswordMismatch": "两次输入的密码不一致",
+  "autoBackupPasswordPlaceholder": "请输入密码",
+  "autoBackupScope": "备份范围",
+  "autoBackupScopeSettings": "偏好设置",
+  "autoBackupScopeHealth": "健康数据",
+  "autoBackupScopeExtensions": "扩展应用数据",
+  "autoBackupScopeDevices": "设备连接信息",
+  "autoBackupStorageLocation": "存储位置",
+  "autoBackupStorageLocationDesc": "备份文件自动保存至系统公有文档目录",
+  "autoBackupOpenFolder": "在文件管理器中打开",
+  "autoBackupStatusEnabled": "已开启 · 每 {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "未开启",
+  "autoBackupRunNow": "立即备份",
+  "autoBackupRunSuccess": "自动备份完成",
+  "autoBackupRunFailed": "自动备份失败",
+  "backupPasswordDialogTitle": "输入备份密码",
+  "backupPasswordDialogMessage": "此备份已加密，请输入密码解密",
+  "backupPasswordIncorrect": "密码错误，无法解密",
+  "backupPasswordRequired": "请输入密码",
+  "exportBackupPasswordOptional": "备份密码（可选）",
+  "exportBackupPasswordPlaceholder": "留空则不加密",
+  "backupTargetPublicDocuments": "保存至系统文档目录",
+  "backupTargetCustom": "另存为外部文件",
+  "restoreFromDocumentsTitle": "选择要恢复的备份",
+  "restorePickExternalFile": "选择其他外部文件...",
+  "backupSavedToDocuments": "备份已保存至系统文档目录",
+  "appDataExporting": "正在导出并加密备份，请稍等",
+  "appDataDecrypting": "正在解密备份，请稍等",
+  "appDataRestoring": "正在恢复数据，请稍等",
+  "autoBackupRetentionInputHint": "0 为不限制",
+  "autoBackupRetentionLabel": "保留份数（0 为不限制）",
+  "autoBackupRetentionUnit": "份",
+  "backupTypeAuto": "定时备份",
+  "backupTypeManual": "手动备份",
+  "autoBackupStatusDetail": "已开启 · 每 {value} {unit} · 保留 {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiTitle": "全局 AI",
+  "globalAiDescription": "配置大语言模型及穿戴助手智能联动",
+  "globalAiEnableSwitch": "启用全局 AI",
+  "globalAiEnableSwitchDesc": "开启客户端全局大语言模型接入与智能能力支持",
+  "globalAiProviders": "提供商管理",
+  "globalAiProvidersCount": "已配置 {count} 个提供商",
+  "@globalAiProvidersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiModelSettings": "模型设置",
+  "globalAiTestConnection": "测试连接",
+  "globalAiStreamResponse": "流式响应",
+  "globalAiStreamResponseDesc": "启用后模型将逐字打字机下发",
+  "globalAiWearableSection": "穿戴设备",
+  "globalAiWearableEnable": "穿戴侧启用",
+  "globalAiWearableEnableDesc": "开启后穿戴设备语音助手将由大语言模型接管",
+  "globalAiWearableAdvancedSettings": "穿戴侧设置",
+  "globalAiToolsScope": "工具权限范围",
+  "globalAiToolDeviceStatus": "设备状态",
+  "globalAiToolDeviceStatusDesc": "读取设备连接状态、电量与基本信息",
+  "globalAiToolHealthData": "健康数据",
+  "globalAiToolHealthDataDesc": "读取步数、活动消耗、距离与心率",
+  "globalAiToolWeather": "天气查询",
+  "globalAiToolWeatherDesc": "查询实时天气与未来预报",
+  "globalAiToolSearchResources": "搜索资源",
+  "globalAiToolSearchResourcesDesc": "搜索表盘与第三方应用",
+  "globalAiToolInstallResources": "安装资源",
+  "globalAiToolInstallResourcesDesc": "下载并安装表盘或应用到穿戴设备",
+  "globalAiToolDeleteResources": "删除资源",
+  "globalAiToolDeleteResourcesDesc": "卸载或删除设备上的资源",
+  "globalAiToolManageAlarms": "闹钟管理",
+  "globalAiToolManageAlarmsDesc": "新建或管理穿戴设备闹钟",
+  "globalAiToolFindDevice": "查找设备",
+  "globalAiToolFindDeviceDesc": "让手表或手环持续振动/响铃",
+  "globalAiToolAppArrangement": "应用排布",
+  "globalAiToolAppArrangementDesc": "查询并调整设备端应用排序",
+  "globalAiToolPhoneLocation": "手机定位",
+  "globalAiToolPhoneLocationDesc": "仅在客户端手机支持，读取定位信息辅助查询",
+  "globalAiAddProvider": "添加提供商",
+  "globalAiEditProvider": "编辑提供商",
+  "globalAiProviderName": "提供商名称",
+  "globalAiProviderBaseUrl": "API 基础地址",
+  "globalAiProviderApiKey": "API Key",
+  "globalAiProviderModels": "模型列表",
+  "globalAiAddModel": "添加模型",
+  "globalAiModelId": "模型 ID",
+  "globalAiProtocolType": "协议类型",
+  "globalAiProtocolCompletions": "Completions",
+  "globalAiProtocolResponses": "Responses",
+  "globalAiMultimodalSupport": "多模态能力",
+  "globalAiSupportImages": "图片",
+  "globalAiSupportAudio": "音频",
+  "globalAiContextLength": "上下文长度",
+  "globalAiWearableReplyLength": "穿戴侧回复长度",
+  "globalAiWearableLengthShort": "短（50 字以内）",
+  "globalAiWearableLengthMedium": "中（100 字以内）",
+  "globalAiWearableLengthLong": "长（200 字以内）",
+  "globalAiWearableLengthUnlimited": "不限",
+  "globalAiWearableToolPolicy": "工具调用策略",
+  "globalAiToolPolicyDisabled": "禁用工具",
+  "globalAiToolPolicyReadOnly": "只读模式",
+  "globalAiToolPolicyReadWrite": "读写模式",
+  "globalAiConfirmationMode": "敏感操作确认方式",
+  "globalAiConfirmModeWearableVoice": "穿戴侧语音回复确认",
+  "globalAiConfirmModeManual": "客户端侧手动确认",
+  "globalAiTesting": "正在连接...",
+  "globalAiTestSuccess": "已收到模型响应",
+  "globalAiTestFailed": "连接测试失败",
+  "globalAiTestDuration": "耗时 {ms} 毫秒",
+  "@globalAiTestDuration": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiSectionModelAndProvider": "模型与提供商",
+  "globalAiTestConnectionDesc": "验证当前提供商与模型的连通性与时延",
+  "globalAiWearableAdvancedDesc": "回复长度、工具权限模式与敏感操作确认方式",
+  "globalAiNoModelSelected": "未配置或未选择模型",
+  "globalAiSave": "保存",
+  "globalAiCancel": "取消",
+  "globalAiClose": "关闭",
+  "globalAiBack": "返回",
+  "globalAiRetry": "重试",
+  "globalAiDelete": "删除",
+  "globalAiNoProvidersPrompt": "暂未添加任何提供商\n请在上方添加新提供商",
+  "globalAiNoModelsPrompt": "暂无可用模型，请先添加模型",
+  "globalAiSystemPrompt": "系统提示词",
+  "globalAiSystemPromptDescription": "编辑模型指令，设备和工具安全规则会自动追加",
+  "globalAiSystemPromptHint": "输入系统提示词模板",
+  "globalAiSystemPromptPlaceholders": "可用占位符",
+  "globalAiDeleteProvider": "删除此供应商",
+  "globalAiDeleteModel": "删除模型",
+  "globalAiConnecting": "正在建立连接...",
+  "globalAiReceiving": "正在接收响应...",
+  "globalAiWaitingFirstToken": "等待首字响应...",
+  "globalAiTargetLabel": "目标 {provider} / {model}",
+  "@globalAiTargetLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiNoProviderConfigured": "未配置有效的提供商或模型",
+  "globalAiNoApiKeyConfigured": "未找到 API 密钥，请检查提供商设置",
+  "globalAiSelectActiveModel": "选择生效模型",
+  "globalAiContextLengthHint": "例如 4096、8192、131072",
+  "globalAiModelNameHint": "如 deepseek-flash, qwen3.8-flash",
+  "globalAiProviderNameHint": "如 DeepSeek, OpenAI, 硅基流动",
+  "globalAiBaseUrlHint": "如 https://api.deepseek.com",
+  "globalAiApiKeyHint": "sk-...",
+  "globalAiConfirmDeleteProvider": "确定删除此提供商及其所有模型吗？",
+  "globalAiConfirmDeleteModel": "确定删除此模型配置吗？",
+  "globalAiModelAlreadyExists": "该模型 ID 已存在",
+  "globalAiModelAdded": "模型已添加",
+  "globalAiProviderAdded": "提供商已添加",
+  "globalAiVoiceAssistantProcessing": "AI 思考并流式回复中...",
+  "globalAiVoiceAssistantError": "AI 回复出错：{error}",
+  "@globalAiVoiceAssistantError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiAsrEngine": "语音识别引擎",
+  "globalAiAsrManual": "手动输入",
+  "globalAiAsrNative": "本地离线模型",
+  "globalAiAsrWeType": "微信输入法",
+  "globalAiAsrDoubao": "火山豆包",
+  "globalAiTestRequestLabel": "发送请求",
+  "globalAiTestResponseLabel": "模型响应",
+  "globalAiTestStart": "开始测试"
 }

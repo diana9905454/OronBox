@@ -19,6 +19,7 @@ import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/app_icon.dart';
+import 'package:oronbox/src/features/settings/widgets/interactive_3d_icon.dart';
 import 'package:oronbox/src/app/widgets/release_notes_view.dart';
 import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
 import 'package:oronbox/src/core/constants/app_constants.dart';
@@ -206,7 +207,7 @@ class _AboutHeader extends ConsumerWidget {
     return Column(
       children: [
         const SizedBox(height: 8),
-        const AppIcon(size: 72),
+        Interactive3dIcon(size: 72, child: const AppIcon(size: 72)),
         const SizedBox(height: 16),
         Text(
           'OronBox',

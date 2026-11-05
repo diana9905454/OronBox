@@ -21,4 +21,5 @@ object PlatformChannelNames {
     const val ZEPPOS_APP_SETTINGS = "oronbox/zeppos_app_settings"
     const val XIAOMI_SCREENSHOT = "oronbox/xiaomi_screenshot"
     const val DEVICE_RECORDINGS = "oronbox/device_recordings"
+    const val PUBLIC_BACKUPS = "oronbox/public_backups"
 }

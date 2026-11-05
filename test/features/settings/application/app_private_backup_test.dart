@@ -125,6 +125,58 @@ void main() {
     expect(await state.readBackupRecovery(), isNull);
   });
   test(
+    'exports Xiaomi and Huami credentials without OAuth session stores',
+    () async {
+      await state.update({
+        PrivateAppState.huamiToken: jsonEncode({
+          'app_token': 'app-token',
+          'user_id': 'huami-user',
+          'country_code': 'CN',
+          'raw': <String, Object?>{},
+        }),
+      });
+      await SharedPrefsService.instance.setBool(
+        'mi_account.remember_credentials',
+        true,
+      );
+      await SharedPrefsService.instance.setString(
+        'mi_account.username',
+        'mi-user',
+      );
+      await SharedPrefsService.instance.setString(
+        'mi_account.password',
+        'mi-password',
+      );
+      await SharedPrefsService.instance.setBool(
+        'huami_account.remember_credentials',
+        true,
+      );
+      await SharedPrefsService.instance.setString(
+        'huami_account.username',
+        'huami-user',
+      );
+      await SharedPrefsService.instance.setString(
+        'huami_account.password',
+        'huami-password',
+      );
+
+      final bytes = await service.export(
+        selection: const BackupSelection(
+          settings: false,
+          health: false,
+          extensions: false,
+          accounts: true,
+        ),
+      );
+      final backup = await service.inspect(bytes);
+      expect(backup.privateData.keys, unorderedEquals(['xiaomi', 'huami']));
+      expect(backup.settings['mi_account.password'], 'mi-password');
+      expect(backup.settings['huami_account.password'], 'huami-password');
+      expect(backup.settings, isNot(contains('oronbox.session.token')));
+      expect(backup.settings, isNot(contains('bandbbs.oauth.token')));
+    },
+  );
+  test(
     'rejects account categories outside the explicit allowlist before writing',
     () async {
       await expectLater(

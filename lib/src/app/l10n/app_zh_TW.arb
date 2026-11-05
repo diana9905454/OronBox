@@ -2275,9 +2275,9 @@
   "appDataHealthDescription": "裝置同步的運動健康數據",
   "appDataDeviceKeys": "裝置配對與金鑰",
   "appDataDeviceKeysDescription": "裝置清單及連線所需的認證資訊",
-  "appDataXiaomiAccount": "小米帳號資訊",
-  "appDataXiaomiAccountDescription": "小米帳號及目前登入工作階段",
-  "appDataSensitiveBackup": "備份包含金鑰或登入資訊且未加密\n請妥善保管，不要分享",
+  "appDataXiaomiAccount": "小米與 Amazfit 帳號資訊",
+  "appDataXiaomiAccountDescription": "帳號密碼及目前登入工作階段",
+  "appDataSensitiveBackup": "備份包含未加密的帳號憑證\n請妥善保管，不要分享",
   "appDataImportDescription": "從備份檔案選擇資料進行還原",
   "appDataPluginDescription": "已安裝外掛及其本機資料",
   "appDataZepposDescription": "裝置應用程式腳本和本機設定",
@@ -2377,5 +2377,85 @@
   "creatorNameRequired": "請填寫資源名稱",
   "creatorSummaryRequired": "請填寫資源簡介",
   "creatorSubmitForReview": "提交審核",
-  "creatorAstroBoxPRBody": "PR 說明（選填）"
+  "creatorAstroBoxPRBody": "PR 說明（選填）",
+  "autoBackupTitle": "定時備份",
+  "autoBackupDescription": "定期將應用程式資料備份並儲存至系統文件目錄",
+  "autoBackupEnabled": "啟用定時備份",
+  "autoBackupInterval": "備份頻率",
+  "autoBackupEvery": "每",
+  "autoBackupUnitDay": "天",
+  "autoBackupUnitWeek": "週",
+  "autoBackupUnitMonth": "月",
+  "autoBackupRetention": "保留份數",
+  "autoBackupRetentionCount": "{count} 份",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "不限制",
+  "autoBackupPasswordEnable": "密碼保護",
+  "autoBackupPasswordEnableDesc": "使用標準 AES-256 為備份加密",
+  "autoBackupPassword": "備份密碼",
+  "autoBackupPasswordConfirm": "確認密碼",
+  "autoBackupPasswordMismatch": "兩次輸入的密碼不一致",
+  "autoBackupPasswordPlaceholder": "請輸入密碼",
+  "autoBackupScope": "備份範圍",
+  "autoBackupScopeSettings": "偏好設定",
+  "autoBackupScopeHealth": "健康資料",
+  "autoBackupScopeExtensions": "擴充套件資料",
+  "autoBackupScopeDevices": "裝置連線資訊",
+  "autoBackupStorageLocation": "儲存位置",
+  "autoBackupStorageLocationDesc": "備份檔案自動儲存至系統公用文件目錄",
+  "autoBackupOpenFolder": "在檔案管理器中開啟",
+  "autoBackupStatusEnabled": "已開啟 · 每 {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "未開啟",
+  "autoBackupRunNow": "立即備份",
+  "autoBackupRunSuccess": "自動備份完成",
+  "autoBackupRunFailed": "自動備份失敗",
+  "backupPasswordDialogTitle": "輸入備份密碼",
+  "backupPasswordDialogMessage": "此備份已加密，請輸入密碼解密",
+  "backupPasswordIncorrect": "密碼錯誤，無法解密",
+  "backupPasswordRequired": "請輸入密碼",
+  "exportBackupPasswordOptional": "備份密碼（選填）",
+  "exportBackupPasswordPlaceholder": "留空則不加密",
+  "backupTargetPublicDocuments": "儲存至系統文件目錄",
+  "backupTargetCustom": "另存為外部檔案",
+  "restoreFromDocumentsTitle": "選擇要還原的備份",
+  "restorePickExternalFile": "選擇其他外部檔案...",
+  "backupSavedToDocuments": "備份已儲存至系統文件目錄",
+  "appDataExporting": "正在匯出並加密備份，請稍候",
+  "appDataDecrypting": "正在解密備份，請稍候",
+  "appDataRestoring": "正在還原資料，請稍候",
+  "autoBackupRetentionInputHint": "0 為不限制",
+  "autoBackupRetentionLabel": "保留份數（0 為不限制）",
+  "autoBackupRetentionUnit": "份",
+  "backupTypeAuto": "定期備份",
+  "backupTypeManual": "手動備份",
+  "autoBackupStatusDetail": "已開啟 · 每 {value} {unit} · 保留 {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  }
 }

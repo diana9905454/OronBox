@@ -72,6 +72,16 @@ class XiaomiAuthSystem extends XiaomiPbSystem {
   void _onDeviceConfirm(pb_account.Auth_DeviceConfirm confirm) {
     if (confirm.confirmResult) {
       _log.info('[${entity.id}] auth confirmed');
+      final cap1 = confirm.hasDeviceCapability() ? confirm.deviceCapability : 0;
+      final cap2 =
+          confirm.hasDeviceCapability2() ? confirm.deviceCapability2 : 0;
+      entity.emit(
+        XiaomiDeviceCapabilitiesUpdated(
+          deviceId: entity.id,
+          deviceCapability: cap1,
+          deviceCapabilityV2: cap2,
+        ),
+      );
       unawaited(_finishAuthentication());
     } else {
       final error = 'auth confirm rejected by device';

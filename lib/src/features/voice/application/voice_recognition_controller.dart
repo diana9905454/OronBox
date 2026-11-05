@@ -6,6 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/core/asr/asr.dart';
+import 'package:oronbox/src/core/ai/ai_settings_store.dart';
 import 'package:oronbox/src/core/asr/asr_benchmark.dart';
 import 'package:oronbox/src/core/asr/cloud_asr_protocol.dart';
 import 'package:oronbox/src/core/asr/asr_model_store.dart';
@@ -73,10 +74,9 @@ final asrEngineFactoryProvider =
           },
     );
 final voiceRecognitionProvider =
-    NotifierProvider.autoDispose<
-      VoiceRecognitionController,
-      VoiceRecognitionState
-    >(VoiceRecognitionController.new);
+    NotifierProvider<VoiceRecognitionController, VoiceRecognitionState>(
+      VoiceRecognitionController.new,
+    );
 
 class VoiceRecognitionController extends Notifier<VoiceRecognitionState> {
   final _model = AsrModelStore();
@@ -112,7 +112,21 @@ class VoiceRecognitionController extends Notifier<VoiceRecognitionState> {
         /* Installation is checked again before model use. */
       }
     });
-    return const VoiceRecognitionState();
+    return VoiceRecognitionState(backend: AiSettingsStore.asrBackend);
+  }
+
+  bool get isReady =>
+      _engine != null && state.backend != AsrBackend.manual && !state.preparing;
+
+  Future<bool> ensureBackend(AsrBackend backend) async {
+    if (backend == AsrBackend.manual) {
+      await select(backend);
+      return true;
+    }
+    if (state.backend != backend || !isReady) {
+      await select(backend);
+    }
+    return ref.mounted && isReady;
   }
 
   Future<AsrBenchmarkReport> replay(
@@ -175,6 +189,7 @@ class VoiceRecognitionController extends Notifier<VoiceRecognitionState> {
     await old?.dispose();
     if (!ref.mounted || generation != _generation) return;
     if (backend == AsrBackend.manual) {
+      AiSettingsStore.asrBackend = backend;
       state = state.copyWith(preparing: false);
       return;
     }
@@ -191,6 +206,7 @@ class VoiceRecognitionController extends Notifier<VoiceRecognitionState> {
         return;
       }
       _engine = engine;
+      AiSettingsStore.asrBackend = backend;
       state = state.copyWith(preparing: false, clearError: true);
     } catch (error) {
       _fail(error, generation);

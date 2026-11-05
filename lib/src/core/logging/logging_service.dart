@@ -67,7 +67,7 @@ void publishDiagnostic(DiagnosticEvent event) {
   if (_recentDiagnostics.length > 1000) _recentDiagnostics.removeAt(0);
   _diagnostics.add(event);
   if (event.level < Level.INFO) return;
-  final line = event.format();
+  final line = event.format(includeStackTrace: false);
   writeFileLogLine(line);
   // ignore: avoid_print
   print(line);
