@@ -2378,10 +2378,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsCancel => 'Отмена';
 
   @override
-  String get settingsTeamRoleMain => 'Основной разработчик / дизайнер';
+  String get settingsTeamRoleMain =>
+      'Основная разработка / архитектура / дизайн';
 
   @override
-  String get settingsTeamRoleZeppOS => 'Разработка ZeppOS';
+  String get settingsTeamRoleHarmonyOS =>
+      'Портирование и сопровождение HarmonyOS';
+
+  @override
+  String get settingsTeamRoleDeviceConnection =>
+      'Вклад в оптимизацию подключения macOS';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'Адаптация и реализация ZeppOS';
 
   @override
   String get settingsAboutSoftware => 'О программе';

@@ -2364,10 +2364,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsCancel => 'Cancel';
 
   @override
-  String get settingsTeamRoleMain => 'Main Developer / Designer';
+  String get settingsTeamRoleMain => 'Main Developer / Architecture / Design';
 
   @override
-  String get settingsTeamRoleZeppOS => 'ZeppOS implementation';
+  String get settingsTeamRoleHarmonyOS => 'HarmonyOS porting and maintenance';
+
+  @override
+  String get settingsTeamRoleDeviceConnection =>
+      'macOS connection optimization contribution';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'ZeppOS adaptation and implementation';
 
   @override
   String get settingsAboutSoftware => 'About software';

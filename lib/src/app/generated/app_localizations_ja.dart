@@ -2261,10 +2261,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsCancel => 'キャンセル';
 
   @override
-  String get settingsTeamRoleMain => 'メイン開発者 / デザイナー';
+  String get settingsTeamRoleMain => 'メイン開発 / アーキテクチャ / デザイン';
 
   @override
-  String get settingsTeamRoleZeppOS => 'ZeppOS実装';
+  String get settingsTeamRoleHarmonyOS => 'HarmonyOS移植と保守';
+
+  @override
+  String get settingsTeamRoleDeviceConnection => 'macOS接続最適化への貢献';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'ZeppOS対応と実装';
 
   @override
   String get settingsAboutSoftware => 'ソフトウェア情報';

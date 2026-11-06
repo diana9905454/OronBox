@@ -55,7 +55,10 @@ class OronBoxSupportApi {
         latestVersion: release.tagName,
         tag: release.tagName,
         serverPolicyAvailable: false,
-        releaseNotes: release.body,
+        releaseNotes: extractGithubReleaseNotes(
+          release.body,
+          language: language,
+        ),
         sourceUrl:
             _map(response.data)['html_url']?.toString() ??
             '${AppConstants.githubRepoUrl}/releases/latest',
@@ -125,6 +128,30 @@ class OronBoxSupportApi {
 
   Map<String, Object?> _map(Object? value) =>
       value is Map ? value.cast<String, Object?>() : const {};
+}
+
+final _fullChangelogLinePattern = RegExp(
+  r'^\s*\*{0,2}Full Changelog\*{0,2}\s*:.*$',
+  multiLine: true,
+  caseSensitive: false,
+);
+final _releaseNotesDividerPattern = RegExp(r'(?:^|\n)[ \t]*---[ \t]*(?:\n|$)');
+
+String extractGithubReleaseNotes(String body, {required String language}) {
+  final cleaned = body
+      .replaceAll('\r\n', '\n')
+      .replaceAll(_fullChangelogLinePattern, '')
+      .trim();
+  if (cleaned.isEmpty) return '';
+  final parts = cleaned.split(_releaseNotesDividerPattern);
+  if (parts.length >= 2) {
+    final zh = parts.first.trim();
+    final en = parts.sublist(1).join('\n\n---\n\n').trim();
+    if (zh.isNotEmpty && en.isNotEmpty) {
+      return language == 'en' ? en : zh;
+    }
+  }
+  return cleaned;
 }
 
 class AppReleaseInfo {

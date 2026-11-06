@@ -4282,13 +4282,25 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTeamRoleMain.
   ///
   /// In en, this message translates to:
-  /// **'Main Developer / Designer'**
+  /// **'Main Developer / Architecture / Design'**
   String get settingsTeamRoleMain;
+
+  /// No description provided for @settingsTeamRoleHarmonyOS.
+  ///
+  /// In en, this message translates to:
+  /// **'HarmonyOS porting and maintenance'**
+  String get settingsTeamRoleHarmonyOS;
+
+  /// No description provided for @settingsTeamRoleDeviceConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'macOS connection optimization contribution'**
+  String get settingsTeamRoleDeviceConnection;
 
   /// No description provided for @settingsTeamRoleZeppOS.
   ///
   /// In en, this message translates to:
-  /// **'ZeppOS implementation'**
+  /// **'ZeppOS adaptation and implementation'**
   String get settingsTeamRoleZeppOS;
 
   /// No description provided for @settingsAboutSoftware.

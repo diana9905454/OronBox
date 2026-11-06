@@ -185,8 +185,12 @@ class _ChangelogSection extends ConsumerWidget {
 
 String _roleLabel(AppLocalizations l10n, TeamRole role) {
   return switch (role) {
-    TeamRole.mainDeveloperDesigner => l10n.settingsTeamRoleMain,
+    TeamRole.mainDeveloperArchitecture =>
+      l10n.settingsTeamRoleMain,
     TeamRole.zeppOSImplementation => l10n.settingsTeamRoleZeppOS,
+    TeamRole.harmonyOSPorting => l10n.settingsTeamRoleHarmonyOS,
+    TeamRole.deviceConnectionCollaboration =>
+      l10n.settingsTeamRoleDeviceConnection,
   };
 }
 
@@ -850,6 +854,7 @@ class _Section extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(icon, size: 20),
               const SizedBox(width: 10),
@@ -881,14 +886,14 @@ class _TeamMemberTile extends StatelessWidget {
       onTap: () => _openUrl(member.githubUrl),
       borderRadius: BorderRadius.circular(12),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         child: Row(
           children: [
             ClipOval(
               child: Image.asset(
                 member.avatarAsset,
-                width: 44,
-                height: 44,
+                width: 40,
+                height: 40,
                 fit: BoxFit.cover,
               ),
             ),

@@ -2246,10 +2246,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settingsCancel => '取消';
 
   @override
-  String get settingsTeamRoleMain => '主开发 / 设计';
+  String get settingsTeamRoleMain => '主开发 / 架构 / 设计';
 
   @override
-  String get settingsTeamRoleZeppOS => 'ZeppOS 实现';
+  String get settingsTeamRoleHarmonyOS => 'HarmonyOS 移植维护';
+
+  @override
+  String get settingsTeamRoleDeviceConnection => 'macOS 连接优化贡献';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'ZeppOS 适配实现';
 
   @override
   String get settingsAboutSoftware => '关于软件';
@@ -8286,10 +8292,16 @@ class AppLocalizationsZhTw extends AppLocalizationsZh {
   String get settingsCancel => '取消';
 
   @override
-  String get settingsTeamRoleMain => '主要開發者／設計師';
+  String get settingsTeamRoleMain => '主要開發／架構／設計';
 
   @override
-  String get settingsTeamRoleZeppOS => 'ZeppOS 實作';
+  String get settingsTeamRoleHarmonyOS => 'HarmonyOS 移植維護';
+
+  @override
+  String get settingsTeamRoleDeviceConnection => 'macOS 連線最佳化貢獻';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'ZeppOS 適配實作';
 
   @override
   String get settingsAboutSoftware => '關於軟體';
