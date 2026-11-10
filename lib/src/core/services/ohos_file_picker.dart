@@ -21,6 +21,7 @@ class OhosFilePickerPlatform extends FilePickerPlatform {
     Function(FilePickerStatus)? onFileLoading,
     int compressionQuality = 0,
     AndroidOptions androidOptions = const AndroidOptions(),
+    DarwinOptions darwinOptions = const DarwinOptions(),
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
@@ -43,6 +44,7 @@ class OhosFilePickerPlatform extends FilePickerPlatform {
     Function(FilePickerStatus)? onFileLoading,
     int compressionQuality = 0,
     AndroidOptions androidOptions = const AndroidOptions(),
+    DarwinOptions darwinOptions = const DarwinOptions(),
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
@@ -74,6 +76,7 @@ class OhosFilePickerPlatform extends FilePickerPlatform {
     String? dialogTitle,
     String? initialDirectory,
     AndroidOptions androidOptions = const AndroidOptions(),
+    DarwinOptions darwinOptions = const DarwinOptions(),
     WindowsOptions windowsOptions = const WindowsOptions(),
     LinuxOptions linuxOptions = const LinuxOptions(),
     WebOptions webOptions = const WebOptions(),
@@ -156,6 +159,9 @@ base class _OhosPlatformFile extends PlatformFile {
 
   @override
   XFile get xFile => XFile(_path, name: name);
+
+  @override
+  int? lengthSync() => null; // 鸿蒙 picker 不返回文件大小
 
   @override
   Future<int> length() async => 0; // 长度由调用方按需懒加载

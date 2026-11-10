@@ -6,14 +6,17 @@ import 'package:crypto/crypto.dart' as crypto;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:oronbox/src/core/ai/ai_settings_store.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/core/models/sync_models.dart';
-import 'package:oronbox/src/core/models/xiaomi_health_models.dart';
 import 'package:oronbox/src/core/providers/bluetooth_platform_provider.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 import 'package:oronbox/src/core/services/connection_keep_alive.dart';
+import 'package:oronbox/src/core/services/rfcomm_driver.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/core/services/status_surface_bridge.dart';
 import 'package:oronbox/src/device/core/ble_requirement.dart';
 import 'package:oronbox/src/device/core/ble_transport.dart';
@@ -27,21 +30,24 @@ import 'package:oronbox/src/device/core/runtime.dart';
 import 'package:oronbox/src/device/core/spp_transport.dart';
 import 'package:oronbox/src/device/core/transport.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
-import 'package:oronbox/src/device/xiaomi/components/auth_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/info_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/install_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/network_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/mass_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/media_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/report_system.dart';
-import 'package:oronbox/src/protocols/xiaomi/transport/mass_transfer.dart'
-    show ReceiveMassCallbackData, ReverseMassReceiveResult;
-import 'package:oronbox/src/device/xiaomi/components/resource_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/thirdparty_app_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/sync_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/xiaomi_device_component.dart';
+import 'package:oronbox/src/device/xiaomi/systems/auth_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/install_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/lpa_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/network_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/wifi_config_handler.dart';
+import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/media_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/report_system.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/transport/mass_transfer.dart'
+    show ReverseMassReceiveResult;
+import 'package:oronbox/src/device/xiaomi/systems/resource_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/thirdparty_app_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/sync_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_device_component.dart';
 import 'package:oronbox/src/device/xiaomi/xiaomi_device_factory.dart';
+import 'package:oronbox/src/device/xiaomi/xiaomi_time.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_auth_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_apps_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_app_install_system.dart';
@@ -57,6 +63,7 @@ import 'package:oronbox/src/device/zeppos/systems/zeppos_services_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_screenshot_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_time_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_xiao_ai_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_voice_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_watchface_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_voice_memos_system.dart';
 import 'package:oronbox/src/device/zeppos/zeppos_btbr_transport.dart';
@@ -70,72 +77,24 @@ import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart'
 import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
 import 'package:oronbox/src/features/devices/domain/device_scan_results.dart';
 import 'package:oronbox/src/features/devices/utils/device_address.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart'
-    hide ChargeStatus, BatteryInfo, DeviceInfo;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear.pb.dart' as pb;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_watch_face.pb.dart'
+import 'package:oronbox/src/device/core/device_state.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_watch_face.pb.dart'
     as pb_watchface;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_media.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pb.dart'
     as pb_media;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_media.pbenum.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pbenum.dart'
     as pb_media_enum;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_system.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
     as pb_system;
-import 'package:oronbox/src/protocols/xiaomi/packet/l2_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/l2_packet.dart';
 
-class DeviceLogPullResult {
-  const DeviceLogPullResult({
-    required this.fileName,
-    required this.data,
-    this.currentLog,
-  });
+import '../models/device_manager_state.dart';
+import '../models/device_transfer_models.dart';
 
-  final String fileName;
-  final Uint8List data;
-  final Uint8List? currentLog;
-}
-
-class DeviceLogPullProgress {
-  const DeviceLogPullProgress({
-    required this.progress,
-    required this.fileName,
-    required this.channel,
-    required this.currentPart,
-    required this.totalParts,
-  });
-
-  final double progress;
-  final String fileName;
-  final int channel;
-  final int currentPart;
-  final int totalParts;
-}
-
-class DeviceRecordingPullProgress {
-  const DeviceRecordingPullProgress({
-    required this.progress,
-    required this.currentIndex,
-    required this.totalFiles,
-    required this.fileName,
-    required this.currentPart,
-    required this.totalParts,
-    this.bytesDone,
-    this.bytesTotal,
-  });
-
-  final double progress;
-  final int currentIndex;
-  final int totalFiles;
-  final String fileName;
-  final int currentPart;
-  final int totalParts;
-  final int? bytesDone;
-  final int? bytesTotal;
-}
-
-class _NoReverseMassActivity implements Exception {
-  const _NoReverseMassActivity();
-}
+export '../models/device_manager_state.dart';
+export '../models/device_transfer_models.dart';
 
 class _DeviceLogTransferTimeout implements Exception {
   const _DeviceLogTransferTimeout({
@@ -152,266 +111,6 @@ class _DeviceLogTransferTimeout implements Exception {
   String toString() =>
       'Device log transfer stopped after ${idle.inSeconds}s without data '
       '(elapsed=${elapsed.inSeconds}s progress=${(progress * 100).round()}%)';
-}
-
-class DeviceMusicSong {
-  const DeviceMusicSong({
-    required this.id,
-    required this.name,
-    required this.size,
-    required this.duration,
-    required this.album,
-    required this.artist,
-    this.playlistIds = const [],
-  });
-
-  final List<int> id;
-  final String name;
-  final int size;
-  final int duration;
-  final String album;
-  final String artist;
-  final List<int> playlistIds;
-
-  Map<String, Object?> toJson() => {
-    'id': id,
-    'name': name,
-    'size': size,
-    'duration': duration,
-    'album': album,
-    'artist': artist,
-    'playlistIds': playlistIds,
-  };
-
-  factory DeviceMusicSong.fromJson(Map<String, Object?> json) =>
-      DeviceMusicSong(
-        id: (json['id'] as List).cast<num>().map((e) => e.toInt()).toList(),
-        name: json['name']?.toString() ?? '',
-        size: (json['size'] as num?)?.toInt() ?? 0,
-        duration: (json['duration'] as num?)?.toInt() ?? 0,
-        album: json['album']?.toString() ?? '',
-        artist: json['artist']?.toString() ?? '',
-        playlistIds: (json['playlistIds'] as List? ?? const [])
-            .cast<num>()
-            .map((e) => e.toInt())
-            .toList(),
-      );
-}
-
-class DeviceMusicPlaylist {
-  const DeviceMusicPlaylist({
-    required this.id,
-    required this.name,
-    required this.songCount,
-  });
-
-  final int id;
-  final String name;
-  final int songCount;
-
-  Map<String, Object?> toJson() => {
-    'id': id,
-    'name': name,
-    'songCount': songCount,
-  };
-
-  factory DeviceMusicPlaylist.fromJson(Map<String, Object?> json) =>
-      DeviceMusicPlaylist(
-        id: (json['id'] as num).toInt(),
-        name: json['name']?.toString() ?? '',
-        songCount: (json['songCount'] as num?)?.toInt() ?? 0,
-      );
-}
-
-class DeviceMusicLibrary {
-  const DeviceMusicLibrary({
-    required this.songs,
-    required this.playlists,
-    required this.playlistLimit,
-  });
-
-  final List<DeviceMusicSong> songs;
-  final List<DeviceMusicPlaylist> playlists;
-  final int playlistLimit;
-
-  Map<String, Object?> toJson() => {
-    'songs': songs.map((e) => e.toJson()).toList(),
-    'playlists': playlists.map((e) => e.toJson()).toList(),
-    'playlistLimit': playlistLimit,
-  };
-
-  factory DeviceMusicLibrary.fromJson(Map<String, Object?> json) =>
-      DeviceMusicLibrary(
-        songs: (json['songs'] as List? ?? const [])
-            .map((e) => DeviceMusicSong.fromJson((e as Map).cast()))
-            .toList(),
-        playlists: (json['playlists'] as List? ?? const [])
-            .map((e) => DeviceMusicPlaylist.fromJson((e as Map).cast()))
-            .toList(),
-        playlistLimit: (json['playlistLimit'] as num?)?.toInt() ?? 0,
-      );
-}
-
-class DeviceRecording {
-  const DeviceRecording({
-    required this.fileName,
-    required this.data,
-    this.durationSeconds,
-    this.createdAt,
-  });
-
-  final String fileName;
-  final Uint8List data;
-  final int? durationSeconds;
-  final DateTime? createdAt;
-
-  Map<String, Object?> toJson() => {
-    'fileName': fileName,
-    'data': data.toList(growable: false),
-    'durationSeconds': durationSeconds,
-    'createdAt': createdAt?.millisecondsSinceEpoch,
-  };
-
-  factory DeviceRecording.fromJson(Map<String, Object?> json) =>
-      DeviceRecording(
-        fileName: json['fileName']?.toString() ?? 'recording.opus',
-        data: Uint8List.fromList(
-          (json['data'] as List? ?? const [])
-              .map((value) => (value as num).toInt())
-              .toList(),
-        ),
-        durationSeconds: (json['durationSeconds'] as num?)?.toInt(),
-        createdAt: json['createdAt'] == null
-            ? null
-            : DateTime.fromMillisecondsSinceEpoch(
-                (json['createdAt'] as num).toInt(),
-              ),
-      );
-}
-
-class DeviceManagerState {
-  const DeviceManagerState({
-    this.currentDevice,
-    this.pairedDevices = const [],
-    this.scannedDevices = const [],
-    this.scanning = false,
-    this.connecting = false,
-    this.connectionTargetAddr,
-    this.connectionTargetName,
-    this.connectionPhase,
-    this.connectStatus = 0,
-    this.protocolState = ProtocolState.disconnected,
-    this.battery,
-    this.health,
-    this.systemInfo,
-    this.apps = const [],
-    this.watchfaces = const [],
-    this.xiaoAiActive = false,
-    this.xiaoAiFrameCount = 0,
-    this.xiaoAiCapabilities = const {},
-    this.findingXiaomiWearable = false,
-    this.uploadBytesPerSecond = 0,
-    this.downloadBytesPerSecond = 0,
-    this.error,
-  });
-
-  final MiWearState? currentDevice;
-  final List<MiWearState> pairedDevices;
-  final List<BTDeviceInfo> scannedDevices;
-  final bool scanning;
-  final bool connecting;
-  final String? connectionTargetAddr;
-  final String? connectionTargetName;
-  final DeviceConnectionPhase? connectionPhase;
-  final int connectStatus;
-  final ProtocolState protocolState;
-  final BatteryStatus? battery;
-  final XiaomiHealthState? health;
-  final SystemInfo? systemInfo;
-  final List<AppInfo> apps;
-  final List<WatchfaceInfo> watchfaces;
-  final bool xiaoAiActive;
-  final int xiaoAiFrameCount;
-  final Map<String, Object?> xiaoAiCapabilities;
-  final bool findingXiaomiWearable;
-  final double uploadBytesPerSecond;
-  final double downloadBytesPerSecond;
-  final String? error;
-
-  DeviceManagerState copyWith({
-    MiWearState? currentDevice,
-    List<MiWearState>? pairedDevices,
-    List<BTDeviceInfo>? scannedDevices,
-    bool? scanning,
-    bool? connecting,
-    String? connectionTargetAddr,
-    String? connectionTargetName,
-    DeviceConnectionPhase? connectionPhase,
-    int? connectStatus,
-    ProtocolState? protocolState,
-    BatteryStatus? battery,
-    XiaomiHealthState? health,
-    SystemInfo? systemInfo,
-    List<AppInfo>? apps,
-    List<WatchfaceInfo>? watchfaces,
-    bool? xiaoAiActive,
-    int? xiaoAiFrameCount,
-    Map<String, Object?>? xiaoAiCapabilities,
-    bool? findingXiaomiWearable,
-    double? uploadBytesPerSecond,
-    double? downloadBytesPerSecond,
-    String? error,
-    bool clearCurrentDevice = false,
-    bool clearBattery = false,
-    bool clearHealth = false,
-    bool clearSystemInfo = false,
-    bool clearError = false,
-    bool clearConnectionTarget = false,
-    bool clearConnectionPhase = false,
-  }) {
-    return DeviceManagerState(
-      currentDevice: clearCurrentDevice
-          ? null
-          : (currentDevice ?? this.currentDevice),
-      pairedDevices: pairedDevices ?? this.pairedDevices,
-      scannedDevices: scannedDevices ?? this.scannedDevices,
-      scanning: scanning ?? this.scanning,
-      connecting: connecting ?? this.connecting,
-      connectionTargetAddr: clearConnectionTarget
-          ? null
-          : (connectionTargetAddr ?? this.connectionTargetAddr),
-      connectionTargetName: clearConnectionTarget
-          ? null
-          : (connectionTargetName ?? this.connectionTargetName),
-      connectionPhase: clearConnectionPhase
-          ? null
-          : (connectionPhase ?? this.connectionPhase),
-      connectStatus: connectStatus ?? this.connectStatus,
-      protocolState: protocolState ?? this.protocolState,
-      battery: clearBattery ? null : (battery ?? this.battery),
-      health: clearHealth ? null : (health ?? this.health),
-      systemInfo: clearSystemInfo ? null : (systemInfo ?? this.systemInfo),
-      apps: apps ?? this.apps,
-      watchfaces: watchfaces ?? this.watchfaces,
-      xiaoAiActive: xiaoAiActive ?? this.xiaoAiActive,
-      xiaoAiFrameCount: xiaoAiFrameCount ?? this.xiaoAiFrameCount,
-      xiaoAiCapabilities: xiaoAiCapabilities ?? this.xiaoAiCapabilities,
-      findingXiaomiWearable:
-          findingXiaomiWearable ?? this.findingXiaomiWearable,
-      uploadBytesPerSecond: uploadBytesPerSecond ?? this.uploadBytesPerSecond,
-      downloadBytesPerSecond:
-          downloadBytesPerSecond ?? this.downloadBytesPerSecond,
-      error: clearError ? null : (error ?? this.error),
-    );
-  }
-}
-
-enum DeviceConnectionPhase {
-  preparing,
-  connectingTransport,
-  initializingProtocol,
-  authenticating,
-  fetchingDeviceStatus,
 }
 
 class _DeviceConnectCancelled implements Exception {
@@ -559,7 +258,31 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
   Future<void> setFindingZeppOsDevice(bool finding);
   Future<void> setFindingXiaomiPhone(bool finding);
   Future<void> setFindingXiaomiWearable(bool finding);
-  Future<void> sendXiaoAiReply(String text);
+  void setVoiceLabEnabled(bool enabled) {}
+  void updateVoiceSystemState() {}
+  Future<void> sendXiaoAiReply(
+    String text, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+    bool? useStream,
+  });
+  Future<void> sendXiaoAiStreamReply(
+    Stream<String> textStream, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+  }) async {}
+  Future<void> sendXiaoAiRecognitionPartial(String text);
+  Future<void> sendXiaoAiRecognitionResult(
+    String text, {
+    required bool isFinal,
+    XiaoAiSessionTarget? target,
+  });
+  Future<void> stopXiaoAiCapture({
+    XiaoAiSessionTarget? target,
+    bool force = false,
+    bool notifyDevice = true,
+  }) async {}
+  bool shouldStopXiaoAiCapture({XiaoAiSessionTarget? target}) => true;
   Future<void> setXiaoAiContinuousCapture(bool enabled);
   Future<void> setXiaoAiEndpoint(int endpoint);
   Future<Uint8List> requestZeppOsScreenshot();
@@ -583,6 +306,8 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
     Uint8List bytes, {
     required String title,
     required String artist,
+    String? album,
+    int? durationSecs,
     void Function(double progress)? onProgress,
   });
   Future<DeviceMusicLibrary> loadXiaomiMusicLibrary();
@@ -595,10 +320,31 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
     required List<int> songId,
     required bool included,
   });
+  XiaomiHealthData? get cachedXiaomiHealthData;
   Future<XiaomiHealthData> loadXiaomiHealthData();
   Future<XiaomiHealthSyncResult> syncXiaomiHealth();
+  Future<void> waitForHealthSync();
+  Future<void> reloadSavedDevices();
+  Future<void> sendXiaomiWifiConfig({
+    required String deviceId,
+    required String ssid,
+    required int authMode,
+    required int frequency,
+    required String password,
+    String identity = '',
+  });
+  Future<XiaomiHealthData> replayXiaomiHealthSnapshot(
+    String deviceId,
+    List<XiaomiActivityRawFile> files,
+  );
   Future<pb_system.AppLayout> loadXiaomiAppLayout();
   Future<void> setXiaomiAppLayout(pb_system.AppLayout_Layout layout);
+  Future<List<MediaFileDescriptor>> fetchXiaomiRecordingList();
+  Future<List<DeviceRecording>> downloadSelectedXiaomiRecordings({
+    required List<MediaFileDescriptor> files,
+    void Function(int completed, int total, String fileName)? onProgress,
+    void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
+  });
   Future<List<DeviceRecording>> downloadXiaomiRecordings({
     void Function(int completed, int total, String fileName)? onProgress,
     void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
@@ -662,6 +408,10 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
     void Function(double progress)? onProgress,
   });
   Future<void> importSharedDevice(MiWearState device);
+  Future<void> downloadXiaomiEsimProfile(
+    String activationCode, {
+    String confirmationCode = '',
+  });
   Future<int> importMiCloudDevices(List<MiCloudDevice> devices);
   Set<String> get connectedAddresses;
 }
@@ -669,6 +419,7 @@ abstract class DeviceManager extends Notifier<DeviceManagerState> {
 class LocalDeviceManager extends DeviceManager {
   static const errorBluetoothUnavailable =
       DeviceManager.errorBluetoothUnavailable;
+  bool _voiceLabEnabled = false;
 
   @override
   Stream<DeviceEvent> get deviceEvents => _runtime.eventStream;
@@ -676,6 +427,13 @@ class LocalDeviceManager extends DeviceManager {
   @override
   XiaomiHealthSystem? get xiaomiHealthSystem =>
       _currentEntity?.system<XiaomiHealthSystem>();
+
+  @override
+  XiaomiHealthData? get cachedXiaomiHealthData {
+    final deviceId = _currentEntity?.id ?? state.currentDevice?.addr;
+    if (deviceId == null || deviceId.isEmpty) return null;
+    return HealthStore.getCached(deviceId);
+  }
 
   @override
   Future<XiaomiHealthData> loadXiaomiHealthData() async {
@@ -687,7 +445,39 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
+  Future<void> reloadSavedDevices() async {
+    await PrivateAppState.instance.reload(key: PrivateAppState.pairedDevices);
+    final saved = _loadStateSync().pairedDevices;
+    final current = state.currentDevice;
+    final restored = current == null
+        ? null
+        : saved.where((d) => d.addr == current.addr).firstOrNull;
+    state = state.copyWith(
+      pairedDevices: saved
+          .map(
+            (d) => d.addr == current?.addr
+                ? d.copyWith(disconnected: current!.disconnected)
+                : d,
+          )
+          .toList(),
+      currentDevice:
+          restored?.copyWith(disconnected: current!.disconnected) ?? current,
+    );
+  }
+
+  @override
+  Future<void> waitForHealthSync() async {
+    await _xiaomiHealthSyncFuture?.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+  }
+
+  @override
   Future<XiaomiHealthSyncResult> syncXiaomiHealth() {
+    if (HealthStore.maintenanceRequested) {
+      return Future.error(StateError('Health data maintenance is active'));
+    }
     final active = _xiaomiHealthSyncFuture;
     if (active != null) {
       _log.fine('joining active Xiaomi health synchronization');
@@ -700,6 +490,7 @@ class LocalDeviceManager extends DeviceManager {
     final sync = XiaomiHealthSyncService(
       system: system,
       deviceId: deviceId,
+      deviceCode: state.currentDevice?.codename,
     ).sync();
     _xiaomiHealthSyncFuture = sync;
     sync.then<void>(
@@ -725,6 +516,60 @@ class LocalDeviceManager extends DeviceManager {
       },
     );
     return sync;
+  }
+
+  @override
+  Future<void> sendXiaomiWifiConfig({
+    required String deviceId,
+    required String ssid,
+    required int authMode,
+    required int frequency,
+    required String password,
+    String identity = '',
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null ||
+        entity.id != deviceId ||
+        state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final system = entity.system<XiaomiWifiConfigHandler>();
+    if (system == null) {
+      throw UnsupportedError('Xiaomi Wi-Fi configuration is unavailable');
+    }
+    await system.sendWifiConfig(
+      ssid: ssid,
+      authMode: authMode,
+      frequency: frequency,
+      password: password,
+      identity: identity,
+    );
+  }
+
+  @override
+  Future<XiaomiHealthData> replayXiaomiHealthSnapshot(
+    String deviceId,
+    List<XiaomiActivityRawFile> files,
+  ) async {
+    // Replay is a local parser/store operation; it must remain available when
+    // the wearable is offline or another device is currently connected. Use
+    // the live system when it belongs to this snapshot, otherwise create the
+    // stateless parser without touching the transport.
+    final liveSystem = _currentEntity?.id == deviceId
+        ? _currentEntity?.system<XiaomiHealthSystem>()
+        : null;
+    final parser = liveSystem ?? XiaomiHealthSystem();
+    try {
+      return await XiaomiHealthSyncService(
+        system: parser,
+        deviceId: deviceId,
+        deviceCode: _currentEntity?.id == deviceId
+            ? state.currentDevice?.codename
+            : null,
+      ).replayFromRawFiles(files);
+    } finally {
+      if (liveSystem == null) await parser.dispose();
+    }
   }
 
   @override
@@ -771,9 +616,7 @@ class LocalDeviceManager extends DeviceManager {
     _scanSubscription = _bluetooth.scanStream.listen(_onBluetoothEndpoint);
     _eventSubscription = _runtime.eventStream.listen(_onDeviceEvent);
 
-    // Android keep-alive: hold a connectedDevice foreground service while a
-    // device link is ready so the process (and BLE connection) survives the
-    // app going to background. No-op on other platforms.
+    // Keep supported mobile platforms alive while the device link is ready.
     listenSelf((previous, next) {
       final wasReady = previous?.protocolState == ProtocolState.ready;
       final isReady = next.protocolState == ProtocolState.ready;
@@ -819,6 +662,7 @@ class LocalDeviceManager extends DeviceManager {
 
     ref.onDispose(() {
       _log.info('DeviceManager disposed');
+      unawaited(endConnectionKeepAlive());
       unawaited(_xiaoAiOpusFrames.close());
       unawaited(_interconnectMessages.close());
       unawaited(_rawProtocolFrames.close());
@@ -920,17 +764,20 @@ class LocalDeviceManager extends DeviceManager {
   final _pooledEntities = <String, DeviceEntity>{};
   final _scannedProfiles = <String, DeviceProfile>{};
   var _connectGeneration = 0;
+  Future<void>? _activeConnectFuture;
+  String? _activeConnectAddress;
+  String? _activeConnectType;
   ConnectType? _pendingConnectType;
   var _passiveReconnectInProgress = false;
 
-  static const String _keyPairedDevices = 'paired_devices';
+  static const String _keyPairedDevices = PrivateAppState.pairedDevices;
   static const String _keyAutoReconnect = 'auto_reconnect';
   static const String _keyAutoReconnectOnDisconnect =
       'auto_reconnect_on_disconnect';
 
   DeviceManagerState _loadStateSync() {
-    final prefs = SharedPrefsService.instance;
-    final saved = prefs.getStringList(_keyPairedDevices) ?? [];
+    final saved =
+        PrivateAppState.instance.readStringList(_keyPairedDevices) ?? [];
     final paired = saved
         .map((e) {
           try {
@@ -938,19 +785,19 @@ class LocalDeviceManager extends DeviceManager {
               MiWearState.fromJson(jsonDecode(e) as Map<String, dynamic>),
             ).copyWith(disconnected: true);
           } catch (e, st) {
-            _log.warning('failed to parse paired device', e, st);
+            _log.warning('Invalid saved device record', null, st);
             return null;
           }
         })
         .whereType<MiWearState>()
         .toList();
 
-    _log.info('loaded ${paired.length} paired devices');
+    final initialCurrent = paired.isEmpty ? null : paired.first;
     return DeviceManagerState(
       pairedDevices: paired,
       // Keep the most recently used device selected for the device overview,
       // while its process-local connection state starts offline.
-      currentDevice: paired.isEmpty ? null : paired.first,
+      currentDevice: initialCurrent,
       protocolState: ProtocolState.disconnected,
     );
   }
@@ -980,14 +827,28 @@ class LocalDeviceManager extends DeviceManager {
         // device identity and credentials, never a stale online marker.
         .map((d) => jsonEncode(d.copyWith(disconnected: true).toJson()))
         .toList();
-    final saved = await SharedPrefsService.instance.setStringList(
-      _keyPairedDevices,
-      jsonList,
-    );
-    _log.info(
-      'saved ${jsonList.length} paired devices '
-      'to $_keyPairedDevices result=$saved',
-    );
+    await PrivateAppState.instance.update({_keyPairedDevices: jsonList});
+    _log.info('Saved ${jsonList.length} paired devices');
+  }
+
+  /// Persists the paired-device list without taking down a healthy session.
+  ///
+  /// This runs immediately after a successful handshake. The private vault can
+  /// fail (secure storage unavailable, disk full); letting that exception
+  /// escape the connect path used to mark the connection as errored and tear it
+  /// down seconds after the user saw "connected". Report the failure instead
+  /// and keep talking to the device.
+  Future<void> _persistPairedDevicesNonFatal() async {
+    try {
+      await _savePairedDevices();
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Failed to persist paired devices; keeping the live connection',
+        error,
+        stackTrace,
+      );
+      state = state.copyWith(error: error.toString());
+    }
   }
 
   @override
@@ -1198,7 +1059,7 @@ class LocalDeviceManager extends DeviceManager {
     final retryDelay = isMacOsSpp
         ? _macOsSppConnectRetryDelay
         : _defaultConnectRetryDelay;
-
+    SppBondRemovalFailed? bondRemovalError;
     for (var attempt = 1; attempt <= maxAttempts; attempt++) {
       _throwIfConnectCancelled(generation);
       _log.info(
@@ -1206,7 +1067,7 @@ class LocalDeviceManager extends DeviceManager {
         '$attempt/$maxAttempts to $addr',
       );
       try {
-        final connection = await _bluetooth.connect(
+        final connectFuture = _bluetooth.connect(
           addr,
           name,
           BluetoothConnectOptions(
@@ -1219,6 +1080,13 @@ class LocalDeviceManager extends DeviceManager {
             sppRemoveBond: _removeBondBeforeSpp(),
           ),
         );
+        // The native SPP chain caps every bond/socket stage itself, but a
+        // wedged Bluetooth stack can still hold the method call open past
+        // every poll deadline. Enforce one transport-wide deadline; the
+        // TimeoutException branch below cancels the pending native connect.
+        final connection = connectType == ConnectType.spp
+            ? await connectFuture.timeout(const Duration(seconds: 90))
+            : await connectFuture;
         _log.info(
           '${connectType.name.toUpperCase()} connected on attempt $attempt',
         );
@@ -1228,12 +1096,36 @@ class LocalDeviceManager extends DeviceManager {
         _log.warning(
           '${connectType.name.toUpperCase()} connect attempt $attempt timed out',
         );
+        if (connectType == ConnectType.spp) {
+          // Release the native worker: the cancel increments the generation
+          // so the superseded attempt exits at its next checkpoint and closes
+          // any socket still blocked in BluetoothSocket.connect().
+          try {
+            await _bluetooth.cancelPendingSppConnection().timeout(
+              const Duration(seconds: 2),
+            );
+          } catch (cancelError, cancelStack) {
+            _log.warning(
+              'cancelling timed-out SPP connect failed',
+              cancelError,
+              cancelStack,
+            );
+          }
+        }
         await _resetBluetoothAfterFailedConnect(addr, connectType);
       } catch (e) {
+        if (e is SppBondRemovalFailed) bondRemovalError = e;
         lastError = e is Exception ? e : Exception(e.toString());
         _log.warning(
           '${connectType.name.toUpperCase()} connect attempt $attempt failed: $e',
         );
+        if (connectType == ConnectType.spp) {
+          try {
+            await _bluetooth.cancelPendingSppConnection().timeout(
+              const Duration(seconds: 2),
+            );
+          } catch (_) {}
+        }
         await _resetBluetoothAfterFailedConnect(addr, connectType);
       }
 
@@ -1243,7 +1135,8 @@ class LocalDeviceManager extends DeviceManager {
       }
     }
 
-    throw lastError ??
+    throw bondRemovalError ??
+        lastError ??
         Exception(
           '${connectType.name} connect failed after $maxAttempts attempts',
         );
@@ -1285,6 +1178,62 @@ class LocalDeviceManager extends DeviceManager {
     String authKey, {
     DeviceKind kind = DeviceKind.xiaomi,
     String connectType = 'ble',
+  }) {
+    final connectionAddress = formatDeviceAddress(addr).toLowerCase();
+    final connectionType = connectType.toLowerCase();
+    final active = _activeConnectFuture;
+    if (active != null &&
+        _activeConnectAddress == connectionAddress &&
+        _activeConnectType == connectionType) {
+      if (state.protocolState == ProtocolState.error) {
+        _log.fine(
+          'aborting stale $connectionType connection attempt to $connectionAddress',
+        );
+        _connectGeneration++;
+        _clearActiveConnect(active);
+        if (connectionType == ConnectType.spp.name) {
+          unawaited(_bluetooth.cancelPendingSppConnection());
+        }
+      } else {
+        _log.fine(
+          'joining active $connectionType connection to $connectionAddress',
+        );
+        return active;
+      }
+    }
+
+    final connection = _connect(
+      addr,
+      name,
+      authKey,
+      kind: kind,
+      connectType: connectType,
+    );
+    _activeConnectFuture = connection;
+    _activeConnectAddress = connectionAddress;
+    _activeConnectType = connectionType;
+    connection.then<void>(
+      (_) => _clearActiveConnect(connection),
+      onError: (Object error, StackTrace stackTrace) {
+        _clearActiveConnect(connection);
+      },
+    );
+    return connection;
+  }
+
+  void _clearActiveConnect(Future<void> connection) {
+    if (!identical(_activeConnectFuture, connection)) return;
+    _activeConnectFuture = null;
+    _activeConnectAddress = null;
+    _activeConnectType = null;
+  }
+
+  Future<void> _connect(
+    String addr,
+    String name,
+    String authKey, {
+    required DeviceKind kind,
+    required String connectType,
   }) async {
     final generation = ++_connectGeneration;
     final existingDevice = state.pairedDevices
@@ -1394,54 +1343,62 @@ class LocalDeviceManager extends DeviceManager {
       if (existingConnection != null &&
           existingEntity != null &&
           pooledTransportMatches) {
-        _log.info('restoring pooled session for $addr');
-        _pooledConnections.remove(addr);
-        _pooledEntities.remove(addr);
-        _bluetoothConnection = existingConnection;
-        _currentEntity = existingEntity;
-        await _rawProtocolSubscription?.cancel();
-        await _rawProtocolOutgoingSubscription?.cancel();
-        _rawProtocolSubscription = existingEntity.rawIncomingData.listen(
-          _rawProtocolFrames.add,
-        );
-        _rawProtocolOutgoingSubscription = existingEntity.rawOutgoingData
-            .listen(_rawProtocolOutgoingFrames.add);
-        final connected = MiWearState(
-          name: displayName,
-          addr: addr,
-          connectType: effectiveConnectType,
-          authkey: authKey,
-          codename: effectiveCodename,
-          disconnected: false,
-        );
-        final existingIndex = state.pairedDevices.indexWhere(
-          (device) => device.addr == addr,
-        );
-        final updatedPaired = List<MiWearState>.from(state.pairedDevices);
-        if (existingIndex >= 0) updatedPaired.removeAt(existingIndex);
-        updatedPaired.insert(0, connected);
-        state = state.copyWith(
-          currentDevice: connected,
-          pairedDevices: updatedPaired,
-          protocolState: ProtocolState.ready,
-          connecting: false,
-          connectStatus: 2,
-          clearBattery: true,
-          clearHealth: true,
-          clearSystemInfo: true,
-          apps: const [],
-          watchfaces: const [],
-          xiaoAiActive: false,
-          xiaoAiFrameCount: 0,
-          xiaoAiCapabilities: const {},
-          clearConnectionPhase: true,
-          clearError: true,
-        );
-        await _savePairedDevices();
-        _startBatteryRefreshLoop();
-        unawaited(_loadInitialDeviceData(existingEntity));
-        _pendingConnectType = null;
-        return;
+        if (existingEntity.isDisposed) {
+          _log.info('discarding disposed pooled session for $addr');
+          await _disconnectPooledDevice(addr);
+          _throwIfConnectCancelled(generation);
+          existingConnection = null;
+          existingEntity = null;
+        } else {
+          _log.info('restoring pooled session for $addr');
+          _pooledConnections.remove(addr);
+          _pooledEntities.remove(addr);
+          _bluetoothConnection = existingConnection;
+          _currentEntity = existingEntity;
+          await _rawProtocolSubscription?.cancel();
+          await _rawProtocolOutgoingSubscription?.cancel();
+          _rawProtocolSubscription = existingEntity.rawIncomingData.listen(
+            _rawProtocolFrames.add,
+          );
+          _rawProtocolOutgoingSubscription = existingEntity.rawOutgoingData
+              .listen(_rawProtocolOutgoingFrames.add);
+          final connected = MiWearState(
+            name: displayName,
+            addr: addr,
+            connectType: effectiveConnectType,
+            authkey: authKey,
+            codename: effectiveCodename,
+            disconnected: false,
+          );
+          final existingIndex = state.pairedDevices.indexWhere(
+            (device) => device.addr == addr,
+          );
+          final updatedPaired = List<MiWearState>.from(state.pairedDevices);
+          if (existingIndex >= 0) updatedPaired.removeAt(existingIndex);
+          updatedPaired.insert(0, connected);
+          state = state.copyWith(
+            currentDevice: connected,
+            pairedDevices: updatedPaired,
+            protocolState: ProtocolState.ready,
+            connecting: false,
+            connectStatus: 2,
+            clearBattery: true,
+            clearHealth: true,
+            clearSystemInfo: true,
+            apps: const [],
+            watchfaces: const [],
+            xiaoAiActive: false,
+            xiaoAiFrameCount: 0,
+            xiaoAiCapabilities: const {},
+            clearConnectionPhase: true,
+            clearError: true,
+          );
+          await _persistPairedDevicesNonFatal();
+          _startBatteryRefreshLoop();
+          unawaited(_loadInitialDeviceData(existingEntity));
+          _pendingConnectType = null;
+          return;
+        }
       }
       if (existingConnection != null) {
         _log.info('reusing pooled connection for $addr (no entity)');
@@ -1596,17 +1553,17 @@ class LocalDeviceManager extends DeviceManager {
         downloadBytesPerSecond: 0,
         clearConnectionPhase: true,
       );
-      await _savePairedDevices();
+      await _persistPairedDevicesNonFatal();
       _startBatteryRefreshLoop();
       unawaited(_loadInitialDeviceData(entity));
       _pendingConnectType = null;
     } on _DeviceConnectCancelled {
       _log.info('connect to $addr cancelled');
-      await _finishCancelledConnect(addr);
+      await _finishCancelledConnect(addr, generation);
     } catch (e, st) {
       if (generation != _connectGeneration) {
         _log.info('connect to $addr cancelled after error: $e');
-        await _finishCancelledConnect(addr);
+        await _finishCancelledConnect(addr, generation);
         return;
       }
       _log.severe('connect to $addr failed', e, st);
@@ -1699,7 +1656,12 @@ class LocalDeviceManager extends DeviceManager {
     XiaomiInfoSystem infoSystem,
   ) async {
     var info = await infoSystem.fetchDeviceInfo();
-    final storageInfo = state.systemInfo?.storageInfo;
+    final previousInfo = state.systemInfo;
+    final storageInfo = previousInfo?.storageInfo;
+    if (info.imei.trim().isEmpty &&
+        previousInfo?.imei.trim().isNotEmpty == true) {
+      info = info.copyWith(imei: previousInfo!.imei);
+    }
     if (storageInfo != null) {
       info = info.copyWith(storageInfo: storageInfo);
     }
@@ -1719,7 +1681,6 @@ class LocalDeviceManager extends DeviceManager {
         imei: imei,
         storageInfo: state.systemInfo?.storageInfo ?? info.storageInfo,
       );
-      state = state.copyWith(systemInfo: updatedInfo);
       _log.info(
         'device info ${state.currentDevice?.addr ?? info.model}: '
         'eUICC IMEI loaded',
@@ -1762,9 +1723,33 @@ class LocalDeviceManager extends DeviceManager {
     }
 
     switch (event) {
+      case XiaomiDeviceCapabilitiesUpdated(
+        :final deviceCapability,
+        :final deviceCapabilityV2,
+      ):
+        _log.info(
+          'device capabilities ${event.deviceId}: '
+          'cap=$deviceCapability, cap2=$deviceCapabilityV2',
+        );
+        final current = state.currentDevice;
+        if (current != null) {
+          final updatedCurrent = current.copyWith(
+            deviceCapability: deviceCapability,
+            deviceCapabilityV2: deviceCapabilityV2,
+          );
+          final updatedPaired = state.pairedDevices.map((device) {
+            return device.addr == current.addr ? updatedCurrent : device;
+          }).toList();
+          state = state.copyWith(
+            currentDevice: updatedCurrent,
+            pairedDevices: updatedPaired,
+          );
+          unawaited(_savePairedDevices());
+        }
       case DeviceAuthenticated _:
         _log.info('event: authenticated');
         state = state.copyWith(protocolState: ProtocolState.ready);
+        updateVoiceSystemState();
       case AuthFailed(:final error):
         _log.warning('event: auth failed: $error');
         state = state.copyWith(
@@ -1814,13 +1799,25 @@ class LocalDeviceManager extends DeviceManager {
         state = state.copyWith(findingXiaomiWearable: finding);
       case XiaomiScreenshotReceived(:final bytes):
         _log.info('event: Xiaomi screenshot received (${bytes.length} bytes)');
+      case XiaomiAudioRecordReceived(:final id, :final bytes):
+        _log.info(
+          'event: Xiaomi audio record received ($id, ${bytes.length} bytes)',
+        );
       case DeviceInfoUpdated(:final info):
         _log.info(
           'device info ${event.deviceId}: model=${info.model}, '
           'fw=${info.firmwareVersion}',
         );
+        final previousInfo = state.systemInfo;
+        final mergedInfo =
+            info.imei.trim().isEmpty &&
+                previousInfo?.imei.trim().isNotEmpty == true
+            ? info.copyWith(imei: previousInfo!.imei)
+            : info;
         state = state.copyWith(
-          systemInfo: info.copyWith(storageInfo: state.systemInfo?.storageInfo),
+          systemInfo: mergedInfo.copyWith(
+            storageInfo: previousInfo?.storageInfo,
+          ),
         );
         final current = state.currentDevice;
         final identity = normalizeXiaomiWearableIdentity(info.model);
@@ -2035,6 +2032,9 @@ class LocalDeviceManager extends DeviceManager {
 
   @override
   Future<void> disconnect([String? address]) async {
+    _activeConnectFuture = null;
+    _activeConnectAddress = null;
+    _activeConnectType = null;
     _connectGeneration += 1;
     _pendingConnectType = null;
     final current = state.currentDevice;
@@ -2096,6 +2096,9 @@ class LocalDeviceManager extends DeviceManager {
   @override
   Future<void> cancelConnect() async {
     if (!state.connecting) return;
+    _activeConnectFuture = null;
+    _activeConnectAddress = null;
+    _activeConnectType = null;
     _connectGeneration += 1;
     final pendingConnectType = _pendingConnectType;
     _pendingConnectType = null;
@@ -2117,8 +2120,19 @@ class LocalDeviceManager extends DeviceManager {
     );
   }
 
-  Future<void> _finishCancelledConnect(String targetAddress) async {
+  Future<void> _finishCancelledConnect(
+    String targetAddress,
+    int generation,
+  ) async {
+    if (generation != _connectGeneration) {
+      _log.fine(
+        'ignoring cancelled connect state reset for $targetAddress: '
+        'generation $generation superseded by $_connectGeneration',
+      );
+      return;
+    }
     _pendingConnectType = null;
+    await _cleanupConnection();
     final entity = _currentEntity;
     if (entity != null && entity.id != targetAddress) {
       state = state.copyWith(
@@ -2131,7 +2145,6 @@ class LocalDeviceManager extends DeviceManager {
       );
       return;
     }
-    await _cleanupConnection();
     final current = state.currentDevice;
     final currentIsPooled =
         current != null &&
@@ -2172,7 +2185,14 @@ class LocalDeviceManager extends DeviceManager {
       final replacingSppWithSpp =
           connection?.connectType == ConnectType.spp &&
           nextConnectType == ConnectType.spp;
-      if (keepAlive && connection != null && !replacingSppWithSpp) {
+      final canPool =
+          keepAlive &&
+          connection != null &&
+          !replacingSppWithSpp &&
+          (state.protocolState == ProtocolState.ready ||
+              (state.connecting && state.currentDevice?.addr == entity.id)) &&
+          !entity.isDisposed;
+      if (canPool) {
         _pooledConnections[entity.id] = connection;
         _pooledEntities[entity.id] = entity;
         _log.info(
@@ -2180,6 +2200,8 @@ class LocalDeviceManager extends DeviceManager {
           'for ${entity.id} to pool',
         );
       } else {
+        _pooledConnections.remove(entity.id);
+        _pooledEntities.remove(entity.id);
         disconnectedAddress = entity.id;
         _log.info('cleaning up connection to ${entity.id}');
         await _runtime.removeDevice(entity.id);
@@ -2348,27 +2370,45 @@ class LocalDeviceManager extends DeviceManager {
     }
     final now = DateTime.now();
     final offset = now.timeZoneOffset;
-    final adjusted = now.add(const Duration(hours: 4));
+    // Xiaomi's own TimeSyncer sends `TimeZone.getDefault().getID()`, an IANA
+    // identifier. Firmwares that cannot resolve the identifier (for example
+    // when only an ambiguous abbreviation such as "CST" is sent) fall back to
+    // UTC, which is why the wearable displayed UTC. Dart only exposes the
+    // abbreviation, so resolve the IANA identifier through the platform.
+    final timeZoneId = await _xiaomiTimeZoneId(now, offset);
     await system.syncTime(
       TimeSyncProps(
-        date: SyncDate(
-          year: adjusted.year,
-          month: adjusted.month,
-          day: adjusted.day,
-        ),
+        date: SyncDate(year: now.year, month: now.month, day: now.day),
         time: SyncTime(
-          hour: adjusted.hour,
-          minute: adjusted.minute,
-          second: adjusted.second,
-          millisecond: adjusted.millisecond,
+          hour: now.hour,
+          minute: now.minute,
+          second: now.second,
+          millisecond: now.millisecond,
         ),
         timezone: SyncTimeZone(
+          // DateTime's offset already includes any active daylight saving.
           offset: offset.inMinutes ~/ 15,
           dstOffset: 0,
-          id: now.timeZoneName,
+          id: timeZoneId,
         ),
+        is12HourFormat: !PlatformDispatcher.instance.alwaysUse24HourFormat,
       ),
     );
+  }
+
+  Future<String> _xiaomiTimeZoneId(DateTime now, Duration offset) async {
+    try {
+      final info = await FlutterTimezone.getLocalTimezone();
+      final id = info.identifier.trim();
+      if (id.isNotEmpty) return id;
+    } catch (error, stackTrace) {
+      _log.fine(
+        'platform timezone identifier unavailable; using offset fallback',
+        error,
+        stackTrace,
+      );
+    }
+    return xiaomiTimeZoneId(now.timeZoneName, offset);
   }
 
   @override
@@ -2489,16 +2529,132 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
-  Future<void> sendXiaoAiReply(String text) async {
+  void setVoiceLabEnabled(bool enabled) {
+    _voiceLabEnabled = enabled;
+    _applyVoiceSystemState();
+  }
+
+  @override
+  void updateVoiceSystemState() {
+    _applyVoiceSystemState();
+  }
+
+  void _applyVoiceSystemState() {
+    final shouldEnable =
+        _voiceLabEnabled ||
+        (AiSettingsStore.globalAiEnabled && AiSettingsStore.wearableEnabled);
+    _currentEntity?.system<XiaomiVoiceSystem>()?.setEnabled(shouldEnable);
+  }
+
+  @override
+  Future<void> sendXiaoAiRecognitionPartial(String text) async {
+    await sendXiaoAiRecognitionResult(text, isFinal: false);
+  }
+
+  @override
+  Future<void> sendXiaoAiRecognitionResult(
+    String text, {
+    required bool isFinal,
+    XiaoAiSessionTarget? target,
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) return;
+    final xiaomi = entity.system<XiaomiVoiceSystem>();
+    if (xiaomi != null) {
+      await xiaomi.sendRecognitionResult(
+        text,
+        isFinal: isFinal,
+        target: target,
+      );
+    } else {
+      await entity.system<ZeppOsXiaoAiSystem>()?.sendRecognitionResult(
+        text,
+        isFinal: isFinal,
+      );
+    }
+  }
+
+  @override
+  Future<void> sendXiaoAiReply(
+    String text, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+    bool? useStream,
+  }) async {
     final entity = _currentEntity;
     if (entity == null || state.protocolState != ProtocolState.ready) {
       throw ProtocolException('Device not ready');
     }
-    final system = entity.system<ZeppOsXiaoAiSystem>();
-    if (system == null) {
-      throw UnsupportedError('XiaoAI is only available for ZeppOS');
+    final xiaomi = entity.system<XiaomiVoiceSystem>();
+    if (xiaomi != null) {
+      await xiaomi.sendTextReply(
+        text,
+        recognizedText: recognizedText,
+        target: target,
+        useStream:
+            useStream ?? target?.useStream ?? AiSettingsStore.streamEnabled,
+      );
+      return;
     }
-    await system.sendTextReply(text);
+    final system = entity.system<ZeppOsXiaoAiSystem>();
+    if (system == null) throw UnsupportedError('Voice assistant unavailable');
+    await system.sendTextReply(text, recognizedText: recognizedText);
+  }
+
+  @override
+  Future<void> sendXiaoAiStreamReply(
+    Stream<String> textStream, {
+    required String recognizedText,
+    XiaoAiSessionTarget? target,
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final xiaomi = entity.system<XiaomiVoiceSystem>();
+    if (xiaomi != null) {
+      await xiaomi.sendStreamReply(
+        textStream,
+        recognizedText: recognizedText,
+        target: target,
+      );
+      return;
+    }
+    final buf = StringBuffer();
+    await for (final delta in textStream) {
+      buf.write(delta);
+    }
+    await sendXiaoAiReply(
+      buf.toString(),
+      recognizedText: recognizedText,
+      target: target,
+    );
+  }
+
+  @override
+  Future<void> stopXiaoAiCapture({
+    XiaoAiSessionTarget? target,
+    bool force = false,
+    bool notifyDevice = true,
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) return;
+    await entity.system<XiaomiVoiceSystem>()?.stopCapture(
+      target: target,
+      force: force,
+      notifyDevice: notifyDevice,
+    );
+  }
+
+  @override
+  bool shouldStopXiaoAiCapture({XiaoAiSessionTarget? target}) {
+    final entity = _currentEntity;
+    final system = entity?.system<XiaomiVoiceSystem>();
+    if (system == null) return true;
+    if (target != null && entity?.id != target.deviceId) return false;
+    final useStream = target?.useStream ?? AiSettingsStore.streamEnabled;
+    return system.replyMode != XiaomiVoiceReplyMode.streamAfterStop ||
+        useStream;
   }
 
   @override
@@ -2520,9 +2676,12 @@ class LocalDeviceManager extends DeviceManager {
     if (entity == null || state.protocolState != ProtocolState.ready) {
       throw ProtocolException('Device not ready');
     }
+    if (entity.system<XiaomiVoiceSystem>() != null && endpoint == 0x0010) {
+      return;
+    }
     final system = entity.system<ZeppOsXiaoAiSystem>();
     if (system == null) {
-      throw UnsupportedError('Assistant is only available for ZeppOS');
+      throw UnsupportedError('Assistant unavailable');
     }
     system.selectEndpoint(endpoint);
   }
@@ -2715,6 +2874,8 @@ class LocalDeviceManager extends DeviceManager {
     Uint8List bytes, {
     required String title,
     required String artist,
+    String? album,
+    int? durationSecs,
     void Function(double progress)? onProgress,
   }) async {
     final entity = _currentEntity;
@@ -2729,7 +2890,6 @@ class LocalDeviceManager extends DeviceManager {
     if (system == null) {
       throw UnsupportedError('Music transfer service is unavailable');
     }
-    _ensureXiaomiMusicCapability();
     final id = crypto.md5.convert(bytes).bytes;
     _activeTransfers += 1;
     try {
@@ -2738,7 +2898,8 @@ class LocalDeviceManager extends DeviceManager {
           id: id,
           name: title,
           size: bytes.length,
-          duration: 0,
+          duration: durationSecs ?? 0,
+          album: album ?? '',
           artist: artist,
         ),
         bytes,
@@ -2758,34 +2919,19 @@ class LocalDeviceManager extends DeviceManager {
     if (entity == null || state.protocolState != ProtocolState.ready) {
       throw ProtocolException('Device not ready');
     }
-    _ensureXiaomiMusicCapability();
     return entity.system<XiaomiMediaSystem>() ??
         (throw UnsupportedError('Music management service is unavailable'));
-  }
-
-  void _ensureXiaomiMusicCapability() {
-    final device = state.currentDevice;
-    final profile = device == null
-        ? DeviceRegistry.unknown
-        : DeviceRegistry.resolveIdentity(
-            name: device.name,
-            codename: device.codename,
-          );
-    if (profile.id == 'xiaomi-band' ||
-        profile.id == 'xiaomi-band-pro' ||
-        profile.id == 'redmi-band') {
-      _log.warning(
-        'music operation rejected: ${device?.name ?? profile.id} '
-        'does not advertise music support',
-      );
-      throw UnsupportedError('This wearable does not support music transfer');
-    }
   }
 
   @override
   Future<DeviceMusicLibrary> loadXiaomiMusicLibrary() async {
     final system = _requireXiaomiMediaSystem();
-    final summary = await system.requestSongSummary();
+    final pb_media.SongSummary summary;
+    try {
+      summary = await system.requestSongSummary();
+    } on TimeoutException {
+      throw UnsupportedError('music_unsupported');
+    }
     final songs = <DeviceMusicSong>[];
     var index = 0;
     for (var page = 0; page < 100 && songs.length < summary.songCount; page++) {
@@ -2951,7 +3097,45 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
-  Future<List<DeviceRecording>> downloadXiaomiRecordings({
+  Future<List<MediaFileDescriptor>> fetchXiaomiRecordingList() async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final media = entity.system<XiaomiMediaSystem>();
+    if (media == null) {
+      throw UnsupportedError('Device recording service is unavailable');
+    }
+    List<MediaFileDescriptor> files;
+    try {
+      files = await media.requestMediaFileList();
+    } on TimeoutException {
+      // The device did not respond to the media file list request within timeout.
+      // Indicates the device firmware does not support media recording sync.
+      throw UnsupportedError('recording_unsupported');
+    } catch (_) {
+      files = await media.requestMediaFileListCompat();
+    }
+    return files
+        .where(
+          (file) =>
+              file.identifier != null &&
+              (file.mediaType == pb_media_enum.MediaFile_Type.OPUS ||
+                  file.mediaType == pb_media_enum.MediaFile_Type.PCM ||
+                  file.mediaType == pb_media_enum.MediaFile_Type.SBC ||
+                  file.mediaType == pb_media_enum.MediaFile_Type.MSBC ||
+                  file.name.toLowerCase().endsWith('.opus') ||
+                  file.name.toLowerCase().endsWith('.pcm') ||
+                  file.name.toLowerCase().endsWith('.sbc') ||
+                  file.name.toLowerCase().endsWith('.msbc') ||
+                  file.name.toLowerCase().endsWith('.ogg')),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<DeviceRecording>> downloadSelectedXiaomiRecordings({
+    required List<MediaFileDescriptor> files,
     void Function(int completed, int total, String fileName)? onProgress,
     void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
   }) async {
@@ -2974,78 +3158,46 @@ class LocalDeviceManager extends DeviceManager {
         throw ProtocolException('Device not ready');
       }
       final media = entity.system<XiaomiMediaSystem>();
-      final mass = entity.system<XiaomiMassSystem>();
-      if (media == null || mass == null) {
+      if (media == null) {
         throw UnsupportedError('Device recording service is unavailable');
       }
-      List<MediaFileDescriptor> files;
-      try {
-        files = await cancellable(media.requestMediaFileList());
-      } catch (_) {
-        if (cancellation.isCompleted) rethrow;
-        files = await cancellable(media.requestMediaFileListCompat());
-      }
       final recordings = files
-          .where(
-            (file) =>
-                file.identifier != null &&
-                (file.mediaType == pb_media_enum.MediaFile_Type.OPUS ||
-                    file.mediaType == pb_media_enum.MediaFile_Type.PCM ||
-                    file.mediaType == pb_media_enum.MediaFile_Type.SBC ||
-                    file.mediaType == pb_media_enum.MediaFile_Type.MSBC ||
-                    file.name.toLowerCase().endsWith('.opus') ||
-                    file.name.toLowerCase().endsWith('.pcm') ||
-                    file.name.toLowerCase().endsWith('.sbc') ||
-                    file.name.toLowerCase().endsWith('.msbc')),
-          )
+          .where((f) => f.identifier != null)
           .toList(growable: false);
       final results = <DeviceRecording>[];
-      // Xiaomi recordings are exported through the device's MASS channel.
-      // Listening on unrelated file channels allows a late transfer from a
-      // previous request to be mistaken for the current recording.
-      const channels = [L2Channel.mass];
       for (var index = 0; index < recordings.length; index++) {
         final descriptor = recordings[index];
         final identifier = descriptor.identifier!;
         onProgress?.call(index, recordings.length, descriptor.name);
-        final result = await _downloadRecordingWithFallback(
-          media: media,
-          mass: mass,
-          identifier: identifier,
-          channels: channels,
-          cancellable: cancellable,
-          onProgress: (value) {
-            final overall = recordings.isEmpty
-                ? 1.0
-                : ((index + value.progress) / recordings.length)
-                      .clamp(0, 1)
-                      .toDouble();
-            final size = descriptor.size;
-            onDetailedProgress?.call(
-              DeviceRecordingPullProgress(
-                progress: overall,
-                currentIndex: index + 1,
-                totalFiles: recordings.length,
-                fileName: value.fileName.isEmpty
-                    ? descriptor.name
-                    : value.fileName,
-                currentPart: value.currentPartNum,
-                totalParts: value.totalParts,
-                bytesDone: size == null
-                    ? null
-                    : (size * value.progress).round(),
-                bytesTotal: size,
-              ),
-            );
-          },
+        final data = await cancellable(
+          media.pullAudioRecord(
+            identifier,
+            onProgress: (progress, currentPart, totalParts) {
+              final overall = recordings.isEmpty
+                  ? 1.0
+                  : ((index + progress) / recordings.length)
+                        .clamp(0, 1)
+                        .toDouble();
+              final size = descriptor.size;
+              onDetailedProgress?.call(
+                DeviceRecordingPullProgress(
+                  progress: overall,
+                  currentIndex: index + 1,
+                  totalFiles: recordings.length,
+                  fileName: descriptor.name,
+                  currentPart: currentPart,
+                  totalParts: totalParts,
+                  bytesDone: size == null ? null : (size * progress).round(),
+                  bytesTotal: size,
+                ),
+              );
+            },
+          ),
         );
-        await media.confirmMediaFile(identifier);
         results.add(
           DeviceRecording(
-            fileName: result.fileName.isEmpty
-                ? descriptor.name
-                : result.fileName,
-            data: result.data,
+            fileName: descriptor.name,
+            data: data,
             durationSeconds: descriptor.durationSecs,
             createdAt: descriptor.createdAtMs == null
                 ? null
@@ -3062,67 +3214,17 @@ class LocalDeviceManager extends DeviceManager {
     }
   }
 
-  Future<ReverseMassReceiveResult> _downloadRecordingWithFallback({
-    required XiaomiMediaSystem media,
-    required XiaomiMassSystem mass,
-    required pb_media.MediaFile_Identifier identifier,
-    required List<L2Channel> channels,
-    required Future<T> Function<T>(Future<T> operation) cancellable,
-    void Function(ReceiveMassCallbackData progress)? onProgress,
+  @override
+  Future<List<DeviceRecording>> downloadXiaomiRecordings({
+    void Function(int completed, int total, String fileName)? onProgress,
+    void Function(DeviceRecordingPullProgress progress)? onDetailedProgress,
   }) async {
-    Object? lastError;
-    // Newer devices accept REQUEST_MEDIA_FILE_LIST while older firmware only
-    // responds to REQUEST_MEDIA_FILE.  AstroBox retries the request shape,
-    // but only after a short no-activity window rather than waiting for the
-    // full transfer timeout.
-    for (var attempt = 0; attempt < 2; attempt++) {
-      var activitySeen = false;
-      DateTime? lastProgressAt;
-      final activity = Completer<void>();
-      final receive = mass.beginReverseMassReceiveMulti(
-        channels,
-        progressCb: (value) {
-          activitySeen = true;
-          final now = DateTime.now();
-          if (lastProgressAt == null ||
-              now.difference(lastProgressAt!) >=
-                  const Duration(milliseconds: 100) ||
-              value.progress >= 1) {
-            lastProgressAt = now;
-            onProgress?.call(value);
-          }
-          if (!activity.isCompleted) activity.complete();
-        },
-      );
-      try {
-        if (attempt == 0) {
-          await media.requestMediaFiles([identifier]);
-        } else {
-          await media.requestMediaFile(identifier);
-        }
-        try {
-          await Future.any<void>([activity.future, receive.then<void>((_) {})])
-              .timeout(const Duration(seconds: 8));
-        } on TimeoutException {
-          throw const _NoReverseMassActivity();
-        }
-        return await cancellable(receive.timeout(const Duration(minutes: 5)));
-      } catch (error) {
-        lastError = error;
-        if (error is _NoReverseMassActivity && attempt == 0) continue;
-        rethrow;
-      } finally {
-        for (final channel in channels) {
-          mass.cancelReverseMassReceive(channel);
-        }
-        // Keep this read for clarity when diagnosing devices that send a
-        // completion without an intermediate progress callback.
-        if (!activitySeen) {
-          _log.fine('recording transfer ended without MASS activity');
-        }
-      }
-    }
-    throw lastError ?? const _NoReverseMassActivity();
+    final files = await fetchXiaomiRecordingList();
+    return downloadSelectedXiaomiRecordings(
+      files: files,
+      onProgress: onProgress,
+      onDetailedProgress: onDetailedProgress,
+    );
   }
 
   @override
@@ -3169,9 +3271,7 @@ class LocalDeviceManager extends DeviceManager {
     try {
       onStage?.call('waiting_response');
       final reportFuture = report.requestDeviceLogExport(
-        // AstroBox-NG treats this as the report-response phase only.  It is
-        // never allowed to cancel an already active MASS transfer.
-        timeout: const Duration(seconds: 30),
+        timeout: const Duration(seconds: 180),
       );
       final startEvent = await Future.any<Object>([
         reportFuture,
@@ -3988,19 +4088,38 @@ class LocalDeviceManager extends DeviceManager {
     );
     final updatedPaired = List<MiWearState>.from(state.pairedDevices);
     final existingIndex = updatedPaired.indexWhere(
-      (d) => d.addr == normalized.addr,
+      (d) => deviceAddressEquals(d.addr, normalized.addr),
+    );
+    final current = state.currentDevice;
+    final isCurrent =
+        current != null && deviceAddressEquals(current.addr, normalized.addr);
+    final existing = isCurrent
+        ? current
+        : (existingIndex >= 0 ? updatedPaired[existingIndex] : null);
+    final imported = normalized.copyWith(
+      addr: existing?.addr ?? normalized.addr,
+      connectType: existing?.connectType ?? normalized.connectType,
+      codename: normalized.codename ?? existing?.codename,
+      authkey: normalized.authkey?.trim().isNotEmpty == true
+          ? normalized.authkey!.trim()
+          : existing?.authkey,
+      disconnected: isCurrent && state.protocolState == ProtocolState.ready
+          ? false
+          : (existing?.disconnected ?? true),
     );
     if (existingIndex >= 0) {
-      updatedPaired[existingIndex] = normalized;
+      updatedPaired[existingIndex] = imported;
+      for (var index = updatedPaired.length - 1; index >= 0; index--) {
+        if (index != existingIndex &&
+            deviceAddressEquals(updatedPaired[index].addr, imported.addr)) {
+          updatedPaired.removeAt(index);
+        }
+      }
     } else {
-      updatedPaired.add(normalized);
+      updatedPaired.add(imported);
     }
     state = state.copyWith(
-      currentDevice:
-          state.currentDevice == null ||
-              state.currentDevice?.addr == normalized.addr
-          ? normalized
-          : state.currentDevice,
+      currentDevice: current == null || isCurrent ? imported : current,
       pairedDevices: updatedPaired,
       clearError: true,
     );
@@ -4008,8 +4127,42 @@ class LocalDeviceManager extends DeviceManager {
   }
 
   @override
+  Future<void> downloadXiaomiEsimProfile(
+    String activationCode, {
+    String confirmationCode = '',
+  }) async {
+    final entity = _currentEntity;
+    if (entity == null || state.protocolState != ProtocolState.ready) {
+      throw ProtocolException('Device not ready');
+    }
+    final system = entity.system<XiaomiLpaSystem>();
+    if (system == null) {
+      throw UnsupportedError('eSIM LPA is unavailable for this device');
+    }
+    await system.downloadProfile(
+      activationCode,
+      confirmationCode: confirmationCode,
+    );
+  }
+
+  @override
   Future<int> importMiCloudDevices(List<MiCloudDevice> devices) async {
-    final importable = devices.where((device) => device.hasAuthKey).toList();
+    final importable = [
+      for (final device in devices)
+        if (resolveMiCloudDeviceAddress(
+              device,
+              state.pairedDevices.map((item) => item.addr),
+            )
+            case final address?)
+          MiCloudDevice(
+            name: device.name,
+            model: device.model,
+            mac: address,
+            authKey: device.authKey,
+            firmwareVersion: device.firmwareVersion,
+            serialNumber: device.serialNumber,
+          ),
+    ];
     _log.info(
       'importing ${importable.length}/${devices.length} Mi Cloud devices',
     );
@@ -4031,17 +4184,31 @@ class LocalDeviceManager extends DeviceManager {
         ),
       );
       final existingIndex = updatedPaired.indexWhere(
-        (d) => d.addr == importedRaw.addr,
+        (d) => deviceAddressEquals(d.addr, importedRaw.addr),
       );
-      final existing = existingIndex >= 0 ? updatedPaired[existingIndex] : null;
+      final current = state.currentDevice;
+      final isCurrent =
+          current != null &&
+          deviceAddressEquals(current.addr, importedRaw.addr);
+      final existing = isCurrent
+          ? current
+          : (existingIndex >= 0 ? updatedPaired[existingIndex] : null);
       final isCurrentReady =
-          state.currentDevice?.addr == importedRaw.addr &&
-          state.protocolState == ProtocolState.ready;
+          isCurrent && state.protocolState == ProtocolState.ready;
       final imported = importedRaw.copyWith(
+        addr: existing?.addr ?? importedRaw.addr,
+        connectType: existing?.connectType ?? importedRaw.connectType,
+        codename: importedRaw.codename ?? existing?.codename,
         disconnected: isCurrentReady ? false : (existing?.disconnected ?? true),
       );
       if (existingIndex >= 0) {
         updatedPaired[existingIndex] = imported;
+        for (var index = updatedPaired.length - 1; index >= 0; index--) {
+          if (index != existingIndex &&
+              deviceAddressEquals(updatedPaired[index].addr, imported.addr)) {
+            updatedPaired.removeAt(index);
+          }
+        }
       } else {
         updatedPaired.add(imported);
       }
@@ -4051,10 +4218,10 @@ class LocalDeviceManager extends DeviceManager {
     state = state.copyWith(
       currentDevice: current == null
           ? updatedPaired.firstWhere(
-              (d) => d.addr == importable.first.mac.trim(),
+              (d) => deviceAddressEquals(d.addr, importable.first.mac.trim()),
             )
           : updatedPaired.firstWhere(
-              (d) => d.addr == current.addr,
+              (d) => deviceAddressEquals(d.addr, current.addr),
               orElse: () => current,
             ),
       pairedDevices: updatedPaired,

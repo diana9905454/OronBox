@@ -6,12 +6,13 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
-import 'package:oronbox/src/app/window/window_launcher.dart';
+import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/features/plugins/widgets/plugin_ui_tree.dart';
 
 import 'plugins_page.dart';
@@ -36,6 +37,17 @@ class PluginDetailPage extends ConsumerStatefulWidget {
   ConsumerState<PluginDetailPage> createState() => _PluginDetailPageState();
 }
 
+/// Optional state carried from the plugin event that opens a secondary page.
+///
+/// The route itself is identified by [pluginId]/page. This object is only a
+/// first-paint preview; a restored/deep-linked route must not depend on it.
+class PluginUiRouteArgs {
+  const PluginUiRouteArgs({required this.nodes, required this.title});
+
+  final Object? nodes;
+  final String title;
+}
+
 class _PluginDetailPageState extends ConsumerState<PluginDetailPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabs;
@@ -47,6 +59,7 @@ class _PluginDetailPageState extends ConsumerState<PluginDetailPage>
   Object? _nodes;
   Object? _error;
   bool _runtimeHandedOff = false;
+  bool _pageRouteOpen = false;
 
   @override
   void initState() {
@@ -96,15 +109,9 @@ class _PluginDetailPageState extends ConsumerState<PluginDetailPage>
 
   Future<void> _load() async {
     try {
-      final detail =
-          (await _execute(
-                    OronBoxCommand(
-                      method: 'plugin.get',
-                      params: {'id': widget.pluginId},
-                    ),
-                  )
-                  as Map)
-              .cast<String, Object?>();
+      final detail = (await _execute(
+        OronBoxCommand(method: 'plugin.get', params: {'id': widget.pluginId}),
+      ) as Map).cast<String, Object?>();
       if (mounted) setState(() => _plugin = detail);
       if (!widget.allowDetach) {
         await setSecondaryWindowTitle(detail['name']?.toString() ?? '');
@@ -162,25 +169,35 @@ class _PluginDetailPageState extends ConsumerState<PluginDetailPage>
   }
 
   Future<void> _openNodePage(Object? nodes) async {
-    if (!mounted) return;
-    await Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: SysAppBar(
-            secondary: true,
-            title: Text(
-              _plugin?['name']?.toString() ??
-                  AppLocalizations.of(context)!.pluginFeatures,
+    if (!mounted || _pageRouteOpen) return;
+    _pageRouteOpen = true;
+    final title =
+        _plugin?['name']?.toString() ??
+        AppLocalizations.of(context)!.pluginFeatures;
+    final routeArgs = PluginUiRouteArgs(nodes: nodes, title: title);
+    try {
+      if (GoRouter.maybeOf(context) case final router?) {
+        await router.push<void>(
+          '/plugins/${Uri.encodeComponent(widget.pluginId)}/page',
+          extra: routeArgs,
+        );
+      } else {
+        // Secondary plugin windows intentionally do not own the main app
+        // router. Keep the same route page and lifecycle in that isolated
+        // navigator instead of coupling the page to the parent state.
+        await Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder: (_) => PluginUiPage(
+              pluginId: widget.pluginId,
+              preview: nodes,
+              title: title,
             ),
           ),
-          body: PluginUITree(
-            root: nodes,
-            onInvoke: _invoke,
-            contentPadding: const EdgeInsets.all(StyleConstants.pagePadding),
-          ),
-        ),
-      ),
-    );
+        );
+      }
+    } finally {
+      _pageRouteOpen = false;
+    }
   }
 
   Future<void> _remove() async {
@@ -280,6 +297,141 @@ class _PluginDetailPageState extends ConsumerState<PluginDetailPage>
   }
 }
 
+/// Displays the page tree currently opened by a plugin.
+///
+/// The parent [PluginDetailPage] owns the plugin runtime and supplies the
+/// optional event preview. This page owns only its route-local event
+/// subscription and invocation bridge, so it remains valid when restored by
+/// GoRouter without a closure captured from the parent widget.
+class PluginUiPage extends ConsumerStatefulWidget {
+  const PluginUiPage({
+    super.key,
+    required this.pluginId,
+    this.preview,
+    this.title = '',
+  });
+
+  final String pluginId;
+  final Object? preview;
+  final String title;
+
+  @override
+  ConsumerState<PluginUiPage> createState() => _PluginUiPageState();
+}
+
+class _PluginUiPageState extends ConsumerState<PluginUiPage> {
+  late final OronBoxCommandBus _host;
+  StreamSubscription<CommandEvent>? _events;
+  Object? _nodes;
+  Object? _error;
+  String? _pluginName;
+
+  @override
+  void initState() {
+    super.initState();
+    _host = ref.read(applicationHostProvider);
+    _nodes = widget.preview;
+    _pluginName = widget.title.isEmpty ? null : widget.title;
+    _events = _host.events.listen(_handleEvent);
+    if (_nodes == null || _pluginName == null) {
+      unawaited(_load());
+    }
+  }
+
+  @override
+  void dispose() {
+    _events?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final detail = (await _execute(
+        OronBoxCommand(method: 'plugin.get', params: {'id': widget.pluginId}),
+      ) as Map).cast<String, Object?>();
+      final page = detail['page'];
+      if (!mounted) return;
+      setState(() {
+        _pluginName ??= detail['name']?.toString();
+        _nodes ??= page ?? const <Object?>[];
+        _error = null;
+      });
+    } catch (error) {
+      if (mounted && _nodes == null) setState(() => _error = error);
+    }
+  }
+
+  void _handleEvent(CommandEvent event) {
+    if (event.event != 'plugin.ui' ||
+        event.data['id']?.toString() != widget.pluginId ||
+        event.data['page'] != true ||
+        !mounted) {
+      return;
+    }
+    setState(() {
+      _nodes = event.data['nodes'];
+      _error = null;
+    });
+  }
+
+  Future<void> _invoke(String callback, [Object? value]) async {
+    try {
+      await _execute(
+        OronBoxCommand(
+          method: 'plugin.invoke',
+          params: {
+            'id': widget.pluginId,
+            'callback': callback,
+            if (value != null) 'value': value,
+          },
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            localizedErrorMessage(AppLocalizations.of(context)!, error),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<Object?> _execute(OronBoxCommand command) async {
+    final result = await _host.execute(command);
+    if (!result.ok) throw result.error!;
+    return result.value;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final title = _pluginName ?? l10n.pluginFeatures;
+    final body = _nodes == null && _error == null
+        ? const Center(child: CircularProgressIndicator())
+        : _error != null && _nodes == null
+        ? ErrorStateView(
+            message: localizedErrorMessage(l10n, _error),
+            onRetry: _load,
+          )
+        : PluginUITree(
+            root: _nodes,
+            onInvoke: _invoke,
+            contentPadding: EdgeInsets.fromLTRB(
+              StyleConstants.pagePadding,
+              StyleConstants.pagePadding,
+              StyleConstants.pagePadding,
+              bottomContentPadding(context, extra: StyleConstants.pagePadding),
+            ),
+          );
+    return Scaffold(
+      appBar: SysAppBar(secondary: true, title: Text(title)),
+      body: body,
+    );
+  }
+}
+
 class _PluginHeader extends StatelessWidget {
   const _PluginHeader({
     required this.plugin,
@@ -374,9 +526,8 @@ class _PluginHeader extends StatelessWidget {
                     onPressed: onClose,
                     icon: const Icon(Icons.close),
                     visualDensity: VisualDensity.compact,
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
+                    tooltip: MaterialLocalizations.of(context)
+                        .closeButtonTooltip,
                   ),
               ],
             ),

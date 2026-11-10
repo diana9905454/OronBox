@@ -427,9 +427,18 @@ class _Checkbox extends StatelessWidget {
     }
     return Padding(
       padding: _parseEdgeInsets(props),
-      child: InkWell(
-        onTap: onChange.isEmpty ? null : () => onInvoke(onChange, !checked),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [cb, Text(label)]),
+      child: MouseRegion(
+        cursor: onChange.isEmpty
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.click,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onChange.isEmpty ? null : () => onInvoke(onChange, !checked),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [cb, Text(label)],
+          ),
+        ),
       ),
     );
   }
@@ -538,9 +547,8 @@ class _Card extends StatelessWidget {
       padding: _parseEdgeInsets(props),
       child: Card(
         elevation: 0,
-        color: Theme.of(
-          context,
-        ).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest
+            .withValues(alpha: .5),
         child: Padding(padding: const EdgeInsets.all(16), child: child),
       ),
     );

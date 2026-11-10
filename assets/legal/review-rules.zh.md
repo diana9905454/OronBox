@@ -288,4 +288,4 @@ OronBox 将在不妨碍调查和风险控制的前提下，于合理期限内通
 
 - 官方实例维护者：OronBox 运营团队
 - 发布与投诉邮箱：t3164473115@163.com
-- 公开讨论：<https://github.com/zxor-org/OronBox/discussions>
+- 公开讨论：<https://github.com/OronCanopy/OronBox/discussions>

@@ -5,14 +5,15 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/smooth_linear_progress_indicator.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/utils/layout.dart';
-import 'package:oronbox/src/daemon/daemon_task_models.dart';
-import 'package:oronbox/src/daemon/daemon_task_monitor.dart';
+import 'package:oronbox/src/host/tasks/task_models.dart';
+import 'package:oronbox/src/host/tasks/task_monitor.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 import 'package:oronbox/src/features/resources/services/download_queue_notifier.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
@@ -49,9 +50,8 @@ class QueuePage extends ConsumerWidget {
                       Container(
                         width: 1,
                         margin: const EdgeInsets.symmetric(vertical: 12),
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                        color: Theme.of(context).colorScheme.outlineVariant
+                            .withValues(alpha: 0.5),
                       ),
                       Expanded(child: _PanelWrapper(child: installList)),
                     ],
@@ -137,7 +137,7 @@ class _InstallQueuePanel extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     final state = ref.watch(installQueueProvider);
     final notifier = ref.read(installQueueProvider.notifier);
-    final daemonTasks = (ref.watch(daemonTasksProvider).value ?? const [])
+    final hostTasks = (ref.watch(hostTasksProvider).value ?? const [])
         .where(
           (task) =>
               task.method != 'install.local' &&
@@ -153,13 +153,11 @@ class _InstallQueuePanel extends ConsumerWidget {
       action: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (state.tasks.isNotEmpty || daemonTasks.isNotEmpty)
+          if (state.tasks.isNotEmpty || hostTasks.isNotEmpty)
             IconButton(
               onPressed: () {
                 notifier.clearTerminal();
-                for (final task in daemonTasks.where(
-                  (task) => task.isTerminal,
-                )) {
+                for (final task in hostTasks.where((task) => task.isTerminal)) {
                   unawaited(
                     removeHostTask(ref.read(applicationHostProvider), task.id),
                   );
@@ -182,13 +180,13 @@ class _InstallQueuePanel extends ConsumerWidget {
       ),
       emptyText: l10n.installQueueEmpty,
       children: [
-        for (final task in daemonTasks)
+        for (final task in hostTasks)
           _QueueTile(
-            key: ValueKey('daemon-${task.id}'),
+            key: ValueKey('host-${task.id}'),
             icon: Icons.dns_outlined,
-            title: _daemonTaskTitle(task),
-            subtitle: 'Daemon · ${task.method}',
-            status: _daemonTaskStatus(task),
+            title: _hostTaskTitle(task),
+            subtitle: 'Host · ${task.method}',
+            status: _hostTaskStatus(task),
             progress: task.progress,
             error: task.error,
             onRemove: () => unawaited(
@@ -196,7 +194,7 @@ class _InstallQueuePanel extends ConsumerWidget {
                   ? removeHostTask(ref.read(applicationHostProvider), task.id)
                   : cancelHostTask(ref.read(applicationHostProvider), task.id),
             ),
-            onRetry: _daemonTaskStatus(task) == ResourceTaskStatus.failed
+            onRetry: _hostTaskStatus(task) == ResourceTaskStatus.failed
                 ? () => unawaited(
                     retryHostTask(ref.read(applicationHostProvider), task.id),
                   )
@@ -332,8 +330,15 @@ class _QueuePanel extends StatelessWidget {
         ),
         Expanded(
           child: children.isEmpty
-              ? Center(child: Text(emptyText))
+              ? EmptyStateView(
+                  compact: true,
+                  icon: Icons.checklist_outlined,
+                  title: emptyText,
+                )
               : ListView.separated(
+                  padding: EdgeInsets.only(
+                    bottom: bottomContentPadding(context, extra: 16),
+                  ),
                   itemCount: children.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 8),
@@ -446,13 +451,13 @@ class _QueueTile extends StatelessWidget {
   }
 }
 
-String _daemonTaskTitle(DaemonTaskView task) {
+String _hostTaskTitle(HostTaskView task) {
   final path = task.path;
   if (path == null || path.isEmpty) return task.method;
   return path.split(RegExp(r'[/\\]')).last;
 }
 
-ResourceTaskStatus _daemonTaskStatus(DaemonTaskView task) =>
+ResourceTaskStatus _hostTaskStatus(HostTaskView task) =>
     resourceTaskStatusFromDaemon(
       task.status,
       activity: ResourceTaskActivity.install,

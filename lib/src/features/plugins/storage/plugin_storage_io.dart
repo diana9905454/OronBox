@@ -63,6 +63,16 @@ class _IoPluginStorage implements PluginStorage {
   final Directory cacheRoot;
   final Directory temporaryRoot;
 
+  /// Directories already proven free of symbolic-link components, plus plugin
+  /// ids whose metadata dirs were already verified.
+  ///
+  /// Plugin storage lives inside the app sandbox and plugin code has no API to
+  /// create symlinks, so verifying a directory once is enough. This turns the
+  /// per-operation directory walk (N+1 `stat` syscalls) into a set lookup on
+  /// every later access.
+  final Set<String> _linkFreeDirectories = <String>{};
+  final Set<String> _metadataVerifiedPlugins = <String>{};
+
   Future<void> initialize() async {
     await installedRoot.create(recursive: true);
     await cacheRoot.create(recursive: true);
@@ -437,22 +447,33 @@ class _IoPluginStorage implements PluginStorage {
 
   Future<void> _ensureNoSymbolicLinks(String id, PluginStoragePath path) async {
     var current = _rootDirectory(id, path.area).path;
-    final rootType = await FileSystemEntity.type(current, followLinks: false);
-    if (rootType == FileSystemEntityType.link) {
-      throw StateError('Symbolic links are not allowed in plugin storage');
+    if (!_linkFreeDirectories.contains(current)) {
+      final rootType = await FileSystemEntity.type(
+        current,
+        followLinks: false,
+      );
+      if (rootType == FileSystemEntityType.link) {
+        throw StateError('Symbolic links are not allowed in plugin storage');
+      }
+      if (rootType != FileSystemEntityType.notFound) {
+        _linkFreeDirectories.add(current);
+      }
     }
     for (final part in path.relativePath.split('/')) {
       if (part.isEmpty) continue;
       current = _join(current, part);
+      if (_linkFreeDirectories.contains(current)) continue;
       final type = await FileSystemEntity.type(current, followLinks: false);
       if (type == FileSystemEntityType.link) {
         throw StateError('Symbolic links are not allowed in plugin storage');
       }
       if (type == FileSystemEntityType.notFound) break;
+      _linkFreeDirectories.add(current);
     }
   }
 
   Future<void> _ensureMetadataSafe(String id) async {
+    if (!_metadataVerifiedPlugins.add(id)) return;
     final pluginType = await FileSystemEntity.type(
       _pluginDirectory(id).path,
       followLinks: false,

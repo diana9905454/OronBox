@@ -212,7 +212,7 @@
   "errorBluetoothUnavailable": "Bluetooth недоступен. Убедитесь, что он включён и OronBox разрешено его использовать",
   "errorBluetoothConnectFailed": "Не удалось подключиться по Bluetooth. Проверьте разрешение Bluetooth, держите устройство рядом и свободным, включите на нём «Подключить новый телефон» и повторите попытку",
   "errorBluetoothDisconnected": "Bluetooth отключён. Подключите устройство снова",
-  "errorOperationTimeout": "Время операции истекло. Убедитесь, что устройство рядом, и повторите попытку",
+  "errorOperationTimeout": "Время операции истекло",
   "errorDeviceNotReady": "Устройство не готово. Сначала подключите и авторизуйте его",
   "errorBleCharacteristicsMissing": "Не найдены необходимые характеристики BLE. Подключите устройство снова или проверьте поддержку этой функции",
   "errorWebSerialUnavailable": "Этот браузер не поддерживает Web Serial. Используйте Chrome, Edge или другой совместимый браузер",
@@ -241,6 +241,12 @@
   "errorInvalidRequest": "Некоторые отправленные данные недействительны. Проверьте их и повторите",
   "errorOperationCancelled": "Операция отменена",
   "errorUnsupportedFileType": "Неподдерживаемый или неизвестный тип файла",
+  "errorDeviceFeatureUnsupported": "Эта функция не поддерживается текущим устройством или прошивкой",
+  "errorDeviceMusicUnsupported": "Передача музыки не поддерживается текущим устройством или прошивкой",
+  "errorDeviceRecordingUnsupported": "Экспорт записей не поддерживается текущим устройством или прошивкой",
+  "errorDeviceScreenMirrorUnsupported": "Дублирование экрана не поддерживается текущим устройством или прошивкой",
+  "errorNotInstalled": "Необходимый компонент или приложение не установлены",
+  "errorInvalidOperation": "Невозможно выполнить эту операцию в текущем состоянии",
   "errorCertificateVerificationFailed": "Проверка сертификата не пройдена. При использовании прокси отключите перехват HTTPS или убедитесь, что сертификат доверенный",
   "errorUnknownWithDetail": "Операция не выполнена: {detail}",
   "@errorUnknownWithDetail": {
@@ -335,7 +341,7 @@
   },
   "expand": "Разворачивание",
   "collapse": "Сворачивание",
-  "voiceLabTitle": "Голосовая лаборатория",
+  "voiceLabTitle": "Голосовой помощник",
   "voiceLabXiaoAi": "XiaoAI",
   "voiceLabReceivingAudio": "Получение аудио с часов",
   "voiceLabWaiting": "Ожидание голосового сеанса",
@@ -588,6 +594,7 @@
   "deviceHealthDistance": "Расстояние",
   "deviceHealthCalories": "Калории",
   "deviceHealthHeartRate": "Пульс",
+  "deviceHealthAverageHeartRateLabel": "Средний пульс",
   "deviceHealthRestingHeartRate": "Пульс в покое",
   "deviceHealthAbnormalHeartRate": "Аномальный пульс",
   "deviceHealthHeartRateHigh": "Высокий пульс",
@@ -603,6 +610,7 @@
   "deviceHealthAllDaySleep": "Сон за весь день",
   "deviceHealthLongSleep": "Длительный сон",
   "deviceHealthSleepStructure": "Структура сна",
+  "deviceHealthSleepDetails": "Детали сна",
   "deviceHealthSleepAverageHeartRate": "Средняя частота пульса во сне",
   "deviceHealthSleepAverageBloodOxygen": "Средний уровень кислорода во сне",
   "deviceHealthAverageHeartRate": "Средний пульс: {value} уд/мин",
@@ -618,6 +626,16 @@
   "deviceHealthSleepStages": "Фазы сна",
   "deviceHealthSleepHrv": "HRV сна",
   "deviceHealthSleepAwake": "Бодрствование",
+  "deviceHealthSleepWakeCount": "{count, plural, one{{count} раз} few{{count} раза} other{{count} раз}}",
+  "@deviceHealthSleepWakeCount": {
+    "description": "Количество пробуждений во время сна",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "Лёгкий сон",
   "deviceHealthSleepDeep": "Глубокий сон",
   "deviceHealthSleepRem": "REM",
@@ -718,6 +736,8 @@
   },
   "deviceRecordingsTitle": "Записи с устройства",
   "deviceRecordingsDescription": "Синхронизация и экспорт записей с часов",
+  "deviceRecordingsLibrary": "Записи устройства",
+  "deviceRecordingsLibraryDescription": "Экспорт записей с устройства",
   "deviceRecordingsHint": "Записи принимаются и проверяются по одной. После синхронизации экспортируйте каждый исходный файл",
   "deviceRecordingsSync": "Синхронизировать записи",
   "deviceRecordingsReading": "Чтение записей",
@@ -765,6 +785,28 @@
       }
     }
   },
+  "deviceRecordingsSavedBadge": "Сохранено",
+  "deviceRecordingsSelectAll": "Выбрать все",
+  "deviceRecordingsDeselectAll": "Снять выбор",
+  "deviceRecordingsExportSelected": "Экспорт выбранных ({count})",
+  "@deviceRecordingsExportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRecordingsOpenDirectory": "Открыть папку",
+  "deviceRecordingsExported": "Экспортировано в {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "Запись экспортирована",
+  "deviceRecordingsRefresh": "Обновить",
   "deviceMusicTransferTitle": "Передача музыки",
   "deviceMusicVelaDescription": "Синхронизация MP3-файлов с устройством. Размер одного файла не должен превышать 100 МБ",
   "deviceMusicZeppDescription": "Поддерживаются MP3-файлы до 50 МБ. Для быстрой передачи рекомендуется Bluetooth Classic; BLE также поддерживается, но работает медленнее",
@@ -949,6 +991,8 @@
   "settingsMiAccountLogNoDevices": "В журнале не найдено устройств с полным MAC-адресом и authkey",
   "settingsWearableLogSync": "Синхронизация из журнала Xiaomi Fitness",
   "settingsWearableLogGuide": "Откройте Xiaomi Fitness\\nПерейдите в раздел «Профиль» → «О приложении»\\nНесколько раз нажмите оранжевый логотип-кольцо\\nВ появившемся окне нажмите «Подтвердить»\\nДождитесь уведомления «log has been...»\\nВернитесь сюда и нажмите «Сканировать»",
+  "settingsWearableLogGet": "Получить",
+  "settingsWearableLogGuideOhos": "Откройте Xiaomi Fitness и перейдите в раздел «О приложении» внизу страницы профиля\nНесколько раз нажмите оранжевый логотип и выберите «Подтвердить»\nКогда появится сообщение «log has been...», вернитесь сюда и нажмите «Получить»\n\nОткройте «Мой телефон → Данные совместимых приложений → Android → data → com.mi.health → files → log»\nВыберите все файлы и нажмите «Готово»",
   "settingsWearableLogFound": "Найдено устройств: {count}",
   "@settingsWearableLogFound": {
     "placeholders": {
@@ -968,6 +1012,13 @@
   "settingsMiAccountLoginWindowClosed": "Окно входа Xiaomi закрыто",
   "settingsMiAccountSyncedDevices": "Синхронизировано устройств: {count}",
   "xiaomiAccountRequiredForEphemeris": "Войдите в аккаунт Xiaomi перед синхронизацией эфемеридных данных",
+  "xiaomiWifiPasswordRequestTitle": "Запрос на подключение к Wi-Fi",
+  "xiaomiWifiPasswordRequestMessage": "Устройство запрашивает подключение к сети Wi-Fi «{ssid}».",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "@settingsMiAccountSyncedDevices": {
     "placeholders": {
       "count": {
@@ -1018,6 +1069,11 @@
   "settingsOledDark": "Тёмная OLED",
   "settingsThemeMode": "Тема",
   "settingsThemeModeDesc": "Изменить оформление приложения",
+  "settingsThemePreset": "Стиль темы",
+  "settingsThemePresetDesc": "Выберите визуальный стиль приложения",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "Динамический цвет",
   "settingsDynamicColorDesc": "Использовать системный акцентный цвет",
   "settingsColorScheme": "Цветовая схема",
@@ -1034,8 +1090,10 @@
   "settingsDesktopAccentSourceGtk": "GTK",
   "settingsDesktopAccentSourceQt": "Qt",
   "settingsCancel": "Отмена",
-  "settingsTeamRoleMain": "Основной разработчик / дизайнер",
-  "settingsTeamRoleZeppOS": "Разработка ZeppOS",
+  "settingsTeamRoleMain": "Основная разработка / архитектура / дизайн",
+  "settingsTeamRoleHarmonyOS": "Портирование и сопровождение HarmonyOS",
+  "settingsTeamRoleDeviceConnection": "Вклад в оптимизацию подключения macOS",
+  "settingsTeamRoleZeppOS": "Адаптация и реализация ZeppOS",
   "settingsAboutSoftware": "О программе",
   "settingsAboutSoftwareDesc": "Версия, список изменений и команда разработки",
   "settingsAboutSoftwareTagline": "Быстрый менеджер носимых устройств VelaOS и ZeppOS на Flutter",
@@ -1044,14 +1102,15 @@
   "settingsAboutSoftwareBuildInfo": "Сведения о сборке",
   "settingsAboutSoftwareCopyright": "Copyright © 2026 OrPudding",
   "acknowledgementsKazumi": "Благодарности Kazumi",
-  "acknowledgementsAstroBoxPublic": "Благодарности AstroBox публичный",
-  "acknowledgementsAstroBoxNgCore": "Ссылки на исходный код ядра AstroBox NG",
-  "acknowledgementsAstroBoxNgBluetooth": "Ссылки на реализацию Bluetooth в AstroBox NG",
-  "acknowledgementsAstroBoxNgAccount": "Ссылки на работу с аккаунтами в AstroBox NG",
-  "acknowledgementsAstroBoxNgProvider": "Ссылки на провайдер ресурсов AstroBox NG",
-  "acknowledgementsAstroBoxNgAppWasm": "Ссылки на WebAssembly-приложение AstroBox NG",
-  "acknowledgementsGadgetbridge": "Благодарности Gadgetbridge",
-  "acknowledgementsBreezyWeather": "参考 реализации китайского источника погоды",
+  "acknowledgementsAstroBoxPublic": "Ссылка на структуру интерфейса и дизайн взаимодействия",
+  "acknowledgementsAstroBoxNgCore": "Протокол устройств Xiaomi и транспортный уровень, перенесено и изменено",
+  "acknowledgementsAstroBoxNgPb": "Определения протокола Xiaomi wear, приняты дословно",
+  "acknowledgementsAstroBoxNgBluetooth": "Ссылка на процесс подключения по Bluetooth",
+  "acknowledgementsAstroBoxNgAccount": "Ссылка на процесс входа в аккаунт Xiaomi и получения authkey",
+  "acknowledgementsAstroBoxNgProvider": "Ссылка на процесс индексации ресурсов сообщества и разбора манифестов",
+  "acknowledgementsAstroBoxNgAppWasm": "Ссылка на процесс подключения Web Serial",
+  "acknowledgementsGadgetbridge": "Реализация протокола ZeppOS, перенесено и изменено",
+  "acknowledgementsBreezyWeather": "Ссылка на реализацию китайского источника погоды",
   "acknowledgementsOpenMeteo": "Данные о погоде, качестве воздуха и геокодировании по CC BY 4.0",
   "resourceHomeRecommended": "Рекомендуемые",
   "resourceHomeFeatured": "Избранные",
@@ -1214,6 +1273,8 @@
   "resourceTypeUnknownTitle": "Неизвестный тип ресурса",
   "resourceTypeUnknownNoType": "OronBox не может определить тип этого файла; возможно, файл повреждён",
   "resourceTypeUnknownCancel": "Отмена",
+  "watchfaceRestrictedTitle": "Невозможно установить ресурс",
+  "watchfaceRestrictedMessage": "В целях соблюдения прав интеллектуальной собственности и применимых правил, по требованию Xiaomi,\nOronBox не может устанавливать циферблаты, предположительно происходящие из официального магазина.\nЕсли вы считаете это ошибкой, попросите автора циферблата связаться с нами.",
   "resourceTypeMismatchMessage": "Похоже, это ресурс типа {detectedType}, но выбран тип {selectedType}. Выберите способ установки",
   "@resourceTypeMismatchMessage": {
     "placeholders": {
@@ -1355,6 +1416,8 @@
   "creatorOperationAuthorizing": "Ожидание авторизации",
   "creatorResolvingPublicationTarget": "Определение категории публикации",
   "creatorStateApproved": "Одобрено",
+  "creatorStateReviewing": "На проверке",
+  "creatorStatePublishing": "Публикация",
   "creatorStateExternalReview": "Внешняя проверка",
   "creatorStateFailed": "Публикация не выполнена",
   "creatorStateSuperseded": "Заменено новой редакцией",
@@ -1431,7 +1494,7 @@
   "oobeDeclineWebHint": "Для продолжения примите соглашения и закройте эту страницу",
   "oobeLoginTitle": "Подключите аккаунты",
   "oobeLoginBandBbsDesc": "Войдите в BandBBS, чтобы пользоваться ресурсами сообщества и функциями автора",
-  "oobeLoginLocalNote": "Вход в Xiaomi и Amazfit выполняется только на этом устройстве; соответствующие данные не передаются третьим сторонам, кроме Xiaomi/Amazfit",
+  "oobeLoginLocalNote": "Вход в Xiaomi и Amazfit выполняется только на этом устройстве\nСоответствующие данные не передаются третьим сторонам, кроме Xiaomi/Amazfit",
   "oobeLoginXiaomiDesc": "Войдите в Xiaomi, чтобы синхронизировать привязанные устройства",
   "oobeLoginHuamiDesc": "Войдите в Amazfit, чтобы пользоваться ресурсами магазина приложений Amazfit",
   "oobeCdnTesting": "Проверка…",
@@ -1440,6 +1503,8 @@
   "oobeDoneTitle": "Всё готово",
   "oobeDoneBody": "Начните знакомство с OronBox",
   "oobeFinish": "Готово",
+  "oobeRestoreAction": "Восстановить из копии",
+  "oobeRestoreSuccess": "Резервная копия восстановлена",
   "settingsReplayOobe": "Повторить знакомство",
   "settingsReplayOobeDesc": "Снова открыть приветственное руководство и первоначальную настройку",
   "creatorConnect": "Подключить",
@@ -1498,6 +1563,11 @@
   "messageNeedsChangesBody": "При проверке обнаружены проблемы, требующие исправления.",
   "messageReasonBody": "Причина: {reason}",
   "messageReviewNoteBody": "Комментарий проверки: {note}",
+  "messageReviewerPrefix": "Проверяющий: {reviewer}",
+  "messageOperatorPrefix": "Оператор: {operator}",
+  "messageReferencePrefix": "Связано: {reference}",
+  "messageTargetsPrefix": "Каналы публикации: {targets}",
+  "messageUnapprovedItemsPrefix": "Требует доработки: {items}",
   "messageStatusChangedBody": "Статус этого объекта изменился.",
   "messageReportStatusBody": "Статус жалобы: {status}",
   "messageCoinAddedBody": "На ваш аккаунт начислено {amount} монет.",
@@ -1537,22 +1607,39 @@
   "settingsCategorySupport": "Поддержка и информация",
   "settingsCategoryAdvanced": "Расширенные настройки",
   "settingsAdvancedDescription": "Журналы и инструменты разработчика",
-  "debugServerTitle": "Сервис отладки",
-  "debugServerDescription": "Локальный API для доверенных инструментов разработки",
-  "debugServerEnable": "Включить сервис отладки",
-  "debugServerEnableDescription": "Разрешить одобренным клиентам в локальной сети просматривать и управлять OronBox",
-  "debugServerEndpoint": "Адрес",
-  "debugServerFingerprint": "Отпечаток сервера",
-  "debugServerPendingClients": "Ожидают одобрения",
-  "debugServerAuthorizedClients": "Одобренные клиенты",
-  "debugServerApprove": "Одобрить",
-  "debugServerReject": "Отклонить",
-  "debugServerRevoke": "Отозвать доступ",
-  "debugServerNoPendingClients": "Нет клиентов, ожидающих одобрения",
-  "debugServerNoAuthorizedClients": "Нет одобренных клиентов",
-  "debugServerSecurityNotice": "Включайте сервис только в доверенной сети",
-  "debugServerStartFailed": "Не удалось запустить сервис отладки",
-  "debugServerStopFailed": "Не удалось остановить сервис отладки",
+  "localServerTitle": "Локальный API сервер",
+  "localServerDescription": "Локальный API для внешних CLI и инструментов разработки",
+  "localServerEnable": "Включить локальный API сервер",
+  "localServerEnableDescription": "Разрешить одобренным клиентам в локальной сети управлять OronBox",
+  "localServerEndpoint": "Адрес",
+  "localServerFingerprint": "Отпечаток сервера",
+  "localServerPendingClients": "Ожидают одобрения",
+  "localServerAuthorizedClients": "Одобренные клиенты",
+  "localServerApprove": "Одобрить",
+  "localServerReject": "Отклонить",
+  "localServerRevoke": "Отозвать доступ",
+  "localServerNoPendingClients": "Нет запросов, ожидающих одобрения",
+  "localServerNoAuthorizedClients": "Нет одобренных клиентов",
+  "localServerSecurityNotice": "Включайте сервис только в доверенной сети",
+  "localServerStartFailed": "Не удалось запустить локальный API сервер",
+  "localServerStopFailed": "Не удалось остановить локальный API сервер",
+  "localServerPairingTitle": "Разрешить доступ через локальный API?",
+  "localServerPairingDescription": "«{clientName}» запрашивает управление сервисами носимых устройств",
+  "@localServerPairingDescription": {
+    "placeholders": {
+      "clientName": {
+        "type": "String"
+      }
+    }
+  },
+  "localServerPairingFingerprint": "Отпечаток Ed25519 SHA-256",
+  "localServerPairingAlwaysAllow": "Всегда разрешать подключение с этого компьютера",
+  "localServerPairingAllow": "Разрешить",
+  "localServerPairingDeny": "Отклонить",
+  "localServerPairingScopes": "Запрашиваемые разрешения",
+  "wifiPasswordInputPlaceholder": "Введите пароль Wi-Fi",
+  "wifiConnectButton": "Подключить",
+  "wifiCancelButton": "Отмена",
   "xmsDeveloperMode": "Режим разработчика XMS",
   "xmsDeveloperModeDescription": "Разрешить Android-подписям приложений отличаться",
   "oronBoxCoinsTitle": "Монеты ресурсов",
@@ -1755,15 +1842,635 @@
   "weatherAqiVeryUnhealthy": "Очень вредно",
   "weatherAqiHazardous": "Опасно",
   "weatherDataSource": "Источник данных: {source}",
-  "@weatherDataSource": {"placeholders": {"source": {}}},
+  "@weatherDataSource": {
+    "placeholders": {
+      "source": {}
+    }
+  },
   "xiaomiScreenshotTitle": "Снимок экрана устройства",
   "xiaomiScreenshotDescription": "Сделайте снимок сочетанием клавиш на устройстве, и он автоматически появится здесь",
   "xiaomiScreenshotAction": "Сделать снимок экрана",
   "xiaomiScreenshotLoading": "Получение…",
   "xiaomiScreenshotEmpty": "Снимков экрана пока нет",
   "xiaomiScreenshotFailed": "Не удалось получить снимок экрана",
+  "xiaomiScreenshotDownloadStarted": "Загрузка снимка экрана начата",
+  "xiaomiScreenshotSaveFailed": "Не удалось сохранить снимок экрана",
   "xiaomiScreenshotSaved": "Снимок экрана часов сохранён в: {path}",
-  "@xiaomiScreenshotSaved": {"placeholders": {"path": {}}},
-  "settingsSpecialThanks": "Особая благодарность",
-  "settingsTeamRoleHarmony": "Адаптация Harmony"
+  "@xiaomiScreenshotSaved": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "deviceHealthRecoveryTime": "Восстановление",
+  "deviceHealthTodayLoad": "Нагрузка сегодня",
+  "deviceHealthSevenDayLoad": "Нагрузка за 7 дней",
+  "deviceHealthLoadLevel": "Уровень нагрузки",
+  "deviceHealthFitnessBalance": "Баланс формы",
+  "deviceHealthFitnessLevel": "Форма",
+  "deviceHealthFatigueLevel": "Усталость",
+  "deviceHealthTrainingStress": "Тренировочный стресс",
+  "deviceHealthTrainingStatus": "Статус тренировки",
+  "deviceHealthSevenDayVitality": "Активность за 7 дней",
+  "deviceHealthEarnedToday": "Заработано за день",
+  "deviceHealthEarnedInPeriod": "Заработано за период",
+  "deviceHealthModerateIntensity": "Средняя",
+  "deviceHealthHighIntensity": "Высокая",
+  "deviceHealthNap": "Дневной сон",
+  "deviceHealthNapSingular": "Дневной сон",
+  "deviceHealthWorkoutOverview": "Обзор тренировок",
+  "deviceHealthWorkoutHistory": "История",
+  "deviceHealthWorkoutDuration": "Длительность",
+  "deviceHealthWorkoutRoute": "Маршрут",
+  "deviceHealthWorkoutDetails": "Подробности",
+  "deviceHealthSwimmingSections": "Секции плавания",
+  "deviceHealthWorkoutCharts": "Графики тренировки",
+  "deviceHealthActiveDuration": "Активное время",
+  "deviceHealthAveragePace": "Средний темп",
+  "deviceHealthBestPace": "Лучший темп",
+  "deviceHealthHeartRateRange": "Диапазон пульса",
+  "deviceHealthBloodOxygenRange": "Диапазон SpO2",
+  "deviceHealthMainStroke": "Основной стиль",
+  "deviceHealthHeartRateZones": "Зоны пульса",
+  "deviceHealthZoneLabel": "Зона {zone}",
+  "@deviceHealthZoneLabel": {
+    "placeholders": {
+      "zone": {}
+    }
+  },
+  "deviceHealthZoneWarmup": "Разминка",
+  "deviceHealthZoneFatBurning": "Жиросжигание",
+  "deviceHealthZoneAerobic": "Аэробная",
+  "deviceHealthZoneAnaerobic": "Анаэробная",
+  "deviceHealthZoneExtreme": "Предельная",
+  "deviceHealthRecoveryAfterWorkout": "Восстановление пульса",
+  "deviceHealthRecoveredHeartRate": "Пульс восстановления",
+  "deviceHealthRecoveryRate": "Скорость восстановления",
+  "deviceHealthSamples": "Точки",
+  "deviceHealthAverageSpeed": "Средняя скорость",
+  "deviceHealthTopSpeed": "Макс. скорость",
+  "deviceHealthAverageStride": "Средний шаг",
+  "deviceHealthAverageCadence": "Средняя каденция",
+  "deviceHealthMaximumCadence": "Макс. каденция",
+  "deviceHealthAverageBloodOxygenDetail": "Средний SpO2",
+  "deviceHealthTotalAscent": "Общий подъём",
+  "deviceHealthTotalDescent": "Общий спуск",
+  "deviceHealthAverageAltitude": "Средняя высота",
+  "deviceHealthAerobicEffect": "Аэробный эффект",
+  "deviceHealthAnaerobicEffect": "Анаэробный эффект",
+  "deviceHealthPeakEffect": "Пиковый эффект",
+  "deviceHealthVo2Max": "VO₂ max",
+  "deviceHealthBodyEnergyUsed": "Расход энергии",
+  "deviceHealthExpectedRecovery": "Ожидаемое восстановление",
+  "deviceHealthTrainingLoad": "Тренировочная нагрузка",
+  "deviceHealthVitalityEarned": "Заработанная активность",
+  "deviceHealthAveragePower": "Средняя мощность",
+  "deviceHealthMaximumPower": "Макс. мощность",
+  "deviceHealthArmPulls": "Гребки",
+  "deviceHealthAverageStrokeRate": "Средний темп гребка",
+  "deviceHealthMaximumStrokeRate": "Макс. темп гребка",
+  "deviceHealthTurns": "Повороты",
+  "deviceHealthAverageSwolf": "Средний SWOLF",
+  "deviceHealthBestSwolf": "Лучший SWOLF",
+  "deviceHealthPoolLength": "Длина бассейна",
+  "deviceHealthJumps": "Прыжки",
+  "deviceHealthAverageJumpRate": "Средняя частота прыжков",
+  "deviceHealthBestJumpRate": "Лучшая частота прыжков",
+  "deviceHealthTrips": "Спотыкания",
+  "deviceHealthSets": "Подходы",
+  "deviceHealthTotalStrokes": "Всего гребков",
+  "deviceHealthAverageRowingRate": "Средний темп гребли",
+  "deviceHealthBestRowingRate": "Лучший темп гребли",
+  "deviceHealthChartHeartRate": "Пульс",
+  "deviceHealthChartCadence": "Каденция",
+  "deviceHealthChartPace": "Темп",
+  "deviceHealthChartSpeed": "Скорость",
+  "deviceHealthChartPower": "Мощность",
+  "deviceHealthChartStrokeRate": "Темп гребка",
+  "deviceHealthChartJumpRate": "Частота прыжков",
+  "deviceHealthChartBloodOxygen": "SpO2",
+  "deviceHealthChartStress": "Стресс",
+  "deviceHealthWorkoutOutdoorRunning": "Бег на улице",
+  "deviceHealthWorkoutOutdoorWalking": "Ходьба на улице",
+  "deviceHealthWorkoutIndoorRunning": "Бег в помещении",
+  "deviceHealthWorkoutMountaineering": "Восхождение",
+  "deviceHealthWorkoutTrailRunning": "Трейлраннинг",
+  "deviceHealthWorkoutOutdoorCycling": "Велоспорт на улице",
+  "deviceHealthWorkoutIndoorCycling": "Велоспорт в помещении",
+  "deviceHealthWorkoutFreeTraining": "Свободная тренировка",
+  "deviceHealthWorkoutSwimming": "Плавание",
+  "deviceHealthWorkoutElliptical": "Эллиптический",
+  "deviceHealthWorkoutRowing": "Гребля",
+  "deviceHealthWorkoutJumpRope": "Скакалка",
+  "deviceHealthWorkoutHiking": "Поход",
+  "deviceHealthWorkoutGeneric": "Тренировка",
+  "deviceHealthWorkoutExport": "Экспорт FIT",
+  "deviceHealthWorkoutExported": "FIT экспортирован в {path}",
+  "deviceHealthWorkoutExportFailed": "Не удалось экспортировать FIT: {error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "deviceHealthStrokeMedley": "Комбинированный",
+  "deviceHealthStrokeBreaststroke": "Брасс",
+  "deviceHealthStrokeFreestyle": "Кроль",
+  "deviceHealthStrokeBackstroke": "На спине",
+  "deviceHealthStrokeButterfly": "Баттерфляй",
+  "deviceHealthSectionLabel": "Секция",
+  "deviceHealthVitalityRunSuggestion": "Бег {minutes} мин до следующей цели",
+  "@deviceHealthVitalityRunSuggestion": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "deviceHealthVitalityActiveMinutes": "Ещё {minutes} мин активности до цели",
+  "@deviceHealthVitalityActiveMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "deviceHealthLatestHeartRate": "Последний пульс",
+  "deviceHealthLatestBloodOxygen": "Последний SpO2",
+  "deviceHealthLatestStress": "Последний стресс",
+  "deviceHealthDebugSnapshots": "Файлы активности",
+  "deviceHealthDebugSnapshotList": "Файлы активности",
+  "deviceHealthDebugSnapshotsDescription": "Сохранённые файлы активности доступны для экспорта",
+  "deviceHealthDebugRefresh": "Обновить",
+  "deviceHealthDebugRefreshDescription": "Reload the saved activity file list",
+  "deviceHealthDebugClearAll": "Очистить всё",
+  "deviceHealthDebugClearAllDescription": "Delete every saved activity file",
+  "deviceHealthDebugNoSnapshots": "Файлов активности пока нет",
+  "deviceHealthDebugReload": "Воспроизвести",
+  "deviceHealthDebugReloaded": "Activity file replayed",
+  "deviceHealthDebugFiles": "Файлов: {count}",
+  "@deviceHealthDebugFiles": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "creatorAccounts": "Аккаунты",
+  "creatorPendingItems": "Требуют внимания",
+  "creatorResourceStatus": "Статус ресурсов",
+  "creatorOverview": "Обзор",
+  "creatorManage": "Управление",
+  "creatorManageUnavailable": "Управление недоступно",
+  "creatorReviewTab": "Проверка",
+  "creatorReviewQueue": "Очередь проверки",
+  "creatorReviewStatus": "Статус проверки",
+  "creatorReviewActive": "Активные",
+  "creatorReviewChangesRequested": "Требуются изменения",
+  "creatorReviewDeclined": "Отклонено",
+  "creatorReviewClosed": "Закрыто",
+  "creatorReviewFixedPending": "Исправлено, ожидает проверки",
+  "creatorNoPendingReviews": "Нет проверок в ожидании",
+  "creatorNoReviews": "Нет проверок",
+  "creatorNeedsChanges": "Требуются изменения",
+  "creatorConnected": "Подключено",
+  "creatorNotConnected": "Не подключено",
+  "creatorCenterExitTitle": "Выйти из центра авторов",
+  "creatorCenterExitMessage": "Выйти из центра авторов?",
+  "creatorEditComment": "Изменить комментарий",
+  "creatorReply": "Ответить",
+  "creatorReplyingTo": "Ответ на #{id}",
+  "@creatorReplyingTo": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "creatorReplyPrefix": "Ответ #{id}: ",
+  "@creatorReplyPrefix": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "creatorSupplement": "Дополнительно",
+  "creatorModifyResource": "Изменить ресурс",
+  "creatorAstroBoxReview": "Проверка AstroBox",
+  "creatorGithubPr": "Репозиторий и PR GitHub",
+  "creatorApplyChanges": "Применить изменения",
+  "creatorUpdatedAt": "Обновлено",
+  "creatorSubmittedAt": "Отправлено",
+  "creatorPublicationStatus": "Статус публикации",
+  "creatorStageInfo": "Редактирование",
+  "creatorStageFiles": "Привязка файлов",
+  "creatorStagePublish": "Публикация",
+  "creatorNextStep": "Далее",
+  "creatorWatchfaceMissingId": "Не удалось распознать циферблат или он нулевой: нет ID, загрузка невозможна",
+  "creatorWatchfaceZeroIdTitle": "Обнаружен нулевой ID циферблата, измените его перед загрузкой",
+  "creatorWatchfacePayloadTooShort": "Файл циферблата слишком мал, чтобы содержать поле ID",
+  "creatorQuickAppMissingPackage": "Не удалось распознать мини-приложение: нет имени пакета, загрузка невозможна",
+  "creatorVelajsDefaultPackage": "Обнаружено имя пакета мини-приложения com.application.watch.demo — это значение по умолчанию проекта VelaJS, измените его перед загрузкой",
+  "creatorFilteredSupport": "Поддержка отфильтрована",
+  "creatorSkippedPublication": "Публикация пропущена",
+  "creatorAstroBoxUnsupportedDevicesNotice": "Некоторые выбранные поддерживаемые устройства пока не поддерживают публикацию в AstroBox; их заявления о поддержке будут отфильтрованы",
+  "creatorBandBbsUnsupportedDevicesNotice": "Некоторые выбранные поддерживаемые устройства пока не поддерживают публикацию в BandBBS; их публикация будет пропущена",
+  "errorSppBondRemovalFailed": "В Android ниже 11 removeBond не поддерживается системой. Если устройство часто отключается, переключитесь на другое устройство в Xiaomi Fitness или отключите разрешение «Устройства поблизости»",
+  "viewAllResources": "Показать все",
+  "deviceHealthMinimum": "Минимум",
+  "deviceHealthMaximum": "Максимум",
+  "deviceHealthResting": "Покой",
+  "deviceHealthDebugExport": "Экспортировать файлы активности",
+  "deviceHealthDebugExportTooltip": "Экспортировать файлы активности",
+  "deviceHealthDebugExported": "Файлы активности экспортированы в {path}",
+  "deviceHealthDebugExportFailed": "Не удалось экспортировать файлы активности: {error}",
+  "deviceHealthDebugImport": "Импортировать файлы активности",
+  "deviceHealthDebugImportDescription": "Импорт ранее экспортированных файлов активности",
+  "deviceHealthDebugImported": "Импортировано {deviceCode} ({files} файлов)",
+  "deviceHealthDebugImportFailed": "Не удалось импортировать файлы активности: {error}",
+  "commentDeletedPlaceholder": "Комментарий удалён",
+  "commentViewReplies": "Все ответы: {count}",
+  "commentThreadTitle": "Подробности комментария",
+  "commentReplyTarget": "Ответить {username}",
+  "commentLoadEarlier": "Загрузить предыдущие ответы",
+  "@commentViewReplies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@commentReplyTarget": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "messageCommentCreatedTitle": "Новый комментарий к вашему ресурсу",
+  "scanQrCode": "Сканировать QR-код",
+  "deviceSwitchQrImport": "Импортировать устройство по QR-коду общего доступа",
+  "creatorCollectionReplacePendingDescription": "Ожидающая проверки версия будет заменена\nОпубликованная версия останется доступной",
+  "creatorCollectionNoMatchingResources": "Нет ресурсов этого типа\nСначала создайте ресурс в центре автора",
+  "commentCreateFailed": "Не удалось отправить комментарий, повторите попытку",
+  "commentsReadFailed": "Не удалось загрузить комментарии, повторите попытку",
+  "commentDeleteFailed": "Не удалось удалить комментарий, повторите попытку",
+  "errorRequestTimeout": "Время ожидания запроса истекло, повторите попытку",
+  "creatorCollectionReplacePendingTitle": "Заменить версию на проверке?",
+  "creatorCollectionReplaceAndSubmit": "Заменить и отправить на проверку",
+  "creatorCollectionCreateTitle": "Создать подборку",
+  "creatorCollectionEditTitle": "Изменить подборку",
+  "creatorCollectionCurrentRevision": "Опубликованная версия: {number}",
+  "@creatorCollectionCurrentRevision": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorCollectionPendingRevision": "Версия на проверке: {number}",
+  "@creatorCollectionPendingRevision": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorCollectionHistory": "Просмотр предыдущих версий",
+  "creatorCollectionBody": "Текст (Markdown)",
+  "creatorMediaIcon": "Значок",
+  "creatorMediaCover": "Обложка",
+  "creatorMediaUnset": "Не задано",
+  "creatorMediaSet": "Задано",
+  "creatorCollectionMemberOrder": "Порядок элементов и главный ресурс",
+  "creatorCollectionMemberUnavailable": "Ресурс недоступен, удалите его",
+  "creatorCollectionSetRepresentative": "Сделать главным ресурсом",
+  "creatorCollectionAddMember": "Добавить элементы",
+  "creatorImageReadFailed": "Не удалось прочитать изображение",
+  "creatorImageProcessFailed": "Не удалось обработать изображение",
+  "creatorPublicationRetry": "Повторить публикацию",
+  "creatorTermsLoadFailed": "Не удалось загрузить условия публикации",
+  "creatorReviewItems": "Запрошенные исправления",
+  "creatorReviewFixReplied": "Об исправлении сообщено",
+  "creatorReviewReplyFix": "Сообщить об исправлении",
+  "creatorTermsUpdated": "Условия публикации обновлены",
+  "creatorPublishingLater": "Не сейчас",
+  "creatorTermsAgree": "Прочитано, согласен",
+  "updateAssetUnavailable": "В этой версии нет установочного пакета для текущей платформы",
+  "legalDocumentUnavailable": "Документ недоступен, повторите попытку",
+  "deviceImportTitle": "Импорт устройства",
+  "qrScanFromImage": "Распознать на изображении",
+  "qrScanNoCode": "QR-код не найден",
+  "qrScanImageFailed": "Не удалось прочитать изображение",
+  "qrScanCameraUnavailable": "Камера недоступна\nМожно выбрать изображение с QR-кодом",
+  "qrScanChooseCode": "Выберите QR-код",
+  "qrScanCodeLabel": "QR-код {index}",
+  "@qrScanCodeLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "qrScanUnsupported": "Распознавание QR-кодов недоступно на этой платформе",
+  "featureLabTitle": "Лаборатория функций",
+  "featureLabDescription": "Тестирование функций в разработке",
+  "voiceAssistantDescription": "Приём и прослушивание звука устройства, отправка ответов",
+  "voiceLabConnectDevice": "Подключите устройство и запустите голосового помощника",
+  "voiceLabCaptureLimit": "Достигнут предел записи, очистите запись и повторите",
+  "voiceLabReplyTooLong": "Ответ слишком длинный",
+  "voiceLabRecognitionLabel": "Результат распознавания",
+  "voiceLabRecognitionHint": "Введите распознанный текст",
+  "appDataTitle": "Данные приложения",
+  "appDataDescription": "Просмотр занятого места и экспорт файлов",
+  "appDataSpaceUsage": "Объём по категориям",
+  "appDataHealth": "Файлы активности",
+  "appDataPlugins": "Плагины",
+  "appDataZeppos": "Данные приложений ZeppOS",
+  "appDataRecovery": "Данные восстановления импорта",
+  "appDataDownloads": "Загрузки ресурсов и обновлений",
+  "appDataPluginCache": "Кэш плагинов",
+  "appDataManageSnapshots": "Управление сохранёнными файлами активности",
+  "appDataExported": "Экспортированный файл сохранён",
+  "appDataLoadFailed": "Не удалось прочитать данные приложения",
+  "appDataExportFailed": "Не удалось экспортировать файлы",
+  "appDataArchiveTooLarge": "Activity files are too large, export them separately",
+  "appDataUpdateFailed": "Не удалось изменить данные приложения",
+  "appDataBackup": "Экспорт резервной копии",
+  "appDataBackupDescription": "Выберите и экспортируйте локальные данные",
+  "appDataRestore": "Восстановить копию",
+  "appDataRestoreDescription": "Выберите данные\nИстория здоровья совпадающих устройств будет заменена",
+  "appDataSettings": "Настройки приложения",
+  "appDataHealthDevices": "История здоровья ({count} устройств)",
+  "appDataRestored": "Копия восстановлена\nПерезапустите приложение для применения всех настроек",
+  "appDataRestoreFailed": "Не удалось восстановить копию",
+  "appDataRecover": "Отменить предыдущее восстановление",
+  "appDataRecoveryPending": "Предыдущее восстановление прервано",
+  "appDataRecoverDescription": "Вернуть настройки и историю до последнего импорта\nБолее новые локальные данные здоровья также будут заменены",
+  "@appDataHealthDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceAsrMethod": "Способ распознавания",
+  "voiceAsrManual": "Ручной ввод",
+  "voiceAsrLocal": "Локальное распознавание",
+  "voiceAsrWeType": "WeChat Input",
+  "voiceAsrDoubao": "Doubao Input",
+  "voiceAsrWasm": "Эксперимент WASM",
+  "voiceAsrCloudConsent": "Аудио будет отправлено в {provider} для распознавания\nТолько при использовании этой страницы",
+  "voiceAsrPreparing": "Подготовка распознавания",
+  "voiceAsrRecognizing": "Распознавание",
+  "voiceAsrFinishing": "Обработка конца записи",
+  "voiceAsrFinished": "Распознавание завершено",
+  "voiceAsrModelReady": "Локальное распознавание готово",
+  "voiceAsrModelDescription": "Локальное распознавание китайского и английского\nПри первом использовании загрузите модели и компоненты",
+  "voiceAsrDownloadModel": "Загрузить данные распознавания",
+  "voiceAsrDeleteModel": "Удалить данные распознавания",
+  "voiceAsrSendRecognition": "Отправить результат",
+  "voiceAsrModelMissing": "Сначала загрузите данные локального распознавания",
+  "voiceAsrModelDamaged": "Данные повреждены\nУдалите и загрузите их заново",
+  "voiceAsrDownloadFailed": "Не удалось загрузить модель\nПроверьте подключение",
+  "voiceAsrRegistrationFailed": "Не удалось запустить сервис\nПовторите позже",
+  "voiceAsrServiceRejected": "Сервис распознавания отклонил запрос",
+  "voiceAsrTimeout": "Время ожидания истекло\nПроизнесите фразу снова",
+  "voiceAsrOpusUnsupported": "Аудио этого устройства не поддерживается WeChat Input",
+  "voiceAsrUnsupported": "Этот способ недоступен на данной платформе",
+  "voiceAsrTooSlow": "Распознавание слишком медленное\nЗавершите сеанс и повторите",
+  "voiceAsrNoSpeech": "Речь не распознана",
+  "voiceAsrInvalidResponse": "Сервис вернул некорректный результат",
+  "voiceAsrInferenceFailed": "Ошибка локального распознавания\nВыберите способ заново",
+  "voiceAsrCancelled": "Распознавание отменено",
+  "voiceAsrConnectionFailed": "Не удалось подключиться к сервису\nПроверьте подключение",
+  "@voiceAsrCloudConsent": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "appDataModels": "Данные распознавания речи",
+  "appDataTasks": "История задач",
+  "appDataDocuments": "Кэш документов",
+  "privateStateLoadFailed": "Не удалось прочитать сохранённые аккаунты и устройства\nПовторите попытку",
+  "privateStateSaveFailed": "Не удалось сохранить изменения аккаунта или устройства\nПовторите попытку",
+  "resetPrivateStorageAction": "Сбросить учётные данные",
+  "resetPrivateStorageTitle": "Сбросить аккаунты и устройства",
+  "resetPrivateStorageMessage": "После сброса потребуется повторно войти в аккаунт и переподключить устройства\nСохранённая история здоровья и настройки приложения не будут потеряны",
+  "confirmReset": "Сбросить",
+  "voiceAsrStorageFull": "Недостаточно места\nОсвободите место и повторите попытку",
+  "voiceAsrReconnect": "Переподключить распознавание",
+  "voiceAsrReconnectDescription": "Будет создано новое подключение к этому сервису\nВаши учётные записи не изменятся",
+  "voiceAsrReconnectFailed": "Не удалось переподключиться",
+  "appDataClearCache": "Очистить кэш",
+  "appDataClearCacheDescription": "Очистить кэш изображений, плагинов, документов и старые временные файлы\nРаботающие плагины и приложения устройства будут остановлены",
+  "appDataCacheCleared": "Кэш очищен",
+  "voiceAsrReplayRecording": "Повторить запись",
+  "voiceAsrImportWave": "Импорт WAV",
+  "voiceAsrReplayDescription": "Выберите распознавание и повторите или импортируйте запись\nТолько 16 кГц моно PCM16, до 60 секунд\nОнлайн-распознавание отправляет звук выбранному сервису",
+  "voiceAsrReplayMetrics": "Время {elapsed} мс · Первый результат {first} мс · RTF {factor}",
+  "voiceAsrExportReport": "Экспорт отчёта",
+  "voiceAsrWaveFormat": "Выберите WAV 16 кГц моно PCM16\nНе более 60 секунд",
+  "voiceAsrReplayBusy": "Сначала завершите текущий сеанс",
+  "@voiceAsrReplayMetrics": {
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      },
+      "first": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "String"
+      }
+    }
+  },
+  "appDataExtensionSettings": "Данные плагинов и приложений устройства",
+  "appDataExtensionSettingsDescription": "Настройки и данные плагинов и приложений устройств",
+  "appDataExtensionMissing": "Перед восстановлением установите те же версии плагинов и соответствующие приложения",
+  "appDataImageCache": "Кэш изображений",
+  "appDataSelectBackup": "Выберите данные для копии",
+  "appDataSettingsDescription": "Тема, язык и настройки функций",
+  "appDataHealthDescription": "Синхронизированные данные активности и здоровья",
+  "appDataDeviceKeys": "Сопряжения и ключи устройств",
+  "appDataDeviceKeysDescription": "Устройства и данные для подключения",
+  "appDataXiaomiAccount": "Данные Xiaomi и Amazfit",
+  "appDataXiaomiAccountDescription": "Пароль аккаунта и текущий сеанс входа",
+  "appDataSensitiveBackup": "Копия содержит незашифрованные данные аккаунта\nХраните её безопасно и не делитесь ею",
+  "appDataImportDescription": "Выбор данных для восстановления",
+  "appDataPluginDescription": "Плагины и их локальные данные",
+  "appDataZepposDescription": "Скрипты приложений устройств и настройки",
+  "appDataLogsDescription": "Журналы работы и диагностики",
+  "appDataRecoveryDescription": "Данные для прерванного восстановления",
+  "appDataDownloadsDescription": "Временные файлы загрузки и установки",
+  "appDataPluginCacheDescription": "Кэш плагинов и временные файлы",
+  "appDataImagesDescription": "Кэш изображений просмотренных ресурсов",
+  "appDataModelsDescription": "Загруженные речевые модели и компоненты",
+  "appDataTasksDescription": "Состояние загрузок и установок",
+  "appDataDocumentsDescription": "Локальные копии условий и политики",
+  "phoneLocationTitle": "Вспомогательное позиционирование",
+  "deviceFeaturesGroupTitle": "Функции и инструменты",
+  "deviceSettingsGroupTitle": "Настройки устройства и обслуживание",
+  "phoneLocationStatusSection": "Статус",
+  "phoneLocationPermissionsSection": "Разрешения и службы",
+  "phoneLocationOptionsSection": "Параметры координации",
+  "phoneLocationReady": "Служба геопозиции готова",
+  "phoneLocationReadyDesc": "Геопозиция будет передаваться автоматически во время тренировок",
+  "phoneLocationServiceEnabled": "Служба геолокации",
+  "phoneLocationPreciseTitle": "Точная геопозиция",
+  "phoneLocationPreciseGranted": "Точная геопозиция разрешена",
+  "phoneLocationPreciseDenied": "Точная геопозиция не разрешена",
+  "phoneLocationBackgroundTitle": "Фоновая геопозиция",
+  "phoneLocationBackgroundAlways": "Всегда разрешено",
+  "phoneLocationBackgroundWhileInUse": "Только при использовании",
+  "phoneLocationBackgroundDenied": "Не разрешено",
+  "phoneLocationAutoSync": "Автоматическая геопозиция",
+  "phoneLocationAutoSyncDesc": "Передавать GPS телефона при начале тренировки на устройстве",
+  "phoneLocationEnabledText": "Включено",
+  "phoneLocationDisabledText": "Выключено",
+  "phoneLocationNotification": "Передавать координаты на устройство",
+  "phoneLocationDescription": "Передавать координаты при подготовке и во время тренировки",
+  "phoneLocationOpenApp": "Откройте OronBox для геолокации",
+  "phoneLocationRecovery": "Откройте приложение и повторите запуск тренировки",
+  "phoneLocationPermission": "Нужен доступ к точной геолокации",
+  "phoneLocationBackground": "Фоновая геолокация",
+  "phoneLocationBackgroundDescription": "Принимать запросы геолокации от устройства в фоне",
+  "phoneLocationSettings": "Открыть системные настройки",
+  "phoneLocationServiceOff": "Геолокация отключена",
+  "phoneLocationPermissionHelp": "Разрешите точную геолокацию и повторите попытку",
+  "phoneLocationMobileOnly": "Доступно на Android и iOS",
+  "phoneLocationUnavailable": "Не удалось получить геолокацию\nПроверьте разрешения и службу геолокации",
+  "deviceConnectionAbnormalTitle": "Проблема подключения устройства",
+  "deviceConnectionAbnormalMessage": "Устройство часто отключается. Выполните повторное сопряжение или включите на устройстве режим подключения нового телефона.",
+  "deviceRePair": "Сопрячь заново",
+  "appDataClearCategoryTitle": "Очистить {category}?",
+  "appDataClearCategoryDescription": "Локальные данные этой категории будут удалены\nДругие категории сохранятся",
+  "appDataClearHealthDescription": "Синхронизированные файлы активности будут удалены\nЛокальные данные активности и здоровья будут очищены",
+  "appDataClearCachedCategoryDescription": "Будет удалён только неиспользуемый кэш\nПри необходимости файлы загрузятся снова",
+  "appDataClearModelsDescription": "Текущая модель сохранится\nНеиспользуемые версии и устаревшие загрузки будут удалены",
+  "settingsPermissionsTitle": "Разрешения",
+  "settingsPermissionsDesc": "Вспомогательное позиционирование и фоновый режим",
+  "appArrangementTitle": "Расположение приложений",
+  "appArrangementDescription": "Настройка порядка и макета приложений",
+  "appOrderMainSection": "Отображаемые приложения",
+  "appOrderMoreSection": "Другие приложения",
+  "appOrderHiddenSection": "Скрытые приложения",
+  "appOrderMoreSectionDesc": "Приложения во вложенном меню устройства",
+  "appOrderHiddenSectionDesc": "Скрытые на устройстве приложения",
+  "appOrderMoveToMore": "В другие",
+  "appOrderMoveToMain": "В основной список",
+  "appOrderHide": "Скрыть",
+  "appOrderUnhide": "Показать",
+  "appOrderCannotHide": "Системное приложение нельзя скрыть",
+  "privateStateAccessPromptTitle": "OronBox требуется доступ к учетным данным аккаунта, защищенным безопасным хранилищем",
+  "privateStateAccessPromptMacOs": "При появлении системного запроса авторизации введите пароль для входа и нажмите «Разрешать всегда», чтобы избежать повторных запросов",
+  "privateStateAccessPromptLinux": "При появлении системного запроса разблокировки введите пароль пользователя для разблокировки связки ключей",
+  "creatorSubmissionPreview": "Проверить отправку",
+  "creatorResourceBinding": "Связанный ресурс",
+  "creatorPublicationIdentity": "Аккаунты публикации",
+  "creatorPublicationRange": "Состав публикации",
+  "creatorNewPublication": "Первая публикация",
+  "creatorUpdatePublication": "Обновить ресурс",
+  "creatorAppendSubmission": "Дополнить PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "Исключённые устройства: {devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "Вернуться к редактированию",
+  "creatorPackageVersionCodeMissing": "В пакете нет корректного кода версии\nПересоберите пакет и загрузите заново",
+  "creatorReopenSubmission": "Запросить повторную проверку",
+  "creatorReopenRequested": "Повторная проверка запрошена",
+  "creatorFixesForSubmission": "Исправлено в этой отправке",
+  "creatorFixNote": "Описание исправления",
+  "creatorNameRequired": "Введите название ресурса",
+  "creatorSummaryRequired": "Введите краткое описание",
+  "creatorSubmitForReview": "Отправить на проверку",
+  "creatorAstroBoxPRBody": "Описание PR (необязательно)",
+  "autoBackupTitle": "Резервное копирование по расписанию",
+  "autoBackupDescription": "Автоматическое сохранение копий в системную папку документов",
+  "autoBackupEnabled": "Включить резервное копирование",
+  "autoBackupInterval": "Частота копирования",
+  "autoBackupEvery": "Каждые",
+  "autoBackupUnitDay": "дн.",
+  "autoBackupUnitWeek": "нед.",
+  "autoBackupUnitMonth": "мес.",
+  "autoBackupRetention": "Хранить копий",
+  "autoBackupRetentionCount": "{count} шт.",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "Без ограничений",
+  "autoBackupPasswordEnable": "Защита паролем",
+  "autoBackupPasswordEnableDesc": "Шифрование резервной копии по стандарту AES-256",
+  "autoBackupPassword": "Пароль",
+  "autoBackupPasswordConfirm": "Подтверждение пароля",
+  "autoBackupPasswordMismatch": "Введённые пароли не совпадают",
+  "autoBackupPasswordPlaceholder": "Введите пароль",
+  "autoBackupScope": "Область копирования",
+  "autoBackupScopeSettings": "Настройки приложения",
+  "autoBackupScopeHealth": "Данные здоровья",
+  "autoBackupScopeExtensions": "Расширения и мини-приложения",
+  "autoBackupScopeDevices": "Данные сопряжения устройств",
+  "autoBackupStorageLocation": "Место хранения",
+  "autoBackupStorageLocationDesc": "Копии сохраняются в общедоступную системную папку документов",
+  "autoBackupOpenFolder": "Открыть в диспетчере файлов",
+  "autoBackupStatusEnabled": "Включено · каждые {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "Отключено",
+  "autoBackupRunNow": "Создать копию сейчас",
+  "autoBackupRunSuccess": "Резервная копия успешно создана",
+  "autoBackupRunFailed": "Ошибка создания резервной копии",
+  "backupPasswordDialogTitle": "Пароль резервной копии",
+  "backupPasswordDialogMessage": "Эта копия зашифрована\nВведите пароль для восстановления",
+  "backupPasswordIncorrect": "Неверный пароль",
+  "backupPasswordRequired": "Требуется пароль",
+  "exportBackupPasswordOptional": "Пароль копии (необязательно)",
+  "exportBackupPasswordPlaceholder": "Оставьте пустым без шифрования",
+  "backupTargetPublicDocuments": "Сохранить в системную папку «Документы»",
+  "backupTargetCustom": "Сохранить как внешний файл",
+  "restoreFromDocumentsTitle": "Выберите резервную копию",
+  "restorePickExternalFile": "Выбрать другой файл...",
+  "backupSavedToDocuments": "Резервная копия сохранена в системную папку документов",
+  "appDataExporting": "Экспорт и шифрование копии, подождите...",
+  "appDataDecrypting": "Расшифровка резервной копии, подождите...",
+  "appDataRestoring": "Восстановление данных, подождите...",
+  "autoBackupRetentionInputHint": "0 — без ограничений",
+  "autoBackupRetentionLabel": "Количество копий (0 — без ограничений)",
+  "autoBackupRetentionUnit": "копий",
+  "backupTypeAuto": "Автоматическая копия",
+  "backupTypeManual": "Ручная копия",
+  "autoBackupStatusDetail": "Включено · каждые {value} {unit} · хранить {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  }
 }

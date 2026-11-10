@@ -1,10 +1,14 @@
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/horizontal_scroller.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
@@ -15,7 +19,6 @@ import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
-import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 import 'package:oronbox/src/features/accounts/services/oronbox_coin_service.dart';
 import 'package:oronbox/src/features/resources/application/comments/oronbox_comments.dart';
 import 'package:oronbox/src/features/resources/application/resource_catalog_providers.dart';
@@ -27,6 +30,10 @@ import 'package:oronbox/src/features/resources/widgets/community_html_content.da
 import 'package:oronbox/src/features/resources/widgets/resource_detail_header.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_external_link.dart';
 import 'package:oronbox/src/features/settings/pages/feedback_page.dart';
+
+import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
+
+part 'comment_thread_page.dart';
 
 class ResourceDetailPage extends ConsumerWidget {
   const ResourceDetailPage({
@@ -45,7 +52,9 @@ class ResourceDetailPage extends ConsumerWidget {
     return Scaffold(
       appBar: SysAppBar(secondary: true, title: Text(l10n.resourceDetails)),
       body: ListView(
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.only(
+          bottom: bottomContentPadding(context, extra: 24),
+        ),
         children: [
           ResourceDetailHeader(
             resource: visibleResource,
@@ -63,7 +72,12 @@ class ResourceDetailPage extends ConsumerWidget {
             ),
             error: (error, _) => PageContainer(
               padding: const EdgeInsets.all(StyleConstants.pagePadding),
-              child: Text(localizedErrorMessage(l10n, error)),
+              child: ErrorStateView(
+                message: localizedErrorMessage(l10n, error),
+                onRetry: () => ref.invalidate(
+                  communityResourceDetailProvider(resource.ref),
+                ),
+              ),
             ),
             data: (value) =>
                 _DetailContent(detail: value, targetCommentId: targetCommentId),
@@ -280,9 +294,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer.withValues(
-                    alpha: .5,
-                  ),
+                  color: context.appSelectionContainer.withValues(alpha: .5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
@@ -334,6 +346,23 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
             ),
             const SizedBox(height: 12),
             switch (detail.content.format) {
+              ResourceContentFormat.markdown => MarkdownBody(
+                data: detail.content.value,
+                selectable: true,
+                styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+                  p: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.55,
+                  ),
+                ),
+                onTapLink: (_, href, _) {
+                  final uri = Uri.tryParse(href ?? '');
+                  if (uri != null &&
+                      (uri.scheme == 'https' || uri.scheme == 'http')) {
+                    openResourceExternalLink(context, uri);
+                  }
+                },
+              ),
               ResourceContentFormat.html => CommunityHtmlContent(
                 html: detail.content.value,
                 baseUri: detail.content.baseUri,
@@ -349,7 +378,7 @@ class _DetailContentState extends ConsumerState<_DetailContent> {
             const SizedBox(height: 24),
             _PreviewGallery(previews: previews),
           ],
-          if (currentCodename.isNotEmpty) ...[
+          if (!isBandBbs && currentCodename.isNotEmpty) ...[
             const SizedBox(height: 24),
             _Compatibility(
               detail: detail,
@@ -436,7 +465,9 @@ class _CoinButtonState extends ConsumerState<_CoinButton> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final isSignedIn = ref.watch(bandBbsAuthProvider).isSignedIn;
+    final isSignedIn = ref.watch(
+      hostAccountsProvider.select((state) => state.bandbbs.isSignedIn),
+    );
     final myCoins = ref.watch(oronBoxMyCoinsProvider(widget.resource.ref.id));
     final voted = myCoins.value ?? 0;
     final statusLoading = isSignedIn && myCoins.isLoading;
@@ -513,6 +544,9 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
   bool _loading = true;
   bool _sending = false;
   bool _hasMore = true;
+  int _commentPage = 0;
+  int _commentRequest = 0;
+  String _commentCursor = '';
   String? _replyTo;
   Object? _error;
   final _targetCommentKey = GlobalKey();
@@ -531,6 +565,7 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
   }
 
   Future<void> _load({bool more = false}) async {
+    final request = ++_commentRequest;
     setState(() {
       _loading = true;
       _error = null;
@@ -538,21 +573,29 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
     try {
       final page = await ref
           .read(oronBoxCommentsApiProvider)
-          .list(
+          .listPage(
             widget.resourceId,
-            before: more && _comments.isNotEmpty
-                ? _comments.last.createdAt
-                : null,
+            page: more ? _commentPage + 1 : 1,
+            size: 20,
+            before: more ? _commentCursor : '',
           );
-      if (!mounted) return;
+      if (!mounted || request != _commentRequest) return;
       setState(() {
-        _comments = more ? [..._comments, ...page] : page;
-        _hasMore = page.length == 20;
+        _comments = more
+            ? [
+                ...{
+                  for (final c in [..._comments, ...page.items]) c.id: c,
+                }.values,
+              ]
+            : page.items;
+        _commentPage = more ? _commentPage + 1 : 1;
+        _hasMore = page.hasMore;
+        _commentCursor = page.nextCursor;
         _loading = false;
       });
       _revealTargetComment();
     } catch (error) {
-      if (!mounted) return;
+      if (!mounted || request != _commentRequest) return;
       setState(() {
         _error = error;
         _loading = false;
@@ -560,29 +603,28 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
     }
   }
 
+  Future<void> _openThread(String id) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            CommentThreadPage(resourceId: widget.resourceId, commentId: id),
+      ),
+    );
+    if (mounted) await _load();
+  }
+
   void _revealTargetComment() {
     if (_targetRevealed || widget.targetCommentId.isEmpty) return;
+    _targetRevealed = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetContext = _targetCommentKey.currentContext;
-      if (!mounted) return;
-      if (targetContext == null) {
-        if (_hasMore && !_loading) unawaited(_load(more: true));
-        return;
-      }
-      _targetRevealed = true;
-      Scrollable.ensureVisible(
-        targetContext,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-        alignment: .25,
-      );
+      if (mounted) unawaited(_openThread(widget.targetCommentId));
     });
   }
 
   Key? _commentKey(OronBoxComment comment) =>
       comment.id == widget.targetCommentId ? _targetCommentKey : null;
 
-  Future<bool> _send() async {
+  Future<bool> _send({required ValueChanged<String> onError}) async {
     final body = _controller.text.trim();
     if (body.isEmpty || _sending) return false;
     setState(() => _sending = true);
@@ -591,28 +633,19 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
           .read(oronBoxCommentsApiProvider)
           .create(widget.resourceId, body, parentId: _replyTo ?? '');
       if (!mounted) return false;
+      if (comment.moderationAction == 'block') {
+        onError(AppLocalizations.of(context)!.commentBlocked);
+        return false;
+      }
       setState(() {
-        if (_replyTo == null) {
-          _comments = [comment, ..._comments];
-        } else {
-          _comments = _comments
-              .map(
-                (item) => item.id == _replyTo
-                    ? item.copyWith(replies: [...item.replies, comment])
-                    : item,
-              )
-              .toList();
-        }
         _replyTo = null;
         _controller.clear();
       });
+      await _load();
       return true;
-    } on CommentApiException catch (error) {
+    } catch (error) {
       if (!mounted) return false;
-      final l10n = AppLocalizations.of(context)!;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizedErrorMessage(l10n, error))),
-      );
+      onError(localizedErrorMessage(AppLocalizations.of(context)!, error));
       return false;
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -623,6 +656,7 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
     final l10n = AppLocalizations.of(context)!;
     setState(() => _replyTo = parentId);
     var dialogBusy = false;
+    String? dialogError;
     final sent = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -644,6 +678,8 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
                 keyboardType: TextInputType.multiline,
                 decoration: InputDecoration(
                   hintText: l10n.commentHint,
+                  errorText: dialogError,
+                  errorMaxLines: 4,
                   border: const OutlineInputBorder(),
                 ),
               ),
@@ -660,7 +696,14 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
                     ? null
                     : () async {
                         setDialogState(() => dialogBusy = true);
-                        final success = await _send();
+                        setDialogState(() => dialogError = null);
+                        final success = await _send(
+                          onError: (message) {
+                            if (dialogContext.mounted) {
+                              setDialogState(() => dialogError = message);
+                            }
+                          },
+                        );
                         if (!dialogContext.mounted) return;
                         if (success) {
                           Navigator.pop(dialogContext, true);
@@ -698,8 +741,21 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    ref.listen(
+      hostAccountsProvider.select(
+        (value) => (value.bandbbs.isSignedIn, value.bandbbs.userId),
+      ),
+      (previous, next) {
+        setState(() {
+          _comments = const [];
+          _replyTo = null;
+          _controller.clear();
+        });
+        unawaited(_load());
+      },
+    );
     final auth = ref.watch(hostAccountsProvider).bandbbs;
-    final isAdmin = ref.watch(currentUserRoleProvider).value == 'admin';
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -739,20 +795,77 @@ class _CommentsSectionState extends ConsumerState<_CommentsSection> {
               key: _commentKey(comment),
               comment: comment,
               ownUserId: int.tryParse(auth.userId ?? ''),
-              canModerate: isAdmin,
+              canModerate: false,
               deleting: _deletingCommentIds.contains(comment.id),
-              onReply: () => _compose(parentId: comment.id),
+              onReply: comment.deleted
+                  ? null
+                  : () => _compose(parentId: comment.id),
               onDelete: () => _delete(comment),
               replies: [
                 for (final reply in comment.replies)
-                  _CommentTile(
-                    key: _commentKey(reply),
-                    comment: reply,
-                    isReply: true,
-                    ownUserId: int.tryParse(auth.userId ?? ''),
-                    canModerate: isAdmin,
-                    deleting: _deletingCommentIds.contains(reply.id),
-                    onDelete: () => _delete(reply),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(4),
+                      onTap: () => _openThread(reply.id),
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: reply.username,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            if (reply.replyToUsername.isNotEmpty &&
+                                reply.replyToUsername != comment.username) ...[
+                              TextSpan(
+                                text:
+                                    ' ${l10n.commentReplyTarget(reply.replyToUsername)}',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                            TextSpan(
+                              text: ': ${reply.body}',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                if (comment.replyCount > 0)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(4),
+                      onTap: () => _openThread(comment.id),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            l10n.commentViewReplies(comment.replyCount),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 14,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
               ],
             ),
@@ -795,100 +908,141 @@ class _CommentTile extends StatelessWidget {
     final date = comment.createdAt.toLocal();
     String two(int value) => value.toString().padLeft(2, '0');
     final theme = Theme.of(context);
+    final header = Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        CircleAvatar(
+          radius: isReply ? 14 : 18,
+          backgroundImage: comment.avatarUrl.isEmpty
+              ? null
+              : NetworkImage(comment.avatarUrl),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                comment.username,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                l10n.bandBbsIdLabel(comment.bandBbsUserId),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Text(
+          '${two(date.year % 100)}-${two(date.month)}-${two(date.day)} ${two(date.hour)}:${two(date.minute)}',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+
+    final actions = Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (onReply != null)
+          IconButton(
+            tooltip: l10n.reply,
+            visualDensity: VisualDensity.compact,
+            onPressed: onReply,
+            icon: const Icon(Icons.reply_outlined, size: 19),
+          ),
+        if (!comment.deleted && (own || canModerate))
+          IconButton(
+            tooltip: l10n.delete,
+            visualDensity: VisualDensity.compact,
+            onPressed: deleting ? null : onDelete,
+            icon: deleting
+                ? const SizedBox.square(
+                    dimension: 17,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.delete_outline, size: 19),
+          )
+        else
+          IconButton(
+            tooltip: l10n.report,
+            visualDensity: VisualDensity.compact,
+            onPressed: () => showFeedbackComposer(
+              context,
+              target: FeedbackTarget(
+                type: FeedbackTargetType.comment,
+                source: 'comment',
+                id: comment.id,
+                name: comment.username,
+              ),
+            ),
+            icon: const Icon(Icons.flag_outlined, size: 19),
+          ),
+      ],
+    );
+
+    final markdown = MarkdownBody(
+      data: comment.deleted ? l10n.commentDeletedPlaceholder : comment.body,
+      selectable: true,
+      styleSheet: markdownStyleSheetFromTheme(theme).copyWith(
+        p: theme.textTheme.bodyMedium,
+        pPadding: EdgeInsets.zero,
+        blockSpacing: 4,
+      ),
+      onTapLink: (_, href, _) {
+        final uri = Uri.tryParse(href ?? '');
+        if (uri != null && uri.hasScheme) {
+          openResourceExternalLink(context, uri);
+        }
+      },
+    );
+
+    final subRepliesBox = replies.isEmpty
+        ? null
+        : DecoratedBox(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: replies,
+              ),
+            ),
+          );
+
     final content = Padding(
       padding: EdgeInsets.all(isReply ? 10 : 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CircleAvatar(
-            radius: isReply ? 14 : 18,
-            backgroundImage: comment.avatarUrl.isEmpty
-                ? null
-                : NetworkImage(comment.avatarUrl),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        comment.username,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      '${two(date.year % 100)}-${two(date.month)}-${two(date.day)} ${two(date.hour)}:${two(date.minute)}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  l10n.bandBbsIdLabel(comment.bandBbsUserId),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(comment.body, style: theme.textTheme.bodyMedium),
-                if (own && comment.moderationAction == 'review')
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Text(
-                      l10n.commentPending,
-                      style: TextStyle(color: theme.colorScheme.tertiary),
-                    ),
-                  ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (onReply != null)
-                      IconButton(
-                        tooltip: l10n.reply,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: onReply,
-                        icon: const Icon(Icons.reply_outlined, size: 19),
-                      ),
-                    if (own || canModerate)
-                      IconButton(
-                        tooltip: l10n.delete,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: deleting ? null : onDelete,
-                        icon: deleting
-                            ? const SizedBox.square(
-                                dimension: 17,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.delete_outline, size: 19),
-                      )
-                    else
-                      IconButton(
-                        tooltip: l10n.report,
-                        visualDensity: VisualDensity.compact,
-                        onPressed: () => showFeedbackComposer(
-                          context,
-                          target: FeedbackTarget(
-                            type: FeedbackTargetType.comment,
-                            source: 'comment',
-                            id: comment.id,
-                            name: comment.username,
-                          ),
-                        ),
-                        icon: const Icon(Icons.flag_outlined, size: 19),
-                      ),
-                  ],
-                ),
-              ],
+          header,
+          if (comment.replyToUsername.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              l10n.commentReplyTarget(comment.replyToUsername),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
             ),
-          ),
+          ],
+          const SizedBox(height: 8),
+          markdown,
+          if (subRepliesBox != null) ...[
+            const SizedBox(height: 10),
+            subRepliesBox,
+          ],
+          actions,
         ],
       ),
     );
@@ -897,9 +1051,7 @@ class _CommentTile extends StatelessWidget {
         padding: const EdgeInsets.only(top: 4),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: theme.colorScheme.surfaceContainerHighest.withValues(
-              alpha: .48,
-            ),
+            color: theme.colorScheme.surfaceContainer,
             borderRadius: BorderRadius.circular(12),
           ),
           child: content,
@@ -913,18 +1065,7 @@ class _CommentTile extends StatelessWidget {
           color: theme.colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            content,
-            if (replies.isNotEmpty) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
-                child: Column(children: replies),
-              ),
-            ],
-          ],
-        ),
+        child: content,
       ),
     );
   }
@@ -1095,7 +1236,7 @@ class _ActionsState extends ConsumerState<_Actions> {
             ? null
             : _formatResourceFileSize(preferredFileSize);
         final foreground = canInstall
-            ? color.onPrimaryContainer
+            ? context.appSelectionForeground
             : color.onSurface.withValues(alpha: .38);
         final buttonWidth = expand ? double.infinity : 200.0;
         final installButton = files.isEmpty
@@ -1126,7 +1267,7 @@ class _ActionsState extends ConsumerState<_Actions> {
                     borderRadius: BorderRadius.circular(16),
                     child: Material(
                       color: canInstall
-                          ? color.primaryContainer
+                          ? context.appSelectionContainer
                           : color.onSurface.withValues(alpha: .08),
                       child: SizedBox(
                         height: sizeLabel == null ? 48 : 58,
@@ -1188,10 +1329,10 @@ class _ActionsState extends ConsumerState<_Actions> {
                     minimumSize: const Size.fromHeight(48),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     alignment: Alignment.centerLeft,
-                    backgroundColor: color.primaryContainer.withValues(
+                    backgroundColor: context.appSelectionContainer.withValues(
                       alpha: .58,
                     ),
-                    foregroundColor: color.onPrimaryContainer,
+                    foregroundColor: context.appSelectionForeground,
                   ),
                 ),
               );
@@ -1297,7 +1438,8 @@ ResourceInstallChoice? preferredResourceInstallChoice(
   List<ResourceInstallChoice> choices,
   String currentCodename,
 ) {
-  if (detail.ref.source == CommunitySourceId.huamiAppStore) {
+  if (detail.ref.source == CommunitySourceId.huamiAppStore ||
+      detail.ref.source == CommunitySourceId.bandbbs) {
     return choices.firstOrNull;
   }
   return choices
@@ -1421,7 +1563,7 @@ class _Compatibility extends StatelessWidget {
         .where((value) => value.isNotEmpty)
         .toSet();
     final color = Theme.of(context).colorScheme;
-    final statusColor = compatible ? Colors.green : color.error;
+    final statusColor = compatible ? context.appColors.success : color.error;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1471,7 +1613,7 @@ class _Compatibility extends StatelessWidget {
                   ),
                 ),
                 backgroundColor: selected
-                    ? color.primaryContainer
+                    ? context.appSelectionContainer
                     : color.surfaceContainerHighest,
                 side: BorderSide.none,
                 visualDensity: VisualDensity.compact,

@@ -112,6 +112,14 @@ struct TwoFactorPage {
     return out;
   }
 
+  /**
+   * 验证完成的判据是账户级的 `passToken`。
+   *
+   * 小米在验证过程早期就会下发 `userId` / `cUserId`，若把它们当作完成信号，
+   * 页面会在用户还没输入验证码时就"完成"，随后服务端交换必然失败
+   * （Dart 侧只会报 "still requires account credentials"）。
+   * `passToken` 只在验证真正通过后才写入，因此只认它。
+   */
   private hasSessionCookie(header: string): boolean {
     if (header == null || header.length === 0) return false;
     const names = new Set<string>();
@@ -123,7 +131,7 @@ struct TwoFactorPage {
       if (idx <= 0) continue;
       names.add(pair.substring(0, idx).trim());
     }
-    return names.has('passToken') || names.has('cUserId') || names.has('userId');
+    return names.has('passToken');
   }
 
   private complete(cookieHeader: string): void {

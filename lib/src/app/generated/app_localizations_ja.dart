@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -548,8 +549,7 @@ class AppLocalizationsJa extends AppLocalizations {
       'Bluetoothが切断されました。デバイスを再接続して再試行してください';
 
   @override
-  String get errorOperationTimeout =>
-      '操作がタイムアウトしました。デバイスが近くにあることを確認して再試行してください';
+  String get errorOperationTimeout => '操作がタイムアウトしました';
 
   @override
   String get errorDeviceNotReady => 'デバイスの準備ができていません。先に接続して認証してください';
@@ -640,6 +640,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get errorUnsupportedFileType => '未対応または認識できないファイル形式です';
+
+  @override
+  String get errorDeviceFeatureUnsupported =>
+      '現在のデバイスまたはファームウェアではこの機能に対応していません';
+
+  @override
+  String get errorDeviceMusicUnsupported => '現在のデバイスまたはファームウェアでは音楽転送に対応していません';
+
+  @override
+  String get errorDeviceRecordingUnsupported =>
+      '現在のデバイスまたはファームウェアでは録音のエクスポートに対応していません';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported =>
+      '現在のデバイスまたはファームウェアでは画面ミラーリングに対応していません';
+
+  @override
+  String get errorNotInstalled => '必要なコンポーネントまたはアプリがインストールされていません';
+
+  @override
+  String get errorInvalidOperation => '現在の状態ではこの操作を実行できません';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -824,7 +845,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get collapse => '折りたたむ';
 
   @override
-  String get voiceLabTitle => 'ボイスラボ';
+  String get voiceLabTitle => '音声アシスタント';
 
   @override
   String get voiceLabXiaoAi => '小愛';
@@ -1320,6 +1341,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceHealthHeartRate => '心拍数';
 
   @override
+  String get deviceHealthAverageHeartRateLabel => '平均心拍数';
+
+  @override
   String get deviceHealthRestingHeartRate => '安静時心拍数';
 
   @override
@@ -1363,6 +1387,9 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get deviceHealthSleepStructure => '睡眠構造';
+
+  @override
+  String get deviceHealthSleepDetails => '睡眠の詳細';
 
   @override
   String get deviceHealthSleepAverageHeartRate => '睡眠中の平均心拍数';
@@ -1491,6 +1518,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceRecordingsDescription => '時計から録音を同期して書き出し';
 
   @override
+  String get deviceRecordingsLibrary => 'デバイス録音';
+
+  @override
+  String get deviceRecordingsLibraryDescription => '時計から録音を書き出します';
+
+  @override
   String get deviceRecordingsHint => '録音は1件ずつ受信・検証します。同期後に各元ファイルを書き出してください';
 
   @override
@@ -1527,6 +1560,34 @@ class AppLocalizationsJa extends AppLocalizations {
   String deviceRecordingsSaveFailed(String error) {
     return '録音を書き出せません：$error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => '保存済み';
+
+  @override
+  String get deviceRecordingsSelectAll => 'すべて選択';
+
+  @override
+  String get deviceRecordingsDeselectAll => '選択解除';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return '選択項目をエクスポート ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => 'フォルダを開く';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return '$path に書き出しました';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => '録音を書き出しました';
+
+  @override
+  String get deviceRecordingsRefresh => '更新';
 
   @override
   String get deviceMusicTransferTitle => 'MP3ファイルを転送';
@@ -1969,6 +2030,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsWearableLogGuide => 'Xiaomi Fitnessでログを取得し、ここでスキャンしてください';
 
   @override
+  String get settingsWearableLogGet => '取得';
+
+  @override
+  String get settingsWearableLogGuideOhos =>
+      'Xiaomi Fitness を開き、プロフィール画面の下部にある「アプリについて」を開きます\nオレンジ色のリングロゴを繰り返しタップし、「確認」をタップします\n「log has been...」が表示されたら、ここに戻って「取得」をタップします\n\n「マイ端末 → 互換アプリデータ → Android → data → com.mi.health → files → log」を開きます\nすべてのファイルを選択して「完了」をタップします';
+
+  @override
   String settingsWearableLogFound(int count) {
     return '$count台のデバイスを検出';
   }
@@ -1995,6 +2063,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get xiaomiAccountRequiredForEphemeris =>
       'Xiaomiアカウントにサインインしてからエフェメリスデータを同期してください';
+
+  @override
+  String get xiaomiWifiPasswordRequestTitle => 'Wi-Fi 接続リクエスト';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return 'デバイスが Wi-Fi ネットワーク「$ssid」への接続を要求しています。';
+  }
 
   @override
   String get settingsHuamiAccount => 'Amazfitアカウント';
@@ -2129,6 +2205,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsThemeModeDesc => 'アプリのテーマ表示を変更';
 
   @override
+  String get settingsThemePreset => 'テーマスタイル';
+
+  @override
+  String get settingsThemePresetDesc => 'アプリのビジュアルスタイルを選択';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
+
+  @override
   String get settingsDynamicColor => 'ダイナミックカラー';
 
   @override
@@ -2177,13 +2268,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsCancel => 'キャンセル';
 
   @override
-  String get settingsTeamRoleMain => 'メイン開発者 / デザイナー';
+  String get settingsTeamRoleMain => 'メイン開発 / アーキテクチャ / デザイン';
 
   @override
-  String get settingsTeamRoleZeppOS => 'ZeppOS実装';
+  String get settingsTeamRoleHarmonyOS => 'HarmonyOS移植と保守';
 
   @override
-  String get settingsTeamRoleHarmony => 'Harmony 適応';
+  String get settingsTeamRoleDeviceConnection => 'macOS接続最適化への貢献';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'ZeppOS対応と実装';
 
   @override
   String get settingsAboutSoftware => 'ソフトウェア情報';
@@ -2202,9 +2296,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsAboutSoftwareTeam => '開発チーム';
 
   @override
-  String get settingsSpecialThanks => '特別感謝';
-
-  @override
   String get settingsAboutSoftwareBuildInfo => 'ビルド情報';
 
   @override
@@ -2214,30 +2305,30 @@ class AppLocalizationsJa extends AppLocalizations {
   String get acknowledgementsKazumi => 'Material DesignのコンポーネントとUIパターンを参考にしました';
 
   @override
-  String get acknowledgementsAstroBoxPublic =>
-      'UI構成、リソースワークフロー、インタラクション設計を参考にしました';
+  String get acknowledgementsAstroBoxPublic => 'UI構成とインタラクション設計を参考にしました';
 
   @override
-  String get acknowledgementsAstroBoxNgCore =>
-      'Xiaomiデバイスプロトコル、インストール、転送処理を参考にしました';
+  String get acknowledgementsAstroBoxNgCore => 'Xiaomiデバイスプロトコルと転送層、移植・改変';
 
   @override
-  String get acknowledgementsAstroBoxNgBluetooth => 'Bluetooth接続処理を参考にしました';
+  String get acknowledgementsAstroBoxNgPb => 'Xiaomi wearプロトコル定義、原文をそのまま採用';
+
+  @override
+  String get acknowledgementsAstroBoxNgBluetooth => 'Bluetooth接続フローの参考';
 
   @override
   String get acknowledgementsAstroBoxNgAccount =>
-      'Xiaomiアカウントログイン、デバイス同期、認証キー取得処理を参考にしました';
+      'Xiaomiアカウントログインとauthkey取得フローの参考';
 
   @override
   String get acknowledgementsAstroBoxNgProvider =>
-      'コミュニティリソースインデックス、CDN、マニフェスト解析を参考にしました';
+      'コミュニティリソースインデックスとマニフェスト解析フローの参考';
 
   @override
-  String get acknowledgementsAstroBoxNgAppWasm =>
-      'Web Serialとブラウザー側接続処理を参考にしました';
+  String get acknowledgementsAstroBoxNgAppWasm => 'Web Serial接続フローの参考';
 
   @override
-  String get acknowledgementsGadgetbridge => 'ZeppOSおよびウェアラブルプロトコル研究を参考にしました';
+  String get acknowledgementsGadgetbridge => 'ZeppOSプロトコル実装、移植・改変';
 
   @override
   String get acknowledgementsBreezyWeather => '中国向け天気ソース実装の参考';
@@ -2554,6 +2645,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get resourceTypeUnknownCancel => 'キャンセル';
 
   @override
+  String get watchfaceRestrictedTitle => 'インストールできないリソース';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      '知的財産権の尊重および関連ポリシーの遵守のため、Xiaomi社からの要請に基づき、\nOronBoxは公式ウォッチフェイスストアからのものである可能性が高いウォッチフェイスをインストールできません。\nこれが誤検出と思われる場合は、ウォッチフェイスの作成者からご連絡ください。';
+
+  @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
     return '$detectedTypeリソースのようですが、$selectedTypeを選択しています。インストール方法を選択してください';
   }
@@ -2744,6 +2842,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get creatorStateApproved => '承認済み';
+
+  @override
+  String get creatorStateReviewing => '審査中';
+
+  @override
+  String get creatorStatePublishing => '公開中';
 
   @override
   String get creatorStateExternalReview => '外部審査中';
@@ -2969,7 +3073,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get oobeLoginLocalNote =>
-      'XiaomiとAmazfitのサインインはこのデバイス上だけで実行されます。関連データはXiaomi/Amazfit以外の第三者へ送信されません';
+      'XiaomiとAmazfitのサインインはこのデバイス上だけで実行されます\n関連データはXiaomi/Amazfit以外の第三者へ送信されません';
 
   @override
   String get oobeLoginXiaomiDesc => 'バインド済みXiaomiデバイスを同期するためXiaomiアカウントにサインイン';
@@ -2995,6 +3099,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get oobeFinish => '完了';
+
+  @override
+  String get oobeRestoreAction => 'バックアップから復元';
+
+  @override
+  String get oobeRestoreSuccess => 'バックアップを復元しました';
 
   @override
   String get settingsReplayOobe => 'ガイドを再表示';
@@ -3176,6 +3286,31 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String messageReviewerPrefix(String reviewer) {
+    return '審査員：$reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return '操作者：$operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return '関連：$reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return '配信先：$targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return '修正が必要な項目：$items';
+  }
+
+  @override
   String get messageStatusChangedBody => 'この項目の状態が変更されました。';
 
   @override
@@ -3303,53 +3438,85 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settingsAdvancedDescription => 'ログと開発者ツールを表示します';
 
   @override
-  String get debugServerTitle => 'デバッグサービス';
+  String get localServerTitle => 'ローカル API サービス';
 
   @override
-  String get debugServerDescription => '信頼できる開発ツール向けにローカル API を提供します';
+  String get localServerDescription => '外部の開発ツールや自動化向けにローカル API を提供します';
 
   @override
-  String get debugServerEnable => 'デバッグサービスを有効にする';
+  String get localServerEnable => 'ローカル API サービスを有効にする';
 
   @override
-  String get debugServerEnableDescription =>
+  String get localServerEnableDescription =>
       '承認したローカルネットワーク上のクライアントに OronBox の確認と操作を許可します';
 
   @override
-  String get debugServerEndpoint => '接続先';
+  String get localServerEndpoint => '接続先';
 
   @override
-  String get debugServerFingerprint => 'サーバーフィンガープリント';
+  String get localServerFingerprint => 'サーバーフィンガープリント';
 
   @override
-  String get debugServerPendingClients => '承認待ちクライアント';
+  String get localServerPendingClients => '承認待ちペアリング';
 
   @override
-  String get debugServerAuthorizedClients => '承認済みクライアント';
+  String get localServerAuthorizedClients => '承認済みクライアント';
 
   @override
-  String get debugServerApprove => '承認';
+  String get localServerApprove => '承認';
 
   @override
-  String get debugServerReject => '拒否';
+  String get localServerReject => '拒否';
 
   @override
-  String get debugServerRevoke => 'アクセスを取り消す';
+  String get localServerRevoke => 'アクセスを取り消す';
 
   @override
-  String get debugServerNoPendingClients => '承認を待っているクライアントはありません';
+  String get localServerNoPendingClients => '承認を待っているリクエストはありません';
 
   @override
-  String get debugServerNoAuthorizedClients => '承認済みクライアントはありません';
+  String get localServerNoAuthorizedClients => '承認済みクライアントはありません';
 
   @override
-  String get debugServerSecurityNotice => '信頼できるネットワークでのみ有効にしてください';
+  String get localServerSecurityNotice => '信頼できるネットワークでのみ有効にしてください';
 
   @override
-  String get debugServerStartFailed => 'デバッグサービスを起動できませんでした';
+  String get localServerStartFailed => 'ローカル API サービスを起動できませんでした';
 
   @override
-  String get debugServerStopFailed => 'デバッグサービスを停止できませんでした';
+  String get localServerStopFailed => 'ローカル API サービスを停止できませんでした';
+
+  @override
+  String get localServerPairingTitle => 'ローカル API による制御を許可しますか？';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '「$clientName」がウェアラブル管理サービスへのアクセスを要求しています';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Ed25519 SHA-256 フィンガープリント';
+
+  @override
+  String get localServerPairingAlwaysAllow => 'このコンピューターからの接続を常に許可する';
+
+  @override
+  String get localServerPairingAllow => '許可';
+
+  @override
+  String get localServerPairingDeny => '拒否';
+
+  @override
+  String get localServerPairingScopes => '要求された権限';
+
+  @override
+  String get wifiPasswordInputPlaceholder => 'Wi-Fi パスワードを入力';
+
+  @override
+  String get wifiConnectButton => '接続';
+
+  @override
+  String get wifiCancelButton => 'キャンセル';
 
   @override
   String get xmsDeveloperMode => 'XMS開発者モード';
@@ -3784,6 +3951,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deviceHealthSleepAwake => '覚醒';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    return '$countString 回';
+  }
+
+  @override
   String get deviceHealthSleepLight => '浅い睡眠';
 
   @override
@@ -4108,7 +4285,1855 @@ class AppLocalizationsJa extends AppLocalizations {
   String get xiaomiScreenshotFailed => 'スクリーンショットを取得できませんでした';
 
   @override
+  String get xiaomiScreenshotDownloadStarted => 'スクリーンショットのダウンロードを開始しました';
+
+  @override
+  String get xiaomiScreenshotSaveFailed => 'スクリーンショットを保存できませんでした';
+
+  @override
   String xiaomiScreenshotSaved(Object path) {
     return 'ウォッチのスクリーンショットを保存しました：$path';
   }
+
+  @override
+  String get deviceHealthRecoveryTime => '回復時間';
+
+  @override
+  String get deviceHealthTodayLoad => '今日の負荷';
+
+  @override
+  String get deviceHealthSevenDayLoad => '7日間の負荷';
+
+  @override
+  String get deviceHealthLoadLevel => '負荷レベル';
+
+  @override
+  String get deviceHealthFitnessBalance => 'フィットネスバランス';
+
+  @override
+  String get deviceHealthFitnessLevel => 'フィットネス';
+
+  @override
+  String get deviceHealthFatigueLevel => '疲労';
+
+  @override
+  String get deviceHealthTrainingStress => 'トレーニングストレス';
+
+  @override
+  String get deviceHealthTrainingStatus => 'トレーニング状態';
+
+  @override
+  String get deviceHealthSevenDayVitality => '7日間の活力';
+
+  @override
+  String get deviceHealthEarnedToday => '当日獲得';
+
+  @override
+  String get deviceHealthEarnedInPeriod => '選択期間の獲得';
+
+  @override
+  String get deviceHealthModerateIntensity => '中強度';
+
+  @override
+  String get deviceHealthHighIntensity => '高強度';
+
+  @override
+  String get deviceHealthNap => '仮眠';
+
+  @override
+  String get deviceHealthNapSingular => '仮眠';
+
+  @override
+  String get deviceHealthWorkoutOverview => 'ワークアウト概要';
+
+  @override
+  String get deviceHealthWorkoutHistory => '履歴';
+
+  @override
+  String get deviceHealthWorkoutDuration => '時間';
+
+  @override
+  String get deviceHealthWorkoutRoute => 'ルート';
+
+  @override
+  String get deviceHealthWorkoutDetails => '詳細';
+
+  @override
+  String get deviceHealthSwimmingSections => '水泳セクション';
+
+  @override
+  String get deviceHealthWorkoutCharts => 'ワークアウトグラフ';
+
+  @override
+  String get deviceHealthActiveDuration => '有効時間';
+
+  @override
+  String get deviceHealthAveragePace => '平均ペース';
+
+  @override
+  String get deviceHealthBestPace => '最高ペース';
+
+  @override
+  String get deviceHealthHeartRateRange => '心拍範囲';
+
+  @override
+  String get deviceHealthBloodOxygenRange => '血中酸素範囲';
+
+  @override
+  String get deviceHealthMainStroke => '主な泳法';
+
+  @override
+  String get deviceHealthHeartRateZones => '心拍ゾーン';
+
+  @override
+  String deviceHealthZoneLabel(Object zone) {
+    return 'ゾーン $zone';
+  }
+
+  @override
+  String get deviceHealthZoneWarmup => 'ウォームアップ';
+
+  @override
+  String get deviceHealthZoneFatBurning => '脂肪燃焼';
+
+  @override
+  String get deviceHealthZoneAerobic => '有酸素';
+
+  @override
+  String get deviceHealthZoneAnaerobic => '無酸素';
+
+  @override
+  String get deviceHealthZoneExtreme => '極限';
+
+  @override
+  String get deviceHealthRecoveryAfterWorkout => '運動後の心拍回復';
+
+  @override
+  String get deviceHealthRecoveredHeartRate => '回復心拍';
+
+  @override
+  String get deviceHealthRecoveryRate => '回復率';
+
+  @override
+  String get deviceHealthSamples => 'サンプル';
+
+  @override
+  String get deviceHealthAverageSpeed => '平均速度';
+
+  @override
+  String get deviceHealthTopSpeed => '最高速度';
+
+  @override
+  String get deviceHealthAverageStride => '平均ストライド';
+
+  @override
+  String get deviceHealthAverageCadence => '平均ケイデンス';
+
+  @override
+  String get deviceHealthMaximumCadence => '最高ケイデンス';
+
+  @override
+  String get deviceHealthAverageBloodOxygenDetail => '平均血中酸素';
+
+  @override
+  String get deviceHealthTotalAscent => '累計上昇';
+
+  @override
+  String get deviceHealthTotalDescent => '累計下降';
+
+  @override
+  String get deviceHealthAverageAltitude => '平均高度';
+
+  @override
+  String get deviceHealthAerobicEffect => '有酸素効果';
+
+  @override
+  String get deviceHealthAnaerobicEffect => '無酸素効果';
+
+  @override
+  String get deviceHealthPeakEffect => 'ピーク効果';
+
+  @override
+  String get deviceHealthVo2Max => '最大酸素摂取量';
+
+  @override
+  String get deviceHealthBodyEnergyUsed => '身体エネルギー消費';
+
+  @override
+  String get deviceHealthExpectedRecovery => '回復見込み';
+
+  @override
+  String get deviceHealthTrainingLoad => 'トレーニング負荷';
+
+  @override
+  String get deviceHealthVitalityEarned => '獲得活力';
+
+  @override
+  String get deviceHealthAveragePower => '平均パワー';
+
+  @override
+  String get deviceHealthMaximumPower => '最大パワー';
+
+  @override
+  String get deviceHealthArmPulls => 'ストローク数';
+
+  @override
+  String get deviceHealthAverageStrokeRate => '平均ストローク率';
+
+  @override
+  String get deviceHealthMaximumStrokeRate => '最高ストローク率';
+
+  @override
+  String get deviceHealthTurns => 'ターン数';
+
+  @override
+  String get deviceHealthAverageSwolf => '平均 SWOLF';
+
+  @override
+  String get deviceHealthBestSwolf => '最高 SWOLF';
+
+  @override
+  String get deviceHealthPoolLength => 'プール長';
+
+  @override
+  String get deviceHealthJumps => 'ジャンプ数';
+
+  @override
+  String get deviceHealthAverageJumpRate => '平均ジャンプ率';
+
+  @override
+  String get deviceHealthBestJumpRate => '最高ジャンプ率';
+
+  @override
+  String get deviceHealthTrips => 'つまずき';
+
+  @override
+  String get deviceHealthSets => 'セット数';
+
+  @override
+  String get deviceHealthTotalStrokes => '総ストローク数';
+
+  @override
+  String get deviceHealthAverageRowingRate => '平均ストローク率';
+
+  @override
+  String get deviceHealthBestRowingRate => '最高ストローク率';
+
+  @override
+  String get deviceHealthChartHeartRate => '心拍数';
+
+  @override
+  String get deviceHealthChartCadence => 'ケイデンス';
+
+  @override
+  String get deviceHealthChartPace => 'ペース';
+
+  @override
+  String get deviceHealthChartSpeed => '速度';
+
+  @override
+  String get deviceHealthChartPower => 'パワー';
+
+  @override
+  String get deviceHealthChartStrokeRate => 'ストローク率';
+
+  @override
+  String get deviceHealthChartJumpRate => 'ジャンプ率';
+
+  @override
+  String get deviceHealthChartBloodOxygen => '血中酸素';
+
+  @override
+  String get deviceHealthChartStress => 'ストレス';
+
+  @override
+  String get deviceHealthWorkoutOutdoorRunning => '屋外ランニング';
+
+  @override
+  String get deviceHealthWorkoutOutdoorWalking => '屋外ウォーキング';
+
+  @override
+  String get deviceHealthWorkoutIndoorRunning => '屋内ランニング';
+
+  @override
+  String get deviceHealthWorkoutMountaineering => '登山';
+
+  @override
+  String get deviceHealthWorkoutTrailRunning => 'トレイルランニング';
+
+  @override
+  String get deviceHealthWorkoutOutdoorCycling => '屋外サイクリング';
+
+  @override
+  String get deviceHealthWorkoutIndoorCycling => '屋内サイクリング';
+
+  @override
+  String get deviceHealthWorkoutFreeTraining => 'フリートレーニング';
+
+  @override
+  String get deviceHealthWorkoutSwimming => '水泳';
+
+  @override
+  String get deviceHealthWorkoutElliptical => 'エリプティカル';
+
+  @override
+  String get deviceHealthWorkoutRowing => 'ローイング';
+
+  @override
+  String get deviceHealthWorkoutJumpRope => '縄跳び';
+
+  @override
+  String get deviceHealthWorkoutHiking => 'ハイキング';
+
+  @override
+  String get deviceHealthWorkoutGeneric => 'ワークアウト';
+
+  @override
+  String get deviceHealthWorkoutExport => 'FITを書き出す';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FITを書き出しました：$path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return 'FITの書き出しに失敗しました：$error';
+  }
+
+  @override
+  String get deviceHealthStrokeMedley => 'メドレー';
+
+  @override
+  String get deviceHealthStrokeBreaststroke => '平泳ぎ';
+
+  @override
+  String get deviceHealthStrokeFreestyle => '自由形';
+
+  @override
+  String get deviceHealthStrokeBackstroke => '背泳ぎ';
+
+  @override
+  String get deviceHealthStrokeButterfly => 'バタフライ';
+
+  @override
+  String get deviceHealthSectionLabel => 'セクション';
+
+  @override
+  String deviceHealthVitalityRunSuggestion(Object minutes) {
+    return '次の目標まであと $minutes 分ランニング';
+  }
+
+  @override
+  String deviceHealthVitalityActiveMinutes(Object minutes) {
+    return '次の目標まであと $minutes 分の活動';
+  }
+
+  @override
+  String get deviceHealthLatestHeartRate => '最新の心拍数';
+
+  @override
+  String get deviceHealthLatestBloodOxygen => '最新の血中酸素';
+
+  @override
+  String get deviceHealthLatestStress => '最新のストレス';
+
+  @override
+  String get deviceHealthDebugSnapshots => '活動ファイル';
+
+  @override
+  String get deviceHealthDebugSnapshotList => '活動ファイル';
+
+  @override
+  String get deviceHealthDebugSnapshotsDescription => '保存された活動ファイルをエクスポートできます';
+
+  @override
+  String get deviceHealthDebugRefresh => '更新';
+
+  @override
+  String get deviceHealthDebugRefreshDescription =>
+      'Reload the saved activity file list';
+
+  @override
+  String get deviceHealthDebugClearAll => 'すべて削除';
+
+  @override
+  String get deviceHealthDebugClearAllDescription =>
+      'Delete every saved activity file';
+
+  @override
+  String get deviceHealthDebugNoSnapshots => '活動ファイルはありません';
+
+  @override
+  String get deviceHealthDebugReload => '再生';
+
+  @override
+  String get deviceHealthDebugReloaded => 'Activity file replayed';
+
+  @override
+  String deviceHealthDebugFiles(Object count) {
+    return '$count 個のファイル';
+  }
+
+  @override
+  String get creatorAccounts => 'アカウント';
+
+  @override
+  String get creatorPendingItems => '対応が必要な項目';
+
+  @override
+  String get creatorResourceStatus => 'リソースの状態';
+
+  @override
+  String get creatorOverview => '概要';
+
+  @override
+  String get creatorManage => '管理';
+
+  @override
+  String get creatorManageUnavailable => '管理機能は現在利用できません';
+
+  @override
+  String get creatorReviewTab => '審査';
+
+  @override
+  String get creatorReviewQueue => '審査キュー';
+
+  @override
+  String get creatorReviewStatus => '審査状態';
+
+  @override
+  String get creatorReviewActive => '進行中';
+
+  @override
+  String get creatorReviewChangesRequested => '修正が必要';
+
+  @override
+  String get creatorReviewDeclined => '拒否済み';
+
+  @override
+  String get creatorReviewClosed => 'クローズ済み';
+
+  @override
+  String get creatorReviewFixedPending => '修正済み・再審査待ち';
+
+  @override
+  String get creatorNoPendingReviews => '保留中の審査はありません';
+
+  @override
+  String get creatorNoReviews => '審査はありません';
+
+  @override
+  String get creatorNeedsChanges => '修正が必要';
+
+  @override
+  String get creatorConnected => '接続済み';
+
+  @override
+  String get creatorNotConnected => '未接続';
+
+  @override
+  String get creatorCenterExitTitle => 'クリエイターセンターを終了';
+
+  @override
+  String get creatorCenterExitMessage => 'クリエイターセンターを終了してもよろしいですか？';
+
+  @override
+  String get creatorEditComment => 'コメントを編集';
+
+  @override
+  String get creatorReply => '返信';
+
+  @override
+  String creatorReplyingTo(Object id) {
+    return '#$id に返信中';
+  }
+
+  @override
+  String creatorReplyPrefix(Object id) {
+    return '返信 #$id: ';
+  }
+
+  @override
+  String get creatorSupplement => '補足';
+
+  @override
+  String get creatorModifyResource => 'リソースを修正';
+
+  @override
+  String get creatorAstroBoxReview => 'AstroBox 審査';
+
+  @override
+  String get creatorGithubPr => 'GitHub リポジトリと PR';
+
+  @override
+  String get creatorApplyChanges => '変更を適用';
+
+  @override
+  String get creatorUpdatedAt => '更新日時';
+
+  @override
+  String get creatorSubmittedAt => '提出日時';
+
+  @override
+  String get creatorPublicationStatus => '公開状態';
+
+  @override
+  String get creatorStageInfo => '情報の編集';
+
+  @override
+  String get creatorStageFiles => 'ファイルの紐付け';
+
+  @override
+  String get creatorStagePublish => '公開設定';
+
+  @override
+  String get creatorNextStep => '次へ';
+
+  @override
+  String get creatorWatchfaceMissingId =>
+      'ウォッチフェイスの認識に失敗、または全てゼロ：ID がないためアップロードできません';
+
+  @override
+  String get creatorWatchfaceZeroIdTitle =>
+      'ウォッチフェイス ID が全てゼロです。修正してからアップロードしてください';
+
+  @override
+  String get creatorWatchfacePayloadTooShort =>
+      'このウォッチフェイスファイルは小さすぎて ID フィールドを含できません';
+
+  @override
+  String get creatorQuickAppMissingPackage =>
+      'クイックアプリの認識に失敗：パッケージ名がないためアップロードできません';
+
+  @override
+  String get creatorVelajsDefaultPackage =>
+      'クイックアプリのパッケージ名が com.application.watch.demo です。これは VelaJS プロジェクトの既定値なので、変更してからアップロードしてください';
+
+  @override
+  String get creatorFilteredSupport => 'サポートを絞り込み';
+
+  @override
+  String get creatorSkippedPublication => '公開をスキップ';
+
+  @override
+  String get creatorAstroBoxUnsupportedDevicesNotice =>
+      '選択した一部の対応デバイスは AstroBox への同期公開に未対応のため、これらのサポート宣言を除外します';
+
+  @override
+  String get creatorBandBbsUnsupportedDevicesNotice =>
+      '選択した一部の対応デバイスは BandBBS への同期公開に未対応のため、これらの公開をスキップします';
+
+  @override
+  String get errorSppBondRemovalFailed =>
+      'Android 11 未満ではシステムが removeBond をサポートしていません。頻繁に切断される場合は、Xiaomi Fitness で別のデバイスに切り替えるか、「付近のデバイス」権限をオフにしてください';
+
+  @override
+  String get viewAllResources => 'すべて表示';
+
+  @override
+  String get deviceHealthMinimum => '最低';
+
+  @override
+  String get deviceHealthMaximum => '最高';
+
+  @override
+  String get deviceHealthResting => '安静時';
+
+  @override
+  String get deviceHealthDebugExport => '活動ファイルをエクスポート';
+
+  @override
+  String get deviceHealthDebugExportTooltip => '活動ファイルをエクスポート';
+
+  @override
+  String deviceHealthDebugExported(String path) {
+    return '活動ファイルを $path にエクスポートしました';
+  }
+
+  @override
+  String deviceHealthDebugExportFailed(String error) {
+    return '活動ファイルをエクスポートできませんでした: $error';
+  }
+
+  @override
+  String get deviceHealthDebugImport => '活動ファイルをインポート';
+
+  @override
+  String get deviceHealthDebugImportDescription => '以前にエクスポートした活動ファイルをインポート';
+
+  @override
+  String deviceHealthDebugImported(String deviceCode, int files) {
+    return '$deviceCode をインポートしました（$files ファイル）';
+  }
+
+  @override
+  String deviceHealthDebugImportFailed(String error) {
+    return '活動ファイルをインポートできませんでした: $error';
+  }
+
+  @override
+  String get commentDeletedPlaceholder => 'コメントは削除されました';
+
+  @override
+  String commentViewReplies(int count) {
+    return '$count 件の返信をすべて表示';
+  }
+
+  @override
+  String get commentThreadTitle => 'コメント詳細';
+
+  @override
+  String commentReplyTarget(String username) {
+    return '$username に返信';
+  }
+
+  @override
+  String get commentLoadEarlier => '以前の返信を読み込む';
+
+  @override
+  String get messageCommentCreatedTitle => 'リソースへの新しいコメント';
+
+  @override
+  String get scanQrCode => 'QR コードをスキャン';
+
+  @override
+  String get deviceSwitchQrImport => '共有 QR コードをスキャンして既存のデバイスを追加';
+
+  @override
+  String get creatorCollectionReplacePendingDescription =>
+      '審査待ちのバージョンを置き換えます\n公開済みのバージョンは引き続き利用できます';
+
+  @override
+  String get creatorCollectionNoMatchingResources =>
+      '同じ種類のリソースがありません\n先にクリエイターセンターで作成してください';
+
+  @override
+  String get commentCreateFailed => 'コメントを投稿できませんでした 再試行してください';
+
+  @override
+  String get commentsReadFailed => 'コメントを読み込めませんでした 再試行してください';
+
+  @override
+  String get commentDeleteFailed => 'コメントを削除できませんでした 再試行してください';
+
+  @override
+  String get errorRequestTimeout => 'リクエストがタイムアウトしました 再試行してください';
+
+  @override
+  String get creatorCollectionReplacePendingTitle => '審査待ちのバージョンを置き換えますか？';
+
+  @override
+  String get creatorCollectionReplaceAndSubmit => '置き換えて審査に提出';
+
+  @override
+  String get creatorCollectionCreateTitle => 'コレクションを作成';
+
+  @override
+  String get creatorCollectionEditTitle => 'コレクションを編集';
+
+  @override
+  String creatorCollectionCurrentRevision(String number) {
+    return '公開中のバージョン：$number';
+  }
+
+  @override
+  String creatorCollectionPendingRevision(String number) {
+    return '審査待ちのバージョン：$number';
+  }
+
+  @override
+  String get creatorCollectionHistory => '過去のバージョンを表示';
+
+  @override
+  String get creatorCollectionBody => '本文（Markdown）';
+
+  @override
+  String get creatorMediaIcon => 'アイコン';
+
+  @override
+  String get creatorMediaCover => 'カバー';
+
+  @override
+  String get creatorMediaUnset => '未設定';
+
+  @override
+  String get creatorMediaSet => '設定済み';
+
+  @override
+  String get creatorCollectionMemberOrder => 'メンバーの順序と代表リソース';
+
+  @override
+  String get creatorCollectionMemberUnavailable => 'リソースを利用できません 削除してください';
+
+  @override
+  String get creatorCollectionSetRepresentative => '代表リソースに設定';
+
+  @override
+  String get creatorCollectionAddMember => 'メンバーを追加';
+
+  @override
+  String get creatorImageReadFailed => '画像を読み込めません';
+
+  @override
+  String get creatorImageProcessFailed => '画像を処理できません';
+
+  @override
+  String get creatorPublicationRetry => '公開を再試行';
+
+  @override
+  String get creatorTermsLoadFailed => '公開条件を読み込めません';
+
+  @override
+  String get creatorReviewItems => '修正項目';
+
+  @override
+  String get creatorReviewFixReplied => '修正を報告済み';
+
+  @override
+  String get creatorReviewReplyFix => '修正を報告';
+
+  @override
+  String get creatorTermsUpdated => '公開条件が更新されました';
+
+  @override
+  String get creatorPublishingLater => '今は公開しない';
+
+  @override
+  String get creatorTermsAgree => '確認して同意';
+
+  @override
+  String get updateAssetUnavailable => 'このバージョンには現在の環境用のインストーラーがありません';
+
+  @override
+  String get legalDocumentUnavailable => '文書を利用できません 再試行してください';
+
+  @override
+  String get deviceImportTitle => 'デバイスをインポート';
+
+  @override
+  String get qrScanFromImage => '画像から読み取る';
+
+  @override
+  String get qrScanNoCode => 'QRコードが見つかりません';
+
+  @override
+  String get qrScanImageFailed => 'この画像を読み取れません';
+
+  @override
+  String get qrScanCameraUnavailable => 'カメラを利用できません\n画像からQRコードを読み取れます';
+
+  @override
+  String get qrScanChooseCode => 'QRコードを選択';
+
+  @override
+  String qrScanCodeLabel(int index) {
+    return 'QRコード $index';
+  }
+
+  @override
+  String get qrScanUnsupported => 'このプラットフォームではQRコードを読み取れません';
+
+  @override
+  String get featureLabTitle => '機能ラボ';
+
+  @override
+  String get featureLabDescription => '開発中の機能を試す';
+
+  @override
+  String get voiceAssistantDescription => 'デバイスの音声を受信・再生して返信';
+
+  @override
+  String get voiceLabConnectDevice => 'デバイスを接続して音声アシスタントを起動してください';
+
+  @override
+  String get voiceLabCaptureLimit => '録音の上限に達しました 録音を消去して再試行してください';
+
+  @override
+  String get voiceLabReplyTooLong => '返信が長すぎます';
+
+  @override
+  String get voiceLabRecognitionLabel => '認識結果';
+
+  @override
+  String get voiceLabRecognitionHint => '認識した言葉を入力';
+
+  @override
+  String get appDataTitle => 'アプリデータ';
+
+  @override
+  String get appDataDescription => '保存容量の確認とファイルの書き出し';
+
+  @override
+  String get appDataSpaceUsage => '分類別の使用量';
+
+  @override
+  String get appDataHealth => '活動ファイル';
+
+  @override
+  String get appDataPlugins => 'プラグイン';
+
+  @override
+  String get appDataZeppos => 'ZeppOS アプリデータ';
+
+  @override
+  String get appDataRecovery => 'インポート復旧データ';
+
+  @override
+  String get appDataDownloads => 'リソースと更新のダウンロード';
+
+  @override
+  String get appDataPluginCache => 'プラグインキャッシュ';
+
+  @override
+  String get appDataManageSnapshots => '保存された活動ファイルを管理';
+
+  @override
+  String get appDataExported => '書き出したファイルを保存しました';
+
+  @override
+  String get appDataLoadFailed => 'アプリデータを読み取れません';
+
+  @override
+  String get appDataExportFailed => 'ファイルを書き出せません';
+
+  @override
+  String get appDataArchiveTooLarge =>
+      'Activity files are too large, export them separately';
+
+  @override
+  String get appDataUpdateFailed => 'アプリデータを更新できません';
+
+  @override
+  String get appDataBackup => 'バックアップを書き出す';
+
+  @override
+  String get appDataBackupDescription => '保存するローカルデータを選んで書き出す';
+
+  @override
+  String get appDataRestore => 'バックアップを復元';
+
+  @override
+  String get appDataRestoreDescription => '復元するデータを選択\n同じデバイスのローカル履歴を置き換えます';
+
+  @override
+  String get appDataSettings => 'アプリ設定';
+
+  @override
+  String appDataHealthDevices(int count) {
+    return 'ヘルスケア履歴（$count 台）';
+  }
+
+  @override
+  String get appDataRestored => '復元しました\nすべての設定を反映するには再起動してください';
+
+  @override
+  String get appDataRestoreFailed => 'バックアップを復元できません';
+
+  @override
+  String get appDataRecover => '前回の復元を取り消す';
+
+  @override
+  String get appDataRecoveryPending => '前回の復元が中断されました';
+
+  @override
+  String get appDataRecoverDescription =>
+      '前回のインポート前の設定と履歴に戻します\nその後追加されたローカル履歴も置き換えます';
+
+  @override
+  String get voiceAsrMethod => '認識方式';
+
+  @override
+  String get voiceAsrManual => '手動入力';
+
+  @override
+  String get voiceAsrLocal => 'ローカル認識';
+
+  @override
+  String get voiceAsrWeType => 'WeChat 入力';
+
+  @override
+  String get voiceAsrDoubao => 'Doubao 入力';
+
+  @override
+  String get voiceAsrWasm => 'WASM 実験';
+
+  @override
+  String voiceAsrCloudConsent(String provider) {
+    return '音声を$providerに送信して認識します\nこのページの使用中のみ送信します';
+  }
+
+  @override
+  String get voiceAsrPreparing => '認識を準備中';
+
+  @override
+  String get voiceAsrRecognizing => '認識中';
+
+  @override
+  String get voiceAsrFinishing => '最後の音声を処理中';
+
+  @override
+  String get voiceAsrFinished => '認識完了';
+
+  @override
+  String get voiceAsrModelReady => '中国語と英語のローカル認識を利用できます';
+
+  @override
+  String get voiceAsrModelDescription => '中国語と英語をローカルで認識\n初回はモデルと実行環境をダウンロード';
+
+  @override
+  String get voiceAsrDownloadModel => '認識データをダウンロード';
+
+  @override
+  String get voiceAsrDeleteModel => '認識データを削除';
+
+  @override
+  String get voiceAsrSendRecognition => '認識結果を送信';
+
+  @override
+  String get voiceAsrModelMissing => 'ローカル認識データをダウンロードしてください';
+
+  @override
+  String get voiceAsrModelDamaged => '認識データが破損しています\n削除して再ダウンロードしてください';
+
+  @override
+  String get voiceAsrDownloadFailed => 'ダウンロードできません\n接続を確認して再試行してください';
+
+  @override
+  String get voiceAsrRegistrationFailed => '認識サービスを開始できません\n後で再試行してください';
+
+  @override
+  String get voiceAsrServiceRejected => '認識サービスがリクエストを拒否しました';
+
+  @override
+  String get voiceAsrTimeout => '認識がタイムアウトしました\nもう一度話してください';
+
+  @override
+  String get voiceAsrOpusUnsupported => 'このデバイスの音声は WeChat 入力に対応していません';
+
+  @override
+  String get voiceAsrUnsupported => 'このプラットフォームでは利用できません';
+
+  @override
+  String get voiceAsrTooSlow => '認識処理が遅すぎます\nこの会話を終了して再試行してください';
+
+  @override
+  String get voiceAsrNoSpeech => '音声を認識できませんでした';
+
+  @override
+  String get voiceAsrInvalidResponse => '認識サービスから無効な結果が返されました';
+
+  @override
+  String get voiceAsrInferenceFailed => 'ローカル認識に失敗しました\n認識方式を選び直してください';
+
+  @override
+  String get voiceAsrCancelled => '認識をキャンセルしました';
+
+  @override
+  String get voiceAsrConnectionFailed => '認識サービスに接続できません\n接続を確認して再試行してください';
+
+  @override
+  String get appDataModels => '音声認識データ';
+
+  @override
+  String get appDataTasks => 'タスク履歴';
+
+  @override
+  String get appDataDocuments => '文書キャッシュ';
+
+  @override
+  String get privateStateLoadFailed => '保存済みのアカウントとデバイスを読み込めません\n再試行してください';
+
+  @override
+  String get privateStateSaveFailed => 'アカウントまたはデバイスの変更を保存できません\n再試行してください';
+
+  @override
+  String get resetPrivateStorageAction => 'ローカル資格情報をリセット';
+
+  @override
+  String get resetPrivateStorageTitle => 'アカウントとデバイスをリセット';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      'リセット後にアカウントの再ログインとデバイスの再接続が必要です\n保存済みのヘルスケア履歴やアプリ設定は失われません';
+
+  @override
+  String get confirmReset => 'リセット';
+
+  @override
+  String get voiceAsrStorageFull => '空き容量が不足しています\n空き容量を増やして再試行してください';
+
+  @override
+  String get voiceAsrReconnect => '音声認識サービスに再接続';
+
+  @override
+  String get voiceAsrReconnectDescription =>
+      'この音声認識サービスに再登録します\nログイン中のアカウントには影響しません';
+
+  @override
+  String get voiceAsrReconnectFailed => '再接続できませんでした';
+
+  @override
+  String get appDataClearCache => 'キャッシュを削除';
+
+  @override
+  String get appDataClearCacheDescription =>
+      '画像、プラグイン、文書のキャッシュと期限切れ一時ファイルを削除\n実行中のプラグインとデバイスアプリを停止します';
+
+  @override
+  String get appDataCacheCleared => 'キャッシュを削除しました';
+
+  @override
+  String get voiceAsrReplayRecording => '録音を再生して認識';
+
+  @override
+  String get voiceAsrImportWave => 'WAV を読み込む';
+
+  @override
+  String get voiceAsrReplayDescription =>
+      '認識方法を選択して録音または WAV を認識\n16 kHz モノラル PCM16、最長 60 秒\nオンライン認識では選択したサービスへ音声を送信します';
+
+  @override
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor) {
+    return '所要時間 $elapsed ms · 最初の結果 $first ms · RTF $factor';
+  }
+
+  @override
+  String get voiceAsrExportReport => 'テスト結果を出力';
+
+  @override
+  String get voiceAsrWaveFormat => '16 kHz モノラル PCM16 WAV を選択してください\n最長 60 秒';
+
+  @override
+  String get voiceAsrReplayBusy => '現在の音声または認識を終了してください';
+
+  @override
+  String get appDataExtensionSettings => 'プラグインとデバイスアプリのデータ';
+
+  @override
+  String get appDataExtensionSettingsDescription => 'プラグインとデバイスアプリの設定とデータ';
+
+  @override
+  String get appDataExtensionMissing =>
+      '復元する前に同じバージョンのプラグインと対応アプリをインストールしてください';
+
+  @override
+  String get appDataImageCache => '画像キャッシュ';
+
+  @override
+  String get appDataSelectBackup => 'バックアップするデータを選択';
+
+  @override
+  String get appDataSettingsDescription => 'テーマ、言語、機能の設定';
+
+  @override
+  String get appDataHealthDescription => '端末から同期した運動・健康データ';
+
+  @override
+  String get appDataDeviceKeys => 'デバイスのペアリングと鍵';
+
+  @override
+  String get appDataDeviceKeysDescription => '保存したデバイスと接続用の認証情報';
+
+  @override
+  String get appDataXiaomiAccount => 'Xiaomi と Amazfit の認証情報';
+
+  @override
+  String get appDataXiaomiAccountDescription => 'アカウントのパスワードと現在のログインセッション';
+
+  @override
+  String get appDataSensitiveBackup =>
+      'バックアップには暗号化されていないアカウント情報が含まれます\n安全に保管し、共有しないでください';
+
+  @override
+  String get appDataImportDescription => 'バックアップからデータを選んで復元';
+
+  @override
+  String get appDataPluginDescription => 'インストール済みプラグインとデータ';
+
+  @override
+  String get appDataZepposDescription => 'デバイスアプリのスクリプトと設定';
+
+  @override
+  String get appDataLogsDescription => 'アプリの動作と問題調査のログ';
+
+  @override
+  String get appDataRecoveryDescription => '中断した復元に備えて保持するデータ';
+
+  @override
+  String get appDataDownloadsDescription => 'ダウンロードとインストールの一時ファイル';
+
+  @override
+  String get appDataPluginCacheDescription => 'プラグインのキャッシュと一時ファイル';
+
+  @override
+  String get appDataImagesDescription => 'リソース閲覧で保存した画像キャッシュ';
+
+  @override
+  String get appDataModelsDescription => 'ダウンロード済みの音声モデルと実行環境';
+
+  @override
+  String get appDataTasksDescription => 'ダウンロードとインストールの進捗';
+
+  @override
+  String get appDataDocumentsDescription => '規約とプライバシー情報のローカルコピー';
+
+  @override
+  String get phoneLocationTitle => '測位アシスト';
+
+  @override
+  String get deviceFeaturesGroupTitle => '機能とツール';
+
+  @override
+  String get deviceSettingsGroupTitle => 'デバイス設定とメンテナンス';
+
+  @override
+  String get phoneLocationStatusSection => 'ステータス';
+
+  @override
+  String get phoneLocationPermissionsSection => '権限とシステム設定';
+
+  @override
+  String get phoneLocationOptionsSection => '連携オプション';
+
+  @override
+  String get phoneLocationReady => 'アシスト位置情報は準備完了';
+
+  @override
+  String get phoneLocationReadyDesc => '屋外ワークアウトの開始時に自動で位置情報を提供します';
+
+  @override
+  String get phoneLocationServiceEnabled => '位置情報サービス';
+
+  @override
+  String get phoneLocationPreciseTitle => '正確な位置情報';
+
+  @override
+  String get phoneLocationPreciseGranted => '高精度な位置情報を許可済み';
+
+  @override
+  String get phoneLocationPreciseDenied => '正確な位置情報が未許可です';
+
+  @override
+  String get phoneLocationBackgroundTitle => 'バックグラウンド位置情報';
+
+  @override
+  String get phoneLocationBackgroundAlways => '常に許可';
+
+  @override
+  String get phoneLocationBackgroundWhileInUse => '使用中のみ許可';
+
+  @override
+  String get phoneLocationBackgroundDenied => '未許可';
+
+  @override
+  String get phoneLocationAutoSync => '自動アシスト位置情報';
+
+  @override
+  String get phoneLocationAutoSyncDesc => 'デバイスが屋外ワークアウトを開始した際に端末のGPSを提供します';
+
+  @override
+  String get phoneLocationEnabledText => 'オン';
+
+  @override
+  String get phoneLocationDisabledText => 'オフ';
+
+  @override
+  String get phoneLocationNotification => '運動中の位置をデバイスに送信';
+
+  @override
+  String get phoneLocationDescription => '運動の準備中と実行中に位置情報を提供';
+
+  @override
+  String get phoneLocationOpenApp => 'OronBox を開いて測位を続行';
+
+  @override
+  String get phoneLocationRecovery => 'アプリを開いてデバイスから運動をやり直してください';
+
+  @override
+  String get phoneLocationPermission => '正確な位置情報の権限が必要です';
+
+  @override
+  String get phoneLocationBackground => 'バックグラウンド測位を許可';
+
+  @override
+  String get phoneLocationBackgroundDescription => 'バックグラウンドで運動の測位要求を受信';
+
+  @override
+  String get phoneLocationSettings => 'システム設定を開く';
+
+  @override
+  String get phoneLocationServiceOff => '位置情報サービスが無効です';
+
+  @override
+  String get phoneLocationPermissionHelp => '正確な位置情報を許可して再試行してください';
+
+  @override
+  String get phoneLocationMobileOnly => 'Android と iOS で利用できます';
+
+  @override
+  String get phoneLocationUnavailable => '位置を取得できません\n位置情報の権限とサービスを確認してください';
+
+  @override
+  String get deviceConnectionAbnormalTitle => 'デバイス接続の問題';
+
+  @override
+  String get deviceConnectionAbnormalMessage =>
+      'デバイスが頻繁に切断されています。再ペアリングするか、デバイスを「新しいスマホに接続」モードにして接続を安定させてください。';
+
+  @override
+  String get deviceRePair => '再ペアリング';
+
+  @override
+  String appDataClearCategoryTitle(String category) {
+    return '$categoryを削除しますか？';
+  }
+
+  @override
+  String get appDataClearCategoryDescription =>
+      '選択したローカルデータを削除します\n他のカテゴリは保持されます';
+
+  @override
+  String get appDataClearHealthDescription =>
+      '同期された活動ファイルが削除されます\nローカルの運動・健康データが消去されます';
+
+  @override
+  String get appDataClearCachedCategoryDescription =>
+      '未使用のキャッシュのみ削除します\n必要に応じて再ダウンロードされます';
+
+  @override
+  String get appDataClearModelsDescription =>
+      '現在のモデルを保持します\n未使用の旧バージョンと期限切れのダウンロードを削除します';
+
+  @override
+  String get settingsPermissionsTitle => '権限管理';
+
+  @override
+  String get settingsPermissionsDesc => '測位アシストとバックグラウンド権限';
+
+  @override
+  String get appArrangementTitle => 'アプリ配置';
+
+  @override
+  String get appArrangementDescription => 'アプリの表示順とドロワーの配置を調整します';
+
+  @override
+  String get appOrderMainSection => '表示アプリ';
+
+  @override
+  String get appOrderMoreSection => 'その他のアプリ';
+
+  @override
+  String get appOrderHiddenSection => '非表示アプリ';
+
+  @override
+  String get appOrderMoreSectionDesc => 'デバイスのサブドロワーに表示されるアプリ';
+
+  @override
+  String get appOrderHiddenSectionDesc => 'デバイス上に表示しないアプリ';
+
+  @override
+  String get appOrderMoveToMore => 'その他に移動';
+
+  @override
+  String get appOrderMoveToMain => 'リストに移動';
+
+  @override
+  String get appOrderHide => '非表示';
+
+  @override
+  String get appOrderUnhide => '表示';
+
+  @override
+  String get appOrderCannotHide => 'システム常駐アプリは非表示にできません';
+
+  @override
+  String get privateStateAccessPromptTitle =>
+      'OronBox は安全なストレージで保護されたアカウント資格情報へのアクセスが必要です';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      'システム認証ダイアログが表示された場合は、ログインパスワードを入力し、プロンプトが繰り返されないよう「常に許可」をクリックしてください';
+
+  @override
+  String get privateStateAccessPromptLinux =>
+      'システムロック解除ダイアログが表示された場合は、ユーザーパスワードを入力してキーリングを解除してください';
+
+  @override
+  String get creatorSubmissionPreview => '送信内容を確認';
+
+  @override
+  String get creatorResourceBinding => 'リソースの関連付け';
+
+  @override
+  String get creatorPublicationIdentity => '公開アカウント';
+
+  @override
+  String get creatorPublicationRange => '今回の公開内容';
+
+  @override
+  String get creatorNewPublication => '初回公開';
+
+  @override
+  String get creatorUpdatePublication => '既存のリソースを更新';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return 'PR #$number に追加';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return '公開対象外のデバイス：$devices';
+  }
+
+  @override
+  String get creatorBackToEdit => '編集に戻る';
+
+  @override
+  String get creatorPackageVersionCodeMissing =>
+      'パッケージに有効なバージョンコードがありません\n再ビルドしてアップロードしてください';
+
+  @override
+  String get creatorReopenSubmission => '再審査を申請';
+
+  @override
+  String get creatorReopenRequested => '再審査を申請しました';
+
+  @override
+  String get creatorFixesForSubmission => '今回修正した項目';
+
+  @override
+  String get creatorFixNote => '修正内容';
+
+  @override
+  String get creatorNameRequired => 'リソース名を入力してください';
+
+  @override
+  String get creatorSummaryRequired => 'リソースの概要を入力してください';
+
+  @override
+  String get creatorSubmitForReview => '審査に提出';
+
+  @override
+  String get creatorAstroBoxPRBody => 'PR の説明（任意）';
+
+  @override
+  String get autoBackupTitle => '定期バックアップ';
+
+  @override
+  String get autoBackupDescription => '定期的にアプリデータをシステムドキュメントへバックアップ';
+
+  @override
+  String get autoBackupEnabled => '定期バックアップを有効化';
+
+  @override
+  String get autoBackupInterval => 'バックアップ頻度';
+
+  @override
+  String get autoBackupEvery => '間隔';
+
+  @override
+  String get autoBackupUnitDay => '日ごと';
+
+  @override
+  String get autoBackupUnitWeek => '週間ごと';
+
+  @override
+  String get autoBackupUnitMonth => 'か月ごと';
+
+  @override
+  String get autoBackupRetention => '保持世代数';
+
+  @override
+  String autoBackupRetentionCount(int count) {
+    return '$count 世代';
+  }
+
+  @override
+  String get autoBackupRetentionUnlimited => '制限なし';
+
+  @override
+  String get autoBackupPasswordEnable => 'パスワード保護';
+
+  @override
+  String get autoBackupPasswordEnableDesc => '標準 AES-256 でバックアップを暗号化';
+
+  @override
+  String get autoBackupPassword => 'パスワード';
+
+  @override
+  String get autoBackupPasswordConfirm => 'パスワードの確認';
+
+  @override
+  String get autoBackupPasswordMismatch => '入力されたパスワードが一致しません';
+
+  @override
+  String get autoBackupPasswordPlaceholder => 'パスワードを入力';
+
+  @override
+  String get autoBackupScope => 'バックアップ範囲';
+
+  @override
+  String get autoBackupScopeSettings => 'アプリ設定';
+
+  @override
+  String get autoBackupScopeHealth => '健康データ';
+
+  @override
+  String get autoBackupScopeExtensions => '拡張機能とミニアプリ';
+
+  @override
+  String get autoBackupScopeDevices => 'デバイス接続情報';
+
+  @override
+  String get autoBackupStorageLocation => '保存場所';
+
+  @override
+  String get autoBackupStorageLocationDesc => 'バックアップはシステムの共有ドキュメントフォルダに保存されます';
+
+  @override
+  String get autoBackupOpenFolder => 'ファイルマネージャーで開く';
+
+  @override
+  String autoBackupStatusEnabled(int value, String unit) {
+    return '有効 · $value $unit';
+  }
+
+  @override
+  String get autoBackupStatusDisabled => '無効';
+
+  @override
+  String get autoBackupRunNow => '今すぐバックアップ';
+
+  @override
+  String get autoBackupRunSuccess => '定期バックアップが完了しました';
+
+  @override
+  String get autoBackupRunFailed => '定期バックアップに失敗しました';
+
+  @override
+  String get backupPasswordDialogTitle => 'パスワードを入力';
+
+  @override
+  String get backupPasswordDialogMessage =>
+      'このバックアップは暗号化されています\n復元するにはパスワードを入力してください';
+
+  @override
+  String get backupPasswordIncorrect => 'パスワードが正しくありません';
+
+  @override
+  String get backupPasswordRequired => 'パスワードを入力してください';
+
+  @override
+  String get exportBackupPasswordOptional => '暗号化パスワード（任意）';
+
+  @override
+  String get exportBackupPasswordPlaceholder => '空欄の場合は暗号化されません';
+
+  @override
+  String get backupTargetPublicDocuments => 'システム書類フォルダーに保存';
+
+  @override
+  String get backupTargetCustom => '外部ファイルとして保存';
+
+  @override
+  String get restoreFromDocumentsTitle => '復元するバックアップを選択';
+
+  @override
+  String get restorePickExternalFile => '別の外部ファイルを選択...';
+
+  @override
+  String get backupSavedToDocuments => 'バックアップをシステム書類フォルダーに保存しました';
+
+  @override
+  String get appDataExporting => 'バックアップをエクスポートおよび暗号化しています...';
+
+  @override
+  String get appDataDecrypting => 'バックアップを復号しています...';
+
+  @override
+  String get appDataRestoring => 'データを復元しています...';
+
+  @override
+  String get autoBackupRetentionInputHint => '0 で無制限';
+
+  @override
+  String get autoBackupRetentionLabel => '保持世代数（0 で無制限）';
+
+  @override
+  String get autoBackupRetentionUnit => '世代';
+
+  @override
+  String get backupTypeAuto => '定期バックアップ';
+
+  @override
+  String get backupTypeManual => '手動バックアップ';
+
+  @override
+  String autoBackupStatusDetail(int value, String unit, String retentionText) {
+    return '有効 · $value $unit · $retentionText 保持';
+  }
+
+  @override
+  String get globalAiTitle => 'Global AI';
+
+  @override
+  String get globalAiDescription =>
+      'Configure LLM and wearable voice assistant integration';
+
+  @override
+  String get globalAiEnableSwitch => 'Enable Global AI';
+
+  @override
+  String get globalAiEnableSwitchDesc =>
+      'Enable client-wide LLM integration and intelligent capabilities';
+
+  @override
+  String get globalAiProviders => 'Provider Management';
+
+  @override
+  String globalAiProvidersCount(int count) {
+    return '$count providers configured';
+  }
+
+  @override
+  String get globalAiModelSettings => 'Model Settings';
+
+  @override
+  String get globalAiTestConnection => 'Test Connection';
+
+  @override
+  String get globalAiStreamResponse => 'Streaming Response';
+
+  @override
+  String get globalAiStreamResponseDesc =>
+      'Stream output progressively to wearable device';
+
+  @override
+  String get globalAiWearableSection => 'Wearable Device';
+
+  @override
+  String get globalAiWearableEnable => 'Wearable Enable';
+
+  @override
+  String get globalAiWearableEnableDesc =>
+      'Wearable voice assistant will be handled by LLM when triggered';
+
+  @override
+  String get globalAiWearableAdvancedSettings => 'Wearable Settings';
+
+  @override
+  String get globalAiToolsScope => 'Tool Permission Scopes';
+
+  @override
+  String get globalAiToolDeviceStatus => 'Device Status';
+
+  @override
+  String get globalAiToolDeviceStatusDesc =>
+      'Read device connection, battery and basic info';
+
+  @override
+  String get globalAiToolHealthData => 'Health Data';
+
+  @override
+  String get globalAiToolHealthDataDesc =>
+      'Read steps, calories, distance and heart rate';
+
+  @override
+  String get globalAiToolWeather => 'Weather Query';
+
+  @override
+  String get globalAiToolWeatherDesc => 'Query real-time weather and forecast';
+
+  @override
+  String get globalAiToolSearchResources => 'Search Resources';
+
+  @override
+  String get globalAiToolSearchResourcesDesc =>
+      'Search watch faces and third-party apps';
+
+  @override
+  String get globalAiToolInstallResources => 'Install Resources';
+
+  @override
+  String get globalAiToolInstallResourcesDesc =>
+      'Download and install watch faces or apps to device';
+
+  @override
+  String get globalAiToolDeleteResources => 'Delete Resources';
+
+  @override
+  String get globalAiToolDeleteResourcesDesc =>
+      'Uninstall or delete resources on device';
+
+  @override
+  String get globalAiToolManageAlarms => 'Manage Alarms';
+
+  @override
+  String get globalAiToolManageAlarmsDesc => 'Create or manage wearable alarms';
+
+  @override
+  String get globalAiToolFindDevice => 'Find Device';
+
+  @override
+  String get globalAiToolFindDeviceDesc =>
+      'Make wearable device vibrate or ring continuously';
+
+  @override
+  String get globalAiToolAppArrangement => 'App Layout';
+
+  @override
+  String get globalAiToolAppArrangementDesc =>
+      'Query and rearrange device app ordering';
+
+  @override
+  String get globalAiToolPhoneLocation => 'Phone Location';
+
+  @override
+  String get globalAiToolPhoneLocationDesc =>
+      'Supported on client phone only, assist queries with location';
+
+  @override
+  String get globalAiAddProvider => 'Add Provider';
+
+  @override
+  String get globalAiEditProvider => 'Edit Provider';
+
+  @override
+  String get globalAiProviderName => 'Provider Name';
+
+  @override
+  String get globalAiProviderBaseUrl => 'API Base URL';
+
+  @override
+  String get globalAiProviderApiKey => 'API Key';
+
+  @override
+  String get globalAiProviderModels => 'Model List';
+
+  @override
+  String get globalAiAddModel => 'Add Model';
+
+  @override
+  String get globalAiModelId => 'Model ID';
+
+  @override
+  String get globalAiProtocolType => 'Protocol Type';
+
+  @override
+  String get globalAiProtocolCompletions => 'Completions';
+
+  @override
+  String get globalAiProtocolResponses => 'Responses';
+
+  @override
+  String get globalAiMultimodalSupport => 'Multimodal Capabilities';
+
+  @override
+  String get globalAiSupportImages => 'Images';
+
+  @override
+  String get globalAiSupportAudio => 'Audio';
+
+  @override
+  String get globalAiContextLength => 'Context Window';
+
+  @override
+  String get globalAiWearableReplyLength => 'Wearable Reply Length';
+
+  @override
+  String get globalAiWearableLengthShort => 'Short (<50 chars)';
+
+  @override
+  String get globalAiWearableLengthMedium => 'Medium (<100 chars)';
+
+  @override
+  String get globalAiWearableLengthLong => 'Long (<200 chars)';
+
+  @override
+  String get globalAiWearableLengthUnlimited => 'Unlimited';
+
+  @override
+  String get globalAiWearableToolPolicy => 'Tool Calling Policy';
+
+  @override
+  String get globalAiToolPolicyDisabled => 'Disabled';
+
+  @override
+  String get globalAiToolPolicyReadOnly => 'Read-Only';
+
+  @override
+  String get globalAiToolPolicyReadWrite => 'Read-Write';
+
+  @override
+  String get globalAiConfirmationMode => 'Confirmation Mode';
+
+  @override
+  String get globalAiConfirmModeWearableVoice => 'Wearable Voice Confirmation';
+
+  @override
+  String get globalAiConfirmModeManual => 'Client Manual Confirmation';
+
+  @override
+  String get globalAiTesting => 'Testing connection...';
+
+  @override
+  String get globalAiTestSuccess => 'Connection successful';
+
+  @override
+  String get globalAiTestFailed => 'Connection failed';
+
+  @override
+  String globalAiTestDuration(int ms) {
+    return 'Latency $ms ms';
+  }
+
+  @override
+  String get globalAiSectionModelAndProvider => 'Model and Provider';
+
+  @override
+  String get globalAiTestConnectionDesc =>
+      'Verify connectivity and latency of current provider and model';
+
+  @override
+  String get globalAiWearableAdvancedDesc =>
+      'Reply length, tool permission mode and confirmation mode';
+
+  @override
+  String get globalAiNoModelSelected => 'No model configured or selected';
+
+  @override
+  String get globalAiSave => 'Save';
+
+  @override
+  String get globalAiCancel => 'Cancel';
+
+  @override
+  String get globalAiClose => 'Close';
+
+  @override
+  String get globalAiBack => 'Back';
+
+  @override
+  String get globalAiRetry => 'Retry';
+
+  @override
+  String get globalAiDelete => 'Delete';
+
+  @override
+  String get globalAiNoProvidersPrompt =>
+      'No providers added\nPlease add a new provider above';
+
+  @override
+  String get globalAiNoModelsPrompt =>
+      'No models available, please add a model first';
+
+  @override
+  String get globalAiSystemPrompt => 'System prompt';
+
+  @override
+  String get globalAiSystemPromptDescription =>
+      'Edit the model instructions. Device and tool safety rules are added automatically.';
+
+  @override
+  String get globalAiSystemPromptHint => 'Enter the system prompt template';
+
+  @override
+  String get globalAiSystemPromptPlaceholders => 'Available placeholders';
+
+  @override
+  String get globalAiDeleteProvider => 'Delete this Provider';
+
+  @override
+  String get globalAiDeleteModel => 'Delete Model';
+
+  @override
+  String get globalAiConnecting => 'Connecting...';
+
+  @override
+  String get globalAiReceiving => 'Receiving response...';
+
+  @override
+  String get globalAiWaitingFirstToken => 'Waiting for first token...';
+
+  @override
+  String globalAiTargetLabel(String provider, String model) {
+    return 'Target $provider / $model';
+  }
+
+  @override
+  String get globalAiNoProviderConfigured =>
+      'No valid provider or model configured';
+
+  @override
+  String get globalAiNoApiKeyConfigured =>
+      'No API key found, please check provider settings';
+
+  @override
+  String get globalAiSelectActiveModel => 'Select Active Model';
+
+  @override
+  String get globalAiContextLengthHint => 'e.g. 4096, 8192, 131072';
+
+  @override
+  String get globalAiModelNameHint => 'e.g. deepseek-flash, qwen3.8-flash';
+
+  @override
+  String get globalAiProviderNameHint => 'e.g. DeepSeek, OpenAI, SiliconFlow';
+
+  @override
+  String get globalAiBaseUrlHint => 'e.g. https://api.deepseek.com';
+
+  @override
+  String get globalAiApiKeyHint => 'sk-...';
+
+  @override
+  String get globalAiConfirmDeleteProvider =>
+      'Delete this provider and all its models?';
+
+  @override
+  String get globalAiConfirmDeleteModel => 'Delete this model configuration?';
+
+  @override
+  String get globalAiModelAlreadyExists => 'Model ID already exists';
+
+  @override
+  String get globalAiModelAdded => 'Model added';
+
+  @override
+  String get globalAiProviderAdded => 'Provider added';
+
+  @override
+  String get globalAiVoiceAssistantProcessing =>
+      'AI is thinking and streaming reply...';
+
+  @override
+  String globalAiVoiceAssistantError(String error) {
+    return 'AI reply error: $error';
+  }
+
+  @override
+  String get globalAiAsrEngine => 'Speech Recognition Engine';
+
+  @override
+  String get globalAiAsrManual => 'Manual Input';
+
+  @override
+  String get globalAiAsrNative => 'Local Offline Model';
+
+  @override
+  String get globalAiAsrWeType => 'WeType Cloud';
+
+  @override
+  String get globalAiAsrDoubao => 'Volcengine Doubao';
+
+  @override
+  String get globalAiTestRequestLabel => 'Request Sent';
+
+  @override
+  String get globalAiTestResponseLabel => 'Model Response';
+
+  @override
+  String get globalAiTestStart => 'Start Test';
 }

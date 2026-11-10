@@ -25,6 +25,10 @@ abstract interface class ZeppOsAppSideStorage {
   Future<bool> settingExists(int appId);
 }
 
+abstract final class ZeppOsLocalDataGuard {
+  static bool active = false;
+}
+
 class ZeppOsSettingsChange {
   const ZeppOsSettingsChange(this.appId, this.values, this.origin);
 
@@ -43,6 +47,8 @@ class ZeppOsSettingsCoordinator {
 
   Stream<ZeppOsSettingsChange> changesFor(int appId) =>
       _changes.stream.where((change) => change.appId == appId);
+
+  Future<void> settle() async => Future.wait(_queues.values.toList());
 
   Future<Map<String, String>> read(int appId) => _storage.readSettings(appId);
 
@@ -70,6 +76,9 @@ class ZeppOsSettingsCoordinator {
     void Function(Map<String, String> values) update, {
     Object? origin,
   }) {
+    if (ZeppOsLocalDataGuard.active) {
+      throw StateError('Data maintenance is active');
+    }
     final previous = _queues[appId] ?? Future.value();
     final operation = previous.then((_) async {
       final values = await _storage.readSettings(appId);

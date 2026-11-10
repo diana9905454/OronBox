@@ -1,0 +1,16 @@
+name: material_ui
+description: >-
+  OpenHarmony shim: redirects package:material_ui to the Flutter fork's
+  in-tree Material library, which is patched to handle TargetPlatform.ohos.
+  Upstream material_ui switches exhaustively over TargetPlatform and fails to
+  compile on the ohos fork.
+version: 1.10.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=3.47.0"
+
+dependencies:
+  flutter:
+    sdk: flutter

@@ -212,7 +212,7 @@
   "errorBluetoothUnavailable": "Bluetooth is not available. Check that Bluetooth is enabled and OronBox has permission to use it",
   "errorBluetoothConnectFailed": "Connection failed. Check Bluetooth permission, keep the device nearby and not in use, enable Connect new phone on the device, then try again",
   "errorBluetoothDisconnected": "Bluetooth disconnected. Reconnect the device and try again",
-  "errorOperationTimeout": "Operation timed out. Make sure the device is still nearby and try again",
+  "errorOperationTimeout": "Operation timed out",
   "errorDeviceNotReady": "Device is not ready. Connect and authenticate the device first",
   "errorBleCharacteristicsMissing": "Required BLE channels were not found. Reconnect the device or check whether it supports this feature",
   "errorWebSerialUnavailable": "This browser does not support Web Serial. Use Chrome, Edge, or another Web Serial compatible browser",
@@ -241,6 +241,12 @@
   "errorInvalidRequest": "Some submitted information is invalid. Check it and try again",
   "errorOperationCancelled": "Operation cancelled",
   "errorUnsupportedFileType": "Unsupported or unrecognized file type",
+  "errorDeviceFeatureUnsupported": "This feature is not supported by the current device or firmware",
+  "errorDeviceMusicUnsupported": "Music transfer is not supported by the current device or firmware",
+  "errorDeviceRecordingUnsupported": "Recording export is not supported by the current device or firmware",
+  "errorDeviceScreenMirrorUnsupported": "Screen mirroring is not supported by the current device or firmware",
+  "errorNotInstalled": "Required component or app is not installed",
+  "errorInvalidOperation": "Cannot perform this operation in the current state",
   "errorCertificateVerificationFailed": "Certificate verification failed. If you are using a proxy, disable HTTPS interception for this app or make sure its certificate is trusted",
   "errorUnknownWithDetail": "Operation failed: {detail}",
   "@errorUnknownWithDetail": {
@@ -335,7 +341,7 @@
   },
   "expand": "Expand",
   "collapse": "Collapse",
-  "voiceLabTitle": "Voice lab",
+  "voiceLabTitle": "Voice assistant",
   "voiceLabXiaoAi": "XiaoAI",
   "voiceLabReceivingAudio": "Receiving audio from the watch",
   "voiceLabWaiting": "Waiting for a voice session",
@@ -590,6 +596,7 @@
   "deviceHealthDistance": "Distance",
   "deviceHealthCalories": "Calories",
   "deviceHealthHeartRate": "Heart rate",
+  "deviceHealthAverageHeartRateLabel": "Average heart rate",
   "deviceHealthRestingHeartRate": "Resting heart rate",
   "deviceHealthAbnormalHeartRate": "Abnormal heart rate",
   "deviceHealthHeartRateHigh": "High heart rate",
@@ -605,6 +612,7 @@
   "deviceHealthAllDaySleep": "All-day sleep",
   "deviceHealthLongSleep": "Long sleep",
   "deviceHealthSleepStructure": "Sleep structure",
+  "deviceHealthSleepDetails": "Sleep details",
   "deviceHealthSleepAverageHeartRate": "Average sleep heart rate",
   "deviceHealthSleepAverageBloodOxygen": "Average sleep blood oxygen",
   "deviceHealthAverageHeartRate": "Average heart rate {value} bpm",
@@ -710,6 +718,8 @@
   },
   "deviceRecordingsTitle": "Recording sync",
   "deviceRecordingsDescription": "Sync and export recordings from the watch",
+  "deviceRecordingsLibrary": "Device recordings",
+  "deviceRecordingsLibraryDescription": "Export recordings from the watch",
   "deviceRecordingsHint": "Recordings are received and verified one by one. Export each original file after synchronization.",
   "deviceRecordingsSync": "Sync recordings",
   "deviceRecordingsReading": "Reading recording list",
@@ -757,6 +767,28 @@
       }
     }
   },
+  "deviceRecordingsSavedBadge": "Saved",
+  "deviceRecordingsSelectAll": "Select all",
+  "deviceRecordingsDeselectAll": "Deselect all",
+  "deviceRecordingsExportSelected": "Export selected ({count})",
+  "@deviceRecordingsExportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRecordingsOpenDirectory": "Open folder",
+  "deviceRecordingsExported": "Exported to {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "Recording exported",
+  "deviceRecordingsRefresh": "Refresh",
   "deviceMusicTransferTitle": "Transfer MP3 file",
   "deviceMusicVelaDescription": "Sync MP3 files to the device. Each file must not exceed 100 MB.",
   "deviceMusicZeppDescription": "MP3 files up to 50 MB are supported. Bluetooth Classic is recommended for faster transfers; BLE is also supported but takes longer.",
@@ -941,6 +973,8 @@
   "settingsMiAccountLogNoDevices": "No device with a complete MAC and authkey was found in the log",
   "settingsWearableLogSync": "Read Xiaomi Fitness log",
   "settingsWearableLogGuide": "Open Xiaomi Fitness\nGo to About at the bottom of the Profile page\nRepeatedly tap the orange ring logo\nTap Confirm in the dialog\nWait for the log has been... toast\nReturn here and tap Scan",
+  "settingsWearableLogGet": "Get",
+  "settingsWearableLogGuideOhos": "Open Xiaomi Fitness and go to About at the bottom of the Profile page\nTap the orange ring logo repeatedly, then tap Confirm\nWhen “log has been...” appears, return here and tap Get\n\nOpen My phone → Compatible app data → Android → data → com.mi.health → files → log\nSelect all files and tap Done",
   "settingsWearableLogFound": "Found {count} devices, tap one to import",
   "@settingsWearableLogFound": {
     "placeholders": {
@@ -960,6 +994,13 @@
   "settingsMiAccountLoginWindowClosed": "The login window was closed",
   "settingsMiAccountSyncedDevices": "Synced {count} Mi devices",
   "xiaomiAccountRequiredForEphemeris": "Sign in to your Xiaomi account before syncing ephemeris data",
+  "xiaomiWifiPasswordRequestTitle": "Wi-Fi connection request",
+  "xiaomiWifiPasswordRequestMessage": "The device is requesting a connection to “{ssid}”.",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "@settingsMiAccountSyncedDevices": {
     "placeholders": {
       "count": {
@@ -1010,6 +1051,11 @@
   "settingsOledDark": "OLED dark",
   "settingsThemeMode": "Theme mode",
   "settingsThemeModeDesc": "Change app theme appearance",
+  "settingsThemePreset": "Theme style",
+  "settingsThemePresetDesc": "Choose the app's visual style",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "Dynamic color",
   "settingsDynamicColorDesc": "Use system accent colors for the app theme",
   "settingsColorScheme": "Color scheme",
@@ -1026,25 +1072,26 @@
   "settingsDesktopAccentSourceGtk": "GTK",
   "settingsDesktopAccentSourceQt": "Qt",
   "settingsCancel": "Cancel",
-  "settingsTeamRoleMain": "Main Developer / Designer",
-  "settingsTeamRoleZeppOS": "ZeppOS implementation",
-  "settingsTeamRoleHarmony": "HarmonyOS adaptation",
+  "settingsTeamRoleMain": "Main Developer / Architecture / Design",
+  "settingsTeamRoleHarmonyOS": "HarmonyOS porting and maintenance",
+  "settingsTeamRoleDeviceConnection": "macOS connection optimization contribution",
+  "settingsTeamRoleZeppOS": "ZeppOS adaptation and implementation",
   "settingsAboutSoftware": "About software",
   "settingsAboutSoftwareDesc": "Version, changelog and development team",
   "settingsAboutSoftwareTagline": "A pretty fast wearable management tool for VelaOS and ZeppOS, built with Flutter",
   "settingsAboutSoftwareRepository": "Open GitHub repository",
   "settingsAboutSoftwareTeam": "Development team",
-  "settingsSpecialThanks": "Special thanks",
   "settingsAboutSoftwareBuildInfo": "Build info",
   "settingsAboutSoftwareCopyright": "Copyright © 2026 OrPudding",
   "acknowledgementsKazumi": "Reference for Material Design components and UI patterns.",
-  "acknowledgementsAstroBoxPublic": "Reference for UI structure, resource workflows, and interaction design.",
-  "acknowledgementsAstroBoxNgCore": "Reference for Xiaomi device protocols, install flows, and transfer behavior.",
-  "acknowledgementsAstroBoxNgBluetooth": "Reference for Bluetooth connection behavior.",
-  "acknowledgementsAstroBoxNgAccount": "Reference for Xiaomi account login, device sync, and authkey retrieval flows.",
-  "acknowledgementsAstroBoxNgProvider": "Reference for community resource indexes, CDN handling, and manifest parsing flows.",
-  "acknowledgementsAstroBoxNgAppWasm": "Reference for Web Serial and browser-side connection flows.",
-  "acknowledgementsGadgetbridge": "Reference for ZeppOS and wearable protocol research.",
+  "acknowledgementsAstroBoxPublic": "Reference for UI structure and interaction design.",
+  "acknowledgementsAstroBoxNgCore": "Xiaomi device protocol and transport layer, ported and modified.",
+  "acknowledgementsAstroBoxNgPb": "Xiaomi wear protocol definitions, adopted verbatim.",
+  "acknowledgementsAstroBoxNgBluetooth": "Reference for Bluetooth connection flows.",
+  "acknowledgementsAstroBoxNgAccount": "Reference for Xiaomi account login and authkey retrieval flows.",
+  "acknowledgementsAstroBoxNgProvider": "Reference for community resource indexes and manifest parsing flows.",
+  "acknowledgementsAstroBoxNgAppWasm": "Reference for Web Serial connection flows.",
+  "acknowledgementsGadgetbridge": "ZeppOS protocol implementation, ported and modified.",
   "acknowledgementsBreezyWeather": "Reference for the China weather source implementation.",
   "acknowledgementsOpenMeteo": "Weather forecasts, air quality, and geocoding data under CC BY 4.0",
   "resourceHomeRecommended": "Recommended",
@@ -1208,6 +1255,8 @@
   "resourceTypeUnknownTitle": "Unrecognized resource type",
   "resourceTypeUnknownNoType": "OronBox cannot identify the resource type of this file; it may be corrupted",
   "resourceTypeUnknownCancel": "Cancel",
+  "watchfaceRestrictedTitle": "Cannot Install Resource",
+  "watchfaceRestrictedMessage": "To respect intellectual property and comply with relevant policies, at the request of Xiaomi,\nOronBox cannot install watchfaces suspected of being from the official watchface store.\nIf you believe this is a false positive, please have the watchface author contact us.",
   "resourceTypeMismatchMessage": "This appears to be a {detectedType} resource, but you selected {selectedType}. Choose how to install it",
   "@resourceTypeMismatchMessage": {
     "placeholders": {
@@ -1349,6 +1398,8 @@
   "creatorOperationAuthorizing": "Waiting for authorization",
   "creatorResolvingPublicationTarget": "Resolving publication category",
   "creatorStateApproved": "Approved",
+  "creatorStateReviewing": "Reviewing",
+  "creatorStatePublishing": "Publishing",
   "creatorStateExternalReview": "External review",
   "creatorStateFailed": "Publishing failed",
   "creatorStateSuperseded": "Superseded by a newer revision",
@@ -1425,7 +1476,7 @@
   "oobeDeclineWebHint": "You must accept the agreements to continue; please close this page",
   "oobeLoginTitle": "Connect your accounts",
   "oobeLoginBandBbsDesc": "Sign in with your BandBBS account to access BandBBS resources and prepare creator services",
-  "oobeLoginLocalNote": "Xiaomi and Amazfit sign-in run entirely on this device; related data is never sent to any third party other than Xiaomi/Amazfit",
+  "oobeLoginLocalNote": "Xiaomi and Amazfit sign-in run entirely on this device\nRelated data is never sent to any third party other than Xiaomi/Amazfit",
   "oobeLoginXiaomiDesc": "Sign in with your Xiaomi account to sync your bound Xiaomi devices",
   "oobeLoginHuamiDesc": "Sign in with your Amazfit account to access Amazfit app store resources",
   "oobeCdnTesting": "Testing…",
@@ -1434,6 +1485,8 @@
   "oobeDoneTitle": "All set",
   "oobeDoneBody": "Start exploring OronBox",
   "oobeFinish": "Finish",
+  "oobeRestoreAction": "Restore from backup",
+  "oobeRestoreSuccess": "Backup restored successfully",
   "settingsReplayOobe": "Restart guide",
   "settingsReplayOobeDesc": "View the welcome guide and initial setup again",
   "creatorConnect": "Connect",
@@ -1491,23 +1544,105 @@
   "messageApprovedBody": "Your submission passed review.",
   "messageNeedsChangesBody": "Review found issues that require changes.",
   "messageReasonBody": "Reason: {reason}",
-  "@messageReasonBody": {"placeholders": {"reason": {"type": "String"}}},
+  "@messageReasonBody": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "messageReviewNoteBody": "Review note: {note}",
-  "@messageReviewNoteBody": {"placeholders": {"note": {"type": "String"}}},
+  "@messageReviewNoteBody": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReviewerPrefix": "Reviewer: {reviewer}",
+  "@messageReviewerPrefix": {
+    "placeholders": {
+      "reviewer": {
+        "type": "String"
+      }
+    }
+  },
+  "messageOperatorPrefix": "Operator: {operator}",
+  "@messageOperatorPrefix": {
+    "placeholders": {
+      "operator": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReferencePrefix": "Related: {reference}",
+  "@messageReferencePrefix": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "messageTargetsPrefix": "Channels: {targets}",
+  "@messageTargetsPrefix": {
+    "placeholders": {
+      "targets": {
+        "type": "String"
+      }
+    }
+  },
+  "messageUnapprovedItemsPrefix": "Items needing changes: {items}",
+  "@messageUnapprovedItemsPrefix": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
   "messageStatusChangedBody": "The status of this item has changed.",
   "messageReportStatusBody": "Report status: {status}",
-  "@messageReportStatusBody": {"placeholders": {"status": {"type": "String"}}},
+  "@messageReportStatusBody": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "messageCoinAddedBody": "{amount} coins were added to your account.",
-  "@messageCoinAddedBody": {"placeholders": {"amount": {"type": "String"}}},
+  "@messageCoinAddedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "messageCoinDeductedBody": "{amount} coins were deducted from your account.",
-  "@messageCoinDeductedBody": {"placeholders": {"amount": {"type": "String"}}},
+  "@messageCoinDeductedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "messageCoinVoteRevokedBody": "Your contribution of {amount} coins to this resource was revoked.",
-  "@messageCoinVoteRevokedBody": {"placeholders": {"amount": {"type": "String"}}},
+  "@messageCoinVoteRevokedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "messageAppealOverturnedBody": "The administrator reversed the original decision.",
   "messageAppealUpheldBody": "The original decision remains unchanged after review.",
   "messageAppealDismissedBody": "The appeal was not accepted.",
   "messageRoleChangedBody": "Your account role is now {role}.",
-  "@messageRoleChangedBody": {"placeholders": {"role": {"type": "String"}}},
+  "@messageRoleChangedBody": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "cleanMode": "Feature switches",
   "cleanModeDescription": "Manage main navigation, community features, and resource sources",
   "cleanPluginsEntry": "Plugins entry",
@@ -1538,22 +1673,39 @@
   "settingsCategorySupport": "Support and information",
   "settingsCategoryAdvanced": "Advanced settings",
   "settingsAdvancedDescription": "View logs and developer tools",
-  "debugServerTitle": "Debug service",
-  "debugServerDescription": "Expose a local API for trusted development tools",
-  "debugServerEnable": "Enable debug service",
-  "debugServerEnableDescription": "Allow approved clients on the local network to inspect and control OronBox",
-  "debugServerEndpoint": "Endpoint",
-  "debugServerFingerprint": "Server fingerprint",
-  "debugServerPendingClients": "Pending approvals",
-  "debugServerAuthorizedClients": "Approved clients",
-  "debugServerApprove": "Approve",
-  "debugServerReject": "Reject",
-  "debugServerRevoke": "Revoke access",
-  "debugServerNoPendingClients": "No clients are waiting for approval",
-  "debugServerNoAuthorizedClients": "No approved clients",
-  "debugServerSecurityNotice": "Only enable this service on a trusted network",
-  "debugServerStartFailed": "Could not start the debug service",
-  "debugServerStopFailed": "Could not stop the debug service",
+  "localServerTitle": "Local API Server",
+  "localServerDescription": "Expose a local API for external CLI and development tools",
+  "localServerEnable": "Enable Local API Server",
+  "localServerEnableDescription": "Allow approved clients on the local network to inspect and control OronBox",
+  "localServerEndpoint": "Endpoint",
+  "localServerFingerprint": "Server fingerprint",
+  "localServerPendingClients": "Pending approvals",
+  "localServerAuthorizedClients": "Approved clients",
+  "localServerApprove": "Approve",
+  "localServerReject": "Reject",
+  "localServerRevoke": "Revoke access",
+  "localServerNoPendingClients": "No clients are waiting for approval",
+  "localServerNoAuthorizedClients": "No approved clients",
+  "localServerSecurityNotice": "Only enable this service on a trusted network",
+  "localServerStartFailed": "Could not start the Local API Server",
+  "localServerStopFailed": "Could not stop the Local API Server",
+  "localServerPairingTitle": "Allow Local API Access?",
+  "localServerPairingDescription": "“{clientName}” is requesting control over wearable services and command bus",
+  "@localServerPairingDescription": {
+    "placeholders": {
+      "clientName": {
+        "type": "String"
+      }
+    }
+  },
+  "localServerPairingFingerprint": "Ed25519 SHA-256 Fingerprint",
+  "localServerPairingAlwaysAllow": "Always allow from this computer",
+  "localServerPairingAllow": "Allow",
+  "localServerPairingDeny": "Deny",
+  "localServerPairingScopes": "Requested permissions",
+  "wifiPasswordInputPlaceholder": "Enter Wi-Fi password",
+  "wifiConnectButton": "Connect",
+  "wifiCancelButton": "Cancel",
   "xmsDeveloperMode": "XMS developer mode",
   "xmsDeveloperModeDescription": "Allow Android app signatures to differ",
   "oronBoxCoinsTitle": "Resource coins",
@@ -1774,12 +1926,26 @@
   "deviceHealthSleepStages": "Sleep stages",
   "deviceHealthSleepHrv": "Sleep HRV",
   "deviceHealthSleepAwake": "Awake",
+  "deviceHealthSleepWakeCount": "{count, plural, =1{1 time} other{{count} times}}",
+  "@deviceHealthSleepWakeCount": {
+    "description": "Number of times woken up during sleep",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
   "deviceHealthSleepLight": "Light",
   "deviceHealthSleepDeep": "Deep",
   "deviceHealthSleepRem": "REM",
   "deviceHealthSleepNoStages": "No sleep stage data",
   "deviceHealthStepValue": "{value} steps",
-  "@deviceHealthStepValue": {"placeholders": {"value": {}}},
+  "@deviceHealthStepValue": {
+    "placeholders": {
+      "value": {}
+    }
+  },
   "deviceHealthFeatureDescription": "View activity, heart rate, blood oxygen, stress, and sleep data",
   "weatherSyncTitle": "Weather sync",
   "weatherSyncDescription": "Select a city and sync current weather and forecasts",
@@ -1821,7 +1987,11 @@
   "alarmYearly": "Yearly",
   "alarmNoRepeat": "Does not repeat",
   "alarmCustomDays": "Week {days}",
-  "@alarmCustomDays": {"placeholders": {"days": {}}},
+  "@alarmCustomDays": {
+    "placeholders": {
+      "days": {}
+    }
+  },
   "weekdayMonShort": "M",
   "weekdayTueShort": "T",
   "weekdayWedShort": "W",
@@ -1847,13 +2017,33 @@
   "weatherNext24Hours": "Next 24 hours",
   "weatherNext7Days": "Next 7 days",
   "weatherDataSource": "Data source: {source}",
-  "@weatherDataSource": {"placeholders": {"source": {}}},
+  "@weatherDataSource": {
+    "placeholders": {
+      "source": {}
+    }
+  },
   "weatherLevelDirection": "Level {level} · {direction}",
-  "@weatherLevelDirection": {"placeholders": {"level": {}, "direction": {}}},
+  "@weatherLevelDirection": {
+    "placeholders": {
+      "level": {},
+      "direction": {}
+    }
+  },
   "weatherLevelDirectionCompact": "Level {level} {direction}",
-  "@weatherLevelDirectionCompact": {"placeholders": {"level": {}, "direction": {}}},
+  "@weatherLevelDirectionCompact": {
+    "placeholders": {
+      "level": {},
+      "direction": {}
+    }
+  },
   "weatherForecastSummary": "{condition} · Sunrise {sunrise} · Sunset {sunset}",
-  "@weatherForecastSummary": {"placeholders": {"condition": {}, "sunrise": {}, "sunset": {}}},
+  "@weatherForecastSummary": {
+    "placeholders": {
+      "condition": {},
+      "sunrise": {},
+      "sunset": {}
+    }
+  },
   "weatherClear": "Clear",
   "weatherPartlyCloudy": "Partly cloudy",
   "weatherCloudy": "Cloudy",
@@ -1865,7 +2055,11 @@
   "weatherUnknown": "Unknown",
   "weatherUnknownDate": "Unknown date",
   "weatherUpdatedAt": "Updated {time}",
-  "@weatherUpdatedAt": {"placeholders": {"time": {}}},
+  "@weatherUpdatedAt": {
+    "placeholders": {
+      "time": {}
+    }
+  },
   "windNorth": "N",
   "windNorthEast": "NE",
   "windEast": "E",
@@ -1880,6 +2074,820 @@
   "xiaomiScreenshotLoading": "Capturing screenshot…",
   "xiaomiScreenshotEmpty": "No screenshot yet",
   "xiaomiScreenshotFailed": "Screenshot failed",
+  "xiaomiScreenshotDownloadStarted": "Screenshot download started",
+  "xiaomiScreenshotSaveFailed": "Failed to save screenshot",
   "xiaomiScreenshotSaved": "Watch screenshot saved to: {path}",
-  "@xiaomiScreenshotSaved": {"placeholders": {"path": {}}}
+  "@xiaomiScreenshotSaved": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "deviceHealthRecoveryTime": "Recovery",
+  "deviceHealthTodayLoad": "Today load",
+  "deviceHealthSevenDayLoad": "7-day load",
+  "deviceHealthLoadLevel": "Load level",
+  "deviceHealthFitnessBalance": "Fitness balance",
+  "deviceHealthFitnessLevel": "Fitness",
+  "deviceHealthFatigueLevel": "Fatigue",
+  "deviceHealthTrainingStress": "Training stress",
+  "deviceHealthTrainingStatus": "Training status",
+  "deviceHealthSevenDayVitality": "7-day vitality",
+  "deviceHealthEarnedToday": "Earned on this day",
+  "deviceHealthEarnedInPeriod": "Earned in this period",
+  "deviceHealthModerateIntensity": "Moderate",
+  "deviceHealthHighIntensity": "High",
+  "deviceHealthNap": "Naps",
+  "deviceHealthNapSingular": "Nap",
+  "deviceHealthWorkoutOverview": "Workout overview",
+  "deviceHealthWorkoutHistory": "History",
+  "deviceHealthWorkoutDuration": "Duration",
+  "deviceHealthWorkoutRoute": "Route",
+  "deviceHealthWorkoutDetails": "Details",
+  "deviceHealthSwimmingSections": "Swimming sections",
+  "deviceHealthWorkoutCharts": "Workout charts",
+  "deviceHealthActiveDuration": "Active duration",
+  "deviceHealthAveragePace": "Average pace",
+  "deviceHealthBestPace": "Best pace",
+  "deviceHealthHeartRateRange": "Heart-rate range",
+  "deviceHealthBloodOxygenRange": "Blood oxygen range",
+  "deviceHealthMainStroke": "Main stroke",
+  "deviceHealthHeartRateZones": "Heart-rate zones",
+  "deviceHealthZoneLabel": "Zone {zone}",
+  "@deviceHealthZoneLabel": {
+    "placeholders": {
+      "zone": {}
+    }
+  },
+  "deviceHealthZoneWarmup": "Warm-up",
+  "deviceHealthZoneFatBurning": "Fat burning",
+  "deviceHealthZoneAerobic": "Aerobic",
+  "deviceHealthZoneAnaerobic": "Anaerobic",
+  "deviceHealthZoneExtreme": "Extreme",
+  "deviceHealthRecoveryAfterWorkout": "Heart-rate recovery",
+  "deviceHealthRecoveredHeartRate": "Recovered HR",
+  "deviceHealthRecoveryRate": "Recovery rate",
+  "deviceHealthSamples": "Samples",
+  "deviceHealthAverageSpeed": "Average speed",
+  "deviceHealthTopSpeed": "Top speed",
+  "deviceHealthAverageStride": "Average stride",
+  "deviceHealthAverageCadence": "Average cadence",
+  "deviceHealthMaximumCadence": "Maximum cadence",
+  "deviceHealthAverageBloodOxygenDetail": "Average blood oxygen",
+  "deviceHealthTotalAscent": "Total ascent",
+  "deviceHealthTotalDescent": "Total descent",
+  "deviceHealthAverageAltitude": "Average altitude",
+  "deviceHealthAerobicEffect": "Aerobic effect",
+  "deviceHealthAnaerobicEffect": "Anaerobic effect",
+  "deviceHealthPeakEffect": "Peak effect",
+  "deviceHealthVo2Max": "VO₂ max",
+  "deviceHealthBodyEnergyUsed": "Body energy used",
+  "deviceHealthExpectedRecovery": "Recovery",
+  "deviceHealthTrainingLoad": "Training load",
+  "deviceHealthVitalityEarned": "Vitality earned",
+  "deviceHealthAveragePower": "Average power",
+  "deviceHealthMaximumPower": "Maximum power",
+  "deviceHealthArmPulls": "Arm pulls",
+  "deviceHealthAverageStrokeRate": "Average stroke rate",
+  "deviceHealthMaximumStrokeRate": "Maximum stroke rate",
+  "deviceHealthTurns": "Turns",
+  "deviceHealthAverageSwolf": "Average SWOLF",
+  "deviceHealthBestSwolf": "Best SWOLF",
+  "deviceHealthPoolLength": "Pool length",
+  "deviceHealthJumps": "Jumps",
+  "deviceHealthAverageJumpRate": "Average jump rate",
+  "deviceHealthBestJumpRate": "Best jump rate",
+  "deviceHealthTrips": "Trips",
+  "deviceHealthSets": "Sets",
+  "deviceHealthTotalStrokes": "Total strokes",
+  "deviceHealthAverageRowingRate": "Average rowing rate",
+  "deviceHealthBestRowingRate": "Best rowing rate",
+  "deviceHealthChartHeartRate": "Heart rate",
+  "deviceHealthChartCadence": "Cadence",
+  "deviceHealthChartPace": "Pace",
+  "deviceHealthChartSpeed": "Speed",
+  "deviceHealthChartPower": "Power",
+  "deviceHealthChartStrokeRate": "Stroke rate",
+  "deviceHealthChartJumpRate": "Jump rate",
+  "deviceHealthChartBloodOxygen": "Blood oxygen",
+  "deviceHealthChartStress": "Stress",
+  "deviceHealthWorkoutOutdoorRunning": "Outdoor running",
+  "deviceHealthWorkoutOutdoorWalking": "Outdoor walking",
+  "deviceHealthWorkoutIndoorRunning": "Indoor running",
+  "deviceHealthWorkoutMountaineering": "Mountaineering",
+  "deviceHealthWorkoutTrailRunning": "Trail running",
+  "deviceHealthWorkoutOutdoorCycling": "Outdoor cycling",
+  "deviceHealthWorkoutIndoorCycling": "Indoor cycling",
+  "deviceHealthWorkoutFreeTraining": "Free training",
+  "deviceHealthWorkoutSwimming": "Swimming",
+  "deviceHealthWorkoutElliptical": "Elliptical",
+  "deviceHealthWorkoutRowing": "Rowing",
+  "deviceHealthWorkoutJumpRope": "Jump rope",
+  "deviceHealthWorkoutHiking": "Hiking",
+  "deviceHealthWorkoutGeneric": "Workout",
+  "deviceHealthWorkoutExport": "Export FIT",
+  "deviceHealthWorkoutExported": "FIT exported to {path}",
+  "deviceHealthWorkoutExportFailed": "Could not export FIT: {error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "deviceHealthStrokeMedley": "Medley",
+  "deviceHealthStrokeBreaststroke": "Breaststroke",
+  "deviceHealthStrokeFreestyle": "Freestyle",
+  "deviceHealthStrokeBackstroke": "Backstroke",
+  "deviceHealthStrokeButterfly": "Butterfly",
+  "deviceHealthSectionLabel": "Section",
+  "deviceHealthVitalityRunSuggestion": "Run for {minutes} minutes toward the next target",
+  "@deviceHealthVitalityRunSuggestion": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "deviceHealthVitalityActiveMinutes": "{minutes} active minutes to the next target",
+  "@deviceHealthVitalityActiveMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "deviceHealthLatestHeartRate": "Latest heart rate",
+  "deviceHealthLatestBloodOxygen": "Latest blood oxygen",
+  "deviceHealthLatestStress": "Latest stress",
+  "deviceHealthDebugSnapshots": "Activity files",
+  "deviceHealthDebugSnapshotList": "Activity files",
+  "deviceHealthDebugSnapshotsDescription": "Saved activity files available for export",
+  "deviceHealthDebugRefresh": "Refresh",
+  "deviceHealthDebugRefreshDescription": "Reload the saved activity file list",
+  "deviceHealthDebugClearAll": "Clear all",
+  "deviceHealthDebugClearAllDescription": "Delete every saved activity file",
+  "deviceHealthDebugNoSnapshots": "No activity files yet",
+  "deviceHealthDebugReload": "Replay",
+  "deviceHealthDebugReloaded": "Activity file replayed",
+  "deviceHealthDebugFiles": "{count} files",
+  "@deviceHealthDebugFiles": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "creatorAccounts": "Accounts",
+  "creatorPendingItems": "Pending",
+  "creatorResourceStatus": "Resource status",
+  "creatorOverview": "Overview",
+  "creatorManage": "Manage",
+  "creatorManageUnavailable": "Management is unavailable",
+  "creatorReviewTab": "Reviews",
+  "creatorReviewQueue": "Review queue",
+  "creatorReviewStatus": "Review status",
+  "creatorReviewActive": "Active",
+  "creatorReviewChangesRequested": "Changes requested",
+  "creatorReviewDeclined": "Rejected",
+  "creatorReviewClosed": "Closed",
+  "creatorReviewFixedPending": "Fixed, awaiting review",
+  "creatorNoPendingReviews": "No pending reviews",
+  "creatorNoReviews": "No reviews",
+  "creatorNeedsChanges": "Needs changes",
+  "creatorConnected": "Connected",
+  "creatorNotConnected": "Not connected",
+  "creatorCenterExitTitle": "Leave creator center",
+  "creatorCenterExitMessage": "Are you sure you want to leave the creator center",
+  "creatorEditComment": "Edit comment",
+  "creatorReply": "Reply",
+  "creatorReplyingTo": "Replying to #{id}",
+  "@creatorReplyingTo": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "creatorReplyPrefix": "Reply #{id}: ",
+  "@creatorReplyPrefix": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "creatorSupplement": "Additional note",
+  "creatorModifyResource": "Modify resource",
+  "creatorAstroBoxReview": "AstroBox review",
+  "creatorGithubPr": "GitHub repository and PR",
+  "creatorApplyChanges": "Apply changes",
+  "creatorUpdatedAt": "Updated at",
+  "creatorSubmittedAt": "Submitted at",
+  "creatorPublicationStatus": "Publication status",
+  "creatorStageInfo": "Edit info",
+  "creatorStageFiles": "Bind files",
+  "creatorStagePublish": "Publish config",
+  "creatorNextStep": "Next step",
+  "creatorWatchfaceMissingId": "Watchface identification failed or all-zero: the watchface has no ID and cannot be uploaded",
+  "creatorWatchfaceZeroIdTitle": "All-zero watchface ID detected, please modify it before uploading",
+  "creatorWatchfacePayloadTooShort": "This watchface file is too small to contain an ID field",
+  "creatorQuickAppMissingPackage": "Quick app identification failed: the quick app has no package name and cannot be uploaded",
+  "creatorVelajsDefaultPackage": "Detected the quick app package name com.application.watch.demo, which is the VelaJS project default; please change it before uploading",
+  "creatorFilteredSupport": "Filtered support",
+  "creatorSkippedPublication": "Skipped publication",
+  "creatorAstroBoxUnsupportedDevicesNotice": "Some selected supported devices do not support publishing to AstroBox yet; their support declarations will be filtered out",
+  "creatorBandBbsUnsupportedDevicesNotice": "Some selected supported devices do not support publishing to BandBBS yet; their publication will be skipped",
+  "errorSppBondRemovalFailed": "On Android below 11 the system does not support removeBond. If the device disconnects frequently, switch to another device in Xiaomi Fitness or turn off its Nearby devices permission",
+  "viewAllResources": "View all",
+  "deviceHealthMinimum": "Minimum",
+  "deviceHealthMaximum": "Maximum",
+  "deviceHealthResting": "Resting",
+  "deviceHealthDebugExport": "Export activity files",
+  "deviceHealthDebugExportTooltip": "Export activity files",
+  "deviceHealthDebugExported": "Activity files exported to {path}",
+  "deviceHealthDebugExportFailed": "Could not export activity files: {error}",
+  "@deviceHealthDebugExport": {
+    "description": "Export button label for a raw Xiaomi health debug snapshot"
+  },
+  "@deviceHealthDebugExportTooltip": {
+    "description": "Tooltip for the debug snapshot export button"
+  },
+  "@deviceHealthDebugExported": {
+    "description": "Shown after a debug snapshot is exported",
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@deviceHealthDebugExportFailed": {
+    "description": "Shown when exporting a debug snapshot fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceHealthDebugImport": "Import activity files",
+  "deviceHealthDebugImportDescription": "Import previously exported activity files",
+  "deviceHealthDebugImported": "Imported {deviceCode} ({files} files)",
+  "deviceHealthDebugImportFailed": "Could not import activity files: {error}",
+  "@deviceHealthDebugImport": {
+    "description": "Import button label on the Xiaomi health debug page"
+  },
+  "@deviceHealthDebugImportDescription": {
+    "description": "Description for the debug snapshot import button"
+  },
+  "@deviceHealthDebugImported": {
+    "description": "Shown after a debug snapshot is imported",
+    "placeholders": {
+      "deviceCode": {
+        "type": "String"
+      },
+      "files": {
+        "type": "int"
+      }
+    }
+  },
+  "@deviceHealthDebugImportFailed": {
+    "description": "Shown when importing a debug snapshot fails",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "commentDeletedPlaceholder": "Comment deleted",
+  "commentViewReplies": "View all {count} replies",
+  "commentThreadTitle": "Comment details",
+  "commentReplyTarget": "Reply to {username}",
+  "commentLoadEarlier": "Load earlier replies",
+  "@commentViewReplies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@commentReplyTarget": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "messageCommentCreatedTitle": "New comment on your resource",
+  "scanQrCode": "Scan QR code",
+  "deviceSwitchQrImport": "Import existing device from share QR code",
+  "creatorCollectionReplacePendingDescription": "This replaces the pending submission\nThe published version stays available",
+  "creatorCollectionNoMatchingResources": "No matching resources\nCreate a resource in Creator Center first",
+  "commentCreateFailed": "Could not post comment, try again",
+  "commentsReadFailed": "Could not load comments, try again",
+  "commentDeleteFailed": "Could not delete comment, try again",
+  "errorRequestTimeout": "Request timed out, try again",
+  "creatorCollectionReplacePendingTitle": "Replace pending revision?",
+  "creatorCollectionReplaceAndSubmit": "Replace and submit",
+  "creatorCollectionCreateTitle": "Create collection",
+  "creatorCollectionEditTitle": "Edit collection",
+  "creatorCollectionCurrentRevision": "Live revision: {number}",
+  "@creatorCollectionCurrentRevision": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorCollectionPendingRevision": "Pending revision: {number}",
+  "@creatorCollectionPendingRevision": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorCollectionHistory": "View previous revisions",
+  "creatorCollectionBody": "Body (Markdown)",
+  "creatorMediaIcon": "Icon",
+  "creatorMediaCover": "Cover",
+  "creatorMediaUnset": "Not set",
+  "creatorMediaSet": "Set",
+  "creatorCollectionMemberOrder": "Member order and representative resource",
+  "creatorCollectionMemberUnavailable": "Resource unavailable, remove it",
+  "creatorCollectionSetRepresentative": "Set as representative resource",
+  "creatorCollectionAddMember": "Add members",
+  "creatorImageReadFailed": "Could not read image",
+  "creatorImageProcessFailed": "Could not process image",
+  "creatorPublicationRetry": "Retry publishing",
+  "creatorTermsLoadFailed": "Could not load publishing terms",
+  "creatorReviewItems": "Requested changes",
+  "creatorReviewFixReplied": "Fix reported",
+  "creatorReviewReplyFix": "Report fix",
+  "creatorTermsUpdated": "Publishing terms updated",
+  "creatorPublishingLater": "Not now",
+  "creatorTermsAgree": "Read and agree",
+  "updateAssetUnavailable": "No installation package for this platform in this release",
+  "legalDocumentUnavailable": "Document unavailable, try again",
+  "deviceImportTitle": "Import device",
+  "qrScanFromImage": "Scan from image",
+  "qrScanNoCode": "No QR code found",
+  "qrScanImageFailed": "Unable to read this image",
+  "qrScanCameraUnavailable": "Camera unavailable\nYou can scan a QR code from an image",
+  "qrScanChooseCode": "Choose a QR code",
+  "qrScanCodeLabel": "QR code {index}",
+  "@qrScanCodeLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "qrScanUnsupported": "QR code recognition is unavailable on this platform",
+  "featureLabTitle": "Feature lab",
+  "featureLabDescription": "Try features currently in development",
+  "voiceAssistantDescription": "Receive device audio, monitor and reply",
+  "voiceLabConnectDevice": "Connect a device, then activate its voice assistant",
+  "voiceLabCaptureLimit": "Recording limit reached, clear the recording to retry",
+  "voiceLabReplyTooLong": "Reply is too long",
+  "voiceLabRecognitionLabel": "Recognition result",
+  "voiceLabRecognitionHint": "Enter the recognized words",
+  "appDataTitle": "App data",
+  "appDataDescription": "View stored data and export files",
+  "appDataSpaceUsage": "Storage by category",
+  "appDataHealth": "Activity files",
+  "appDataPlugins": "Plugins",
+  "appDataZeppos": "ZeppOS app data",
+  "appDataRecovery": "Import recovery data",
+  "appDataDownloads": "Resource and update downloads",
+  "appDataPluginCache": "Plugin cache",
+  "appDataManageSnapshots": "Manage saved activity files",
+  "appDataExported": "Export saved",
+  "appDataLoadFailed": "Unable to read app data",
+  "appDataExportFailed": "Unable to export files",
+  "appDataArchiveTooLarge": "Activity files are too large, export them separately",
+  "appDataUpdateFailed": "Unable to update app data",
+  "appDataBackup": "Export backup",
+  "appDataBackupDescription": "Choose and export local data to keep",
+  "appDataRestore": "Restore backup",
+  "appDataRestoreDescription": "Select data to restore\nLocal health history for matching devices will be replaced",
+  "appDataSettings": "App settings",
+  "appDataHealthDevices": "Health history ({count} devices)",
+  "appDataRestored": "Backup restored\nRestart the app to apply all settings",
+  "appDataRestoreFailed": "Unable to restore backup",
+  "appDataRecover": "Undo previous restore",
+  "appDataRecoveryPending": "The previous restore was interrupted",
+  "appDataRecoverDescription": "Restore settings and health history from before the last import\nLocal health data added since then will also be replaced",
+  "@appDataHealthDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceAsrMethod": "Recognition method",
+  "voiceAsrManual": "Manual input",
+  "voiceAsrLocal": "On-device recognition",
+  "voiceAsrWeType": "WeChat Input",
+  "voiceAsrDoubao": "Doubao Input",
+  "voiceAsrWasm": "WASM experiment",
+  "voiceAsrCloudConsent": "Audio will be sent to {provider} for recognition\nOnly while using this page",
+  "voiceAsrPreparing": "Preparing recognition",
+  "voiceAsrRecognizing": "Recognizing",
+  "voiceAsrFinishing": "Finishing recognition",
+  "voiceAsrFinished": "Recognition complete",
+  "voiceAsrModelReady": "Local Chinese and English recognition is ready",
+  "voiceAsrModelDescription": "Local Chinese and English recognition\nDownload models and runtime before first use",
+  "voiceAsrDownloadModel": "Download recognition data",
+  "voiceAsrDeleteModel": "Delete recognition data",
+  "voiceAsrSendRecognition": "Send recognition result",
+  "voiceAsrModelMissing": "Download local recognition data first",
+  "voiceAsrModelDamaged": "Recognition data is damaged, delete and download it again",
+  "voiceAsrDownloadFailed": "Model download failed\nCheck your connection and retry",
+  "voiceAsrRegistrationFailed": "Unable to enable this recognition service\nTry again later",
+  "voiceAsrServiceRejected": "The recognition service rejected this request",
+  "voiceAsrTimeout": "Recognition timed out\nSpeak again to retry",
+  "voiceAsrOpusUnsupported": "This device’s audio is not supported by WeChat Input",
+  "voiceAsrUnsupported": "This recognition method is unavailable on this platform",
+  "voiceAsrTooSlow": "Recognition is too slow\nEnd this round and retry",
+  "voiceAsrNoSpeech": "No speech recognized",
+  "voiceAsrInvalidResponse": "The recognition service returned an invalid result",
+  "voiceAsrInferenceFailed": "Local recognition failed\nSelect the recognition method again",
+  "voiceAsrCancelled": "Recognition cancelled",
+  "voiceAsrConnectionFailed": "Unable to connect to the recognition service\nCheck your connection and retry",
+  "@voiceAsrCloudConsent": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "appDataModels": "Speech recognition data",
+  "appDataTasks": "Task history",
+  "appDataDocuments": "Document cache",
+  "privateStateLoadFailed": "Unable to read saved accounts and devices\nPlease retry",
+  "privateStateSaveFailed": "Unable to save account or device changes\nPlease retry",
+  "resetPrivateStorageAction": "Reset local credentials",
+  "resetPrivateStorageTitle": "Reset local accounts and devices",
+  "resetPrivateStorageMessage": "You will need to sign in again and reconnect your devices after resetting\nYour saved health history and application settings will not be lost",
+  "confirmReset": "Reset",
+  "voiceAsrStorageFull": "Not enough storage\nFree up space and try again",
+  "voiceAsrReconnect": "Reconnect recognition service",
+  "voiceAsrReconnectDescription": "This will register a new connection with this recognition service\nYour signed-in accounts are unaffected",
+  "voiceAsrReconnectFailed": "Could not reconnect",
+  "appDataClearCache": "Clear cache",
+  "appDataClearCacheDescription": "Clear image, plugin and document caches and expired temporary files\nRunning plugins and device apps will stop",
+  "appDataCacheCleared": "Cache cleared",
+  "voiceAsrReplayRecording": "Replay recording",
+  "voiceAsrImportWave": "Import WAV",
+  "voiceAsrReplayDescription": "Choose a recognition method, then replay or import audio\n16 kHz mono PCM16 only, up to 60 seconds\nOnline recognition sends audio to the selected service",
+  "voiceAsrReplayMetrics": "Elapsed {elapsed} ms · First result {first} ms · RTF {factor}",
+  "voiceAsrExportReport": "Export test report",
+  "voiceAsrWaveFormat": "Choose a 16 kHz mono PCM16 WAV\nMaximum duration: 60 seconds",
+  "voiceAsrReplayBusy": "Finish the current voice or recognition session first",
+  "@voiceAsrReplayMetrics": {
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      },
+      "first": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "String"
+      }
+    }
+  },
+  "appDataExtensionSettings": "Plugin and device app data",
+  "appDataExtensionSettingsDescription": "Settings and data for plugins and device apps",
+  "appDataExtensionMissing": "Install matching plugin versions and device apps before restoring this data",
+  "appDataImageCache": "Image cache",
+  "appDataSelectBackup": "Choose what to back up",
+  "appDataSettingsDescription": "Theme, language and feature preferences",
+  "appDataHealthDescription": "Device-synced fitness and health data",
+  "appDataDeviceKeys": "Device pairing and keys",
+  "appDataDeviceKeysDescription": "Saved devices and connection credentials",
+  "appDataXiaomiAccount": "Xiaomi and Amazfit credentials",
+  "appDataXiaomiAccountDescription": "Account password and current sign-in session",
+  "appDataSensitiveBackup": "The backup contains unencrypted account credentials\nKeep it secure and do not share it",
+  "appDataImportDescription": "Choose data to restore from a backup",
+  "appDataPluginDescription": "Installed plugins and their local data",
+  "appDataZepposDescription": "Device app scripts and local settings",
+  "appDataLogsDescription": "App activity and troubleshooting logs",
+  "appDataRecoveryDescription": "Data retained for interrupted restores",
+  "appDataDownloadsDescription": "Temporary download and installation files",
+  "appDataPluginCacheDescription": "Plugin cache and disposable temporary files",
+  "appDataImagesDescription": "Cached images from browsing resources",
+  "appDataModelsDescription": "Downloaded speech models and runtime",
+  "appDataTasksDescription": "Saved download and installation progress",
+  "appDataDocumentsDescription": "Local copies of terms and privacy notices",
+  "phoneLocationTitle": "Assisted Positioning",
+  "deviceFeaturesGroupTitle": "Features and tools",
+  "deviceSettingsGroupTitle": "Device settings and maintenance",
+  "phoneLocationStatusSection": "Status",
+  "phoneLocationPermissionsSection": "Permissions and system services",
+  "phoneLocationOptionsSection": "Assisted location options",
+  "phoneLocationReady": "Assisted location ready",
+  "phoneLocationReadyDesc": "Automatic positioning will be provided during outdoor workouts",
+  "phoneLocationServiceEnabled": "Location service",
+  "phoneLocationPreciseTitle": "Precise location",
+  "phoneLocationPreciseGranted": "Precise location granted",
+  "phoneLocationPreciseDenied": "Precise location not granted",
+  "phoneLocationBackgroundTitle": "Background location",
+  "phoneLocationBackgroundAlways": "Always allowed",
+  "phoneLocationBackgroundWhileInUse": "Allowed while in use",
+  "phoneLocationBackgroundDenied": "Not allowed",
+  "phoneLocationAutoSync": "Auto-assisted location",
+  "phoneLocationAutoSyncDesc": "Provide phone GPS when device starts outdoor workouts",
+  "phoneLocationEnabledText": "Enabled",
+  "phoneLocationDisabledText": "Disabled",
+  "phoneLocationNotification": "Provide workout location to your device",
+  "phoneLocationDescription": "Share phone location while preparing for and recording a workout",
+  "phoneLocationOpenApp": "Open OronBox to continue location",
+  "phoneLocationRecovery": "Open the app, then retry the workout on your device",
+  "phoneLocationPermission": "Precise location permission required",
+  "phoneLocationBackground": "Allow background location",
+  "phoneLocationBackgroundDescription": "Receive device workout location requests in the background",
+  "phoneLocationSettings": "Open system settings",
+  "phoneLocationServiceOff": "Location services are off",
+  "phoneLocationPermissionHelp": "Allow precise location, then try again",
+  "phoneLocationMobileOnly": "Available on Android and iOS",
+  "phoneLocationUnavailable": "Unable to get phone location\nCheck location permissions and services",
+  "deviceConnectionAbnormalTitle": "Device connection problem",
+  "deviceConnectionAbnormalMessage": "The device keeps disconnecting. Re-pair it or make sure the device is in Connect new phone mode for a more stable connection.",
+  "deviceRePair": "Re-pair",
+  "appDataClearCategoryTitle": "Clear {category}?",
+  "appDataClearCategoryDescription": "The selected local data will be removed\nOther categories will be kept",
+  "appDataClearHealthDescription": "Synced activity files will be removed\nLocal health data will be cleared",
+  "appDataClearCachedCategoryDescription": "Only unused cached files will be removed\nFiles may be downloaded again when needed",
+  "appDataClearModelsDescription": "The latest model will be kept\nUnused versions and expired downloads will be removed",
+  "@appDataClearCategoryTitle": {
+    "placeholders": {
+      "category": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsPermissionsTitle": "Permissions",
+  "settingsPermissionsDesc": "App runtime and device coordination permissions",
+  "appArrangementTitle": "App Arrangement",
+  "appArrangementDescription": "Adjust app order and drawer layout",
+  "appOrderMainSection": "Displayed Apps",
+  "appOrderMoreSection": "More Apps",
+  "appOrderHiddenSection": "Hidden Apps",
+  "appOrderMoreSectionDesc": "Apps displayed in device drawer",
+  "appOrderHiddenSectionDesc": "Apps hidden from device",
+  "appOrderMoveToMore": "Move to More",
+  "appOrderMoveToMain": "Move to Main",
+  "appOrderHide": "Hide",
+  "appOrderUnhide": "Show",
+  "appOrderCannotHide": "System app cannot be hidden",
+  "privateStateAccessPromptTitle": "OronBox needs to access account credentials protected by secure storage",
+  "privateStateAccessPromptMacOs": "If a system authorization prompt appears, enter your user password and click \"Always Allow\" to avoid repeated prompts",
+  "privateStateAccessPromptLinux": "If a system unlock prompt appears, enter your password to unlock the keyring",
+  "creatorSubmissionPreview": "Review submission",
+  "creatorResourceBinding": "Resource link",
+  "creatorPublicationIdentity": "Publishing accounts",
+  "creatorPublicationRange": "Included in this submission",
+  "creatorNewPublication": "First publication",
+  "creatorUpdatePublication": "Update existing resource",
+  "creatorAppendSubmission": "Append to PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "Excluded devices: {devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "Back to editing",
+  "creatorPackageVersionCodeMissing": "The package has no valid version code; rebuild it and upload again",
+  "creatorReopenSubmission": "Request another review",
+  "creatorReopenRequested": "Another review requested",
+  "creatorFixesForSubmission": "Issues fixed in this submission",
+  "creatorFixNote": "Fix details",
+  "creatorNameRequired": "Enter a resource name",
+  "creatorSummaryRequired": "Enter a resource summary",
+  "creatorSubmitForReview": "Submit for review",
+  "creatorAstroBoxPRBody": "PR description (optional)",
+  "autoBackupTitle": "Scheduled Backup",
+  "autoBackupDescription": "Periodically back up app data to system Documents directory",
+  "autoBackupEnabled": "Enable scheduled backup",
+  "autoBackupInterval": "Backup frequency",
+  "autoBackupEvery": "Every",
+  "autoBackupUnitDay": "day(s)",
+  "autoBackupUnitWeek": "week(s)",
+  "autoBackupUnitMonth": "month(s)",
+  "autoBackupRetention": "Retention",
+  "autoBackupRetentionCount": "{count} copies",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "Unlimited",
+  "autoBackupPasswordEnable": "Password protection",
+  "autoBackupPasswordEnableDesc": "Encrypt backup with standard AES-256",
+  "autoBackupPassword": "Backup password",
+  "autoBackupPasswordConfirm": "Confirm password",
+  "autoBackupPasswordMismatch": "Passwords do not match",
+  "autoBackupPasswordPlaceholder": "Enter password",
+  "autoBackupScope": "Backup scope",
+  "autoBackupScopeSettings": "Preferences",
+  "autoBackupScopeHealth": "Health records",
+  "autoBackupScopeExtensions": "Extensions and mini-apps",
+  "autoBackupScopeDevices": "Device pairing info",
+  "autoBackupStorageLocation": "Storage location",
+  "autoBackupStorageLocationDesc": "Backups are automatically saved to public Documents directory",
+  "autoBackupOpenFolder": "Open in file manager",
+  "autoBackupStatusEnabled": "Enabled · Every {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "Disabled",
+  "autoBackupRunNow": "Back up now",
+  "autoBackupRunSuccess": "Scheduled backup completed",
+  "autoBackupRunFailed": "Scheduled backup failed",
+  "backupPasswordDialogTitle": "Enter backup password",
+  "backupPasswordDialogMessage": "This backup is encrypted; enter the password to restore",
+  "backupPasswordIncorrect": "Incorrect password",
+  "backupPasswordRequired": "Password is required",
+  "exportBackupPasswordOptional": "Password (optional)",
+  "exportBackupPasswordPlaceholder": "Leave blank for unencrypted",
+  "backupTargetPublicDocuments": "Save to system Documents folder",
+  "backupTargetCustom": "Save as external file",
+  "restoreFromDocumentsTitle": "Select Backup to Restore",
+  "restorePickExternalFile": "Choose another external file...",
+  "backupSavedToDocuments": "Backup saved to system Documents folder",
+  "appDataExporting": "Exporting and encrypting backup, please wait",
+  "appDataDecrypting": "Decrypting backup, please wait",
+  "appDataRestoring": "Restoring data, please wait",
+  "autoBackupRetentionInputHint": "0 for unlimited",
+  "autoBackupRetentionLabel": "Backup copies (0 for unlimited)",
+  "autoBackupRetentionUnit": "copies",
+  "backupTypeAuto": "Auto Backup",
+  "backupTypeManual": "Manual Backup",
+  "autoBackupStatusDetail": "Enabled · Every {value} {unit} · Keep {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiTitle": "Global AI",
+  "globalAiDescription": "Configure LLM and wearable voice assistant integration",
+  "globalAiEnableSwitch": "Enable Global AI",
+  "globalAiEnableSwitchDesc": "Enable client-wide LLM integration and intelligent capabilities",
+  "globalAiProviders": "Provider Management",
+  "globalAiProvidersCount": "{count} providers configured",
+  "@globalAiProvidersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiModelSettings": "Model Settings",
+  "globalAiTestConnection": "Test Connection",
+  "globalAiStreamResponse": "Streaming Response",
+  "globalAiStreamResponseDesc": "Stream output progressively to wearable device",
+  "globalAiWearableSection": "Wearable Device",
+  "globalAiWearableEnable": "Wearable Enable",
+  "globalAiWearableEnableDesc": "Wearable voice assistant will be handled by LLM when triggered",
+  "globalAiWearableAdvancedSettings": "Wearable Settings",
+  "globalAiToolsScope": "Tool Permission Scopes",
+  "globalAiToolDeviceStatus": "Device Status",
+  "globalAiToolDeviceStatusDesc": "Read device connection, battery and basic info",
+  "globalAiToolHealthData": "Health Data",
+  "globalAiToolHealthDataDesc": "Read steps, calories, distance and heart rate",
+  "globalAiToolWeather": "Weather Query",
+  "globalAiToolWeatherDesc": "Query real-time weather and forecast",
+  "globalAiToolSearchResources": "Search Resources",
+  "globalAiToolSearchResourcesDesc": "Search watch faces and third-party apps",
+  "globalAiToolInstallResources": "Install Resources",
+  "globalAiToolInstallResourcesDesc": "Download and install watch faces or apps to device",
+  "globalAiToolDeleteResources": "Delete Resources",
+  "globalAiToolDeleteResourcesDesc": "Uninstall or delete resources on device",
+  "globalAiToolManageAlarms": "Manage Alarms",
+  "globalAiToolManageAlarmsDesc": "Create or manage wearable alarms",
+  "globalAiToolFindDevice": "Find Device",
+  "globalAiToolFindDeviceDesc": "Make wearable device vibrate or ring continuously",
+  "globalAiToolAppArrangement": "App Layout",
+  "globalAiToolAppArrangementDesc": "Query and rearrange device app ordering",
+  "globalAiToolPhoneLocation": "Phone Location",
+  "globalAiToolPhoneLocationDesc": "Supported on client phone only, assist queries with location",
+  "globalAiAddProvider": "Add Provider",
+  "globalAiEditProvider": "Edit Provider",
+  "globalAiProviderName": "Provider Name",
+  "globalAiProviderBaseUrl": "API Base URL",
+  "globalAiProviderApiKey": "API Key",
+  "globalAiProviderModels": "Model List",
+  "globalAiAddModel": "Add Model",
+  "globalAiModelId": "Model ID",
+  "globalAiProtocolType": "Protocol Type",
+  "globalAiProtocolCompletions": "Completions",
+  "globalAiProtocolResponses": "Responses",
+  "globalAiMultimodalSupport": "Multimodal Capabilities",
+  "globalAiSupportImages": "Images",
+  "globalAiSupportAudio": "Audio",
+  "globalAiContextLength": "Context Window",
+  "globalAiWearableReplyLength": "Wearable Reply Length",
+  "globalAiWearableLengthShort": "Short (<50 chars)",
+  "globalAiWearableLengthMedium": "Medium (<100 chars)",
+  "globalAiWearableLengthLong": "Long (<200 chars)",
+  "globalAiWearableLengthUnlimited": "Unlimited",
+  "globalAiWearableToolPolicy": "Tool Calling Policy",
+  "globalAiToolPolicyDisabled": "Disabled",
+  "globalAiToolPolicyReadOnly": "Read-Only",
+  "globalAiToolPolicyReadWrite": "Read-Write",
+  "globalAiConfirmationMode": "Confirmation Mode",
+  "globalAiConfirmModeWearableVoice": "Wearable Voice Confirmation",
+  "globalAiConfirmModeManual": "Client Manual Confirmation",
+  "globalAiTesting": "Testing connection...",
+  "globalAiTestSuccess": "Connection successful",
+  "globalAiTestFailed": "Connection failed",
+  "globalAiTestDuration": "Latency {ms} ms",
+  "@globalAiTestDuration": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiSectionModelAndProvider": "Model and Provider",
+  "globalAiTestConnectionDesc": "Verify connectivity and latency of current provider and model",
+  "globalAiWearableAdvancedDesc": "Reply length, tool permission mode and confirmation mode",
+  "globalAiNoModelSelected": "No model configured or selected",
+  "globalAiSave": "Save",
+  "globalAiCancel": "Cancel",
+  "globalAiClose": "Close",
+  "globalAiBack": "Back",
+  "globalAiRetry": "Retry",
+  "globalAiDelete": "Delete",
+  "globalAiNoProvidersPrompt": "No providers added\nPlease add a new provider above",
+  "globalAiNoModelsPrompt": "No models available, please add a model first",
+  "globalAiSystemPrompt": "System prompt",
+  "globalAiSystemPromptDescription": "Edit the model instructions. Device and tool safety rules are added automatically.",
+  "globalAiSystemPromptHint": "Enter the system prompt template",
+  "globalAiSystemPromptPlaceholders": "Available placeholders",
+  "globalAiDeleteProvider": "Delete this Provider",
+  "globalAiDeleteModel": "Delete Model",
+  "globalAiConnecting": "Connecting...",
+  "globalAiReceiving": "Receiving response...",
+  "globalAiWaitingFirstToken": "Waiting for first token...",
+  "globalAiTargetLabel": "Target {provider} / {model}",
+  "@globalAiTargetLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiNoProviderConfigured": "No valid provider or model configured",
+  "globalAiNoApiKeyConfigured": "No API key found, please check provider settings",
+  "globalAiSelectActiveModel": "Select Active Model",
+  "globalAiContextLengthHint": "e.g. 4096, 8192, 131072",
+  "globalAiModelNameHint": "e.g. deepseek-flash, qwen3.8-flash",
+  "globalAiProviderNameHint": "e.g. DeepSeek, OpenAI, SiliconFlow",
+  "globalAiBaseUrlHint": "e.g. https://api.deepseek.com",
+  "globalAiApiKeyHint": "sk-...",
+  "globalAiConfirmDeleteProvider": "Delete this provider and all its models?",
+  "globalAiConfirmDeleteModel": "Delete this model configuration?",
+  "globalAiModelAlreadyExists": "Model ID already exists",
+  "globalAiModelAdded": "Model added",
+  "globalAiProviderAdded": "Provider added",
+  "globalAiVoiceAssistantProcessing": "AI is thinking and streaming reply...",
+  "globalAiVoiceAssistantError": "AI reply error: {error}",
+  "@globalAiVoiceAssistantError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiAsrEngine": "Speech Recognition Engine",
+  "globalAiAsrManual": "Manual Input",
+  "globalAiAsrNative": "Local Offline Model",
+  "globalAiAsrWeType": "WeType Cloud",
+  "globalAiAsrDoubao": "Volcengine Doubao",
+  "globalAiTestRequestLabel": "Request Sent",
+  "globalAiTestResponseLabel": "Model Response",
+  "globalAiTestStart": "Start Test"
 }

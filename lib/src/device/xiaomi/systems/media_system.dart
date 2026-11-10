@@ -1,0 +1,994 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:flutter/foundation.dart';
+import 'package:oronbox/src/core/logging/logging_service.dart';
+import 'package:oronbox/src/device/core/event_bus.dart';
+import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_system.dart';
+import 'package:oronbox/src/device/core/device_state.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear.pb.dart'
+    as pb;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_common.pbenum.dart'
+    as pb_common;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pb.dart'
+    as pb_media;
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_media.pbenum.dart'
+    as pb_media_enum;
+import 'package:oronbox/src/device/xiaomi/protocol/packet/l2_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/mass_packet.dart';
+
+class MediaUploadResult {
+  MediaUploadResult({required this.song, required this.duplicated});
+  final pb_media.Song song;
+  final bool duplicated;
+}
+
+class MediaFileDescriptor {
+  MediaFileDescriptor({
+    this.identifier,
+    required this.name,
+    this.size,
+    this.durationSecs,
+    this.createdAtMs,
+    this.mediaType,
+  });
+
+  final pb_media.MediaFile_Identifier? identifier;
+  final String name;
+  final int? size;
+  final int? durationSecs;
+  final int? createdAtMs;
+  final pb_media_enum.MediaFile_Type? mediaType;
+
+  String get stableKey =>
+      identifier?.id.isNotEmpty == true ? identifier!.id : name;
+}
+
+class MediaUploadProgress {
+  MediaUploadProgress({required this.bytesSent, required this.bytesTotal});
+  final int bytesSent;
+  final int bytesTotal;
+}
+
+class _AudioRecordPullWaiter {
+  _AudioRecordPullWaiter({required this.completer, this.onProgress});
+  final Completer<Uint8List> completer;
+  final void Function(double progress, int currentPart, int totalParts)?
+  onProgress;
+}
+
+class XiaomiMediaSystem extends XiaomiSystem {
+  static final _log = getLogger('XiaomiMediaSystem');
+
+  static const _audioRecordVersion = 0;
+  static const _audioRecordCommand = 132;
+  static const _audioRecordTimeout = Duration(seconds: 20);
+
+  final _songSummaryWaiters = <Completer<pb_media.SongSummary>>[];
+  final _mediaFileSummaryWaiters = <Completer<pb_media.MediaFile_Summary>>[];
+  final _mediaFileListWaiters = <Completer<List<MediaFileDescriptor>>>[];
+  final _songPageWaiters = <Completer<pb_media.Song_GetResponse>>[];
+  final _songlistWaiters = <Completer<pb_media.Songlist_Response>>[];
+  final _songRemoveWaiters = <Completer<pb_media.Song_RemoveResponse>>[];
+  final _songAddWaiters = <Completer<pb_media.Song_AddResponse>>[];
+  final _songReportWaiters = <Completer<pb_media.Song_ReportResult>>[];
+
+  Timer? _audioRecordTimeoutTimer;
+  final _audioRecordSegments = <Uint8List>[];
+  int? _audioRecordTotalSegments;
+  int _audioRecordCurrentSegment = 0;
+  final _pendingAudioPulls = <String, _AudioRecordPullWaiter>{};
+
+  XiaomiMassSystem get _massSystem => entity.system<XiaomiMassSystem>()!;
+
+  Future<pb_media.SongSummary> requestSongSummary() async {
+    _log.info('[${entity.id}] request song summary');
+    final completer = Completer<pb_media.SongSummary>();
+    _songSummaryWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(pb_media_enum.Media_MediaID.GET_SONG_SUMMARY),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songSummaryWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<pb_media.MediaFile_Summary> requestMediaFileSummary() async {
+    _log.info('[${entity.id}] request media file summary');
+    final completer = Completer<pb_media.MediaFile_Summary>();
+    _mediaFileSummaryWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(pb_media_enum.Media_MediaID.GET_MEDIA_FILE_SUMMARY),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _mediaFileSummaryWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<List<MediaFileDescriptor>> requestMediaFileList() async {
+    _log.info('[${entity.id}] request media file list');
+    final completer = Completer<List<MediaFileDescriptor>>();
+    _mediaFileListWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(pb_media_enum.Media_MediaID.SYNC_MEDIA_FILE_LIST),
+      );
+      return await completer.future.timeout(const Duration(seconds: 30));
+    } finally {
+      // Future.timeout does not cancel the underlying waiter.  Remove it so
+      // a late response from a timed-out request cannot satisfy the next
+      // compatibility request or leave a stale completer in the list.
+      if (!completer.isCompleted) {
+        _mediaFileListWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<List<MediaFileDescriptor>> requestMediaFileListCompat() async {
+    _log.info('[${entity.id}] request media file list compat');
+    final completer = Completer<List<MediaFileDescriptor>>();
+    _mediaFileListWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(
+          pb_media_enum.Media_MediaID.SYNC_MEDIA_FILE_LIST,
+          mediaFileList: pb_media.MediaFile_List(),
+        ),
+      );
+      return await completer.future.timeout(const Duration(seconds: 30));
+    } finally {
+      if (!completer.isCompleted) {
+        _mediaFileListWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<void> requestMediaFile(
+    pb_media.MediaFile_Identifier identifier,
+  ) async {
+    await component.sendPbPacket(
+      _buildMediaPacket(
+        pb_media_enum.Media_MediaID.REQUEST_MEDIA_FILE,
+        mediaFileIdentifier: identifier,
+      ),
+    );
+  }
+
+  Future<void> requestMediaFiles(
+    List<pb_media.MediaFile_Identifier> identifiers,
+  ) async {
+    await component.sendPbPacket(
+      _buildMediaPacket(
+        pb_media_enum.Media_MediaID.REQUEST_MEDIA_FILE_LIST,
+        mediaFileIdentifiers: pb_media.MediaFile_Identifier_List(
+          list: identifiers,
+        ),
+      ),
+    );
+  }
+
+  Future<void> confirmMediaFile(
+    pb_media.MediaFile_Identifier identifier,
+  ) async {
+    await component.sendPbPacket(
+      _buildMediaPacket(
+        pb_media_enum.Media_MediaID.CONFIRM_MEDIA_FILE,
+        mediaFileIdentifier: identifier,
+      ),
+    );
+  }
+
+  Future<Uint8List> pullAudioRecord(
+    pb_media.MediaFile_Identifier identifier, {
+    void Function(double progress, int currentPart, int totalParts)? onProgress,
+    Duration timeout = const Duration(minutes: 2),
+  }) async {
+    _log.info('[${entity.id}] pull audio record: ${identifier.id}');
+    final completer = Completer<Uint8List>();
+    final key = identifier.id;
+    _pendingAudioPulls[key] = _AudioRecordPullWaiter(
+      completer: completer,
+      onProgress: onProgress,
+    );
+
+    try {
+      try {
+        await requestMediaFiles([identifier]);
+      } catch (_) {
+        await requestMediaFile(identifier);
+      }
+      return await completer.future.timeout(timeout);
+    } finally {
+      _pendingAudioPulls.remove(key);
+    }
+  }
+
+  Future<pb_media.Song_GetResponse> requestSongPage(int index) async {
+    _log.info('[${entity.id}] request song page $index');
+    final completer = Completer<pb_media.Song_GetResponse>();
+    _songPageWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(
+          pb_media_enum.Media_MediaID.GET_SONG,
+          songGetRequest: pb_media.Song_GetRequest(index: index),
+        ),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songPageWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<pb_media.Songlist_Response> requestSonglistOperation(
+    pb_media.Songlist_Request request,
+    pb_media_enum.Media_MediaID mediaId,
+  ) async {
+    _log.info('[${entity.id}] request songlist operation $mediaId');
+    final completer = Completer<pb_media.Songlist_Response>();
+    _songlistWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(mediaId, songlistRequest: request),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songlistWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<pb_media.Song_RemoveResponse> requestRemoveSong(
+    Uint8List songId,
+  ) async {
+    _log.info('[${entity.id}] request remove song');
+    final completer = Completer<pb_media.Song_RemoveResponse>();
+    _songRemoveWaiters.add(completer);
+    try {
+      await component.sendPbPacket(
+        _buildMediaPacket(
+          pb_media_enum.Media_MediaID.REMOVE_SONG,
+          songRemoveRequest: pb_media.Song_RemoveRequest(id: songId),
+        ),
+      );
+      return await completer.future.timeout(const Duration(seconds: 10));
+    } finally {
+      if (!completer.isCompleted) {
+        _songRemoveWaiters.remove(completer);
+      }
+    }
+  }
+
+  Future<MediaUploadResult> uploadSongWithProgress(
+    pb_media.Song song,
+    Uint8List fileData, {
+    void Function(MediaUploadProgress)? onProgress,
+  }) async {
+    _log.info(
+      '[${entity.id}] upload song ${song.id}, ${fileData.length} bytes',
+    );
+
+    final addRx = _prepareSingleWaiter(_songAddWaiters, 'song add request');
+    await component.sendPbPacket(
+      _buildMediaPacket(
+        pb_media_enum.Media_MediaID.ADD_SONG,
+        songAddRequest: pb_media.Song_AddRequest(song: song),
+      ),
+    );
+
+    final addResp = await addRx.timeout(const Duration(seconds: 15));
+
+    final status = addResp.prepareStatus;
+    switch (status) {
+      case pb_common.PrepareStatus.READY:
+        break;
+      case pb_common.PrepareStatus.DUPLICATED:
+        return MediaUploadResult(song: song, duplicated: true);
+      case pb_common.PrepareStatus.LOW_STORAGE:
+        throw ProtocolException('device reported low storage');
+      default:
+        throw ProtocolException('music upload prepare failed: $status');
+    }
+
+    final reportRx = _prepareSingleWaiter(
+      _songReportWaiters,
+      'song report wait',
+    );
+    final expectedSliceLength = addResp.hasExpectedSliceLength()
+        ? addResp.expectedSliceLength
+        : 0;
+
+    if (expectedSliceLength == 0) {
+      _log.warning(
+        '[${entity.id}] music upload add response returned slice length 0, falling back to MASS prepare',
+      );
+      await _massSystem.sendFile(
+        fileData: fileData,
+        dataType: MassDataType.music,
+        onProgress: (data) => onProgress?.call(
+          MediaUploadProgress(
+            bytesSent: (data.progress * fileData.length).toInt(),
+            bytesTotal: fileData.length,
+          ),
+        ),
+      );
+    } else {
+      await _massSystem.sendFile(
+        fileData: fileData,
+        dataType: MassDataType.music,
+        expectedSliceLength: expectedSliceLength,
+        onProgress: (data) => onProgress?.call(
+          MediaUploadProgress(
+            bytesSent: (data.progress * fileData.length).toInt(),
+            bytesTotal: fileData.length,
+          ),
+        ),
+      );
+    }
+
+    final report = await reportRx.timeout(const Duration(seconds: 90));
+    if (report.code != pb_media_enum.Song_ReportResult_Code.SUCCESS) {
+      throw ProtocolException('music upload failed: ${report.code}');
+    }
+    if (report.id.isNotEmpty && !_bytesEqual(report.id, song.id)) {
+      throw ProtocolException('music upload result id does not match');
+    }
+
+    return MediaUploadResult(song: song, duplicated: false);
+  }
+
+  @override
+  void onLayer2Packet(L2Channel channel, L2OpCode opcode, Uint8List payload) {
+    if (channel == L2Channel.mass) {
+      _handleMassPacket(payload);
+      return;
+    }
+    if (channel != L2Channel.pb) return;
+
+    final packetId = _extractVarintField(payload, 2);
+    if (packetId == pb_media_enum.Media_MediaID.REPORT_MEDIA_FILE_LIST.value) {
+      final mediaBytes = _extractLengthDelimitedField(payload, 20);
+      if (mediaBytes != null) {
+        final listPayload = _extractLengthDelimitedField(mediaBytes, 14);
+        if (listPayload != null) {
+          _handleMediaFileListPayload(listPayload);
+          return;
+        }
+      }
+      _log.warning(
+        '[${entity.id}] media file list report did not contain payload',
+      );
+      return;
+    }
+
+    pb.WearPacket packet;
+    try {
+      packet = pb.WearPacket.fromBuffer(payload);
+    } catch (e) {
+      _log.warning('[${entity.id}] failed to decode media PB payload', e);
+      return;
+    }
+    _handlePbPacket(packet);
+  }
+
+  void _handleMassPacket(Uint8List data) {
+    if (data.length < 6) return;
+    if (data[0] != _audioRecordVersion || data[1] != _audioRecordCommand) {
+      return;
+    }
+    _handleAudioRecordSegment(data);
+  }
+
+  void _handleAudioRecordSegment(Uint8List data) {
+    final byteData = ByteData.sublistView(data);
+    final total = byteData.getUint16(2, Endian.little);
+    final sequence = byteData.getUint16(4, Endian.little);
+
+    if (total <= 0 || sequence <= 0 || sequence > total) {
+      _log.warning(
+        '[${entity.id}] invalid Xiaomi audio record segment: sequence=$sequence, total=$total',
+      );
+      _resetAudioRecordAssembly();
+      return;
+    }
+
+    _postAudioRecordTimeout();
+
+    if (_audioRecordTotalSegments == null) {
+      _audioRecordTotalSegments = total;
+      _log.info(
+        '[${entity.id}] Xiaomi audio record transfer started: segments=$total',
+      );
+    } else if (_audioRecordTotalSegments != total && sequence == 1) {
+      _log.info(
+        '[${entity.id}] Xiaomi audio record transfer restarted: segments=$total',
+      );
+      _resetAudioRecordAssembly();
+      _audioRecordTotalSegments = total;
+    } else if (_audioRecordTotalSegments != total) {
+      _log.warning('[${entity.id}] Xiaomi audio record segment total changed');
+      _resetAudioRecordAssembly();
+      return;
+    }
+
+    if (sequence <= _audioRecordCurrentSegment) {
+      _log.fine(
+        '[${entity.id}] ignoring duplicate Xiaomi audio record segment: '
+        'sequence=$sequence, current=$_audioRecordCurrentSegment',
+      );
+      return;
+    }
+
+    if (sequence != _audioRecordCurrentSegment + 1) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record segment out of order: '
+        'sequence=$sequence, expected=${_audioRecordCurrentSegment + 1}',
+      );
+      _resetAudioRecordAssembly();
+      return;
+    }
+
+    _audioRecordCurrentSegment = sequence;
+    _audioRecordSegments.add(
+      Uint8List.fromList(Uint8List.sublistView(data, 6)),
+    );
+
+    for (final waiter in _pendingAudioPulls.values) {
+      waiter.onProgress?.call(sequence / total, sequence, total);
+    }
+
+    if (sequence == total) {
+      _finishAudioRecordAssembly();
+    }
+  }
+
+  void _postAudioRecordTimeout() {
+    _audioRecordTimeoutTimer?.cancel();
+    _audioRecordTimeoutTimer = Timer(_audioRecordTimeout, () {
+      _log.warning('[${entity.id}] Xiaomi audio record transfer timed out');
+      _failAllAudioPulls(
+        TimeoutException('Xiaomi audio record transfer timed out'),
+      );
+      _resetAudioRecordAssembly();
+    });
+  }
+
+  void _resetAudioRecordAssembly() {
+    _audioRecordTimeoutTimer?.cancel();
+    _audioRecordTimeoutTimer = null;
+    _audioRecordSegments.clear();
+    _audioRecordTotalSegments = null;
+    _audioRecordCurrentSegment = 0;
+  }
+
+  void _finishAudioRecordAssembly() {
+    final merged = BytesBuilder();
+    for (final segment in _audioRecordSegments) {
+      merged.add(segment);
+    }
+    final bytes = merged.toBytes();
+    _resetAudioRecordAssembly();
+
+    if (bytes.length < 10) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record payload too short: ${bytes.length} bytes',
+      );
+      return;
+    }
+
+    final byteData = ByteData.sublistView(bytes);
+    final expectedCrc = byteData.getUint32(bytes.length - 4, Endian.little);
+    final content = Uint8List.sublistView(bytes, 0, bytes.length - 4);
+    final calculatedCrc = calculateCrc32(content);
+    if (calculatedCrc != expectedCrc) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record checksum mismatch: expected=$expectedCrc, calculated=$calculatedCrc',
+      );
+      return;
+    }
+
+    final idLength = content[0];
+    if (1 + idLength + 5 > content.length) {
+      _log.warning(
+        '[${entity.id}] Xiaomi audio record header invalid: idLength=$idLength',
+      );
+      return;
+    }
+
+    final idBytes = Uint8List.sublistView(content, 1, 1 + idLength);
+    final id = utf8.decode(idBytes, allowMalformed: true);
+    final audioData = Uint8List.fromList(
+      Uint8List.sublistView(content, 1 + idLength + 5),
+    );
+
+    _log.info(
+      '[${entity.id}] Xiaomi audio record assembled successfully: id=$id, size=${audioData.length} bytes',
+    );
+
+    final identifier = pb_media.MediaFile_Identifier(id: id, thumbnail: false);
+    unawaited(confirmMediaFile(identifier));
+
+    entity.emit(
+      XiaomiAudioRecordReceived(deviceId: entity.id, id: id, bytes: audioData),
+    );
+
+    _fulfillAudioPull(id, audioData);
+  }
+
+  void _fulfillAudioPull(String id, Uint8List audioData) {
+    final waiter =
+        _pendingAudioPulls.remove(id) ??
+        _pendingAudioPulls.remove(_extractMediaFileName(id)) ??
+        (_pendingAudioPulls.length == 1
+            ? _pendingAudioPulls.remove(_pendingAudioPulls.keys.first)
+            : null);
+    if (waiter != null && !waiter.completer.isCompleted) {
+      waiter.completer.complete(audioData);
+    }
+  }
+
+  void _failAllAudioPulls(Object error) {
+    for (final waiter in _pendingAudioPulls.values) {
+      if (!waiter.completer.isCompleted) {
+        waiter.completer.completeError(error);
+      }
+    }
+    _pendingAudioPulls.clear();
+  }
+
+  @override
+  Future<void> dispose() async {
+    _audioRecordTimeoutTimer?.cancel();
+    _failAllAudioPulls(StateError('XiaomiMediaSystem disposed'));
+    _resetAudioRecordAssembly();
+    _failAll(_songSummaryWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(
+      _mediaFileSummaryWaiters,
+      StateError('XiaomiMediaSystem disposed'),
+    );
+    _failAll(_mediaFileListWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songPageWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songlistWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songRemoveWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songAddWaiters, StateError('XiaomiMediaSystem disposed'));
+    _failAll(_songReportWaiters, StateError('XiaomiMediaSystem disposed'));
+  }
+
+  void _handlePbPacket(pb.WearPacket packet) {
+    if (packet.whichPayload() != pb.WearPacket_Payload.media) return;
+    final media = packet.media;
+
+    switch (media.whichPayload()) {
+      case pb_media.Media_Payload.songSummary:
+        _fulfillAll(_songSummaryWaiters, media.songSummary);
+      case pb_media.Media_Payload.mediaFileSummary:
+        _fulfillAll(_mediaFileSummaryWaiters, media.mediaFileSummary);
+      case pb_media.Media_Payload.songGetResponse:
+        _fulfillSingle(_songPageWaiters, media.songGetResponse);
+      case pb_media.Media_Payload.songlistResponse:
+        _fulfillSingle(_songlistWaiters, media.songlistResponse);
+      case pb_media.Media_Payload.songAddResponse:
+        _fulfillSingle(_songAddWaiters, media.songAddResponse);
+      case pb_media.Media_Payload.songRemoveResponse:
+        _fulfillSingle(_songRemoveWaiters, media.songRemoveResponse);
+      case pb_media.Media_Payload.songReportResult:
+        _fulfillSingle(_songReportWaiters, media.songReportResult);
+      case pb_media.Media_Payload.recordStatus:
+        _log.fine(
+          '[${entity.id}] device reported record status: '
+          'duration=${media.recordStatus.hasDuration() ? media.recordStatus.duration.current : null}, '
+          'size=${media.recordStatus.hasSize() ? media.recordStatus.size.current : null}',
+        );
+        break;
+      default:
+        _log.warning(
+          '[${entity.id}] unsupported media payload ${media.whichPayload()} '
+          'for packet id=${packet.id}',
+        );
+        break;
+    }
+  }
+
+  void _handleMediaFileListPayload(Uint8List payload) {
+    try {
+      final list = _decodeMediaFileList(payload);
+      _fulfillAll(_mediaFileListWaiters, list);
+    } catch (e, st) {
+      _log.warning('[${entity.id}] failed to decode media file list', e, st);
+      _failAll(_mediaFileListWaiters, e);
+    }
+  }
+
+  Future<T> _prepareSingleWaiter<T>(List<Completer<T>> slot, String context) {
+    if (slot.isNotEmpty) {
+      throw StateError('$context already in progress');
+    }
+    final completer = Completer<T>();
+    slot.add(completer);
+    return completer.future;
+  }
+
+  void _fulfillAll<T>(List<Completer<T>> waiters, T value) {
+    for (final completer in waiters) {
+      if (!completer.isCompleted) {
+        completer.complete(value);
+      }
+    }
+    waiters.clear();
+  }
+
+  void _failAll<T>(List<Completer<T>> waiters, Object error) {
+    for (final completer in waiters) {
+      if (!completer.isCompleted) {
+        completer.completeError(error);
+      }
+    }
+    waiters.clear();
+  }
+
+  void _fulfillSingle<T>(List<Completer<T>> slot, T value) {
+    if (slot.isEmpty) return;
+    final completer = slot.removeAt(0);
+    if (!completer.isCompleted) {
+      completer.complete(value);
+    }
+  }
+}
+
+bool _bytesEqual(List<int> left, List<int> right) {
+  if (left.length != right.length) return false;
+  for (var index = 0; index < left.length; index++) {
+    if (left[index] != right[index]) return false;
+  }
+  return true;
+}
+
+pb.WearPacket _buildMediaPacket(
+  pb_media_enum.Media_MediaID id, {
+  pb_media.MediaFile_List? mediaFileList,
+  pb_media.MediaFile_Identifier? mediaFileIdentifier,
+  pb_media.MediaFile_Identifier_List? mediaFileIdentifiers,
+  pb_media.Song_GetRequest? songGetRequest,
+  pb_media.Songlist_Request? songlistRequest,
+  pb_media.Song_AddRequest? songAddRequest,
+  pb_media.Song_RemoveRequest? songRemoveRequest,
+}) {
+  return pb.WearPacket(
+    type: pb.WearPacket_Type.MEDIA,
+    id: id.value,
+    media: pb_media.Media(
+      mediaFileList: mediaFileList,
+      mediaFileIdentifier: mediaFileIdentifier,
+      mediaFileIdentifiers: mediaFileIdentifiers,
+      songGetRequest: songGetRequest,
+      songlistRequest: songlistRequest,
+      songAddRequest: songAddRequest,
+      songRemoveRequest: songRemoveRequest,
+    ),
+  );
+}
+
+List<MediaFileDescriptor> _decodeMediaFileList(Uint8List payload) {
+  final fields = _extractRepeatedLengthDelimitedFields(payload, 1);
+  return fields.map(_decodeMediaFileDescriptor).toList();
+}
+
+MediaFileDescriptor _decodeMediaFileDescriptor(Uint8List raw) {
+  final stringFields = <(int, String)>[];
+  final varintFields = <(int, int)>[];
+  pb_media.MediaFile_Identifier? identifier;
+  pb_media_enum.MediaFile_Type? mediaType;
+  int? size;
+  int? createdAtMs;
+  int? durationSecs;
+
+  var buf = raw;
+  while (buf.isNotEmpty) {
+    final key = _decodeProtobufKey(buf);
+    if (key == null) break;
+    final (tag, wireType, consumed) = key;
+    buf = Uint8List.sublistView(buf, consumed);
+
+    switch (wireType) {
+      case 0: // Varint
+        final value = _decodeProtobufVarint(buf);
+        if (value == null) break;
+        buf = Uint8List.sublistView(buf, value.$2);
+        final v = value.$1;
+        varintFields.add((tag, v));
+        switch (tag) {
+          case 2:
+            if (v <= 0x7FFFFFFF) {
+              mediaType = pb_media_enum.MediaFile_Type.valueOf(v);
+            }
+          case 3:
+            size = v;
+          case 4:
+            createdAtMs = _normalizeTimestamp(v);
+          case 5:
+            durationSecs = _normalizeDuration(v);
+        }
+      case 2: // Length-delimited
+        final len = _decodeProtobufVarint(buf);
+        if (len == null) break;
+        buf = Uint8List.sublistView(buf, len.$2);
+        final fieldLen = len.$1;
+        if (buf.length < fieldLen) break;
+        final field = Uint8List.sublistView(buf, 0, fieldLen);
+        buf = Uint8List.sublistView(buf, fieldLen);
+        if (tag == 1 && identifier == null) {
+          try {
+            final candidate = pb_media.MediaFile_Identifier.fromBuffer(field);
+            if (candidate.id.isNotEmpty) identifier = candidate;
+          } catch (_) {}
+        }
+        try {
+          final trimmed = utf8
+              .decode(field, allowMalformed: false)
+              .replaceAll('\u0000', '')
+              .trim();
+          if (tag != 1 && trimmed.isNotEmpty) {
+            stringFields.add((tag, trimmed));
+          }
+        } on FormatException {
+          // Vendor-specific binary fields are not media names.
+        }
+      default:
+        final skipped = _skipProtobufField(buf, wireType);
+        if (skipped == null) {
+          buf = Uint8List(0);
+        } else {
+          buf = Uint8List.sublistView(buf, skipped);
+        }
+        break;
+    }
+  }
+
+  final id = identifier?.id ?? '';
+  final name = _inferMediaFileName(stringFields, id);
+  mediaType ??= _inferMediaFileType(varintFields);
+  createdAtMs ??= _inferTimestamp(varintFields);
+  size ??= _inferSize(varintFields, createdAtMs);
+  durationSecs ??= _inferDuration(varintFields, createdAtMs, size);
+
+  return MediaFileDescriptor(
+    identifier: identifier,
+    name: name,
+    size: size,
+    durationSecs: durationSecs,
+    createdAtMs: createdAtMs,
+    mediaType: mediaType,
+  );
+}
+
+String _inferMediaFileName(List<(int, String)> fields, String identifierId) {
+  final preferred = fields
+      .map((entry) => entry.$2)
+      .firstWhere(
+        (value) => value != identifierId && _looksLikeMediaName(value),
+        orElse: () => '',
+      );
+  if (preferred.isNotEmpty) return preferred;
+  final any = fields
+      .map((entry) => entry.$2)
+      .firstWhere((value) => value.trim().isNotEmpty, orElse: () => '');
+  if (any.isNotEmpty) return any;
+  return _extractMediaFileName(identifierId);
+}
+
+pb_media_enum.MediaFile_Type? _inferMediaFileType(List<(int, int)> fields) {
+  for (final (_, value) in fields) {
+    if (value <= 0x7fffffff) {
+      final type = pb_media_enum.MediaFile_Type.valueOf(value);
+      if (type != null) return type;
+    }
+  }
+  return null;
+}
+
+int? _inferTimestamp(List<(int, int)> fields) {
+  for (final (_, value) in fields) {
+    if (value >= 1_000_000_000_000) return value;
+  }
+  for (final (_, value) in fields) {
+    if (value >= 946_684_800 && value <= 4_102_444_800) {
+      return value * 1000;
+    }
+  }
+  return null;
+}
+
+int? _inferSize(List<(int, int)> fields, int? timestampMs) {
+  int? best;
+  for (final (_, value) in fields) {
+    if (value == timestampMs) continue;
+    if (value >= 1024 && (best == null || value > best)) best = value;
+  }
+  return best;
+}
+
+int? _inferDuration(List<(int, int)> fields, int? timestampMs, int? size) {
+  int? best;
+  for (final (_, value) in fields) {
+    if (value == timestampMs || value == size) continue;
+    final seconds = value <= 86_400
+        ? value
+        : value % 1000 == 0 && value ~/ 1000 <= 86_400
+        ? value ~/ 1000
+        : null;
+    if (seconds != null && seconds > 0) {
+      best = best == null || seconds < best ? seconds : best;
+    }
+  }
+  return best;
+}
+
+String _extractMediaFileName(String id) {
+  if (id.isEmpty) return 'record';
+  final lastSlash = id.lastIndexOf('/');
+  if (lastSlash >= 0 && lastSlash + 1 < id.length) {
+    return id.substring(lastSlash + 1);
+  }
+  return id;
+}
+
+int? _normalizeTimestamp(int value) {
+  if (value >= 1_000_000_000_000) return value;
+  if (value >= 946_684_800 && value <= 4_102_444_800) return value * 1000;
+  return null;
+}
+
+int? _normalizeDuration(int value) {
+  if (value <= 0) return null;
+  if (value <= 86_400) return value;
+  if (value % 1000 == 0 && value ~/ 1000 <= 86_400) return value ~/ 1000;
+  return null;
+}
+
+bool _looksLikeMediaName(String value) {
+  final trimmed = value.trim();
+  if (trimmed.isEmpty) return false;
+  if (trimmed.contains('.') || trimmed.contains(' ')) return true;
+  final ascii = trimmed.runes.every(
+    (r) =>
+        (r >= 48 && r <= 57) ||
+        (r >= 65 && r <= 70) ||
+        (r >= 97 && r <= 102) ||
+        r == 45,
+  );
+  return !ascii;
+}
+
+@visibleForTesting
+List<MediaFileDescriptor> decodeMediaFileListForTesting(Uint8List payload) =>
+    _decodeMediaFileList(payload);
+
+int? _extractVarintField(Uint8List raw, int targetTag) {
+  var buf = raw;
+  while (buf.isNotEmpty) {
+    final key = _decodeProtobufKey(buf);
+    if (key == null) return null;
+    final (tag, wireType, consumed) = key;
+    buf = Uint8List.sublistView(buf, consumed);
+    if (wireType == 0 && tag == targetTag) {
+      final value = _decodeProtobufVarint(buf);
+      return value?.$1;
+    }
+    final skipped = _skipProtobufField(buf, wireType);
+    if (skipped == null) return null;
+    buf = Uint8List.sublistView(buf, skipped);
+  }
+  return null;
+}
+
+Uint8List? _extractLengthDelimitedField(Uint8List raw, int targetTag) {
+  var buf = raw;
+  Uint8List? last;
+  while (buf.isNotEmpty) {
+    final key = _decodeProtobufKey(buf);
+    if (key == null) return last;
+    final (tag, wireType, consumed) = key;
+    buf = Uint8List.sublistView(buf, consumed);
+    if (wireType == 2) {
+      final len = _decodeProtobufVarint(buf);
+      if (len == null) return last;
+      buf = Uint8List.sublistView(buf, len.$2);
+      final fieldLen = len.$1;
+      if (buf.length < fieldLen) return last;
+      final field = Uint8List.sublistView(buf, 0, fieldLen);
+      buf = Uint8List.sublistView(buf, fieldLen);
+      if (tag == targetTag) last = field;
+    } else {
+      final skipped = _skipProtobufField(buf, wireType);
+      if (skipped == null) return last;
+      buf = Uint8List.sublistView(buf, skipped);
+    }
+  }
+  return last;
+}
+
+List<Uint8List> _extractRepeatedLengthDelimitedFields(
+  Uint8List raw,
+  int targetTag,
+) {
+  final result = <Uint8List>[];
+  var buf = raw;
+  while (buf.isNotEmpty) {
+    final key = _decodeProtobufKey(buf);
+    if (key == null) break;
+    final (tag, wireType, consumed) = key;
+    buf = Uint8List.sublistView(buf, consumed);
+    if (wireType == 2) {
+      final len = _decodeProtobufVarint(buf);
+      if (len == null) break;
+      buf = Uint8List.sublistView(buf, len.$2);
+      final fieldLen = len.$1;
+      if (buf.length < fieldLen) break;
+      final field = Uint8List.sublistView(buf, 0, fieldLen);
+      buf = Uint8List.sublistView(buf, fieldLen);
+      if (tag == targetTag) result.add(field);
+    } else {
+      final skipped = _skipProtobufField(buf, wireType);
+      if (skipped == null) break;
+      buf = Uint8List.sublistView(buf, skipped);
+    }
+  }
+  return result;
+}
+
+(int, int, int)? _decodeProtobufKey(Uint8List buf) {
+  if (buf.isEmpty) return null;
+  final value = _decodeProtobufVarint(buf);
+  if (value == null) return null;
+  final key = value.$1;
+  final consumed = value.$2;
+  final tag = key >> 3;
+  final wireType = key & 0x7;
+  return (tag, wireType, consumed);
+}
+
+(int, int)? _decodeProtobufVarint(Uint8List buf) {
+  var result = 0;
+  var shift = 0;
+  var i = 0;
+  while (i < buf.length) {
+    final byte = buf[i];
+    result |= (byte & 0x7F) << shift;
+    i++;
+    if ((byte & 0x80) == 0) return (result, i);
+    shift += 7;
+    if (shift > 63) return null;
+  }
+  return null;
+}
+
+int? _skipProtobufField(Uint8List buf, int wireType) {
+  switch (wireType) {
+    case 0:
+      final v = _decodeProtobufVarint(buf);
+      return v?.$2;
+    case 1:
+      return 8;
+    case 2:
+      final len = _decodeProtobufVarint(buf);
+      if (len == null) return null;
+      return len.$2 + len.$1;
+    case 5:
+      return 4;
+    default:
+      return null;
+  }
+}

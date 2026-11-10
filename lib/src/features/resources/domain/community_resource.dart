@@ -50,7 +50,7 @@ CommunityPaidType communityPaidTypeFromWire(Object? value) {
   };
 }
 
-enum ResourceContentFormat { plainText, html }
+enum ResourceContentFormat { plainText, html, markdown }
 
 class ResourceRef {
   const ResourceRef({required this.source, required this.id});

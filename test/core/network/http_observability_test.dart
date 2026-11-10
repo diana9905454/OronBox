@@ -6,10 +6,10 @@ import 'package:oronbox/src/features/resources/application/creator/oronbox_creat
 void main() {
   test('HTTP diagnostics discard query credentials and summarize errors', () {
     final uri = Uri.parse(
-      'https://ob-api.zxor.org/api/oauth/callback?token=secret&state=private',
+      'https://ob-api.zxor.org/api/v1/oauth/callback?token=secret&state=private',
     );
 
-    expect(safeHttpEndpoint(uri), 'https://ob-api.zxor.org/api/oauth/callback');
+    expect(safeHttpEndpoint(uri), 'https://ob-api.zxor.org/api/v1/oauth/callback');
     expect(
       safeHttpEndpoint(
         Uri.parse(
@@ -50,7 +50,7 @@ void main() {
 
   test('creator API preserves a structured 400 response', () {
     final request = RequestOptions(
-      path: '/api/creator/uploads/upload-id',
+      path: '/api/v1/creator/uploads/upload-id',
       baseUrl: 'https://ob-api.zxor.org',
     );
     final exception = CreatorApiException.fromDio(
@@ -76,7 +76,7 @@ void main() {
     expect(exception.message, 'image could not be decoded');
     expect(exception.details, {
       'stage': 'transfer',
-      'endpoint': 'https://ob-api.zxor.org/api/creator/uploads/upload-id',
+      'endpoint': 'https://ob-api.zxor.org/api/v1/creator/uploads/upload-id',
       'status': 400,
       'errorType': 'badResponse',
       'requestId': 'request-123',

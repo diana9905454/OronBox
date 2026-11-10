@@ -1,4 +1,5 @@
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
 
 /// Legal documents the user has accepted. Bump [currentLegalVersion] when the
 /// terms or privacy notice change in a way that requires re-consent.
@@ -9,7 +10,9 @@ const _oobeCompletedKey = 'oobe.completed';
 
 bool isLegalAccepted([SharedPrefsService? prefs]) {
   final store = prefs ?? SharedPrefsService.instance;
-  return (store.getInt(_legalVersionKey) ?? 0) >= currentLegalVersion;
+  return (store.getInt(_legalVersionKey) ?? 0) >= currentLegalVersion &&
+      LegalAgreements.accepted('terms') &&
+      LegalAgreements.accepted('privacy');
 }
 
 bool isOobeCompleted([SharedPrefsService? prefs]) {
@@ -20,6 +23,14 @@ bool isOobeCompleted([SharedPrefsService? prefs]) {
 Future<void> markLegalAccepted([SharedPrefsService? prefs]) async {
   final store = prefs ?? SharedPrefsService.instance;
   await store.setInt(_legalVersionKey, currentLegalVersion);
+  await store.setInt(
+    'legal.accepted.terms',
+    LegalAgreements.requiredRevision('terms'),
+  );
+  await store.setInt(
+    'legal.accepted.privacy',
+    LegalAgreements.requiredRevision('privacy'),
+  );
 }
 
 Future<void> markOobeCompleted([SharedPrefsService? prefs]) async {

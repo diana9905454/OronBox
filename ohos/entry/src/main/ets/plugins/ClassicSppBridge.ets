@@ -45,6 +45,8 @@ interface SppScanEvent {
 export class ClassicSppBridge {
   private context: common.UIAbilityContext;
   private clientSocket: number = -1;
+  private connectGeneration: number = 0;
+  private pendingConnect: MethodResult | null = null;
   private eventSink: EventSink | null = null;
   private scanEventSink: EventSink | null = null;
   private discovered: Map<string, string> = new Map();
@@ -151,7 +153,11 @@ export class ClassicSppBridge {
       for (let i = 0; i < res.authResults.length; i++) {
         if (res.authResults[i] !== 0) { granted = false; break; }
       }
-      result.success(granted);
+      if (!granted) {
+        result.error('permission_denied', 'Bluetooth permission was denied', null);
+        return;
+      }
+      result.success(true);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       result.error('permission_error', msg, null);
@@ -184,7 +190,9 @@ export class ClassicSppBridge {
     try {
       connection.stopBluetoothDiscovery();
       try { connection.off('bluetoothDeviceFind'); } catch (_) {}
-      result.success(true);
+      const devices: Array<SppScanEvent> = [];
+      this.discovered.forEach((name, addr) => { devices.push({ addr: addr, name: name }); });
+      result.success(devices);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       result.error('scan_error', msg, null);
@@ -194,14 +202,25 @@ export class ClassicSppBridge {
   private connect(call: MethodCall, result: MethodResult): void {
     try {
       const addr: string = call.argument('addr');
+      this.cancelPendingConnect();
+      this.closeSocket();
+      const generation = ++this.connectGeneration;
+      this.pendingConnect = result;
       // 先停止扫描。
       try { connection.stopBluetoothDiscovery(); } catch (_) {}
       const options: socket.SppOptions = {
-        uuid: SPP_UUID,
+        uuid: (call.argument('serviceUuid') as string) || SPP_UUID,
         secure: false,
         type: socket.SppType.SPP_RFCOMM,
       };
       socket.sppConnect(addr, options, (err: BusinessError, clientSocket: number) => {
+        if (generation !== this.connectGeneration) {
+          if (clientSocket >= 0) {
+            try { socket.sppCloseClientSocket(clientSocket); } catch (_) {}
+          }
+          return;
+        }
+        this.pendingConnect = null;
         if (err != null && (err as BusinessError).code != null && (err as BusinessError).code !== 0) {
           const msg = (err as BusinessError).message ?? String(err);
           result.error('connect_error', msg, null);
@@ -210,9 +229,16 @@ export class ClassicSppBridge {
         this.clientSocket = clientSocket;
         // 监听读取。注意：sppRead 回调给的是 ArrayBuffer，StandardMessageCodec
         // 只认识 Uint8Array，必须转换后 emit，否则 Dart 端收到错误结构。
-        socket.on('sppRead', clientSocket, (data: ArrayBuffer) => {
-          this.emitEvent({ event: 'data', data: new Uint8Array(data) });
-        });
+        try {
+          socket.on('sppRead', clientSocket, (data: ArrayBuffer) => {
+            if (this.clientSocket !== clientSocket || generation !== this.connectGeneration) return;
+            this.emitEvent({ event: 'data', data: new Uint8Array(data) });
+          });
+        } catch (error) {
+          this.closeSocket();
+          result.error('connect_error', error instanceof Error ? error.message : String(error), null);
+          return;
+        }
         result.success({
           channel: clientSocket,
           connectionMode: 'rfcomm',
@@ -222,6 +248,7 @@ export class ClassicSppBridge {
       });
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
+      this.pendingConnect = null;
       result.error('connect_error', msg, null);
     }
   }
@@ -244,17 +271,34 @@ export class ClassicSppBridge {
     }
   }
 
+  private cancelPendingConnect(): void {
+    this.connectGeneration++;
+    const pending = this.pendingConnect;
+    this.pendingConnect = null;
+    if (pending != null) pending.error('connect_cancelled', 'SPP connection cancelled', null);
+  }
+
+  private closeSocket(): void {
+    const client = this.clientSocket;
+    this.clientSocket = -1;
+    if (client < 0) return;
+    try { socket.off('sppRead', client); } catch (_) {}
+    try { socket.sppCloseClientSocket(client); } catch (_) {}
+  }
+
+  dispose(): void {
+    this.cancelPendingConnect();
+    this.closeSocket();
+    try { connection.stopBluetoothDiscovery(); } catch (_) {}
+    try { connection.off('bluetoothDeviceFind'); } catch (_) {}
+    this.eventSink = null;
+    this.scanEventSink = null;
+  }
+
   private disconnect(result: MethodResult): void {
-    try {
-      if (this.clientSocket >= 0) {
-        try { socket.sppCloseClientSocket(this.clientSocket); } catch (_) {}
-        this.clientSocket = -1;
-      }
-      this.emitEvent({ event: 'disconnected' });
-      result.success(true);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      result.error('disconnect_error', msg, null);
-    }
+    this.cancelPendingConnect();
+    this.closeSocket();
+    this.emitEvent({ event: 'disconnected' });
+    result.success(true);
   }
 }

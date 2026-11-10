@@ -1,15 +1,16 @@
+import 'package:oronbox/src/data/community/description_markdown.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
 import 'package:pointycastle/export.dart';
 import 'package:oronbox/src/data/bandbbs/bandbbs_api_client.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/device/core/device_kind.dart';
-import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
 import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
 import 'package:oronbox/src/features/resources/domain/resource_catalog.dart';
@@ -19,12 +20,7 @@ class BandBbsCatalog implements CommunityResourceCatalog {
     required Dio dio,
     required BandBbsAuthNotifier auth,
     this.showAllCategories = false,
-    Future<void> Function()? onSessionExpired,
-  }) : _api = BandBbsApiClient(
-         dio: dio,
-         auth: auth,
-         onSessionExpired: onSessionExpired,
-       );
+  }) : _api = BandBbsApiClient(dio: dio, auth: auth);
 
   final BandBbsApiClient _api;
   final bool showAllCategories;
@@ -167,7 +163,6 @@ class BandBbsCatalog implements CommunityResourceCatalog {
           (category) => CommunityResourceDevice(
             codename: '$_categoryFilterPrefix${category.id}',
             name: category.title,
-            description: category.codename,
           ),
         )
         .toList();
@@ -272,12 +267,13 @@ class BandBbsCatalog implements CommunityResourceCatalog {
         bytes: payload.bytes,
       );
     }
-    final directory = Directory(
-      '${(await getTemporaryDirectory()).path}/oronbox_downloads/${request.resource.ref.id}',
+    final path = await ManagedTemporaryFiles.create(
+      TemporaryFilePurpose.downloads,
+      fileName,
+      (path) async {
+        await File(path).writeAsBytes(payload.bytes, flush: true);
+      },
     );
-    await directory.create(recursive: true);
-    final path = '${directory.path}/$fileName';
-    await File(path).writeAsBytes(payload.bytes, flush: true);
     return CommunityResourceDownloadResult(path: path, fileName: fileName);
   }
 
@@ -345,7 +341,6 @@ class BandBbsCatalog implements CommunityResourceCatalog {
           return _BandBbsCategory(
             id: _intValue(map['resource_category_id']) ?? 0,
             title: title,
-            codename: normalizeXiaomiWearableCodename(title),
             resourceCount: _intValue(map['resource_count']) ?? 0,
             parentId: _intValue(map['parent_category_id']) ?? 0,
             depth: _intValue(value['depth']) ?? 0,
@@ -422,15 +417,7 @@ class BandBbsCatalog implements CommunityResourceCatalog {
       return explicitIds.toList();
     }
 
-    final wanted = requested
-        .map(normalizeXiaomiWearableCodename)
-        .where((id) => id.isNotEmpty)
-        .toSet();
-    return (await _categories())
-        .where((category) => wanted.contains(category.codename))
-        .map((category) => category.id)
-        .toSet()
-        .toList();
+    return const [];
   }
 
   CommunityResource? _summaryFromResource(Map<String, dynamic> resource) {
@@ -439,9 +426,6 @@ class BandBbsCatalog implements CommunityResourceCatalog {
     final type = _typeFromResource(resource);
     if (id.isEmpty || name.isEmpty || type == null) return null;
     final category = _objectMap(resource['Category']);
-    final codename = normalizeXiaomiWearableCodename(
-      category['title']?.toString() ?? '',
-    );
     final icon = _uri(resource['icon_url']);
     return CommunityResource(
       ref: ResourceRef(source: sourceId, id: id),
@@ -449,7 +433,7 @@ class BandBbsCatalog implements CommunityResourceCatalog {
       type: type,
       paidType: _paidFromResource(resource),
       authors: _authorsFromResource(resource),
-      supportedDevices: codename.isEmpty ? const {} : {codename},
+      supportedDevices: const {},
       iconUrl: icon,
       coverUrl: icon,
       summary: resource['tag_line']?.toString().trim() ?? '',
@@ -479,7 +463,6 @@ class BandBbsCatalog implements CommunityResourceCatalog {
         continue;
       }
       final id = value['id']?.toString() ?? fileName;
-      final codename = normalizeXiaomiWearableCodename(fileName);
       files.add(
         CommunityResourceFile(
           id: id,
@@ -489,9 +472,7 @@ class BandBbsCatalog implements CommunityResourceCatalog {
           downloadUrl: _uri(value['download_url']),
           size: _intValue(value['size']),
           encrypted: encrypted,
-          supportedDevices: codename.isEmpty
-              ? summary.supportedDevices
-              : {codename},
+          supportedDevices: const {},
         ),
       );
     }
@@ -526,10 +507,13 @@ class BandBbsCatalog implements CommunityResourceCatalog {
       purchaseCurrency: purchaseLink == null ? '' : 'CNY',
       sourceSectionId: summary.sourceSectionId,
       content: CommunityResourceContent(
-        format: html.isNotEmpty
-            ? ResourceContentFormat.html
-            : ResourceContentFormat.plainText,
-        value: html.isNotEmpty ? html : raw,
+        format: ResourceContentFormat.markdown,
+        value: html.isNotEmpty
+            ? descriptionMarkdown(
+                html,
+                baseUri: Uri.parse('https://www.bandbbs.cn/'),
+              )
+            : raw,
         baseUri: Uri.parse('https://www.bandbbs.cn/'),
       ),
       previews: previewImages.map((image) => image.url).toList(),
@@ -568,13 +552,6 @@ class BandBbsCatalog implements CommunityResourceCatalog {
       return false;
     }
     if (query.hideForcePaid && item.paidType == CommunityPaidType.forcePaid) {
-      return false;
-    }
-    final selectedDeviceIds = query.selectedDevices
-        .where((value) => !value.startsWith(_categoryFilterPrefix))
-        .toSet();
-    if (selectedDeviceIds.isNotEmpty &&
-        item.supportedDevices.intersection(selectedDeviceIds).isEmpty) {
       return false;
     }
     return true;
@@ -902,14 +879,12 @@ class _BandBbsCategory {
   const _BandBbsCategory({
     required this.id,
     required this.title,
-    required this.codename,
     required this.resourceCount,
     required this.parentId,
     required this.depth,
   });
   final int id;
   final String title;
-  final String codename;
   final int resourceCount;
   final int parentId;
   final int depth;

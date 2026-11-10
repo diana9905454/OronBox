@@ -254,9 +254,8 @@ class CommunityHtmlContent extends StatelessWidget {
                 width: 3,
               ),
             ),
-            color: Theme.of(
-              context,
-            ).colorScheme.surfaceContainerHighest.withValues(alpha: .45),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest
+                .withValues(alpha: .45),
           ),
           child: _flowColumn(context, element.nodes),
         );
@@ -420,9 +419,8 @@ class CommunityHtmlContent extends StatelessWidget {
     padding: EdgeInsets.zero,
     child: Text.rich(
       TextSpan(
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          color: DefaultTextStyle.of(context).style.color,
-        ),
+        style: Theme.of(context).textTheme.bodyLarge
+            ?.copyWith(color: DefaultTextStyle.of(context).style.color),
         children: _inline(context, nodes),
       ),
     ),

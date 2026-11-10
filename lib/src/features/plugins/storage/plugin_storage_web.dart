@@ -16,8 +16,9 @@ Future<PluginStorage> createPluginStorage() async {
 
 class _WebPluginStorage implements PluginStorage {
   static const _databaseName = 'oronbox.plugins';
-  static const _databaseVersion = 1;
+  static const _databaseVersion = 2;
   static const _filesStore = 'files';
+  static const _sizesStore = 'sizes';
   static const _separator = '\u0001';
   static const _configFile = '.oronbox/config.json';
   static const _permissionsFile = '.oronbox/permissions.json';
@@ -30,6 +31,22 @@ class _WebPluginStorage implements PluginStorage {
       final database = request.result as web.IDBDatabase;
       if (!database.objectStoreNames.contains(_filesStore)) {
         database.createObjectStore(_filesStore);
+      }
+      if (!database.objectStoreNames.contains(_sizesStore)) {
+        final sizes = database.createObjectStore(_sizesStore);
+        final cursor = request.transaction!
+            .objectStore(_filesStore)
+            .openCursor();
+        cursor.onsuccess = ((web.Event _) {
+          final value = cursor.result;
+          if (value.isUndefinedOrNull) return;
+          final entry = value as web.IDBCursorWithValue;
+          sizes.put(
+            (entry.value as JSUint8Array).toDart.length.toJS,
+            entry.key,
+          );
+          entry.continue_();
+        }).toJS;
       }
     }).toJS;
     _database = await _request(request) as web.IDBDatabase;
@@ -93,22 +110,26 @@ class _WebPluginStorage implements PluginStorage {
     final id = package.manifest.id;
     final packagePrefix = _areaPrefix(id, PluginStorageArea.package);
     final existingKeys = await _allKeys();
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    final files = transaction.objectStore(_filesStore);
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
     for (final key in existingKeys.where(
       (key) => key.startsWith(packagePrefix),
     )) {
-      files.delete(key.toJS);
+      _delete(transaction, key);
     }
     for (final entry in package.files.entries) {
-      files.put(
-        entry.value.toJS,
-        _fileKey(id, PluginStorageArea.package, entry.key).toJS,
+      _put(
+        transaction,
+        entry.value,
+        _fileKey(id, PluginStorageArea.package, entry.key),
       );
     }
-    files.put(
-      Uint8List.fromList(utf8.encode(jsonEncode(config))).toJS,
-      _fileKey(id, PluginStorageArea.data, _configFile).toJS,
+    _put(
+      transaction,
+      Uint8List.fromList(utf8.encode(jsonEncode(config))),
+      _fileKey(id, PluginStorageArea.data, _configFile),
     );
     await _transaction(transaction);
     return package.installed(config: config);
@@ -116,11 +137,14 @@ class _WebPluginStorage implements PluginStorage {
 
   @override
   Future<void> writeConfig(String pluginId, Map<String, Object?> config) async {
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    final store = transaction.objectStore(_filesStore);
-    store.put(
-      Uint8List.fromList(utf8.encode(jsonEncode(config))).toJS,
-      _fileKey(pluginId, PluginStorageArea.data, _configFile).toJS,
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
+    _put(
+      transaction,
+      Uint8List.fromList(utf8.encode(jsonEncode(config))),
+      _fileKey(pluginId, PluginStorageArea.data, _configFile),
     );
     await _transaction(transaction);
   }
@@ -155,13 +179,15 @@ class _WebPluginStorage implements PluginStorage {
     final bytes = Uint8List.fromList(
       utf8.encode(jsonEncode(grants.toList()..sort())),
     );
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    transaction
-        .objectStore(_filesStore)
-        .put(
-          bytes.toJS,
-          _fileKey(pluginId, PluginStorageArea.data, _permissionsFile).toJS,
-        );
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
+    _put(
+      transaction,
+      bytes,
+      _fileKey(pluginId, PluginStorageArea.data, _permissionsFile),
+    );
     await _transaction(transaction);
   }
 
@@ -169,10 +195,12 @@ class _WebPluginStorage implements PluginStorage {
   Future<void> removePlugin(String pluginId) async {
     final keys = await _allKeys();
     final prefix = '$pluginId$_separator';
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    final files = transaction.objectStore(_filesStore);
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
     for (final key in keys.where((key) => key.startsWith(prefix))) {
-      files.delete(key.toJS);
+      _delete(transaction, key);
     }
     await _transaction(transaction);
   }
@@ -182,12 +210,14 @@ class _WebPluginStorage implements PluginStorage {
     final keys = await _allKeys();
     final packagePrefix = _areaPrefix(pluginId, PluginStorageArea.package);
     final pluginPrefix = '$pluginId$_separator';
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    final files = transaction.objectStore(_filesStore);
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
     for (final key in keys.where(
       (key) => key.startsWith(pluginPrefix) && !key.startsWith(packagePrefix),
     )) {
-      files.delete(key.toJS);
+      _delete(transaction, key);
     }
     await _transaction(transaction);
   }
@@ -228,10 +258,11 @@ class _WebPluginStorage implements PluginStorage {
     if (path.relativePath.isEmpty) {
       throw const FormatException('A file path is required');
     }
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    transaction
-        .objectStore(_filesStore)
-        .put(bytes.toJS, _fileKey(pluginId, path.area, path.relativePath).toJS);
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
+    _put(transaction, bytes, _fileKey(pluginId, path.area, path.relativePath));
     await _transaction(transaction);
   }
 
@@ -293,10 +324,11 @@ class _WebPluginStorage implements PluginStorage {
     }
     if (path.relativePath.isEmpty) return;
     final marker = '${path.relativePath}/.oronbox-directory';
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    transaction
-        .objectStore(_filesStore)
-        .put(Uint8List(0).toJS, _fileKey(pluginId, path.area, marker).toJS);
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
+    _put(transaction, Uint8List(0), _fileKey(pluginId, path.area, marker));
     await _transaction(transaction);
   }
 
@@ -331,18 +363,50 @@ class _WebPluginStorage implements PluginStorage {
     }
     final keys = await _allKeys();
     final key = _fileKey(pluginId, path.area, path.relativePath);
-    final transaction = _db.transaction(_filesStore.toJS, 'readwrite');
-    final store = transaction.objectStore(_filesStore);
+    final transaction = _db.transaction(
+      [_filesStore.toJS, _sizesStore.toJS].toJS,
+      'readwrite',
+    );
     for (final candidate in keys.where(
       (candidate) => candidate == key || candidate.startsWith('$key/'),
     )) {
-      store.delete(candidate.toJS);
+      _delete(transaction, candidate);
     }
     await _transaction(transaction);
   }
 
   @override
   String? nativePath(String pluginId, PluginStoragePath path) => null;
+
+  void _put(web.IDBTransaction transaction, Uint8List bytes, String key) {
+    transaction.objectStore(_filesStore).put(bytes.toJS, key.toJS);
+    transaction.objectStore(_sizesStore).put(bytes.length.toJS, key.toJS);
+  }
+
+  void _delete(web.IDBTransaction transaction, String key) {
+    transaction.objectStore(_filesStore).delete(key.toJS);
+    transaction.objectStore(_sizesStore).delete(key.toJS);
+  }
+
+  Future<Map<PluginStorageArea, int>> usage() async {
+    final tx = _db.transaction(_sizesStore.toJS, 'readonly');
+    final store = tx.objectStore(_sizesStore);
+    final keys = _request(store.getAllKeys());
+    final sizes = _request(store.getAll());
+    final names = ((await keys)?.dartify() as List).cast<String>();
+    final bytes = ((await sizes)?.dartify() as List).cast<num>();
+    final result = {for (final area in PluginStorageArea.values) area: 0};
+    for (var i = 0; i < names.length; i++) {
+      final parts = names[i].split(_separator);
+      if (parts.length != 3) continue;
+      for (final area in PluginStorageArea.values) {
+        if (parts[1] == area.name) {
+          result[area] = result[area]! + bytes[i].toInt();
+        }
+      }
+    }
+    return result;
+  }
 
   Future<List<String>> _allKeys() async {
     final transaction = _db.transaction(_filesStore.toJS, 'readonly');
@@ -426,5 +490,15 @@ class _WebPluginStorage implements PluginStorage {
   Future<void> close() async {
     _database?.close();
     _database = null;
+  }
+}
+
+Future<Map<PluginStorageArea, int>> collectWebPluginStorageUsage() async {
+  final storage = _WebPluginStorage();
+  try {
+    await storage.initialize();
+    return await storage.usage();
+  } finally {
+    await storage.close();
   }
 }

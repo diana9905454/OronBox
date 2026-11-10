@@ -1,25 +1,31 @@
+import 'package:oronbox/src/core/services/phone_location_sessions.dart';
+import 'package:oronbox/src/device/xiaomi/systems/phone_location_system.dart';
+import 'package:oronbox/src/core/services/device_location_service.dart';
 import 'package:oronbox/src/device/core/entity.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/runtime.dart';
 import 'package:oronbox/src/device/core/transport.dart';
-import 'package:oronbox/src/device/xiaomi/components/auth_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/info_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/gnss_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/install_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/mass_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/media_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/network_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/report_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/request_pool_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/resource_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/sync_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/thirdparty_app_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/watchface_system.dart';
-import 'package:oronbox/src/device/xiaomi/components/xiaomi_device_component.dart';
-import 'package:oronbox/src/device/xiaomi/components/screenshot_system.dart';
-import 'package:oronbox/src/device/xiaomi/system/xiaomi_dispatcher.dart';
-import 'package:oronbox/src/device/xiaomi/system/xiaomi_protocol_trace.dart';
+import 'package:oronbox/src/device/xiaomi/systems/auth_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_voice_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/info_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/gnss_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/install_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/lpa_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/media_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/network_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/report_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/request_pool_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/resource_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/sync_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/thirdparty_app_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/watchface_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/wifi_config_handler.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_device_component.dart';
+import 'package:oronbox/src/device/xiaomi/systems/screenshot_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_dispatcher.dart';
+import 'package:oronbox/src/device/xiaomi/systems/xiaomi_protocol_trace.dart';
 
 class XiaomiDeviceFactory implements DeviceEntityFactory {
   @override
@@ -63,10 +69,24 @@ class XiaomiDeviceFactory implements DeviceEntityFactory {
     entity.registerSystem(XiaomiAuthSystem());
 
     entity.registerSystem(XiaomiMassSystem());
-    entity.registerSystem(XiaomiGnssSystem());
+    entity.registerSystem(XiaomiVoiceSystem());
+    entity.registerSystem(XiaomiPhoneLocationSystem());
+    final locationService = DeviceLocationService();
+    entity.registerSystem(
+      XiaomiGnssSystem(
+        gpsInfoProvider: () async {
+          if (!PhoneLocationSessions.instance.enabled) return null;
+          final info = await locationService.getGpsInfo();
+          return PhoneLocationSessions.instance.enabled ? info : null;
+        },
+        cancelGpsInfo: locationService.cancel,
+      ),
+    );
     entity.registerSystem(XiaomiScreenshotSystem());
     entity.registerSystem(XiaomiMediaSystem());
     entity.registerSystem(XiaomiNetworkSystem());
+    entity.registerSystem(XiaomiWifiConfigHandler());
+    entity.registerSystem(XiaomiLpaSystem());
 
     entity.registerSystem(XiaomiInstallSystem());
     entity.registerSystem(XiaomiInfoSystem());

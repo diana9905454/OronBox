@@ -31,28 +31,32 @@ void main() {
     expect(sent, isFalse);
   });
 
-  test('expires the shared session after an authenticated 401', () async {
+  test('preserves the RT when the retried AT is rejected', () async {
     final access = _FakeSessionAccess(_session());
     final client = OronBoxSessionClient(access);
-    final request = RequestOptions(path: '/api/coins');
+    final request = RequestOptions(path: '/api/v1/coins');
 
     await expectLater(
       client.send<void>((_) async {
         throw DioException(
           requestOptions: request,
-          response: Response(requestOptions: request, statusCode: 401),
+          response: Response(
+            requestOptions: request,
+            statusCode: 401,
+            data: {'error': 'unauthorized'},
+          ),
           type: DioExceptionType.badResponse,
         );
       }),
-      throwsA(isA<BandBbsSessionExpiredException>()),
+      throwsA(isA<DioException>()),
     );
-    expect(access.expireCalls, 1);
+    expect(access.expireCalls, 0);
   });
 
   test('does not expire the session for non-authentication failures', () async {
     final access = _FakeSessionAccess(_session());
     final client = OronBoxSessionClient(access);
-    final request = RequestOptions(path: '/api/coins');
+    final request = RequestOptions(path: '/api/v1/coins');
 
     await expectLater(
       client.send<void>((_) async {
@@ -67,10 +71,10 @@ void main() {
     expect(access.expireCalls, 0);
   });
 
-  test('still reports expiry when clearing the shared session fails', () async {
+  test('does not clear credentials for an unidentified 401', () async {
     final access = _FakeSessionAccess(_session(), expireFailure: true);
     final client = OronBoxSessionClient(access);
-    final request = RequestOptions(path: '/api/coins');
+    final request = RequestOptions(path: '/api/v1/coins');
 
     await expectLater(
       client.send<void>((_) async {
@@ -80,9 +84,9 @@ void main() {
           type: DioExceptionType.badResponse,
         );
       }),
-      throwsA(isA<BandBbsSessionExpiredException>()),
+      throwsA(isA<DioException>()),
     );
-    expect(access.expireCalls, 1);
+    expect(access.expireCalls, 0);
   });
 }
 
@@ -100,7 +104,8 @@ class _FakeSessionAccess implements OronBoxSessionAccess {
   int expireCalls = 0;
 
   @override
-  Future<OronBoxSession?> sessionIfNeeded() async => session;
+  Future<OronBoxSession?> sessionIfNeeded({bool forceRefresh = false}) async =>
+      session;
 
   @override
   Future<void> expireSession() async {

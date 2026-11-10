@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
-import 'package:oronbox/src/daemon/daemon_task_queue.dart';
+import 'package:oronbox/src/host/tasks/task_queue.dart';
 
 /// Owns OronBox application state and long-running tasks independently from
 /// how callers reach it. Desktop exposes this module through IPC while mobile
 /// keeps it in the GUI process.
 class ApplicationHost implements OronBoxCommandBus {
   ApplicationHost(this.core, {this.onClose, this.beginTaskExecution}) {
-    tasks = DaemonTaskQueue(
+    tasks = HostTaskQueue(
       core,
       onCancelRunning: core is ActiveOperationController
           ? (core as ActiveOperationController).cancelActiveOperation
@@ -23,9 +23,8 @@ class ApplicationHost implements OronBoxCommandBus {
 
   final OronBoxCommandBus core;
   final FutureOr<void> Function()? onClose;
-  final Future<Future<void> Function()> Function(DaemonTask)?
-  beginTaskExecution;
-  late final DaemonTaskQueue tasks;
+  final Future<Future<void> Function()> Function(HostTask)? beginTaskExecution;
+  late final HostTaskQueue tasks;
   final _events = StreamController<CommandEvent>.broadcast();
   late final StreamSubscription<CommandEvent> _coreSubscription;
   late final StreamSubscription<CommandEvent> _taskSubscription;
@@ -36,6 +35,10 @@ class ApplicationHost implements OronBoxCommandBus {
   @override
   Future<CommandResult> execute(OronBoxCommand command) {
     return runAsDiagnosticBackend(() async {
+      if (command.method.startsWith('queue.') ||
+          command.method == 'task.enqueue') {
+        await tasks.ready;
+      }
       switch (command.method) {
         case 'task.enqueue':
           return CommandResult.success({
@@ -84,7 +87,7 @@ class ApplicationHost implements OronBoxCommandBus {
   }
 
   Future<bool> _shouldRemoveCompleted(
-    DaemonTask task,
+    HostTask task,
     CommandResult result,
   ) async {
     if (task.command.params['autoClean'] != true) return false;

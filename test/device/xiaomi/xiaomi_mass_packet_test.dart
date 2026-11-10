@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/device/xiaomi/components/mass_system.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/mass_packet.dart';
-import 'package:oronbox/src/protocols/xiaomi/transport/mass_transfer.dart';
+import 'package:oronbox/src/device/xiaomi/systems/mass_system.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/mass_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/transport/mass_transfer.dart';
 
 void main() {
   test('writes the remaining length when resuming a MASS transfer', () {
@@ -114,13 +114,12 @@ void main() {
   test('aborting the queue completes active and pending callers', () async {
     final releaseFirst = Completer<void>();
     final queue = XiaomiMassSendQueue(
-      execute:
-          ({
-            required fileData,
-            required dataType,
-            expectedSliceLength,
-            onProgress,
-          }) => releaseFirst.future,
+      execute: ({
+        required fileData,
+        required dataType,
+        expectedSliceLength,
+        onProgress,
+      }) => releaseFirst.future,
     );
     final first = queue.enqueue(
       fileData: Uint8List.fromList([1]),
@@ -138,6 +137,13 @@ void main() {
     releaseFirst.complete();
 
     await Future.wait([firstError, secondError]);
+  });
+
+  test('supports MassDataType.audioRecord value 132 and calculateCrc32', () {
+    expect(MassDataType.audioRecord.value, 132);
+    expect(MassDataType.fromValue(132), MassDataType.audioRecord);
+    final data = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(calculateCrc32(data), _crc32(data));
   });
 }
 

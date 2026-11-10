@@ -543,8 +543,9 @@ message ClockHoliday {
 }
 
 message Timezone {
-    required int32 offset = 1;
-    optional int32 dst_saving = 2;
+    // Firmware uses signed ZigZag values in 15-minute units.
+    required sint32 offset = 1;
+    optional sint32 dst_saving = 2;
     required string id = 3;
     required string id_spec = 4;
 }

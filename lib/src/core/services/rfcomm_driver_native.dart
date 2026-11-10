@@ -102,6 +102,28 @@ class NativeRfcommDriver implements RfcommDriver {
     }
     if (event is Map) {
       final kind = event['event'] as String?;
+      if (kind == 'diagnostic') {
+        final levelName = event['level']?.toString() ?? Level.INFO.name;
+        final level = Level.LEVELS.firstWhere(
+          (value) => value.name == levelName,
+          orElse: () => Level.INFO,
+        );
+        final rawFields = event['fields'];
+        final fields = rawFields is Map
+            ? <String, Object?>{
+                for (final entry in rawFields.entries)
+                  entry.key.toString(): entry.value,
+              }
+            : const <String, Object?>{};
+        logDiagnostic(
+          _log,
+          level,
+          event['message']?.toString() ?? 'Native SPP diagnostic',
+          fields: fields,
+          error: event['error'],
+        );
+        return;
+      }
       if (kind == 'disconnected') {
         _log.info('SPP native event: disconnected');
         _markDisconnected();
@@ -244,6 +266,9 @@ class NativeRfcommDriver implements RfcommDriver {
       // text, macOS FlutterError) into one stable shape so the UI error
       // mapping does not have to match every native wording.
       _log.warning('[$deviceId] SPP connect failed: ${e.code} ${e.message}');
+      if (e.code == 'BOND_REMOVAL_FAILED') {
+        throw SppBondRemovalFailed(e.message);
+      }
       throw StateError('SPP connect failed: ${e.code}: ${e.message}');
     }
     _log.info(

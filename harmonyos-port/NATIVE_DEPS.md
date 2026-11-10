@@ -76,3 +76,69 @@ $readelf = "C:\Program Files\Huawei\DevEco Studio\sdk\default\openharmony\native
 
 **建议节奏**：与"同步上游 OronBox"同一批次处理（见 `harmonyos-port/runbook.md`），
 避免两套更新流程各自遗忘。
+
+## 上游 1.2.0 依赖适配（2026-11-07）
+
+合并 `OronCanopy/OronBox` v1.2.0 后，依赖层有四处本地适配：
+
+1. **material_ui / cupertino_ui 本地 shim**（`packages/material_ui`、
+   `packages/cupertino_ui`，在 `pubspec.yaml` 的 `dependency_overrides` 里指向本地路径）。
+   原因：上游把 Material/Cupertino 拆成 pub 包，这两个包对 `TargetPlatform`
+   做穷举 switch，不认识 ohos fork 新增的 `TargetPlatform.ohos`，会报
+   `non_exhaustive_switch_expression`。shim 直接 `export package:flutter/material.dart`
+   / `cupertino.dart`，复用 fork 里已适配 ohos 的 in-tree 实现。
+   *将来若上游 in-tree Material 被彻底移除，需要改为给 pub 包逐个补 case。*
+
+2. **三条 git 依赖的本地镜像**（仅本机，`pubspec_overrides.yaml` 已被 gitignore）：
+   `oronbox_network`、`oronbox_location`、`wasm_run` 镜像在
+   自选的本地依赖目录。GitHub 直连不稳时用它跑 `pub get`；
+   网络恢复后可删除该文件回到上游 git 依赖。注意：该文件会**整段替换**
+   `pubspec.yaml` 的 `dependency_overrides`，所以上面的 shim 也要在里面重复一遍。
+
+3. **flutter_zxing 3.1.0 的 pub cache 补丁**（不可复现，cache repair 后需重打）：
+   `flutter_zxing-3.1.0/lib/src/ui/reader_widget.dart` 的
+   `_preferredImageFormatGroup()` 里，在 `case TargetPlatform.fuchsia:` 前加
+   `case TargetPlatform.ohos:`（与 linux 同分支，返回 `ImageFormatGroup.unknown`）。
+
+4. **flutter_secure_storage 本地 fork**（`packages/flutter_secure_storage`，
+   在 `dependency_overrides` 里指向本地路径）。
+   原因：上游 11.2.0 的 `_selectOptions()` 对未知平台直接
+   `throw UnsupportedError('unsupported_platform')`，鸿蒙 fork 报的是
+   `TargetPlatform.ohos`，于是 `PrivateAppState` / AI 密钥 / OAuth 凭证 / 云 ASR
+   四处全部抛异常，`PrivateAppState.initialize()` 必失败，连「导出备份」都会在
+   `appdata.maintenance.end` 处被连带打断（报「文件导出失败」）。
+   fork 只改一处：`ohos` 分支返回空 options 表。原生侧由
+   `ohos/entry/src/main/ets/plugins/SecureStorageBridge.ets` 实现同名通道
+   `plugins.it_nomads.com/flutter_secure_storage`，底层用 **Asset Store Kit**
+   （`@ohos.security.asset`，系统托管密钥，等价 Keychain/Keystore）。
+   Asset 单条 `SECRET` 上限 1024 字节，而 vault 是 JSON，因此按 900 字节分片
+   （`<key>` 存清单、`<key>#<i>` 存分片），对 Dart 侧透明。
+
+**构建现状**：`assembleApp -p buildMode=debug` 可通过（HAP ≈ 224 MB，含 JIT 引擎）；
+`buildMode=release` 仍受 Windows 端 `gen_snapshot` 产物缺口阻塞（详见
+`SDK_UPGRADE_ASSESSMENT.md`），需 macOS 构建或等官方补 Windows 版工件。
+
+## 客户端证明（build attestation）
+
+服务端的 `/api/v1/*` 要求客户端对请求做 HMAC 签名，密钥由主密钥按
+`HMAC-SHA256(master, "oronbox:v1:<version>:<commit>")` 派生。自编译包默认没有
+密钥 → 不签名 → 全部 401。
+
+本地构建步骤（密钥永不入库）：
+
+1. 主密钥放 `config/attestation_master.local`（64 hex，`.gitignore` 已忽略）；
+2. 跑 `tool/prepare_build_integrity.py --version <ver> --commit <HEAD>`，
+   环境变量 `ORONBOX_AUTH_MASTER` 从该文件读入，产出
+   `build/integrity_defines.json`（每版本派生密钥）；
+3. 跑 `tool/ohos_dart_defines.py --out build/dart_defines.txt
+   --dart-out lib/src/core/network/attestation_build_values.g.dart`，
+   同时产出 hvigor 的 `DART_DEFINES` blob 和 Dart 常量文件（已忽略）；
+4. 再调 hvigor。
+
+**为什么还要 Dart 常量**：hvigor 插件把 `DART_DEFINES` 转成
+`flutter assemble --DartDefines=<blob>`，但在本 fork 里这些值只落进
+environment 的普通键，ohos 的 kernel 目标读不到（实测 `kernel_blob.bin` 中
+搜不到常量，且没有报错）。因此 `ClientAttestationConfig` 的默认值改为
+`String.fromEnvironment(..., defaultValue: kBuildAttestation*)`：环境 define
+优先，取不到就用生成文件里的常量。构建后可直接在
+`resources/rawfile/flutter_assets/kernel_blob.bin` 里 grep 派生密钥来验证是否进包。

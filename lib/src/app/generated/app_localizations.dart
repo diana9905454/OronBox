@@ -1114,7 +1114,7 @@ abstract class AppLocalizations {
   /// No description provided for @errorOperationTimeout.
   ///
   /// In en, this message translates to:
-  /// **'Operation timed out. Make sure the device is still nearby and try again'**
+  /// **'Operation timed out'**
   String get errorOperationTimeout;
 
   /// No description provided for @errorDeviceNotReady.
@@ -1284,6 +1284,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unsupported or unrecognized file type'**
   String get errorUnsupportedFileType;
+
+  /// No description provided for @errorDeviceFeatureUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is not supported by the current device or firmware'**
+  String get errorDeviceFeatureUnsupported;
+
+  /// No description provided for @errorDeviceMusicUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Music transfer is not supported by the current device or firmware'**
+  String get errorDeviceMusicUnsupported;
+
+  /// No description provided for @errorDeviceRecordingUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording export is not supported by the current device or firmware'**
+  String get errorDeviceRecordingUnsupported;
+
+  /// No description provided for @errorDeviceScreenMirrorUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'Screen mirroring is not supported by the current device or firmware'**
+  String get errorDeviceScreenMirrorUnsupported;
+
+  /// No description provided for @errorNotInstalled.
+  ///
+  /// In en, this message translates to:
+  /// **'Required component or app is not installed'**
+  String get errorNotInstalled;
+
+  /// No description provided for @errorInvalidOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot perform this operation in the current state'**
+  String get errorInvalidOperation;
 
   /// No description provided for @errorCertificateVerificationFailed.
   ///
@@ -1624,7 +1660,7 @@ abstract class AppLocalizations {
   /// No description provided for @voiceLabTitle.
   ///
   /// In en, this message translates to:
-  /// **'Voice lab'**
+  /// **'Voice assistant'**
   String get voiceLabTitle;
 
   /// No description provided for @voiceLabXiaoAi.
@@ -2521,6 +2557,12 @@ abstract class AppLocalizations {
   /// **'Heart rate'**
   String get deviceHealthHeartRate;
 
+  /// No description provided for @deviceHealthAverageHeartRateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Average heart rate'**
+  String get deviceHealthAverageHeartRateLabel;
+
   /// No description provided for @deviceHealthRestingHeartRate.
   ///
   /// In en, this message translates to:
@@ -2610,6 +2652,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sleep structure'**
   String get deviceHealthSleepStructure;
+
+  /// No description provided for @deviceHealthSleepDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Sleep details'**
+  String get deviceHealthSleepDetails;
 
   /// No description provided for @deviceHealthSleepAverageHeartRate.
   ///
@@ -2827,6 +2875,18 @@ abstract class AppLocalizations {
   /// **'Sync and export recordings from the watch'**
   String get deviceRecordingsDescription;
 
+  /// No description provided for @deviceRecordingsLibrary.
+  ///
+  /// In en, this message translates to:
+  /// **'Device recordings'**
+  String get deviceRecordingsLibrary;
+
+  /// No description provided for @deviceRecordingsLibraryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Export recordings from the watch'**
+  String get deviceRecordingsLibraryDescription;
+
   /// No description provided for @deviceRecordingsHint.
   ///
   /// In en, this message translates to:
@@ -2886,6 +2946,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not export recording: {error}'**
   String deviceRecordingsSaveFailed(String error);
+
+  /// No description provided for @deviceRecordingsSavedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved'**
+  String get deviceRecordingsSavedBadge;
+
+  /// No description provided for @deviceRecordingsSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get deviceRecordingsSelectAll;
+
+  /// No description provided for @deviceRecordingsDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get deviceRecordingsDeselectAll;
+
+  /// No description provided for @deviceRecordingsExportSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Export selected ({count})'**
+  String deviceRecordingsExportSelected(int count);
+
+  /// No description provided for @deviceRecordingsOpenDirectory.
+  ///
+  /// In en, this message translates to:
+  /// **'Open folder'**
+  String get deviceRecordingsOpenDirectory;
+
+  /// No description provided for @deviceRecordingsExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported to {path}'**
+  String deviceRecordingsExported(String path);
+
+  /// No description provided for @deviceRecordingsSaveSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording exported'**
+  String get deviceRecordingsSaveSuccess;
+
+  /// No description provided for @deviceRecordingsRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get deviceRecordingsRefresh;
 
   /// No description provided for @deviceMusicTransferTitle.
   ///
@@ -3733,6 +3841,18 @@ abstract class AppLocalizations {
   /// **'Open Xiaomi Fitness\nGo to About at the bottom of the Profile page\nRepeatedly tap the orange ring logo\nTap Confirm in the dialog\nWait for the log has been... toast\nReturn here and tap Scan'**
   String get settingsWearableLogGuide;
 
+  /// No description provided for @settingsWearableLogGet.
+  ///
+  /// In en, this message translates to:
+  /// **'Get'**
+  String get settingsWearableLogGet;
+
+  /// No description provided for @settingsWearableLogGuideOhos.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Xiaomi Fitness and go to About at the bottom of the Profile page\nTap the orange ring logo repeatedly, then tap Confirm\nWhen “log has been...” appears, return here and tap Get\n\nOpen My phone → Compatible app data → Android → data → com.mi.health → files → log\nSelect all files and tap Done'**
+  String get settingsWearableLogGuideOhos;
+
   /// No description provided for @settingsWearableLogFound.
   ///
   /// In en, this message translates to:
@@ -3774,6 +3894,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sign in to your Xiaomi account before syncing ephemeris data'**
   String get xiaomiAccountRequiredForEphemeris;
+
+  /// No description provided for @xiaomiWifiPasswordRequestTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Wi-Fi connection request'**
+  String get xiaomiWifiPasswordRequestTitle;
+
+  /// No description provided for @xiaomiWifiPasswordRequestMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The device is requesting a connection to “{ssid}”.'**
+  String xiaomiWifiPasswordRequestMessage(Object ssid);
 
   /// No description provided for @settingsHuamiAccount.
   ///
@@ -4033,6 +4165,36 @@ abstract class AppLocalizations {
   /// **'Change app theme appearance'**
   String get settingsThemeModeDesc;
 
+  /// No description provided for @settingsThemePreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme style'**
+  String get settingsThemePreset;
+
+  /// No description provided for @settingsThemePresetDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the app\'s visual style'**
+  String get settingsThemePresetDesc;
+
+  /// No description provided for @settingsThemePresetMaterial3.
+  ///
+  /// In en, this message translates to:
+  /// **'Material 3'**
+  String get settingsThemePresetMaterial3;
+
+  /// No description provided for @settingsThemePresetMaterial2.
+  ///
+  /// In en, this message translates to:
+  /// **'Material 2'**
+  String get settingsThemePresetMaterial2;
+
+  /// No description provided for @settingsThemePresetFluent.
+  ///
+  /// In en, this message translates to:
+  /// **'Fluent'**
+  String get settingsThemePresetFluent;
+
   /// No description provided for @settingsDynamicColor.
   ///
   /// In en, this message translates to:
@@ -4132,20 +4294,26 @@ abstract class AppLocalizations {
   /// No description provided for @settingsTeamRoleMain.
   ///
   /// In en, this message translates to:
-  /// **'Main Developer / Designer'**
+  /// **'Main Developer / Architecture / Design'**
   String get settingsTeamRoleMain;
+
+  /// No description provided for @settingsTeamRoleHarmonyOS.
+  ///
+  /// In en, this message translates to:
+  /// **'HarmonyOS porting and maintenance'**
+  String get settingsTeamRoleHarmonyOS;
+
+  /// No description provided for @settingsTeamRoleDeviceConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'macOS connection optimization contribution'**
+  String get settingsTeamRoleDeviceConnection;
 
   /// No description provided for @settingsTeamRoleZeppOS.
   ///
   /// In en, this message translates to:
-  /// **'ZeppOS implementation'**
+  /// **'ZeppOS adaptation and implementation'**
   String get settingsTeamRoleZeppOS;
-
-  /// No description provided for @settingsTeamRoleHarmony.
-  ///
-  /// In en, this message translates to:
-  /// **'HarmonyOS adaptation'**
-  String get settingsTeamRoleHarmony;
 
   /// No description provided for @settingsAboutSoftware.
   ///
@@ -4177,12 +4345,6 @@ abstract class AppLocalizations {
   /// **'Development team'**
   String get settingsAboutSoftwareTeam;
 
-  /// No description provided for @settingsSpecialThanks.
-  ///
-  /// In en, this message translates to:
-  /// **'Special thanks'**
-  String get settingsSpecialThanks;
-
   /// No description provided for @settingsAboutSoftwareBuildInfo.
   ///
   /// In en, this message translates to:
@@ -4204,43 +4366,49 @@ abstract class AppLocalizations {
   /// No description provided for @acknowledgementsAstroBoxPublic.
   ///
   /// In en, this message translates to:
-  /// **'Reference for UI structure, resource workflows, and interaction design.'**
+  /// **'Reference for UI structure and interaction design.'**
   String get acknowledgementsAstroBoxPublic;
 
   /// No description provided for @acknowledgementsAstroBoxNgCore.
   ///
   /// In en, this message translates to:
-  /// **'Reference for Xiaomi device protocols, install flows, and transfer behavior.'**
+  /// **'Xiaomi device protocol and transport layer, ported and modified.'**
   String get acknowledgementsAstroBoxNgCore;
+
+  /// No description provided for @acknowledgementsAstroBoxNgPb.
+  ///
+  /// In en, this message translates to:
+  /// **'Xiaomi wear protocol definitions, adopted verbatim.'**
+  String get acknowledgementsAstroBoxNgPb;
 
   /// No description provided for @acknowledgementsAstroBoxNgBluetooth.
   ///
   /// In en, this message translates to:
-  /// **'Reference for Bluetooth connection behavior.'**
+  /// **'Reference for Bluetooth connection flows.'**
   String get acknowledgementsAstroBoxNgBluetooth;
 
   /// No description provided for @acknowledgementsAstroBoxNgAccount.
   ///
   /// In en, this message translates to:
-  /// **'Reference for Xiaomi account login, device sync, and authkey retrieval flows.'**
+  /// **'Reference for Xiaomi account login and authkey retrieval flows.'**
   String get acknowledgementsAstroBoxNgAccount;
 
   /// No description provided for @acknowledgementsAstroBoxNgProvider.
   ///
   /// In en, this message translates to:
-  /// **'Reference for community resource indexes, CDN handling, and manifest parsing flows.'**
+  /// **'Reference for community resource indexes and manifest parsing flows.'**
   String get acknowledgementsAstroBoxNgProvider;
 
   /// No description provided for @acknowledgementsAstroBoxNgAppWasm.
   ///
   /// In en, this message translates to:
-  /// **'Reference for Web Serial and browser-side connection flows.'**
+  /// **'Reference for Web Serial connection flows.'**
   String get acknowledgementsAstroBoxNgAppWasm;
 
   /// No description provided for @acknowledgementsGadgetbridge.
   ///
   /// In en, this message translates to:
-  /// **'Reference for ZeppOS and wearable protocol research.'**
+  /// **'ZeppOS protocol implementation, ported and modified.'**
   String get acknowledgementsGadgetbridge;
 
   /// No description provided for @acknowledgementsBreezyWeather.
@@ -4813,6 +4981,18 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get resourceTypeUnknownCancel;
 
+  /// No description provided for @watchfaceRestrictedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot Install Resource'**
+  String get watchfaceRestrictedTitle;
+
+  /// No description provided for @watchfaceRestrictedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'To respect intellectual property and comply with relevant policies, at the request of Xiaomi,\nOronBox cannot install watchfaces suspected of being from the official watchface store.\nIf you believe this is a false positive, please have the watchface author contact us.'**
+  String get watchfaceRestrictedMessage;
+
   /// No description provided for @resourceTypeMismatchMessage.
   ///
   /// In en, this message translates to:
@@ -5129,6 +5309,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Approved'**
   String get creatorStateApproved;
+
+  /// No description provided for @creatorStateReviewing.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewing'**
+  String get creatorStateReviewing;
+
+  /// No description provided for @creatorStatePublishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing'**
+  String get creatorStatePublishing;
 
   /// No description provided for @creatorStateExternalReview.
   ///
@@ -5559,7 +5751,7 @@ abstract class AppLocalizations {
   /// No description provided for @oobeLoginLocalNote.
   ///
   /// In en, this message translates to:
-  /// **'Xiaomi and Amazfit sign-in run entirely on this device; related data is never sent to any third party other than Xiaomi/Amazfit'**
+  /// **'Xiaomi and Amazfit sign-in run entirely on this device\nRelated data is never sent to any third party other than Xiaomi/Amazfit'**
   String get oobeLoginLocalNote;
 
   /// No description provided for @oobeLoginXiaomiDesc.
@@ -5609,6 +5801,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Finish'**
   String get oobeFinish;
+
+  /// No description provided for @oobeRestoreAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from backup'**
+  String get oobeRestoreAction;
+
+  /// No description provided for @oobeRestoreSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored successfully'**
+  String get oobeRestoreSuccess;
 
   /// No description provided for @settingsReplayOobe.
   ///
@@ -5958,6 +6162,36 @@ abstract class AppLocalizations {
   /// **'Review note: {note}'**
   String messageReviewNoteBody(String note);
 
+  /// No description provided for @messageReviewerPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviewer: {reviewer}'**
+  String messageReviewerPrefix(String reviewer);
+
+  /// No description provided for @messageOperatorPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Operator: {operator}'**
+  String messageOperatorPrefix(String operator);
+
+  /// No description provided for @messageReferencePrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Related: {reference}'**
+  String messageReferencePrefix(String reference);
+
+  /// No description provided for @messageTargetsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Channels: {targets}'**
+  String messageTargetsPrefix(String targets);
+
+  /// No description provided for @messageUnapprovedItemsPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Items needing changes: {items}'**
+  String messageUnapprovedItemsPrefix(String items);
+
   /// No description provided for @messageStatusChangedBody.
   ///
   /// In en, this message translates to:
@@ -6192,101 +6426,161 @@ abstract class AppLocalizations {
   /// **'View logs and developer tools'**
   String get settingsAdvancedDescription;
 
-  /// No description provided for @debugServerTitle.
+  /// No description provided for @localServerTitle.
   ///
   /// In en, this message translates to:
-  /// **'Debug service'**
-  String get debugServerTitle;
+  /// **'Local API Server'**
+  String get localServerTitle;
 
-  /// No description provided for @debugServerDescription.
+  /// No description provided for @localServerDescription.
   ///
   /// In en, this message translates to:
-  /// **'Expose a local API for trusted development tools'**
-  String get debugServerDescription;
+  /// **'Expose a local API for external CLI and development tools'**
+  String get localServerDescription;
 
-  /// No description provided for @debugServerEnable.
+  /// No description provided for @localServerEnable.
   ///
   /// In en, this message translates to:
-  /// **'Enable debug service'**
-  String get debugServerEnable;
+  /// **'Enable Local API Server'**
+  String get localServerEnable;
 
-  /// No description provided for @debugServerEnableDescription.
+  /// No description provided for @localServerEnableDescription.
   ///
   /// In en, this message translates to:
   /// **'Allow approved clients on the local network to inspect and control OronBox'**
-  String get debugServerEnableDescription;
+  String get localServerEnableDescription;
 
-  /// No description provided for @debugServerEndpoint.
+  /// No description provided for @localServerEndpoint.
   ///
   /// In en, this message translates to:
   /// **'Endpoint'**
-  String get debugServerEndpoint;
+  String get localServerEndpoint;
 
-  /// No description provided for @debugServerFingerprint.
+  /// No description provided for @localServerFingerprint.
   ///
   /// In en, this message translates to:
   /// **'Server fingerprint'**
-  String get debugServerFingerprint;
+  String get localServerFingerprint;
 
-  /// No description provided for @debugServerPendingClients.
+  /// No description provided for @localServerPendingClients.
   ///
   /// In en, this message translates to:
   /// **'Pending approvals'**
-  String get debugServerPendingClients;
+  String get localServerPendingClients;
 
-  /// No description provided for @debugServerAuthorizedClients.
+  /// No description provided for @localServerAuthorizedClients.
   ///
   /// In en, this message translates to:
   /// **'Approved clients'**
-  String get debugServerAuthorizedClients;
+  String get localServerAuthorizedClients;
 
-  /// No description provided for @debugServerApprove.
+  /// No description provided for @localServerApprove.
   ///
   /// In en, this message translates to:
   /// **'Approve'**
-  String get debugServerApprove;
+  String get localServerApprove;
 
-  /// No description provided for @debugServerReject.
+  /// No description provided for @localServerReject.
   ///
   /// In en, this message translates to:
   /// **'Reject'**
-  String get debugServerReject;
+  String get localServerReject;
 
-  /// No description provided for @debugServerRevoke.
+  /// No description provided for @localServerRevoke.
   ///
   /// In en, this message translates to:
   /// **'Revoke access'**
-  String get debugServerRevoke;
+  String get localServerRevoke;
 
-  /// No description provided for @debugServerNoPendingClients.
+  /// No description provided for @localServerNoPendingClients.
   ///
   /// In en, this message translates to:
   /// **'No clients are waiting for approval'**
-  String get debugServerNoPendingClients;
+  String get localServerNoPendingClients;
 
-  /// No description provided for @debugServerNoAuthorizedClients.
+  /// No description provided for @localServerNoAuthorizedClients.
   ///
   /// In en, this message translates to:
   /// **'No approved clients'**
-  String get debugServerNoAuthorizedClients;
+  String get localServerNoAuthorizedClients;
 
-  /// No description provided for @debugServerSecurityNotice.
+  /// No description provided for @localServerSecurityNotice.
   ///
   /// In en, this message translates to:
   /// **'Only enable this service on a trusted network'**
-  String get debugServerSecurityNotice;
+  String get localServerSecurityNotice;
 
-  /// No description provided for @debugServerStartFailed.
+  /// No description provided for @localServerStartFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not start the debug service'**
-  String get debugServerStartFailed;
+  /// **'Could not start the Local API Server'**
+  String get localServerStartFailed;
 
-  /// No description provided for @debugServerStopFailed.
+  /// No description provided for @localServerStopFailed.
   ///
   /// In en, this message translates to:
-  /// **'Could not stop the debug service'**
-  String get debugServerStopFailed;
+  /// **'Could not stop the Local API Server'**
+  String get localServerStopFailed;
+
+  /// No description provided for @localServerPairingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow Local API Access?'**
+  String get localServerPairingTitle;
+
+  /// No description provided for @localServerPairingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'“{clientName}” is requesting control over wearable services and command bus'**
+  String localServerPairingDescription(String clientName);
+
+  /// No description provided for @localServerPairingFingerprint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ed25519 SHA-256 Fingerprint'**
+  String get localServerPairingFingerprint;
+
+  /// No description provided for @localServerPairingAlwaysAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Always allow from this computer'**
+  String get localServerPairingAlwaysAllow;
+
+  /// No description provided for @localServerPairingAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow'**
+  String get localServerPairingAllow;
+
+  /// No description provided for @localServerPairingDeny.
+  ///
+  /// In en, this message translates to:
+  /// **'Deny'**
+  String get localServerPairingDeny;
+
+  /// No description provided for @localServerPairingScopes.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested permissions'**
+  String get localServerPairingScopes;
+
+  /// No description provided for @wifiPasswordInputPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Wi-Fi password'**
+  String get wifiPasswordInputPlaceholder;
+
+  /// No description provided for @wifiConnectButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get wifiConnectButton;
+
+  /// No description provided for @wifiCancelButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get wifiCancelButton;
 
   /// No description provided for @xmsDeveloperMode.
   ///
@@ -7086,6 +7380,12 @@ abstract class AppLocalizations {
   /// **'Awake'**
   String get deviceHealthSleepAwake;
 
+  /// Number of times woken up during sleep
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 time} other{{count} times}}'**
+  String deviceHealthSleepWakeCount(num count);
+
   /// No description provided for @deviceHealthSleepLight.
   ///
   /// In en, this message translates to:
@@ -7684,11 +7984,3485 @@ abstract class AppLocalizations {
   /// **'Screenshot failed'**
   String get xiaomiScreenshotFailed;
 
+  /// No description provided for @xiaomiScreenshotDownloadStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Screenshot download started'**
+  String get xiaomiScreenshotDownloadStarted;
+
+  /// No description provided for @xiaomiScreenshotSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to save screenshot'**
+  String get xiaomiScreenshotSaveFailed;
+
   /// No description provided for @xiaomiScreenshotSaved.
   ///
   /// In en, this message translates to:
   /// **'Watch screenshot saved to: {path}'**
   String xiaomiScreenshotSaved(Object path);
+
+  /// No description provided for @deviceHealthRecoveryTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get deviceHealthRecoveryTime;
+
+  /// No description provided for @deviceHealthTodayLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Today load'**
+  String get deviceHealthTodayLoad;
+
+  /// No description provided for @deviceHealthSevenDayLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day load'**
+  String get deviceHealthSevenDayLoad;
+
+  /// No description provided for @deviceHealthLoadLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Load level'**
+  String get deviceHealthLoadLevel;
+
+  /// No description provided for @deviceHealthFitnessBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness balance'**
+  String get deviceHealthFitnessBalance;
+
+  /// No description provided for @deviceHealthFitnessLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fitness'**
+  String get deviceHealthFitnessLevel;
+
+  /// No description provided for @deviceHealthFatigueLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatigue'**
+  String get deviceHealthFatigueLevel;
+
+  /// No description provided for @deviceHealthTrainingStress.
+  ///
+  /// In en, this message translates to:
+  /// **'Training stress'**
+  String get deviceHealthTrainingStress;
+
+  /// No description provided for @deviceHealthTrainingStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Training status'**
+  String get deviceHealthTrainingStatus;
+
+  /// No description provided for @deviceHealthSevenDayVitality.
+  ///
+  /// In en, this message translates to:
+  /// **'7-day vitality'**
+  String get deviceHealthSevenDayVitality;
+
+  /// No description provided for @deviceHealthEarnedToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned on this day'**
+  String get deviceHealthEarnedToday;
+
+  /// No description provided for @deviceHealthEarnedInPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Earned in this period'**
+  String get deviceHealthEarnedInPeriod;
+
+  /// No description provided for @deviceHealthModerateIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get deviceHealthModerateIntensity;
+
+  /// No description provided for @deviceHealthHighIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get deviceHealthHighIntensity;
+
+  /// No description provided for @deviceHealthNap.
+  ///
+  /// In en, this message translates to:
+  /// **'Naps'**
+  String get deviceHealthNap;
+
+  /// No description provided for @deviceHealthNapSingular.
+  ///
+  /// In en, this message translates to:
+  /// **'Nap'**
+  String get deviceHealthNapSingular;
+
+  /// No description provided for @deviceHealthWorkoutOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout overview'**
+  String get deviceHealthWorkoutOverview;
+
+  /// No description provided for @deviceHealthWorkoutHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get deviceHealthWorkoutHistory;
+
+  /// No description provided for @deviceHealthWorkoutDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get deviceHealthWorkoutDuration;
+
+  /// No description provided for @deviceHealthWorkoutRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Route'**
+  String get deviceHealthWorkoutRoute;
+
+  /// No description provided for @deviceHealthWorkoutDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get deviceHealthWorkoutDetails;
+
+  /// No description provided for @deviceHealthSwimmingSections.
+  ///
+  /// In en, this message translates to:
+  /// **'Swimming sections'**
+  String get deviceHealthSwimmingSections;
+
+  /// No description provided for @deviceHealthWorkoutCharts.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout charts'**
+  String get deviceHealthWorkoutCharts;
+
+  /// No description provided for @deviceHealthActiveDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Active duration'**
+  String get deviceHealthActiveDuration;
+
+  /// No description provided for @deviceHealthAveragePace.
+  ///
+  /// In en, this message translates to:
+  /// **'Average pace'**
+  String get deviceHealthAveragePace;
+
+  /// No description provided for @deviceHealthBestPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Best pace'**
+  String get deviceHealthBestPace;
+
+  /// No description provided for @deviceHealthHeartRateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart-rate range'**
+  String get deviceHealthHeartRateRange;
+
+  /// No description provided for @deviceHealthBloodOxygenRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood oxygen range'**
+  String get deviceHealthBloodOxygenRange;
+
+  /// No description provided for @deviceHealthMainStroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Main stroke'**
+  String get deviceHealthMainStroke;
+
+  /// No description provided for @deviceHealthHeartRateZones.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart-rate zones'**
+  String get deviceHealthHeartRateZones;
+
+  /// No description provided for @deviceHealthZoneLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Zone {zone}'**
+  String deviceHealthZoneLabel(Object zone);
+
+  /// No description provided for @deviceHealthZoneWarmup.
+  ///
+  /// In en, this message translates to:
+  /// **'Warm-up'**
+  String get deviceHealthZoneWarmup;
+
+  /// No description provided for @deviceHealthZoneFatBurning.
+  ///
+  /// In en, this message translates to:
+  /// **'Fat burning'**
+  String get deviceHealthZoneFatBurning;
+
+  /// No description provided for @deviceHealthZoneAerobic.
+  ///
+  /// In en, this message translates to:
+  /// **'Aerobic'**
+  String get deviceHealthZoneAerobic;
+
+  /// No description provided for @deviceHealthZoneAnaerobic.
+  ///
+  /// In en, this message translates to:
+  /// **'Anaerobic'**
+  String get deviceHealthZoneAnaerobic;
+
+  /// No description provided for @deviceHealthZoneExtreme.
+  ///
+  /// In en, this message translates to:
+  /// **'Extreme'**
+  String get deviceHealthZoneExtreme;
+
+  /// No description provided for @deviceHealthRecoveryAfterWorkout.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart-rate recovery'**
+  String get deviceHealthRecoveryAfterWorkout;
+
+  /// No description provided for @deviceHealthRecoveredHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovered HR'**
+  String get deviceHealthRecoveredHeartRate;
+
+  /// No description provided for @deviceHealthRecoveryRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery rate'**
+  String get deviceHealthRecoveryRate;
+
+  /// No description provided for @deviceHealthSamples.
+  ///
+  /// In en, this message translates to:
+  /// **'Samples'**
+  String get deviceHealthSamples;
+
+  /// No description provided for @deviceHealthAverageSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Average speed'**
+  String get deviceHealthAverageSpeed;
+
+  /// No description provided for @deviceHealthTopSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Top speed'**
+  String get deviceHealthTopSpeed;
+
+  /// No description provided for @deviceHealthAverageStride.
+  ///
+  /// In en, this message translates to:
+  /// **'Average stride'**
+  String get deviceHealthAverageStride;
+
+  /// No description provided for @deviceHealthAverageCadence.
+  ///
+  /// In en, this message translates to:
+  /// **'Average cadence'**
+  String get deviceHealthAverageCadence;
+
+  /// No description provided for @deviceHealthMaximumCadence.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum cadence'**
+  String get deviceHealthMaximumCadence;
+
+  /// No description provided for @deviceHealthAverageBloodOxygenDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Average blood oxygen'**
+  String get deviceHealthAverageBloodOxygenDetail;
+
+  /// No description provided for @deviceHealthTotalAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total ascent'**
+  String get deviceHealthTotalAscent;
+
+  /// No description provided for @deviceHealthTotalDescent.
+  ///
+  /// In en, this message translates to:
+  /// **'Total descent'**
+  String get deviceHealthTotalDescent;
+
+  /// No description provided for @deviceHealthAverageAltitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Average altitude'**
+  String get deviceHealthAverageAltitude;
+
+  /// No description provided for @deviceHealthAerobicEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Aerobic effect'**
+  String get deviceHealthAerobicEffect;
+
+  /// No description provided for @deviceHealthAnaerobicEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Anaerobic effect'**
+  String get deviceHealthAnaerobicEffect;
+
+  /// No description provided for @deviceHealthPeakEffect.
+  ///
+  /// In en, this message translates to:
+  /// **'Peak effect'**
+  String get deviceHealthPeakEffect;
+
+  /// No description provided for @deviceHealthVo2Max.
+  ///
+  /// In en, this message translates to:
+  /// **'VO₂ max'**
+  String get deviceHealthVo2Max;
+
+  /// No description provided for @deviceHealthBodyEnergyUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Body energy used'**
+  String get deviceHealthBodyEnergyUsed;
+
+  /// No description provided for @deviceHealthExpectedRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Recovery'**
+  String get deviceHealthExpectedRecovery;
+
+  /// No description provided for @deviceHealthTrainingLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Training load'**
+  String get deviceHealthTrainingLoad;
+
+  /// No description provided for @deviceHealthVitalityEarned.
+  ///
+  /// In en, this message translates to:
+  /// **'Vitality earned'**
+  String get deviceHealthVitalityEarned;
+
+  /// No description provided for @deviceHealthAveragePower.
+  ///
+  /// In en, this message translates to:
+  /// **'Average power'**
+  String get deviceHealthAveragePower;
+
+  /// No description provided for @deviceHealthMaximumPower.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum power'**
+  String get deviceHealthMaximumPower;
+
+  /// No description provided for @deviceHealthArmPulls.
+  ///
+  /// In en, this message translates to:
+  /// **'Arm pulls'**
+  String get deviceHealthArmPulls;
+
+  /// No description provided for @deviceHealthAverageStrokeRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Average stroke rate'**
+  String get deviceHealthAverageStrokeRate;
+
+  /// No description provided for @deviceHealthMaximumStrokeRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum stroke rate'**
+  String get deviceHealthMaximumStrokeRate;
+
+  /// No description provided for @deviceHealthTurns.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns'**
+  String get deviceHealthTurns;
+
+  /// No description provided for @deviceHealthAverageSwolf.
+  ///
+  /// In en, this message translates to:
+  /// **'Average SWOLF'**
+  String get deviceHealthAverageSwolf;
+
+  /// No description provided for @deviceHealthBestSwolf.
+  ///
+  /// In en, this message translates to:
+  /// **'Best SWOLF'**
+  String get deviceHealthBestSwolf;
+
+  /// No description provided for @deviceHealthPoolLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Pool length'**
+  String get deviceHealthPoolLength;
+
+  /// No description provided for @deviceHealthJumps.
+  ///
+  /// In en, this message translates to:
+  /// **'Jumps'**
+  String get deviceHealthJumps;
+
+  /// No description provided for @deviceHealthAverageJumpRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Average jump rate'**
+  String get deviceHealthAverageJumpRate;
+
+  /// No description provided for @deviceHealthBestJumpRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Best jump rate'**
+  String get deviceHealthBestJumpRate;
+
+  /// No description provided for @deviceHealthTrips.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get deviceHealthTrips;
+
+  /// No description provided for @deviceHealthSets.
+  ///
+  /// In en, this message translates to:
+  /// **'Sets'**
+  String get deviceHealthSets;
+
+  /// No description provided for @deviceHealthTotalStrokes.
+  ///
+  /// In en, this message translates to:
+  /// **'Total strokes'**
+  String get deviceHealthTotalStrokes;
+
+  /// No description provided for @deviceHealthAverageRowingRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Average rowing rate'**
+  String get deviceHealthAverageRowingRate;
+
+  /// No description provided for @deviceHealthBestRowingRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Best rowing rate'**
+  String get deviceHealthBestRowingRate;
+
+  /// No description provided for @deviceHealthChartHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Heart rate'**
+  String get deviceHealthChartHeartRate;
+
+  /// No description provided for @deviceHealthChartCadence.
+  ///
+  /// In en, this message translates to:
+  /// **'Cadence'**
+  String get deviceHealthChartCadence;
+
+  /// No description provided for @deviceHealthChartPace.
+  ///
+  /// In en, this message translates to:
+  /// **'Pace'**
+  String get deviceHealthChartPace;
+
+  /// No description provided for @deviceHealthChartSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed'**
+  String get deviceHealthChartSpeed;
+
+  /// No description provided for @deviceHealthChartPower.
+  ///
+  /// In en, this message translates to:
+  /// **'Power'**
+  String get deviceHealthChartPower;
+
+  /// No description provided for @deviceHealthChartStrokeRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Stroke rate'**
+  String get deviceHealthChartStrokeRate;
+
+  /// No description provided for @deviceHealthChartJumpRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rate'**
+  String get deviceHealthChartJumpRate;
+
+  /// No description provided for @deviceHealthChartBloodOxygen.
+  ///
+  /// In en, this message translates to:
+  /// **'Blood oxygen'**
+  String get deviceHealthChartBloodOxygen;
+
+  /// No description provided for @deviceHealthChartStress.
+  ///
+  /// In en, this message translates to:
+  /// **'Stress'**
+  String get deviceHealthChartStress;
+
+  /// No description provided for @deviceHealthWorkoutOutdoorRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoor running'**
+  String get deviceHealthWorkoutOutdoorRunning;
+
+  /// No description provided for @deviceHealthWorkoutOutdoorWalking.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoor walking'**
+  String get deviceHealthWorkoutOutdoorWalking;
+
+  /// No description provided for @deviceHealthWorkoutIndoorRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Indoor running'**
+  String get deviceHealthWorkoutIndoorRunning;
+
+  /// No description provided for @deviceHealthWorkoutMountaineering.
+  ///
+  /// In en, this message translates to:
+  /// **'Mountaineering'**
+  String get deviceHealthWorkoutMountaineering;
+
+  /// No description provided for @deviceHealthWorkoutTrailRunning.
+  ///
+  /// In en, this message translates to:
+  /// **'Trail running'**
+  String get deviceHealthWorkoutTrailRunning;
+
+  /// No description provided for @deviceHealthWorkoutOutdoorCycling.
+  ///
+  /// In en, this message translates to:
+  /// **'Outdoor cycling'**
+  String get deviceHealthWorkoutOutdoorCycling;
+
+  /// No description provided for @deviceHealthWorkoutIndoorCycling.
+  ///
+  /// In en, this message translates to:
+  /// **'Indoor cycling'**
+  String get deviceHealthWorkoutIndoorCycling;
+
+  /// No description provided for @deviceHealthWorkoutFreeTraining.
+  ///
+  /// In en, this message translates to:
+  /// **'Free training'**
+  String get deviceHealthWorkoutFreeTraining;
+
+  /// No description provided for @deviceHealthWorkoutSwimming.
+  ///
+  /// In en, this message translates to:
+  /// **'Swimming'**
+  String get deviceHealthWorkoutSwimming;
+
+  /// No description provided for @deviceHealthWorkoutElliptical.
+  ///
+  /// In en, this message translates to:
+  /// **'Elliptical'**
+  String get deviceHealthWorkoutElliptical;
+
+  /// No description provided for @deviceHealthWorkoutRowing.
+  ///
+  /// In en, this message translates to:
+  /// **'Rowing'**
+  String get deviceHealthWorkoutRowing;
+
+  /// No description provided for @deviceHealthWorkoutJumpRope.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump rope'**
+  String get deviceHealthWorkoutJumpRope;
+
+  /// No description provided for @deviceHealthWorkoutHiking.
+  ///
+  /// In en, this message translates to:
+  /// **'Hiking'**
+  String get deviceHealthWorkoutHiking;
+
+  /// No description provided for @deviceHealthWorkoutGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Workout'**
+  String get deviceHealthWorkoutGeneric;
+
+  /// No description provided for @deviceHealthWorkoutExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export FIT'**
+  String get deviceHealthWorkoutExport;
+
+  /// No description provided for @deviceHealthWorkoutExported.
+  ///
+  /// In en, this message translates to:
+  /// **'FIT exported to {path}'**
+  String deviceHealthWorkoutExported(Object path);
+
+  /// No description provided for @deviceHealthWorkoutExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export FIT: {error}'**
+  String deviceHealthWorkoutExportFailed(Object error);
+
+  /// No description provided for @deviceHealthStrokeMedley.
+  ///
+  /// In en, this message translates to:
+  /// **'Medley'**
+  String get deviceHealthStrokeMedley;
+
+  /// No description provided for @deviceHealthStrokeBreaststroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Breaststroke'**
+  String get deviceHealthStrokeBreaststroke;
+
+  /// No description provided for @deviceHealthStrokeFreestyle.
+  ///
+  /// In en, this message translates to:
+  /// **'Freestyle'**
+  String get deviceHealthStrokeFreestyle;
+
+  /// No description provided for @deviceHealthStrokeBackstroke.
+  ///
+  /// In en, this message translates to:
+  /// **'Backstroke'**
+  String get deviceHealthStrokeBackstroke;
+
+  /// No description provided for @deviceHealthStrokeButterfly.
+  ///
+  /// In en, this message translates to:
+  /// **'Butterfly'**
+  String get deviceHealthStrokeButterfly;
+
+  /// No description provided for @deviceHealthSectionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Section'**
+  String get deviceHealthSectionLabel;
+
+  /// No description provided for @deviceHealthVitalityRunSuggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Run for {minutes} minutes toward the next target'**
+  String deviceHealthVitalityRunSuggestion(Object minutes);
+
+  /// No description provided for @deviceHealthVitalityActiveMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes} active minutes to the next target'**
+  String deviceHealthVitalityActiveMinutes(Object minutes);
+
+  /// No description provided for @deviceHealthLatestHeartRate.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest heart rate'**
+  String get deviceHealthLatestHeartRate;
+
+  /// No description provided for @deviceHealthLatestBloodOxygen.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest blood oxygen'**
+  String get deviceHealthLatestBloodOxygen;
+
+  /// No description provided for @deviceHealthLatestStress.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest stress'**
+  String get deviceHealthLatestStress;
+
+  /// No description provided for @deviceHealthDebugSnapshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity files'**
+  String get deviceHealthDebugSnapshots;
+
+  /// No description provided for @deviceHealthDebugSnapshotList.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity files'**
+  String get deviceHealthDebugSnapshotList;
+
+  /// No description provided for @deviceHealthDebugSnapshotsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved activity files available for export'**
+  String get deviceHealthDebugSnapshotsDescription;
+
+  /// No description provided for @deviceHealthDebugRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get deviceHealthDebugRefresh;
+
+  /// No description provided for @deviceHealthDebugRefreshDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload the saved activity file list'**
+  String get deviceHealthDebugRefreshDescription;
+
+  /// No description provided for @deviceHealthDebugClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get deviceHealthDebugClearAll;
+
+  /// No description provided for @deviceHealthDebugClearAllDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete every saved activity file'**
+  String get deviceHealthDebugClearAllDescription;
+
+  /// No description provided for @deviceHealthDebugNoSnapshots.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity files yet'**
+  String get deviceHealthDebugNoSnapshots;
+
+  /// No description provided for @deviceHealthDebugReload.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get deviceHealthDebugReload;
+
+  /// No description provided for @deviceHealthDebugReloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity file replayed'**
+  String get deviceHealthDebugReloaded;
+
+  /// No description provided for @deviceHealthDebugFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} files'**
+  String deviceHealthDebugFiles(Object count);
+
+  /// No description provided for @creatorAccounts.
+  ///
+  /// In en, this message translates to:
+  /// **'Accounts'**
+  String get creatorAccounts;
+
+  /// No description provided for @creatorPendingItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get creatorPendingItems;
+
+  /// No description provided for @creatorResourceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource status'**
+  String get creatorResourceStatus;
+
+  /// No description provided for @creatorOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get creatorOverview;
+
+  /// No description provided for @creatorManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get creatorManage;
+
+  /// No description provided for @creatorManageUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Management is unavailable'**
+  String get creatorManageUnavailable;
+
+  /// No description provided for @creatorReviewTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Reviews'**
+  String get creatorReviewTab;
+
+  /// No description provided for @creatorReviewQueue.
+  ///
+  /// In en, this message translates to:
+  /// **'Review queue'**
+  String get creatorReviewQueue;
+
+  /// No description provided for @creatorReviewStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Review status'**
+  String get creatorReviewStatus;
+
+  /// No description provided for @creatorReviewActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get creatorReviewActive;
+
+  /// No description provided for @creatorReviewChangesRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes requested'**
+  String get creatorReviewChangesRequested;
+
+  /// No description provided for @creatorReviewDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get creatorReviewDeclined;
+
+  /// No description provided for @creatorReviewClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get creatorReviewClosed;
+
+  /// No description provided for @creatorReviewFixedPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed, awaiting review'**
+  String get creatorReviewFixedPending;
+
+  /// No description provided for @creatorNoPendingReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending reviews'**
+  String get creatorNoPendingReviews;
+
+  /// No description provided for @creatorNoReviews.
+  ///
+  /// In en, this message translates to:
+  /// **'No reviews'**
+  String get creatorNoReviews;
+
+  /// No description provided for @creatorNeedsChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Needs changes'**
+  String get creatorNeedsChanges;
+
+  /// No description provided for @creatorConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get creatorConnected;
+
+  /// No description provided for @creatorNotConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get creatorNotConnected;
+
+  /// No description provided for @creatorCenterExitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave creator center'**
+  String get creatorCenterExitTitle;
+
+  /// No description provided for @creatorCenterExitMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave the creator center'**
+  String get creatorCenterExitMessage;
+
+  /// No description provided for @creatorEditComment.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit comment'**
+  String get creatorEditComment;
+
+  /// No description provided for @creatorReply.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply'**
+  String get creatorReply;
+
+  /// No description provided for @creatorReplyingTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Replying to #{id}'**
+  String creatorReplyingTo(Object id);
+
+  /// No description provided for @creatorReplyPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply #{id}: '**
+  String creatorReplyPrefix(Object id);
+
+  /// No description provided for @creatorSupplement.
+  ///
+  /// In en, this message translates to:
+  /// **'Additional note'**
+  String get creatorSupplement;
+
+  /// No description provided for @creatorModifyResource.
+  ///
+  /// In en, this message translates to:
+  /// **'Modify resource'**
+  String get creatorModifyResource;
+
+  /// No description provided for @creatorAstroBoxReview.
+  ///
+  /// In en, this message translates to:
+  /// **'AstroBox review'**
+  String get creatorAstroBoxReview;
+
+  /// No description provided for @creatorGithubPr.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub repository and PR'**
+  String get creatorGithubPr;
+
+  /// No description provided for @creatorApplyChanges.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply changes'**
+  String get creatorApplyChanges;
+
+  /// No description provided for @creatorUpdatedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated at'**
+  String get creatorUpdatedAt;
+
+  /// No description provided for @creatorSubmittedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitted at'**
+  String get creatorSubmittedAt;
+
+  /// No description provided for @creatorPublicationStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Publication status'**
+  String get creatorPublicationStatus;
+
+  /// No description provided for @creatorStageInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit info'**
+  String get creatorStageInfo;
+
+  /// No description provided for @creatorStageFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Bind files'**
+  String get creatorStageFiles;
+
+  /// No description provided for @creatorStagePublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish config'**
+  String get creatorStagePublish;
+
+  /// No description provided for @creatorNextStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Next step'**
+  String get creatorNextStep;
+
+  /// No description provided for @creatorWatchfaceMissingId.
+  ///
+  /// In en, this message translates to:
+  /// **'Watchface identification failed or all-zero: the watchface has no ID and cannot be uploaded'**
+  String get creatorWatchfaceMissingId;
+
+  /// No description provided for @creatorWatchfaceZeroIdTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'All-zero watchface ID detected, please modify it before uploading'**
+  String get creatorWatchfaceZeroIdTitle;
+
+  /// No description provided for @creatorWatchfacePayloadTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'This watchface file is too small to contain an ID field'**
+  String get creatorWatchfacePayloadTooShort;
+
+  /// No description provided for @creatorQuickAppMissingPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick app identification failed: the quick app has no package name and cannot be uploaded'**
+  String get creatorQuickAppMissingPackage;
+
+  /// No description provided for @creatorVelajsDefaultPackage.
+  ///
+  /// In en, this message translates to:
+  /// **'Detected the quick app package name com.application.watch.demo, which is the VelaJS project default; please change it before uploading'**
+  String get creatorVelajsDefaultPackage;
+
+  /// No description provided for @creatorFilteredSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Filtered support'**
+  String get creatorFilteredSupport;
+
+  /// No description provided for @creatorSkippedPublication.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped publication'**
+  String get creatorSkippedPublication;
+
+  /// No description provided for @creatorAstroBoxUnsupportedDevicesNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Some selected supported devices do not support publishing to AstroBox yet; their support declarations will be filtered out'**
+  String get creatorAstroBoxUnsupportedDevicesNotice;
+
+  /// No description provided for @creatorBandBbsUnsupportedDevicesNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Some selected supported devices do not support publishing to BandBBS yet; their publication will be skipped'**
+  String get creatorBandBbsUnsupportedDevicesNotice;
+
+  /// No description provided for @errorSppBondRemovalFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'On Android below 11 the system does not support removeBond. If the device disconnects frequently, switch to another device in Xiaomi Fitness or turn off its Nearby devices permission'**
+  String get errorSppBondRemovalFailed;
+
+  /// No description provided for @viewAllResources.
+  ///
+  /// In en, this message translates to:
+  /// **'View all'**
+  String get viewAllResources;
+
+  /// No description provided for @deviceHealthMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum'**
+  String get deviceHealthMinimum;
+
+  /// No description provided for @deviceHealthMaximum.
+  ///
+  /// In en, this message translates to:
+  /// **'Maximum'**
+  String get deviceHealthMaximum;
+
+  /// No description provided for @deviceHealthResting.
+  ///
+  /// In en, this message translates to:
+  /// **'Resting'**
+  String get deviceHealthResting;
+
+  /// Export button label for a raw Xiaomi health debug snapshot
+  ///
+  /// In en, this message translates to:
+  /// **'Export activity files'**
+  String get deviceHealthDebugExport;
+
+  /// Tooltip for the debug snapshot export button
+  ///
+  /// In en, this message translates to:
+  /// **'Export activity files'**
+  String get deviceHealthDebugExportTooltip;
+
+  /// Shown after a debug snapshot is exported
+  ///
+  /// In en, this message translates to:
+  /// **'Activity files exported to {path}'**
+  String deviceHealthDebugExported(String path);
+
+  /// Shown when exporting a debug snapshot fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not export activity files: {error}'**
+  String deviceHealthDebugExportFailed(String error);
+
+  /// Import button label on the Xiaomi health debug page
+  ///
+  /// In en, this message translates to:
+  /// **'Import activity files'**
+  String get deviceHealthDebugImport;
+
+  /// Description for the debug snapshot import button
+  ///
+  /// In en, this message translates to:
+  /// **'Import previously exported activity files'**
+  String get deviceHealthDebugImportDescription;
+
+  /// Shown after a debug snapshot is imported
+  ///
+  /// In en, this message translates to:
+  /// **'Imported {deviceCode} ({files} files)'**
+  String deviceHealthDebugImported(String deviceCode, int files);
+
+  /// Shown when importing a debug snapshot fails
+  ///
+  /// In en, this message translates to:
+  /// **'Could not import activity files: {error}'**
+  String deviceHealthDebugImportFailed(String error);
+
+  /// No description provided for @commentDeletedPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment deleted'**
+  String get commentDeletedPlaceholder;
+
+  /// No description provided for @commentViewReplies.
+  ///
+  /// In en, this message translates to:
+  /// **'View all {count} replies'**
+  String commentViewReplies(int count);
+
+  /// No description provided for @commentThreadTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Comment details'**
+  String get commentThreadTitle;
+
+  /// No description provided for @commentReplyTarget.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply to {username}'**
+  String commentReplyTarget(String username);
+
+  /// No description provided for @commentLoadEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'Load earlier replies'**
+  String get commentLoadEarlier;
+
+  /// No description provided for @messageCommentCreatedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New comment on your resource'**
+  String get messageCommentCreatedTitle;
+
+  /// No description provided for @scanQrCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get scanQrCode;
+
+  /// No description provided for @deviceSwitchQrImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import existing device from share QR code'**
+  String get deviceSwitchQrImport;
+
+  /// No description provided for @creatorCollectionReplacePendingDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This replaces the pending submission\nThe published version stays available'**
+  String get creatorCollectionReplacePendingDescription;
+
+  /// No description provided for @creatorCollectionNoMatchingResources.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching resources\nCreate a resource in Creator Center first'**
+  String get creatorCollectionNoMatchingResources;
+
+  /// No description provided for @commentCreateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not post comment, try again'**
+  String get commentCreateFailed;
+
+  /// No description provided for @commentsReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load comments, try again'**
+  String get commentsReadFailed;
+
+  /// No description provided for @commentDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not delete comment, try again'**
+  String get commentDeleteFailed;
+
+  /// No description provided for @errorRequestTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Request timed out, try again'**
+  String get errorRequestTimeout;
+
+  /// No description provided for @creatorCollectionReplacePendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace pending revision?'**
+  String get creatorCollectionReplacePendingTitle;
+
+  /// No description provided for @creatorCollectionReplaceAndSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace and submit'**
+  String get creatorCollectionReplaceAndSubmit;
+
+  /// No description provided for @creatorCollectionCreateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create collection'**
+  String get creatorCollectionCreateTitle;
+
+  /// No description provided for @creatorCollectionEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit collection'**
+  String get creatorCollectionEditTitle;
+
+  /// No description provided for @creatorCollectionCurrentRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Live revision: {number}'**
+  String creatorCollectionCurrentRevision(String number);
+
+  /// No description provided for @creatorCollectionPendingRevision.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending revision: {number}'**
+  String creatorCollectionPendingRevision(String number);
+
+  /// No description provided for @creatorCollectionHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'View previous revisions'**
+  String get creatorCollectionHistory;
+
+  /// No description provided for @creatorCollectionBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Body (Markdown)'**
+  String get creatorCollectionBody;
+
+  /// No description provided for @creatorMediaIcon.
+  ///
+  /// In en, this message translates to:
+  /// **'Icon'**
+  String get creatorMediaIcon;
+
+  /// No description provided for @creatorMediaCover.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover'**
+  String get creatorMediaCover;
+
+  /// No description provided for @creatorMediaUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get creatorMediaUnset;
+
+  /// No description provided for @creatorMediaSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Set'**
+  String get creatorMediaSet;
+
+  /// No description provided for @creatorCollectionMemberOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Member order and representative resource'**
+  String get creatorCollectionMemberOrder;
+
+  /// No description provided for @creatorCollectionMemberUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource unavailable, remove it'**
+  String get creatorCollectionMemberUnavailable;
+
+  /// No description provided for @creatorCollectionSetRepresentative.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as representative resource'**
+  String get creatorCollectionSetRepresentative;
+
+  /// No description provided for @creatorCollectionAddMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add members'**
+  String get creatorCollectionAddMember;
+
+  /// No description provided for @creatorImageReadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read image'**
+  String get creatorImageReadFailed;
+
+  /// No description provided for @creatorImageProcessFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not process image'**
+  String get creatorImageProcessFailed;
+
+  /// No description provided for @creatorPublicationRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry publishing'**
+  String get creatorPublicationRetry;
+
+  /// No description provided for @creatorTermsLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load publishing terms'**
+  String get creatorTermsLoadFailed;
+
+  /// No description provided for @creatorReviewItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Requested changes'**
+  String get creatorReviewItems;
+
+  /// No description provided for @creatorReviewFixReplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix reported'**
+  String get creatorReviewFixReplied;
+
+  /// No description provided for @creatorReviewReplyFix.
+  ///
+  /// In en, this message translates to:
+  /// **'Report fix'**
+  String get creatorReviewReplyFix;
+
+  /// No description provided for @creatorTermsUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing terms updated'**
+  String get creatorTermsUpdated;
+
+  /// No description provided for @creatorPublishingLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get creatorPublishingLater;
+
+  /// No description provided for @creatorTermsAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'Read and agree'**
+  String get creatorTermsAgree;
+
+  /// No description provided for @updateAssetUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No installation package for this platform in this release'**
+  String get updateAssetUnavailable;
+
+  /// No description provided for @legalDocumentUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Document unavailable, try again'**
+  String get legalDocumentUnavailable;
+
+  /// No description provided for @deviceImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import device'**
+  String get deviceImportTitle;
+
+  /// No description provided for @qrScanFromImage.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan from image'**
+  String get qrScanFromImage;
+
+  /// No description provided for @qrScanNoCode.
+  ///
+  /// In en, this message translates to:
+  /// **'No QR code found'**
+  String get qrScanNoCode;
+
+  /// No description provided for @qrScanImageFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read this image'**
+  String get qrScanImageFailed;
+
+  /// No description provided for @qrScanCameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera unavailable\nYou can scan a QR code from an image'**
+  String get qrScanCameraUnavailable;
+
+  /// No description provided for @qrScanChooseCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a QR code'**
+  String get qrScanChooseCode;
+
+  /// No description provided for @qrScanCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code {index}'**
+  String qrScanCodeLabel(int index);
+
+  /// No description provided for @qrScanUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'QR code recognition is unavailable on this platform'**
+  String get qrScanUnsupported;
+
+  /// No description provided for @featureLabTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Feature lab'**
+  String get featureLabTitle;
+
+  /// No description provided for @featureLabDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Try features currently in development'**
+  String get featureLabDescription;
+
+  /// No description provided for @voiceAssistantDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive device audio, monitor and reply'**
+  String get voiceAssistantDescription;
+
+  /// No description provided for @voiceLabConnectDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect a device, then activate its voice assistant'**
+  String get voiceLabConnectDevice;
+
+  /// No description provided for @voiceLabCaptureLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Recording limit reached, clear the recording to retry'**
+  String get voiceLabCaptureLimit;
+
+  /// No description provided for @voiceLabReplyTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply is too long'**
+  String get voiceLabReplyTooLong;
+
+  /// No description provided for @voiceLabRecognitionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition result'**
+  String get voiceLabRecognitionLabel;
+
+  /// No description provided for @voiceLabRecognitionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the recognized words'**
+  String get voiceLabRecognitionHint;
+
+  /// No description provided for @appDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App data'**
+  String get appDataTitle;
+
+  /// No description provided for @appDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'View stored data and export files'**
+  String get appDataDescription;
+
+  /// No description provided for @appDataSpaceUsage.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage by category'**
+  String get appDataSpaceUsage;
+
+  /// No description provided for @appDataHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity files'**
+  String get appDataHealth;
+
+  /// No description provided for @appDataPlugins.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugins'**
+  String get appDataPlugins;
+
+  /// No description provided for @appDataZeppos.
+  ///
+  /// In en, this message translates to:
+  /// **'ZeppOS app data'**
+  String get appDataZeppos;
+
+  /// No description provided for @appDataRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Import recovery data'**
+  String get appDataRecovery;
+
+  /// No description provided for @appDataDownloads.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource and update downloads'**
+  String get appDataDownloads;
+
+  /// No description provided for @appDataPluginCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin cache'**
+  String get appDataPluginCache;
+
+  /// No description provided for @appDataManageSnapshots.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage saved activity files'**
+  String get appDataManageSnapshots;
+
+  /// No description provided for @appDataExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Export saved'**
+  String get appDataExported;
+
+  /// No description provided for @appDataLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read app data'**
+  String get appDataLoadFailed;
+
+  /// No description provided for @appDataExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to export files'**
+  String get appDataExportFailed;
+
+  /// No description provided for @appDataArchiveTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity files are too large, export them separately'**
+  String get appDataArchiveTooLarge;
+
+  /// No description provided for @appDataUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to update app data'**
+  String get appDataUpdateFailed;
+
+  /// No description provided for @appDataBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get appDataBackup;
+
+  /// No description provided for @appDataBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose and export local data to keep'**
+  String get appDataBackupDescription;
+
+  /// No description provided for @appDataRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore backup'**
+  String get appDataRestore;
+
+  /// No description provided for @appDataRestoreDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Select data to restore\nLocal health history for matching devices will be replaced'**
+  String get appDataRestoreDescription;
+
+  /// No description provided for @appDataSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'App settings'**
+  String get appDataSettings;
+
+  /// No description provided for @appDataHealthDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Health history ({count} devices)'**
+  String appDataHealthDevices(int count);
+
+  /// No description provided for @appDataRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored\nRestart the app to apply all settings'**
+  String get appDataRestored;
+
+  /// No description provided for @appDataRestoreFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to restore backup'**
+  String get appDataRestoreFailed;
+
+  /// No description provided for @appDataRecover.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo previous restore'**
+  String get appDataRecover;
+
+  /// No description provided for @appDataRecoveryPending.
+  ///
+  /// In en, this message translates to:
+  /// **'The previous restore was interrupted'**
+  String get appDataRecoveryPending;
+
+  /// No description provided for @appDataRecoverDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore settings and health history from before the last import\nLocal health data added since then will also be replaced'**
+  String get appDataRecoverDescription;
+
+  /// No description provided for @voiceAsrMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition method'**
+  String get voiceAsrMethod;
+
+  /// No description provided for @voiceAsrManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual input'**
+  String get voiceAsrManual;
+
+  /// No description provided for @voiceAsrLocal.
+  ///
+  /// In en, this message translates to:
+  /// **'On-device recognition'**
+  String get voiceAsrLocal;
+
+  /// No description provided for @voiceAsrWeType.
+  ///
+  /// In en, this message translates to:
+  /// **'WeChat Input'**
+  String get voiceAsrWeType;
+
+  /// No description provided for @voiceAsrDoubao.
+  ///
+  /// In en, this message translates to:
+  /// **'Doubao Input'**
+  String get voiceAsrDoubao;
+
+  /// No description provided for @voiceAsrWasm.
+  ///
+  /// In en, this message translates to:
+  /// **'WASM experiment'**
+  String get voiceAsrWasm;
+
+  /// No description provided for @voiceAsrCloudConsent.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio will be sent to {provider} for recognition\nOnly while using this page'**
+  String voiceAsrCloudConsent(String provider);
+
+  /// No description provided for @voiceAsrPreparing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing recognition'**
+  String get voiceAsrPreparing;
+
+  /// No description provided for @voiceAsrRecognizing.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognizing'**
+  String get voiceAsrRecognizing;
+
+  /// No description provided for @voiceAsrFinishing.
+  ///
+  /// In en, this message translates to:
+  /// **'Finishing recognition'**
+  String get voiceAsrFinishing;
+
+  /// No description provided for @voiceAsrFinished.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition complete'**
+  String get voiceAsrFinished;
+
+  /// No description provided for @voiceAsrModelReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Chinese and English recognition is ready'**
+  String get voiceAsrModelReady;
+
+  /// No description provided for @voiceAsrModelDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Chinese and English recognition\nDownload models and runtime before first use'**
+  String get voiceAsrModelDescription;
+
+  /// No description provided for @voiceAsrDownloadModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Download recognition data'**
+  String get voiceAsrDownloadModel;
+
+  /// No description provided for @voiceAsrDeleteModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete recognition data'**
+  String get voiceAsrDeleteModel;
+
+  /// No description provided for @voiceAsrSendRecognition.
+  ///
+  /// In en, this message translates to:
+  /// **'Send recognition result'**
+  String get voiceAsrSendRecognition;
+
+  /// No description provided for @voiceAsrModelMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Download local recognition data first'**
+  String get voiceAsrModelMissing;
+
+  /// No description provided for @voiceAsrModelDamaged.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition data is damaged, delete and download it again'**
+  String get voiceAsrModelDamaged;
+
+  /// No description provided for @voiceAsrDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Model download failed\nCheck your connection and retry'**
+  String get voiceAsrDownloadFailed;
+
+  /// No description provided for @voiceAsrRegistrationFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to enable this recognition service\nTry again later'**
+  String get voiceAsrRegistrationFailed;
+
+  /// No description provided for @voiceAsrServiceRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'The recognition service rejected this request'**
+  String get voiceAsrServiceRejected;
+
+  /// No description provided for @voiceAsrTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition timed out\nSpeak again to retry'**
+  String get voiceAsrTimeout;
+
+  /// No description provided for @voiceAsrOpusUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This device’s audio is not supported by WeChat Input'**
+  String get voiceAsrOpusUnsupported;
+
+  /// No description provided for @voiceAsrUnsupported.
+  ///
+  /// In en, this message translates to:
+  /// **'This recognition method is unavailable on this platform'**
+  String get voiceAsrUnsupported;
+
+  /// No description provided for @voiceAsrTooSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition is too slow\nEnd this round and retry'**
+  String get voiceAsrTooSlow;
+
+  /// No description provided for @voiceAsrNoSpeech.
+  ///
+  /// In en, this message translates to:
+  /// **'No speech recognized'**
+  String get voiceAsrNoSpeech;
+
+  /// No description provided for @voiceAsrInvalidResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'The recognition service returned an invalid result'**
+  String get voiceAsrInvalidResponse;
+
+  /// No description provided for @voiceAsrInferenceFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Local recognition failed\nSelect the recognition method again'**
+  String get voiceAsrInferenceFailed;
+
+  /// No description provided for @voiceAsrCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Recognition cancelled'**
+  String get voiceAsrCancelled;
+
+  /// No description provided for @voiceAsrConnectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to connect to the recognition service\nCheck your connection and retry'**
+  String get voiceAsrConnectionFailed;
+
+  /// No description provided for @appDataModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech recognition data'**
+  String get appDataModels;
+
+  /// No description provided for @appDataTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Task history'**
+  String get appDataTasks;
+
+  /// No description provided for @appDataDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Document cache'**
+  String get appDataDocuments;
+
+  /// No description provided for @privateStateLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read saved accounts and devices\nPlease retry'**
+  String get privateStateLoadFailed;
+
+  /// No description provided for @privateStateSaveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save account or device changes\nPlease retry'**
+  String get privateStateSaveFailed;
+
+  /// No description provided for @resetPrivateStorageAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local credentials'**
+  String get resetPrivateStorageAction;
+
+  /// No description provided for @resetPrivateStorageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset local accounts and devices'**
+  String get resetPrivateStorageTitle;
+
+  /// No description provided for @resetPrivateStorageMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'You will need to sign in again and reconnect your devices after resetting\nYour saved health history and application settings will not be lost'**
+  String get resetPrivateStorageMessage;
+
+  /// No description provided for @confirmReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get confirmReset;
+
+  /// No description provided for @voiceAsrStorageFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Not enough storage\nFree up space and try again'**
+  String get voiceAsrStorageFull;
+
+  /// No description provided for @voiceAsrReconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect recognition service'**
+  String get voiceAsrReconnect;
+
+  /// No description provided for @voiceAsrReconnectDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'This will register a new connection with this recognition service\nYour signed-in accounts are unaffected'**
+  String get voiceAsrReconnectDescription;
+
+  /// No description provided for @voiceAsrReconnectFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reconnect'**
+  String get voiceAsrReconnectFailed;
+
+  /// No description provided for @appDataClearCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get appDataClearCache;
+
+  /// No description provided for @appDataClearCacheDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear image, plugin and document caches and expired temporary files\nRunning plugins and device apps will stop'**
+  String get appDataClearCacheDescription;
+
+  /// No description provided for @appDataCacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared'**
+  String get appDataCacheCleared;
+
+  /// No description provided for @voiceAsrReplayRecording.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay recording'**
+  String get voiceAsrReplayRecording;
+
+  /// No description provided for @voiceAsrImportWave.
+  ///
+  /// In en, this message translates to:
+  /// **'Import WAV'**
+  String get voiceAsrImportWave;
+
+  /// No description provided for @voiceAsrReplayDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a recognition method, then replay or import audio\n16 kHz mono PCM16 only, up to 60 seconds\nOnline recognition sends audio to the selected service'**
+  String get voiceAsrReplayDescription;
+
+  /// No description provided for @voiceAsrReplayMetrics.
+  ///
+  /// In en, this message translates to:
+  /// **'Elapsed {elapsed} ms · First result {first} ms · RTF {factor}'**
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor);
+
+  /// No description provided for @voiceAsrExportReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export test report'**
+  String get voiceAsrExportReport;
+
+  /// No description provided for @voiceAsrWaveFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a 16 kHz mono PCM16 WAV\nMaximum duration: 60 seconds'**
+  String get voiceAsrWaveFormat;
+
+  /// No description provided for @voiceAsrReplayBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Finish the current voice or recognition session first'**
+  String get voiceAsrReplayBusy;
+
+  /// No description provided for @appDataExtensionSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin and device app data'**
+  String get appDataExtensionSettings;
+
+  /// No description provided for @appDataExtensionSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and data for plugins and device apps'**
+  String get appDataExtensionSettingsDescription;
+
+  /// No description provided for @appDataExtensionMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'Install matching plugin versions and device apps before restoring this data'**
+  String get appDataExtensionMissing;
+
+  /// No description provided for @appDataImageCache.
+  ///
+  /// In en, this message translates to:
+  /// **'Image cache'**
+  String get appDataImageCache;
+
+  /// No description provided for @appDataSelectBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose what to back up'**
+  String get appDataSelectBackup;
+
+  /// No description provided for @appDataSettingsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme, language and feature preferences'**
+  String get appDataSettingsDescription;
+
+  /// No description provided for @appDataHealthDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Device-synced fitness and health data'**
+  String get appDataHealthDescription;
+
+  /// No description provided for @appDataDeviceKeys.
+  ///
+  /// In en, this message translates to:
+  /// **'Device pairing and keys'**
+  String get appDataDeviceKeys;
+
+  /// No description provided for @appDataDeviceKeysDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved devices and connection credentials'**
+  String get appDataDeviceKeysDescription;
+
+  /// No description provided for @appDataXiaomiAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Xiaomi and Amazfit credentials'**
+  String get appDataXiaomiAccount;
+
+  /// No description provided for @appDataXiaomiAccountDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Account password and current sign-in session'**
+  String get appDataXiaomiAccountDescription;
+
+  /// No description provided for @appDataSensitiveBackup.
+  ///
+  /// In en, this message translates to:
+  /// **'The backup contains unencrypted account credentials\nKeep it secure and do not share it'**
+  String get appDataSensitiveBackup;
+
+  /// No description provided for @appDataImportDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose data to restore from a backup'**
+  String get appDataImportDescription;
+
+  /// No description provided for @appDataPluginDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Installed plugins and their local data'**
+  String get appDataPluginDescription;
+
+  /// No description provided for @appDataZepposDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Device app scripts and local settings'**
+  String get appDataZepposDescription;
+
+  /// No description provided for @appDataLogsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'App activity and troubleshooting logs'**
+  String get appDataLogsDescription;
+
+  /// No description provided for @appDataRecoveryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Data retained for interrupted restores'**
+  String get appDataRecoveryDescription;
+
+  /// No description provided for @appDataDownloadsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Temporary download and installation files'**
+  String get appDataDownloadsDescription;
+
+  /// No description provided for @appDataPluginCacheDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Plugin cache and disposable temporary files'**
+  String get appDataPluginCacheDescription;
+
+  /// No description provided for @appDataImagesDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached images from browsing resources'**
+  String get appDataImagesDescription;
+
+  /// No description provided for @appDataModelsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded speech models and runtime'**
+  String get appDataModelsDescription;
+
+  /// No description provided for @appDataTasksDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved download and installation progress'**
+  String get appDataTasksDescription;
+
+  /// No description provided for @appDataDocumentsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Local copies of terms and privacy notices'**
+  String get appDataDocumentsDescription;
+
+  /// No description provided for @phoneLocationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Assisted Positioning'**
+  String get phoneLocationTitle;
+
+  /// No description provided for @deviceFeaturesGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Features and tools'**
+  String get deviceFeaturesGroupTitle;
+
+  /// No description provided for @deviceSettingsGroupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device settings and maintenance'**
+  String get deviceSettingsGroupTitle;
+
+  /// No description provided for @phoneLocationStatusSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get phoneLocationStatusSection;
+
+  /// No description provided for @phoneLocationPermissionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions and system services'**
+  String get phoneLocationPermissionsSection;
+
+  /// No description provided for @phoneLocationOptionsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Assisted location options'**
+  String get phoneLocationOptionsSection;
+
+  /// No description provided for @phoneLocationReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Assisted location ready'**
+  String get phoneLocationReady;
+
+  /// No description provided for @phoneLocationReadyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic positioning will be provided during outdoor workouts'**
+  String get phoneLocationReadyDesc;
+
+  /// No description provided for @phoneLocationServiceEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Location service'**
+  String get phoneLocationServiceEnabled;
+
+  /// No description provided for @phoneLocationPreciseTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise location'**
+  String get phoneLocationPreciseTitle;
+
+  /// No description provided for @phoneLocationPreciseGranted.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise location granted'**
+  String get phoneLocationPreciseGranted;
+
+  /// No description provided for @phoneLocationPreciseDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise location not granted'**
+  String get phoneLocationPreciseDenied;
+
+  /// No description provided for @phoneLocationBackgroundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Background location'**
+  String get phoneLocationBackgroundTitle;
+
+  /// No description provided for @phoneLocationBackgroundAlways.
+  ///
+  /// In en, this message translates to:
+  /// **'Always allowed'**
+  String get phoneLocationBackgroundAlways;
+
+  /// No description provided for @phoneLocationBackgroundWhileInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Allowed while in use'**
+  String get phoneLocationBackgroundWhileInUse;
+
+  /// No description provided for @phoneLocationBackgroundDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed'**
+  String get phoneLocationBackgroundDenied;
+
+  /// No description provided for @phoneLocationAutoSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto-assisted location'**
+  String get phoneLocationAutoSync;
+
+  /// No description provided for @phoneLocationAutoSyncDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide phone GPS when device starts outdoor workouts'**
+  String get phoneLocationAutoSyncDesc;
+
+  /// No description provided for @phoneLocationEnabledText.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get phoneLocationEnabledText;
+
+  /// No description provided for @phoneLocationDisabledText.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get phoneLocationDisabledText;
+
+  /// No description provided for @phoneLocationNotification.
+  ///
+  /// In en, this message translates to:
+  /// **'Provide workout location to your device'**
+  String get phoneLocationNotification;
+
+  /// No description provided for @phoneLocationDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Share phone location while preparing for and recording a workout'**
+  String get phoneLocationDescription;
+
+  /// No description provided for @phoneLocationOpenApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open OronBox to continue location'**
+  String get phoneLocationOpenApp;
+
+  /// No description provided for @phoneLocationRecovery.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the app, then retry the workout on your device'**
+  String get phoneLocationRecovery;
+
+  /// No description provided for @phoneLocationPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Precise location permission required'**
+  String get phoneLocationPermission;
+
+  /// No description provided for @phoneLocationBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow background location'**
+  String get phoneLocationBackground;
+
+  /// No description provided for @phoneLocationBackgroundDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Receive device workout location requests in the background'**
+  String get phoneLocationBackgroundDescription;
+
+  /// No description provided for @phoneLocationSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open system settings'**
+  String get phoneLocationSettings;
+
+  /// No description provided for @phoneLocationServiceOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Location services are off'**
+  String get phoneLocationServiceOff;
+
+  /// No description provided for @phoneLocationPermissionHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow precise location, then try again'**
+  String get phoneLocationPermissionHelp;
+
+  /// No description provided for @phoneLocationMobileOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Available on Android and iOS'**
+  String get phoneLocationMobileOnly;
+
+  /// No description provided for @phoneLocationUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to get phone location\nCheck location permissions and services'**
+  String get phoneLocationUnavailable;
+
+  /// No description provided for @deviceConnectionAbnormalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Device connection problem'**
+  String get deviceConnectionAbnormalTitle;
+
+  /// No description provided for @deviceConnectionAbnormalMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The device keeps disconnecting. Re-pair it or make sure the device is in Connect new phone mode for a more stable connection.'**
+  String get deviceConnectionAbnormalMessage;
+
+  /// No description provided for @deviceRePair.
+  ///
+  /// In en, this message translates to:
+  /// **'Re-pair'**
+  String get deviceRePair;
+
+  /// No description provided for @appDataClearCategoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear {category}?'**
+  String appDataClearCategoryTitle(String category);
+
+  /// No description provided for @appDataClearCategoryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The selected local data will be removed\nOther categories will be kept'**
+  String get appDataClearCategoryDescription;
+
+  /// No description provided for @appDataClearHealthDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced activity files will be removed\nLocal health data will be cleared'**
+  String get appDataClearHealthDescription;
+
+  /// No description provided for @appDataClearCachedCategoryDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Only unused cached files will be removed\nFiles may be downloaded again when needed'**
+  String get appDataClearCachedCategoryDescription;
+
+  /// No description provided for @appDataClearModelsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The latest model will be kept\nUnused versions and expired downloads will be removed'**
+  String get appDataClearModelsDescription;
+
+  /// No description provided for @settingsPermissionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permissions'**
+  String get settingsPermissionsTitle;
+
+  /// No description provided for @settingsPermissionsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'App runtime and device coordination permissions'**
+  String get settingsPermissionsDesc;
+
+  /// No description provided for @appArrangementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'App Arrangement'**
+  String get appArrangementTitle;
+
+  /// No description provided for @appArrangementDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust app order and drawer layout'**
+  String get appArrangementDescription;
+
+  /// No description provided for @appOrderMainSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Displayed Apps'**
+  String get appOrderMainSection;
+
+  /// No description provided for @appOrderMoreSection.
+  ///
+  /// In en, this message translates to:
+  /// **'More Apps'**
+  String get appOrderMoreSection;
+
+  /// No description provided for @appOrderHiddenSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden Apps'**
+  String get appOrderHiddenSection;
+
+  /// No description provided for @appOrderMoreSectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Apps displayed in device drawer'**
+  String get appOrderMoreSectionDesc;
+
+  /// No description provided for @appOrderHiddenSectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Apps hidden from device'**
+  String get appOrderHiddenSectionDesc;
+
+  /// No description provided for @appOrderMoveToMore.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to More'**
+  String get appOrderMoveToMore;
+
+  /// No description provided for @appOrderMoveToMain.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to Main'**
+  String get appOrderMoveToMain;
+
+  /// No description provided for @appOrderHide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get appOrderHide;
+
+  /// No description provided for @appOrderUnhide.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get appOrderUnhide;
+
+  /// No description provided for @appOrderCannotHide.
+  ///
+  /// In en, this message translates to:
+  /// **'System app cannot be hidden'**
+  String get appOrderCannotHide;
+
+  /// No description provided for @privateStateAccessPromptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OronBox needs to access account credentials protected by secure storage'**
+  String get privateStateAccessPromptTitle;
+
+  /// No description provided for @privateStateAccessPromptMacOs.
+  ///
+  /// In en, this message translates to:
+  /// **'If a system authorization prompt appears, enter your user password and click \"Always Allow\" to avoid repeated prompts'**
+  String get privateStateAccessPromptMacOs;
+
+  /// No description provided for @privateStateAccessPromptLinux.
+  ///
+  /// In en, this message translates to:
+  /// **'If a system unlock prompt appears, enter your password to unlock the keyring'**
+  String get privateStateAccessPromptLinux;
+
+  /// No description provided for @creatorSubmissionPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Review submission'**
+  String get creatorSubmissionPreview;
+
+  /// No description provided for @creatorResourceBinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Resource link'**
+  String get creatorResourceBinding;
+
+  /// No description provided for @creatorPublicationIdentity.
+  ///
+  /// In en, this message translates to:
+  /// **'Publishing accounts'**
+  String get creatorPublicationIdentity;
+
+  /// No description provided for @creatorPublicationRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Included in this submission'**
+  String get creatorPublicationRange;
+
+  /// No description provided for @creatorNewPublication.
+  ///
+  /// In en, this message translates to:
+  /// **'First publication'**
+  String get creatorNewPublication;
+
+  /// No description provided for @creatorUpdatePublication.
+  ///
+  /// In en, this message translates to:
+  /// **'Update existing resource'**
+  String get creatorUpdatePublication;
+
+  /// No description provided for @creatorAppendSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Append to PR #{number}'**
+  String creatorAppendSubmission(String number);
+
+  /// No description provided for @creatorPublicationExcludedDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded devices: {devices}'**
+  String creatorPublicationExcludedDevices(String devices);
+
+  /// No description provided for @creatorBackToEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to editing'**
+  String get creatorBackToEdit;
+
+  /// No description provided for @creatorPackageVersionCodeMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'The package has no valid version code; rebuild it and upload again'**
+  String get creatorPackageVersionCodeMissing;
+
+  /// No description provided for @creatorReopenSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Request another review'**
+  String get creatorReopenSubmission;
+
+  /// No description provided for @creatorReopenRequested.
+  ///
+  /// In en, this message translates to:
+  /// **'Another review requested'**
+  String get creatorReopenRequested;
+
+  /// No description provided for @creatorFixesForSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Issues fixed in this submission'**
+  String get creatorFixesForSubmission;
+
+  /// No description provided for @creatorFixNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix details'**
+  String get creatorFixNote;
+
+  /// No description provided for @creatorNameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a resource name'**
+  String get creatorNameRequired;
+
+  /// No description provided for @creatorSummaryRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a resource summary'**
+  String get creatorSummaryRequired;
+
+  /// No description provided for @creatorSubmitForReview.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit for review'**
+  String get creatorSubmitForReview;
+
+  /// No description provided for @creatorAstroBoxPRBody.
+  ///
+  /// In en, this message translates to:
+  /// **'PR description (optional)'**
+  String get creatorAstroBoxPRBody;
+
+  /// No description provided for @autoBackupTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled Backup'**
+  String get autoBackupTitle;
+
+  /// No description provided for @autoBackupDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Periodically back up app data to system Documents directory'**
+  String get autoBackupDescription;
+
+  /// No description provided for @autoBackupEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable scheduled backup'**
+  String get autoBackupEnabled;
+
+  /// No description provided for @autoBackupInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup frequency'**
+  String get autoBackupInterval;
+
+  /// No description provided for @autoBackupEvery.
+  ///
+  /// In en, this message translates to:
+  /// **'Every'**
+  String get autoBackupEvery;
+
+  /// No description provided for @autoBackupUnitDay.
+  ///
+  /// In en, this message translates to:
+  /// **'day(s)'**
+  String get autoBackupUnitDay;
+
+  /// No description provided for @autoBackupUnitWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'week(s)'**
+  String get autoBackupUnitWeek;
+
+  /// No description provided for @autoBackupUnitMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'month(s)'**
+  String get autoBackupUnitMonth;
+
+  /// No description provided for @autoBackupRetention.
+  ///
+  /// In en, this message translates to:
+  /// **'Retention'**
+  String get autoBackupRetention;
+
+  /// No description provided for @autoBackupRetentionCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} copies'**
+  String autoBackupRetentionCount(int count);
+
+  /// No description provided for @autoBackupRetentionUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get autoBackupRetentionUnlimited;
+
+  /// No description provided for @autoBackupPasswordEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Password protection'**
+  String get autoBackupPasswordEnable;
+
+  /// No description provided for @autoBackupPasswordEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Encrypt backup with standard AES-256'**
+  String get autoBackupPasswordEnableDesc;
+
+  /// No description provided for @autoBackupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup password'**
+  String get autoBackupPassword;
+
+  /// No description provided for @autoBackupPasswordConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get autoBackupPasswordConfirm;
+
+  /// No description provided for @autoBackupPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match'**
+  String get autoBackupPasswordMismatch;
+
+  /// No description provided for @autoBackupPasswordPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get autoBackupPasswordPlaceholder;
+
+  /// No description provided for @autoBackupScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup scope'**
+  String get autoBackupScope;
+
+  /// No description provided for @autoBackupScopeSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get autoBackupScopeSettings;
+
+  /// No description provided for @autoBackupScopeHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Health records'**
+  String get autoBackupScopeHealth;
+
+  /// No description provided for @autoBackupScopeExtensions.
+  ///
+  /// In en, this message translates to:
+  /// **'Extensions and mini-apps'**
+  String get autoBackupScopeExtensions;
+
+  /// No description provided for @autoBackupScopeDevices.
+  ///
+  /// In en, this message translates to:
+  /// **'Device pairing info'**
+  String get autoBackupScopeDevices;
+
+  /// No description provided for @autoBackupStorageLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Storage location'**
+  String get autoBackupStorageLocation;
+
+  /// No description provided for @autoBackupStorageLocationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Backups are automatically saved to public Documents directory'**
+  String get autoBackupStorageLocationDesc;
+
+  /// No description provided for @autoBackupOpenFolder.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in file manager'**
+  String get autoBackupOpenFolder;
+
+  /// No description provided for @autoBackupStatusEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled · Every {value} {unit}'**
+  String autoBackupStatusEnabled(int value, String unit);
+
+  /// No description provided for @autoBackupStatusDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get autoBackupStatusDisabled;
+
+  /// No description provided for @autoBackupRunNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Back up now'**
+  String get autoBackupRunNow;
+
+  /// No description provided for @autoBackupRunSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled backup completed'**
+  String get autoBackupRunSuccess;
+
+  /// No description provided for @autoBackupRunFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled backup failed'**
+  String get autoBackupRunFailed;
+
+  /// No description provided for @backupPasswordDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter backup password'**
+  String get backupPasswordDialogTitle;
+
+  /// No description provided for @backupPasswordDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This backup is encrypted; enter the password to restore'**
+  String get backupPasswordDialogMessage;
+
+  /// No description provided for @backupPasswordIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Incorrect password'**
+  String get backupPasswordIncorrect;
+
+  /// No description provided for @backupPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get backupPasswordRequired;
+
+  /// No description provided for @exportBackupPasswordOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Password (optional)'**
+  String get exportBackupPasswordOptional;
+
+  /// No description provided for @exportBackupPasswordPlaceholder.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave blank for unencrypted'**
+  String get exportBackupPasswordPlaceholder;
+
+  /// No description provided for @backupTargetPublicDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to system Documents folder'**
+  String get backupTargetPublicDocuments;
+
+  /// No description provided for @backupTargetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as external file'**
+  String get backupTargetCustom;
+
+  /// No description provided for @restoreFromDocumentsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Backup to Restore'**
+  String get restoreFromDocumentsTitle;
+
+  /// No description provided for @restorePickExternalFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another external file...'**
+  String get restorePickExternalFile;
+
+  /// No description provided for @backupSavedToDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup saved to system Documents folder'**
+  String get backupSavedToDocuments;
+
+  /// No description provided for @appDataExporting.
+  ///
+  /// In en, this message translates to:
+  /// **'Exporting and encrypting backup, please wait'**
+  String get appDataExporting;
+
+  /// No description provided for @appDataDecrypting.
+  ///
+  /// In en, this message translates to:
+  /// **'Decrypting backup, please wait'**
+  String get appDataDecrypting;
+
+  /// No description provided for @appDataRestoring.
+  ///
+  /// In en, this message translates to:
+  /// **'Restoring data, please wait'**
+  String get appDataRestoring;
+
+  /// No description provided for @autoBackupRetentionInputHint.
+  ///
+  /// In en, this message translates to:
+  /// **'0 for unlimited'**
+  String get autoBackupRetentionInputHint;
+
+  /// No description provided for @autoBackupRetentionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup copies (0 for unlimited)'**
+  String get autoBackupRetentionLabel;
+
+  /// No description provided for @autoBackupRetentionUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'copies'**
+  String get autoBackupRetentionUnit;
+
+  /// No description provided for @backupTypeAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Backup'**
+  String get backupTypeAuto;
+
+  /// No description provided for @backupTypeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Backup'**
+  String get backupTypeManual;
+
+  /// No description provided for @autoBackupStatusDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled · Every {value} {unit} · Keep {retentionText}'**
+  String autoBackupStatusDetail(int value, String unit, String retentionText);
+
+  /// No description provided for @globalAiTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Global AI'**
+  String get globalAiTitle;
+
+  /// No description provided for @globalAiDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure LLM and wearable voice assistant integration'**
+  String get globalAiDescription;
+
+  /// No description provided for @globalAiEnableSwitch.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Global AI'**
+  String get globalAiEnableSwitch;
+
+  /// No description provided for @globalAiEnableSwitchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable client-wide LLM integration and intelligent capabilities'**
+  String get globalAiEnableSwitchDesc;
+
+  /// No description provided for @globalAiProviders.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider Management'**
+  String get globalAiProviders;
+
+  /// No description provided for @globalAiProvidersCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} providers configured'**
+  String globalAiProvidersCount(int count);
+
+  /// No description provided for @globalAiModelSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Model Settings'**
+  String get globalAiModelSettings;
+
+  /// No description provided for @globalAiTestConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Connection'**
+  String get globalAiTestConnection;
+
+  /// No description provided for @globalAiStreamResponse.
+  ///
+  /// In en, this message translates to:
+  /// **'Streaming Response'**
+  String get globalAiStreamResponse;
+
+  /// No description provided for @globalAiStreamResponseDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Stream output progressively to wearable device'**
+  String get globalAiStreamResponseDesc;
+
+  /// No description provided for @globalAiWearableSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Device'**
+  String get globalAiWearableSection;
+
+  /// No description provided for @globalAiWearableEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Enable'**
+  String get globalAiWearableEnable;
+
+  /// No description provided for @globalAiWearableEnableDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable voice assistant will be handled by LLM when triggered'**
+  String get globalAiWearableEnableDesc;
+
+  /// No description provided for @globalAiWearableAdvancedSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Settings'**
+  String get globalAiWearableAdvancedSettings;
+
+  /// No description provided for @globalAiToolsScope.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool Permission Scopes'**
+  String get globalAiToolsScope;
+
+  /// No description provided for @globalAiToolDeviceStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Device Status'**
+  String get globalAiToolDeviceStatus;
+
+  /// No description provided for @globalAiToolDeviceStatusDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read device connection, battery and basic info'**
+  String get globalAiToolDeviceStatusDesc;
+
+  /// No description provided for @globalAiToolHealthData.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Data'**
+  String get globalAiToolHealthData;
+
+  /// No description provided for @globalAiToolHealthDataDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read steps, calories, distance and heart rate'**
+  String get globalAiToolHealthDataDesc;
+
+  /// No description provided for @globalAiToolWeather.
+  ///
+  /// In en, this message translates to:
+  /// **'Weather Query'**
+  String get globalAiToolWeather;
+
+  /// No description provided for @globalAiToolWeatherDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Query real-time weather and forecast'**
+  String get globalAiToolWeatherDesc;
+
+  /// No description provided for @globalAiToolSearchResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Search Resources'**
+  String get globalAiToolSearchResources;
+
+  /// No description provided for @globalAiToolSearchResourcesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Search watch faces and third-party apps'**
+  String get globalAiToolSearchResourcesDesc;
+
+  /// No description provided for @globalAiToolInstallResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Install Resources'**
+  String get globalAiToolInstallResources;
+
+  /// No description provided for @globalAiToolInstallResourcesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Download and install watch faces or apps to device'**
+  String get globalAiToolInstallResourcesDesc;
+
+  /// No description provided for @globalAiToolDeleteResources.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Resources'**
+  String get globalAiToolDeleteResources;
+
+  /// No description provided for @globalAiToolDeleteResourcesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Uninstall or delete resources on device'**
+  String get globalAiToolDeleteResourcesDesc;
+
+  /// No description provided for @globalAiToolManageAlarms.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Alarms'**
+  String get globalAiToolManageAlarms;
+
+  /// No description provided for @globalAiToolManageAlarmsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Create or manage wearable alarms'**
+  String get globalAiToolManageAlarmsDesc;
+
+  /// No description provided for @globalAiToolFindDevice.
+  ///
+  /// In en, this message translates to:
+  /// **'Find Device'**
+  String get globalAiToolFindDevice;
+
+  /// No description provided for @globalAiToolFindDeviceDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Make wearable device vibrate or ring continuously'**
+  String get globalAiToolFindDeviceDesc;
+
+  /// No description provided for @globalAiToolAppArrangement.
+  ///
+  /// In en, this message translates to:
+  /// **'App Layout'**
+  String get globalAiToolAppArrangement;
+
+  /// No description provided for @globalAiToolAppArrangementDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Query and rearrange device app ordering'**
+  String get globalAiToolAppArrangementDesc;
+
+  /// No description provided for @globalAiToolPhoneLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone Location'**
+  String get globalAiToolPhoneLocation;
+
+  /// No description provided for @globalAiToolPhoneLocationDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Supported on client phone only, assist queries with location'**
+  String get globalAiToolPhoneLocationDesc;
+
+  /// No description provided for @globalAiAddProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Provider'**
+  String get globalAiAddProvider;
+
+  /// No description provided for @globalAiEditProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Provider'**
+  String get globalAiEditProvider;
+
+  /// No description provided for @globalAiProviderName.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider Name'**
+  String get globalAiProviderName;
+
+  /// No description provided for @globalAiProviderBaseUrl.
+  ///
+  /// In en, this message translates to:
+  /// **'API Base URL'**
+  String get globalAiProviderBaseUrl;
+
+  /// No description provided for @globalAiProviderApiKey.
+  ///
+  /// In en, this message translates to:
+  /// **'API Key'**
+  String get globalAiProviderApiKey;
+
+  /// No description provided for @globalAiProviderModels.
+  ///
+  /// In en, this message translates to:
+  /// **'Model List'**
+  String get globalAiProviderModels;
+
+  /// No description provided for @globalAiAddModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Model'**
+  String get globalAiAddModel;
+
+  /// No description provided for @globalAiModelId.
+  ///
+  /// In en, this message translates to:
+  /// **'Model ID'**
+  String get globalAiModelId;
+
+  /// No description provided for @globalAiProtocolType.
+  ///
+  /// In en, this message translates to:
+  /// **'Protocol Type'**
+  String get globalAiProtocolType;
+
+  /// No description provided for @globalAiProtocolCompletions.
+  ///
+  /// In en, this message translates to:
+  /// **'Completions'**
+  String get globalAiProtocolCompletions;
+
+  /// No description provided for @globalAiProtocolResponses.
+  ///
+  /// In en, this message translates to:
+  /// **'Responses'**
+  String get globalAiProtocolResponses;
+
+  /// No description provided for @globalAiMultimodalSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Multimodal Capabilities'**
+  String get globalAiMultimodalSupport;
+
+  /// No description provided for @globalAiSupportImages.
+  ///
+  /// In en, this message translates to:
+  /// **'Images'**
+  String get globalAiSupportImages;
+
+  /// No description provided for @globalAiSupportAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get globalAiSupportAudio;
+
+  /// No description provided for @globalAiContextLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Context Window'**
+  String get globalAiContextLength;
+
+  /// No description provided for @globalAiWearableReplyLength.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Reply Length'**
+  String get globalAiWearableReplyLength;
+
+  /// No description provided for @globalAiWearableLengthShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Short (<50 chars)'**
+  String get globalAiWearableLengthShort;
+
+  /// No description provided for @globalAiWearableLengthMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium (<100 chars)'**
+  String get globalAiWearableLengthMedium;
+
+  /// No description provided for @globalAiWearableLengthLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Long (<200 chars)'**
+  String get globalAiWearableLengthLong;
+
+  /// No description provided for @globalAiWearableLengthUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get globalAiWearableLengthUnlimited;
+
+  /// No description provided for @globalAiWearableToolPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Tool Calling Policy'**
+  String get globalAiWearableToolPolicy;
+
+  /// No description provided for @globalAiToolPolicyDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get globalAiToolPolicyDisabled;
+
+  /// No description provided for @globalAiToolPolicyReadOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-Only'**
+  String get globalAiToolPolicyReadOnly;
+
+  /// No description provided for @globalAiToolPolicyReadWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Read-Write'**
+  String get globalAiToolPolicyReadWrite;
+
+  /// No description provided for @globalAiConfirmationMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmation Mode'**
+  String get globalAiConfirmationMode;
+
+  /// No description provided for @globalAiConfirmModeWearableVoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Wearable Voice Confirmation'**
+  String get globalAiConfirmModeWearableVoice;
+
+  /// No description provided for @globalAiConfirmModeManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Client Manual Confirmation'**
+  String get globalAiConfirmModeManual;
+
+  /// No description provided for @globalAiTesting.
+  ///
+  /// In en, this message translates to:
+  /// **'Testing connection...'**
+  String get globalAiTesting;
+
+  /// No description provided for @globalAiTestSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection successful'**
+  String get globalAiTestSuccess;
+
+  /// No description provided for @globalAiTestFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection failed'**
+  String get globalAiTestFailed;
+
+  /// No description provided for @globalAiTestDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Latency {ms} ms'**
+  String globalAiTestDuration(int ms);
+
+  /// No description provided for @globalAiSectionModelAndProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Model and Provider'**
+  String get globalAiSectionModelAndProvider;
+
+  /// No description provided for @globalAiTestConnectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify connectivity and latency of current provider and model'**
+  String get globalAiTestConnectionDesc;
+
+  /// No description provided for @globalAiWearableAdvancedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Reply length, tool permission mode and confirmation mode'**
+  String get globalAiWearableAdvancedDesc;
+
+  /// No description provided for @globalAiNoModelSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'No model configured or selected'**
+  String get globalAiNoModelSelected;
+
+  /// No description provided for @globalAiSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get globalAiSave;
+
+  /// No description provided for @globalAiCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get globalAiCancel;
+
+  /// No description provided for @globalAiClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get globalAiClose;
+
+  /// No description provided for @globalAiBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get globalAiBack;
+
+  /// No description provided for @globalAiRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get globalAiRetry;
+
+  /// No description provided for @globalAiDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get globalAiDelete;
+
+  /// No description provided for @globalAiNoProvidersPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No providers added\nPlease add a new provider above'**
+  String get globalAiNoProvidersPrompt;
+
+  /// No description provided for @globalAiNoModelsPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'No models available, please add a model first'**
+  String get globalAiNoModelsPrompt;
+
+  /// No description provided for @globalAiSystemPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'System prompt'**
+  String get globalAiSystemPrompt;
+
+  /// No description provided for @globalAiSystemPromptDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit the model instructions. Device and tool safety rules are added automatically.'**
+  String get globalAiSystemPromptDescription;
+
+  /// No description provided for @globalAiSystemPromptHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the system prompt template'**
+  String get globalAiSystemPromptHint;
+
+  /// No description provided for @globalAiSystemPromptPlaceholders.
+  ///
+  /// In en, this message translates to:
+  /// **'Available placeholders'**
+  String get globalAiSystemPromptPlaceholders;
+
+  /// No description provided for @globalAiDeleteProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this Provider'**
+  String get globalAiDeleteProvider;
+
+  /// No description provided for @globalAiDeleteModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Model'**
+  String get globalAiDeleteModel;
+
+  /// No description provided for @globalAiConnecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get globalAiConnecting;
+
+  /// No description provided for @globalAiReceiving.
+  ///
+  /// In en, this message translates to:
+  /// **'Receiving response...'**
+  String get globalAiReceiving;
+
+  /// No description provided for @globalAiWaitingFirstToken.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for first token...'**
+  String get globalAiWaitingFirstToken;
+
+  /// No description provided for @globalAiTargetLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Target {provider} / {model}'**
+  String globalAiTargetLabel(String provider, String model);
+
+  /// No description provided for @globalAiNoProviderConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid provider or model configured'**
+  String get globalAiNoProviderConfigured;
+
+  /// No description provided for @globalAiNoApiKeyConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No API key found, please check provider settings'**
+  String get globalAiNoApiKeyConfigured;
+
+  /// No description provided for @globalAiSelectActiveModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Active Model'**
+  String get globalAiSelectActiveModel;
+
+  /// No description provided for @globalAiContextLengthHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 4096, 8192, 131072'**
+  String get globalAiContextLengthHint;
+
+  /// No description provided for @globalAiModelNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. deepseek-flash, qwen3.8-flash'**
+  String get globalAiModelNameHint;
+
+  /// No description provided for @globalAiProviderNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. DeepSeek, OpenAI, SiliconFlow'**
+  String get globalAiProviderNameHint;
+
+  /// No description provided for @globalAiBaseUrlHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. https://api.deepseek.com'**
+  String get globalAiBaseUrlHint;
+
+  /// No description provided for @globalAiApiKeyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'sk-...'**
+  String get globalAiApiKeyHint;
+
+  /// No description provided for @globalAiConfirmDeleteProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this provider and all its models?'**
+  String get globalAiConfirmDeleteProvider;
+
+  /// No description provided for @globalAiConfirmDeleteModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this model configuration?'**
+  String get globalAiConfirmDeleteModel;
+
+  /// No description provided for @globalAiModelAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Model ID already exists'**
+  String get globalAiModelAlreadyExists;
+
+  /// No description provided for @globalAiModelAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Model added'**
+  String get globalAiModelAdded;
+
+  /// No description provided for @globalAiProviderAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Provider added'**
+  String get globalAiProviderAdded;
+
+  /// No description provided for @globalAiVoiceAssistantProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'AI is thinking and streaming reply...'**
+  String get globalAiVoiceAssistantProcessing;
+
+  /// No description provided for @globalAiVoiceAssistantError.
+  ///
+  /// In en, this message translates to:
+  /// **'AI reply error: {error}'**
+  String globalAiVoiceAssistantError(String error);
+
+  /// No description provided for @globalAiAsrEngine.
+  ///
+  /// In en, this message translates to:
+  /// **'Speech Recognition Engine'**
+  String get globalAiAsrEngine;
+
+  /// No description provided for @globalAiAsrManual.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual Input'**
+  String get globalAiAsrManual;
+
+  /// No description provided for @globalAiAsrNative.
+  ///
+  /// In en, this message translates to:
+  /// **'Local Offline Model'**
+  String get globalAiAsrNative;
+
+  /// No description provided for @globalAiAsrWeType.
+  ///
+  /// In en, this message translates to:
+  /// **'WeType Cloud'**
+  String get globalAiAsrWeType;
+
+  /// No description provided for @globalAiAsrDoubao.
+  ///
+  /// In en, this message translates to:
+  /// **'Volcengine Doubao'**
+  String get globalAiAsrDoubao;
+
+  /// No description provided for @globalAiTestRequestLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Request Sent'**
+  String get globalAiTestRequestLabel;
+
+  /// No description provided for @globalAiTestResponseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model Response'**
+  String get globalAiTestResponseLabel;
+
+  /// No description provided for @globalAiTestStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Test'**
+  String get globalAiTestStart;
 }
 
 class _AppLocalizationsDelegate

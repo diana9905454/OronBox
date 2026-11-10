@@ -1,0 +1,23 @@
+OronBox
+Copyright © 2026 OrPudding
+
+OronBox 采用 GNU Affero General Public License v3.0（AGPL-3.0）发布。
+本程序不提供任何担保。
+
+本程序包含按 AGPL-3.0 第 7 条附加条件发布的第三方作品，署名要求见「关于软件 → 特别鸣谢」。
+许可全文见项目仓库 LICENSE，各上游许可副本见 assets/licenses/。
+
+OronBox 自身另附 AGPL-3.0 第 7 条附加条款：署名保留、来源标注、名称与宣传用途、商标、维护与支持
+免责，完整条款见项目仓库 ADDITIONAL-TERMS.md。
+
+OronBox is released under the GNU Affero General Public License v3.0 (AGPL-3.0).
+There is no warranty for this program.
+
+This program includes third-party material released with additional terms under section 7 of
+AGPL-3.0; the required attribution is shown in the in-app acknowledgements page.
+The full license text is in the project repository LICENSE file, and copies of the upstream
+licenses ship in assets/licenses/.
+
+OronBox itself carries additional terms under section 7 of AGPL-3.0 covering preservation of
+attribution, marking of origin, use of the name, trademarks, and a maintenance and support
+disclaimer; the full text is in the project repository ADDITIONAL-TERMS.md.

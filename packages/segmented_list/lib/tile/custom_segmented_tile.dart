@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:segmented_list/tile/segmented_tile_info.dart';
 import 'package:segmented_list/tile/abstract_segmented_tile.dart';
 

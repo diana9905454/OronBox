@@ -91,15 +91,13 @@ class _LegacyWarning extends StatelessWidget {
                 children: [
                   Text(
                     l10n.pluginLegacyWarningTitle,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: colors.onTertiaryContainer,
-                    ),
+                    style: Theme.of(context).textTheme.titleSmall
+                        ?.copyWith(color: colors.onTertiaryContainer),
                   ),
                   Text(
                     l10n.pluginLegacyWarningMessage,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: colors.onTertiaryContainer,
-                    ),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: colors.onTertiaryContainer),
                   ),
                 ],
               ),

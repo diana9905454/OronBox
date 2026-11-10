@@ -1,0 +1,2 @@
+String releasePlatform() => '';
+String releaseArchitecture() => '';

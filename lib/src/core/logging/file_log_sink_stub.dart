@@ -15,10 +15,11 @@ class LogFileInfo {
 
 void writeFileLogLine(String line) {}
 Future<void> closeFileLogSink() async {}
-Future<bool> openLogDirectory() async => false;
+Future<String?> openLogDirectory() async => null;
 Future<String?> getLogDirectoryPath() async => null;
 Future<int> logDirectorySize() async => 0;
 Future<List<LogFileInfo>> listLogFiles() async => const [];
+Future<String> readLogPreview(LogFileInfo file) async => '';
 Future<String?> saveDeviceLogFile(String name, List<int> bytes) async => null;
 Future<bool> openLogFile(LogFileInfo file) async => false;
 Future<int> clearLogFiles() async => 0;

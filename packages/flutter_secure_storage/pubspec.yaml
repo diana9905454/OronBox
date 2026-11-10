@@ -1,0 +1,35 @@
+name: flutter_secure_storage
+description: A Flutter plugin for securely storing sensitive data using encrypted storage.
+version: 11.2.0
+repository: https://github.com/mogol/flutter_secure_storage/tree/develop/flutter_secure_storage
+
+# Local fork for the OronBox HarmonyOS port.
+#
+# Upstream 11.2.0 throws `UnsupportedError('unsupported_platform')` inside
+# `_selectOptions()` for any platform it does not know, and the ohos fork of
+# Flutter reports `TargetPlatform.ohos`. Everything else in the package already
+# goes through `MethodChannelFlutterSecureStorage` (the platform interface
+# default), so the only change in `lib/` is an `ohos` branch that returns an
+# empty options map; the matching native side lives in
+# `ohos/entry/src/main/ets/plugins/SecureStorageBridge.ets` and stores values
+# in the Asset Store Kit.
+#
+# This trimmed copy deliberately carries no `flutter.plugin.platforms` block:
+# the port only ships on OpenHarmony, where the channel is served by the app's
+# own ArkTS bridge. Keeping the upstream android/ios entries would make the
+# tool look for plugin sources that are not part of this fork.
+
+environment:
+  sdk: '>=3.8.0 <4.0.0'
+  flutter: '>=3.19.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_secure_storage_platform_interface: ^2.1.0
+  meta: ^1.16.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  plugin_platform_interface: ^2.1.8

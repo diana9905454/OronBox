@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/data/astrobox/models/astrobox_models.dart';
@@ -116,9 +115,6 @@ class AstroBoxRepoCatalog implements CommunityResourceCatalog {
       );
     }
     final manifestItem = manifest.item;
-    // AstroBox Repo manifests may put presentation markup directly in the
-    // description field. Keep this source-specific so other providers retain
-    // their own description semantics.
     final description = normalizeAstroBoxRepoDescription(
       manifestItem.description,
     );
@@ -152,9 +148,7 @@ class AstroBoxRepoCatalog implements CommunityResourceCatalog {
       purchaseLink: purchase,
       summary: description.value,
       content: CommunityResourceContent(
-        format: description.isHtml
-            ? ResourceContentFormat.html
-            : ResourceContentFormat.plainText,
+        format: ResourceContentFormat.markdown,
         value: description.value,
       ),
       previews: manifestItem.preview
@@ -240,17 +234,17 @@ class AstroBoxRepoCatalog implements CommunityResourceCatalog {
         bytes: bytes,
       );
     }
-    final tempDir = await getTemporaryDirectory();
-    final directory = Directory(
-      '${tempDir.path}/oronbox_downloads/${request.resource.ref.id}',
-    );
-    await directory.create(recursive: true);
-    final path = '${directory.path}/$fileName';
-    await _dio.download(
-      request.file.downloadUrl!.toString(),
-      path,
-      onReceiveProgress: (received, total) {
-        if (total > 0) request.onProgress?.call(received / total);
+    final path = await ManagedTemporaryFiles.create(
+      TemporaryFilePurpose.downloads,
+      fileName,
+      (destination) async {
+        await _dio.download(
+          request.file.downloadUrl!.toString(),
+          destination,
+          onReceiveProgress: (received, total) {
+            if (total > 0) request.onProgress?.call(received / total);
+          },
+        );
       },
     );
     request.onProgress?.call(1, status: 'finished');
@@ -314,18 +308,17 @@ class AstroBoxRepoCatalog implements CommunityResourceCatalog {
 
   Future<AstroBoxManifest> _fetchManifest(AstroBoxIndexItem item) async {
     final base = _buildRepoRawUrl(item);
-    try {
-      return _normalizeManifestDeviceKeys(
-        AstroBoxManifest.fromJson(
-          await _fetchJsonObject('$base/manifest_v2.json'),
-        ),
-      );
-    } on DioException {
+    if (item.id.startsWith('LegacyItem')) {
       return _legacyManifestV1ToV2(
         await _fetchJsonObject('$base/manifest.json'),
         item,
       );
     }
+    return _normalizeManifestDeviceKeys(
+      AstroBoxManifest.fromJson(
+        await _fetchJsonObject('$base/manifest_v2.json'),
+      ),
+    );
   }
 
   CommunityResource _summaryFromIndex(AstroBoxIndexItem item) {
@@ -483,6 +476,21 @@ class AstroBoxRepoCatalog implements CommunityResourceCatalog {
     );
   }
 
+  static const _fallbackV1DeviceKeyMap = {
+    'n62': 'xmws3',
+    'o62': 'xmws4',
+    'o62m': 'xmws4xring',
+    'p62': 'xmws5',
+    'p62m': 'xmws5xring',
+    'o65': 'xmrw5',
+    'o65m': 'xmrw5xring',
+    'n66': 'xmb9',
+    'n67': 'xmb9p',
+    'o66': 'xmb10',
+    'o66nfc': 'xmb10nfc',
+    'p65': 'xmrw6',
+  };
+
   AstroBoxManifest _legacyManifestV1ToV2(
     Map<String, dynamic> raw,
     AstroBoxIndexItem item,
@@ -497,7 +505,9 @@ class AstroBoxRepoCatalog implements CommunityResourceCatalog {
     for (final entry in downloadMap.entries) {
       if (entry.value is! Map) continue;
       final data = (entry.value as Map).cast<String, dynamic>();
-      downloads[_normalizeDeviceKey(entry.key)] = AstroBoxManifestDownload(
+      final mappedKey = _fallbackV1DeviceKeyMap[entry.key] ??
+          _normalizeDeviceKey(entry.key);
+      downloads[mappedKey] = AstroBoxManifestDownload(
         version: data['version']?.toString() ?? '',
         fileName: data['file_name']?.toString() ?? '',
         url: data['url']?.toString(),

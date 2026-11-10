@@ -6,6 +6,17 @@ import 'package:oronbox/src/device/core/bluetooth_platform.dart';
 export 'rfcomm_driver_native.dart'
     if (dart.library.html) 'rfcomm_driver_web.dart';
 
+class SppBondRemovalFailed implements Exception {
+  const SppBondRemovalFailed([this.details]);
+
+  final String? details;
+
+  @override
+  String toString() => details == null || details!.isEmpty
+      ? 'SPP bond removal failed'
+      : 'SPP bond removal failed: $details';
+}
+
 abstract class RfcommConnection {
   String get deviceId;
   String get deviceName;

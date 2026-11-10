@@ -8,7 +8,7 @@ import 'package:oronbox/src/device/core/transport.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_services_system.dart';
 import 'package:oronbox/src/device/zeppos/systems/zeppos_screenshot_system.dart';
 import 'package:oronbox/src/device/zeppos/zeppos_device_component.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart';
+import 'package:oronbox/src/device/core/device_state.dart';
 
 class ZeppOsVoiceMemo {
   const ZeppOsVoiceMemo({

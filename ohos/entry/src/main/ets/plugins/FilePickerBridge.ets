@@ -21,6 +21,8 @@ const FILE_PICKER_CHANNEL = 'oronbox/file_picker';
 
 /** 用户选择文件/图片的临时读权限，便于后续 readFile 读取。 */
 const PICKER_POLICY = 0;
+/** 单次 writeSync 的分块大小。 */
+const WRITE_CHUNK_BYTES = 4 * 1024 * 1024;
 
 export class FilePickerBridge {
   private context: common.UIAbilityContext;
@@ -111,8 +113,23 @@ export class FilePickerBridge {
     try {
       const target = savedUris[0];
       const file = fs.openSync(target, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-      fs.writeSync(file.fd, bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer);
-      fs.closeSync(file);
+      try {
+        // 分块写：单次 writeSync 不保证写完整个 buffer（大文件尤其）。
+        let written = 0;
+        while (written < bytes.byteLength) {
+          const rest = bytes.byteLength - written;
+          const size = rest > WRITE_CHUNK_BYTES ? WRITE_CHUNK_BYTES : rest;
+          const chunk = new ArrayBuffer(size);
+          new Uint8Array(chunk).set(bytes.subarray(written, written + size), 0);
+          const n = fs.writeSync(file.fd, chunk);
+          if (n <= 0) {
+            throw new Error('write returned ' + n);
+          }
+          written += n;
+        }
+      } finally {
+        fs.closeSync(file);
+      }
       this.grantedUris.add(target);
       result.success(target);
     } catch (e) {
@@ -140,12 +157,24 @@ export class FilePickerBridge {
       return;
     }
     try {
-      const file = fs.openSync(path, fs.OpenMode.READ_ONLY);
       const stat = fs.statSync(path);
-      const buf = new ArrayBuffer(stat.size);
-      fs.readSync(file.fd, buf);
-      fs.closeSync(file);
-      result.success(new Uint8Array(buf));
+      const total = stat.size;
+      const data = new Uint8Array(total);
+      const file = fs.openSync(path, fs.OpenMode.READ_ONLY);
+      let read = 0;
+      try {
+        // 单次 readSync 不保证填满 buffer（大文件尤其），按偏移循环补齐。
+        while (read < total) {
+          const chunk = new ArrayBuffer(total - read);
+          const n = fs.readSync(file.fd, chunk, { offset: read, length: total - read });
+          if (n <= 0) break;
+          data.set(new Uint8Array(chunk, 0, n), read);
+          read += n;
+        }
+      } finally {
+        fs.closeSync(file);
+      }
+      result.success(read === total ? data : data.slice(0, read));
     } catch (e) {
       result.error('read_error', e instanceof Error ? e.message : String(e), null);
     }

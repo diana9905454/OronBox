@@ -61,25 +61,25 @@ class SectionCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(StyleConstants.pagePadding),
     this.margin = const EdgeInsets.only(bottom: StyleConstants.sectionSpacing),
-    this.borderRadius = const BorderRadius.all(
-      Radius.circular(StyleConstants.cardRadius),
-    ),
+    this.borderRadius,
     this.color,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry? margin;
-  final BorderRadius borderRadius;
+  final BorderRadius? borderRadius;
   final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final resolvedBorderRadius =
+        borderRadius ?? BorderRadius.circular(cardRadiusFor(context));
     return Card(
       elevation: 0,
       margin: margin,
       color: color ?? Theme.of(context).colorScheme.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      shape: RoundedRectangleBorder(borderRadius: resolvedBorderRadius),
       clipBehavior: Clip.antiAlias,
       child: Padding(padding: padding, child: child),
     );
@@ -108,9 +108,8 @@ class SectionHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(context).textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
           if (action != null) action!,
@@ -118,4 +117,10 @@ class SectionHeader extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 计算可滚动列表或页面的底部安全边距，自适应全面屏系统手势横条与安全区
+double bottomContentPadding(BuildContext context, {double extra = 16}) {
+  final viewPaddingBottom = MediaQuery.paddingOf(context).bottom;
+  return viewPaddingBottom + extra;
 }

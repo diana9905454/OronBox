@@ -1,12 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:oronbox/src/device/xiaomi/components/health_system.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/features/devices/health/health_models.dart';
 import 'package:oronbox/src/features/devices/health/health_store.dart';
 import 'package:oronbox/src/features/devices/health/xiaomi_health_sync_service.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_fitness.pb.dart'
-    as pb_fitness;
 
 void main() {
   test('Xiaomi activity timestamps stay in local wall-clock semantics', () {
@@ -29,6 +27,527 @@ void main() {
         encodedWallClock.second,
       ),
     );
+  });
+
+  test('parses Xiaomi Fitness manual heart, SpO2 and stress measurements', () {
+    const fileTimestamp = 1_787_472_000;
+    const sampleTimestamp = fileTimestamp + 60;
+    final body = BytesBuilder()
+      ..add(_u32(sampleTimestamp))
+      ..add(const [0x11, 78])
+      ..add(_u32(sampleTimestamp))
+      ..add(const [0x12, 97])
+      ..add(_u32(sampleTimestamp))
+      ..add(const [0x13, 24]);
+    const deviceTimezoneOffset15Min = 32; // UTC+8.
+    final prefix = <int>[
+      ..._u32(fileTimestamp),
+      deviceTimezoneOffset15Min,
+      2,
+      6 << 2,
+      0,
+    ];
+    prefix.addAll(body.toBytes());
+    final file = _activityFile(prefix);
+
+    final result = XiaomiHealthSystem().parseActivityFilesForDebug([
+      XiaomiActivityRawFile(id: 'manual', data: file),
+    ]);
+
+    expect(result.samples, hasLength(1));
+    expect(
+      result.samples.single.timestamp,
+      xiaomiActivityTimestamp(
+        sampleTimestamp,
+        timezoneOffset15Min: deviceTimezoneOffset15Min,
+      ),
+    );
+    expect(result.samples.single.heartRate, 78);
+    expect(result.samples.single.bloodOxygen, 97);
+    expect(result.samples.single.stress, 24);
+  });
+
+  test('parses Xiaomi Fitness daily report fields by version and validity', () {
+    const timestamp = 1_787_472_000;
+    const fieldSizes = [
+      4,
+      2,
+      1,
+      1,
+      1,
+      4,
+      1,
+      4,
+      1,
+      1,
+      1,
+      1,
+      3,
+      2,
+      2,
+      1,
+      1,
+      4,
+      1,
+      4,
+      1,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      2,
+      1,
+      1,
+      2,
+      2,
+      2,
+      2,
+      2,
+    ];
+    final payload = BytesBuilder();
+    for (var field = 0; field < fieldSizes.length; field++) {
+      final size = fieldSizes[field];
+      final value = switch (field) {
+        0 => 321,
+        1 => 222,
+        2 => 81,
+        3 => 56,
+        4 => 170,
+        5 => timestamp + 100,
+        6 => 48,
+        7 => timestamp + 200,
+        8 => 74,
+        13 => 555,
+        15 => 97,
+        16 => 99,
+        17 => timestamp + 300,
+        18 => 92,
+        19 => timestamp + 400,
+        20 => 96,
+        21 => 33,
+        22 => 155,
+        23 => 2,
+        24 => 3,
+        25 => 4,
+        26 => 5,
+        27 => 42,
+        28 => 1,
+        29 => 18,
+        30 => -8,
+        31 => 66,
+        32 => 72,
+        33 => 51,
+        34 => 7,
+        _ => 0,
+      };
+      if (size == 1) {
+        payload.addByte(value);
+      } else if (size == 2) {
+        final bytes = ByteData(2);
+        if (field == 30) {
+          bytes.setInt16(0, value, Endian.little);
+        } else {
+          bytes.setUint16(0, value, Endian.little);
+        }
+        payload.add(bytes.buffer.asUint8List());
+      } else if (size == 3) {
+        payload.add(<int>[value, value >> 8, value >> 16]);
+      } else {
+        final bytes = ByteData(4)..setUint32(0, value, Endian.little);
+        payload.add(bytes.buffer.asUint8List());
+      }
+    }
+    final validity = Uint8List(5);
+    for (final bit in [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      13,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+    ]) {
+      _setValidityBit(validity, bit);
+    }
+    final prefix = <int>[
+      ..._u32(timestamp),
+      0,
+      7,
+      1,
+      0,
+      ...validity,
+      ...payload.toBytes(),
+    ];
+    final file = _activityFile(prefix);
+
+    final result = XiaomiHealthSystem().parseActivityFilesForDebug([
+      XiaomiActivityRawFile(id: 'daily-report', data: file),
+    ]);
+
+    expect(result.daily, hasLength(1));
+    expect(result.daily.single.steps, 321);
+    expect(result.daily.single.activeCalories, 222);
+    expect(result.daily.single.calories, 555);
+    expect(result.daily.single.floorsClimbed, 7);
+    expect(result.daily.single.restingHeartRate, 56);
+    expect(result.daily.single.maxHeartRate, 170);
+    expect(
+      result.daily.single.maxHeartRateAt,
+      xiaomiActivityTimestamp(timestamp + 100),
+    );
+    expect(result.daily.single.minHeartRate, 48);
+    expect(result.daily.single.averageHeartRate, 74);
+    expect(result.daily.single.currentBloodOxygen, 97);
+    expect(result.daily.single.minBloodOxygen, 92);
+    expect(result.daily.single.averageBloodOxygen, 96);
+    expect(result.daily.single.trainingLoadToday, 33);
+    expect(result.daily.single.trainingLoadLast7Days, 155);
+    expect(result.daily.single.vitalityIncreaseLight, 3);
+    expect(result.daily.single.vitalityIncreaseModerate, 4);
+    expect(result.daily.single.vitalityIncreaseHigh, 5);
+    // The day's earned value is the sum of the intensity buckets; the device's
+    // field 27 is only the running 7-day total (vitalityLast7Days).
+    expect(result.daily.single.vitalityCurrent, 12);
+    expect(result.daily.single.vitalityLast7Days, 42);
+    expect(result.daily.single.vitalityNextTargetMinutes, 18);
+    expect(result.daily.single.fitnessBalance, -8);
+    expect(result.daily.single.fitnessLevel, 66);
+    expect(result.daily.single.fatigueLevel, 72);
+    expect(result.daily.single.trainingStressScore, 51);
+  });
+
+  test('parses Xiaomi Fitness packed daily records', () {
+    const timestamp = 1_787_472_000;
+    final prefix = <int>[
+      ..._u32(timestamp),
+      0,
+      3,
+      0,
+      0,
+      0xa9,
+      0x0c,
+      0xcc,
+      0x8c,
+      0xc0,
+    ];
+    final body = BytesBuilder()
+      ..add(_u16(1234))
+      ..addByte(42)
+      ..add(_u16(1000))
+      ..addByte(80)
+      ..addByte(10)
+      ..add(_u16(0))
+      ..addByte(97)
+      ..addByte(24);
+    prefix.addAll(body.toBytes());
+    final file = _activityFile(prefix);
+
+    final result = XiaomiHealthSystem().parseActivityFilesForDebug([
+      XiaomiActivityRawFile(id: 'daily-record', data: file),
+    ]);
+
+    expect(result.samples, hasLength(1));
+    expect(result.samples.single.steps, 1234);
+    expect(result.samples.single.activeCalories, 42);
+    expect(result.samples.single.distanceMeters, 1000);
+    expect(result.samples.single.heartRate, 80);
+    expect(result.samples.single.bloodOxygen, 97);
+    expect(result.samples.single.pressure, 24);
+  });
+
+  test('parses Mi Fitness outdoor workout report summary fields', () {
+    const startedSeconds = 1_787_472_000;
+    const endedSeconds = startedSeconds + 45 * 60;
+    final body = BytesBuilder()
+      ..add(_u32(startedSeconds)) // start time
+      ..add(_u32(endedSeconds)) // end time
+      ..add(_u32(0)) // type 3
+      ..add(_u32(3500)) // distance
+      ..add(_u16(420)) // calories
+      ..add(_u32(0)) // type 8
+      ..add(_u32(0)) // type 9
+      ..add(_u32(0)) // type 12
+      ..add(_u32(0)) // type 13
+      ..add(_u16(0)) // type 14
+      ..addByte(143) // average heart rate
+      ..addByte(168) // maximum heart rate
+      ..addByte(61); // minimum heart rate
+    final prefix = <int>[
+      ..._u32(startedSeconds),
+      0,
+      1,
+      0x85, // sport report, outdoor subtype 1
+      0, // reserved header byte
+      0xff,
+      0xf8,
+      0,
+      0,
+      ...body.toBytes(),
+    ];
+    final file = _activityFile(prefix);
+
+    final result = XiaomiHealthSystem().parseActivityFilesForDebug([
+      XiaomiActivityRawFile(id: 'outdoor-workout', data: file),
+    ]);
+
+    expect(result.workouts, hasLength(1));
+    final workout = result.workouts.single;
+    expect(workout.activityType, 1);
+    expect(workout.startedAt, xiaomiActivityTimestamp(startedSeconds));
+    expect(workout.endedAt, xiaomiActivityTimestamp(endedSeconds));
+    expect(workout.distanceMeters, 3500);
+    expect(workout.calories, 420);
+    expect(workout.averageHeartRate, 143);
+    expect(workout.maximumHeartRate, 168);
+    expect(workout.minimumHeartRate, 61);
+  });
+
+  test('parses and merges modern workout report, samples, GPS and HRR', () {
+    const startedSeconds = 1_787_472_000;
+    const endedSeconds = startedSeconds + 1800;
+
+    final reportValidity = Uint8List(13);
+    for (final bit in [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      11,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      25,
+      34,
+      35,
+      36,
+      40,
+      41,
+      45,
+      61,
+      70,
+    ]) {
+      _setValidityBit(reportValidity, bit);
+    }
+    final reportBody = ByteData(197)
+      ..setUint16(0, 1, Endian.little)
+      ..setUint32(2, startedSeconds, Endian.little)
+      ..setUint32(6, endedSeconds, Endian.little)
+      ..setUint32(10, 1800, Endian.little)
+      ..setUint32(14, 1720, Endian.little)
+      ..setUint32(18, 5000, Endian.little)
+      ..setUint16(22, 360, Endian.little)
+      ..setUint16(24, 300, Endian.little)
+      ..setUint32(26, 344, Endian.little)
+      ..setFloat32(38, 10.4, Endian.little)
+      ..setUint32(46, 6200, Endian.little)
+      ..setUint16(50, 88, Endian.little)
+      ..setUint16(52, 168, Endian.little)
+      ..setUint16(54, 186, Endian.little)
+      ..setUint8(56, 148)
+      ..setUint8(57, 177)
+      ..setUint8(58, 78)
+      ..setFloat32(79, 3.2, Endian.little)
+      ..setUint16(97, 18, Endian.little)
+      ..setUint8(99, 1)
+      ..setUint32(100, 240, Endian.little)
+      ..setUint32(116, 300, Endian.little)
+      ..setUint8(120, 170)
+      ..setUint8(124, 100)
+      ..setUint16(179, 72, Endian.little)
+      ..setUint8(196, 8);
+    final report = _activityFile([
+      ..._u32(startedSeconds),
+      0,
+      9,
+      0xd9,
+      0,
+      ...reportValidity,
+      ...reportBody.buffer.asUint8List(),
+    ]);
+
+    final recordValidity = Uint8List(7);
+    for (final bit in [0, 1, 2, 4, 5, 8, 9, 12, 14, 16, 17, 28, 29, 32, 33]) {
+      _setValidityBit(recordValidity, bit);
+    }
+    final recordBody = BytesBuilder();
+    final segment = ByteData(27)
+      ..setFloat32(0, 120, Endian.little)
+      ..setUint32(4, 2, Endian.little)
+      ..setUint32(8, startedSeconds, Endian.little);
+    recordBody.add(segment.buffer.asUint8List());
+    recordBody
+      ..addByte(0x23)
+      ..addByte(140)
+      ..add(_i32(1234))
+      ..add(_u16(5))
+      ..addByte(90)
+      ..addByte(160)
+      ..add(_u16(300))
+      ..addByte(0x12)
+      ..addByte(145)
+      ..add(_i32(1240))
+      ..add(_u16(10))
+      ..addByte(92)
+      ..addByte(165)
+      ..add(_u16(290));
+    final record = _activityFile([
+      ..._u32(startedSeconds),
+      0,
+      9,
+      0xd8,
+      0,
+      ...recordValidity,
+      ...recordBody.toBytes(),
+    ]);
+
+    final gpsBody = BytesBuilder()..add(_u32(2));
+    for (final (timestamp, longitude, latitude, altitude) in [
+      (startedSeconds, 121.4737, 31.2304, 8.0),
+      (startedSeconds + 60, 121.4740, 31.2310, 9.5),
+    ]) {
+      final point = ByteData(27)
+        ..setUint32(0, timestamp, Endian.little)
+        ..setFloat32(4, longitude, Endian.little)
+        ..setFloat32(8, latitude, Endian.little)
+        ..setFloat32(12, 3, Endian.little)
+        ..setUint16(16, 80, Endian.little)
+        ..setFloat32(18, altitude, Endian.little);
+      gpsBody.add(point.buffer.asUint8List());
+    }
+    final gps = _activityFile([
+      ..._u32(startedSeconds),
+      0,
+      5,
+      0xda,
+      0,
+      0xff,
+      0xff,
+      ...gpsBody.toBytes(),
+    ]);
+
+    final recovery = _activityFile([
+      ..._u32(startedSeconds),
+      0,
+      1,
+      0xdb,
+      0,
+      ..._u32(endedSeconds),
+      118,
+      22,
+      ..._u16(3),
+      150,
+      132,
+      118,
+    ]);
+
+    final result = XiaomiHealthSystem().parseActivityFilesForDebug([
+      XiaomiActivityRawFile(id: 'report', data: report),
+      XiaomiActivityRawFile(id: 'record', data: record),
+      XiaomiActivityRawFile(id: 'gps', data: gps),
+      XiaomiActivityRawFile(id: 'hrr', data: recovery),
+    ]);
+
+    expect(result.failedFiles, isEmpty);
+    expect(result.workouts, hasLength(1));
+    final workout = result.workouts.single;
+    expect(workout.distanceMeters, 5000);
+    expect(workout.totalDurationSeconds, 1800);
+    expect(workout.averageSpeedKph, closeTo(10.4, 0.001));
+    expect(workout.aerobicTrainingEffect, closeTo(3.2, 0.001));
+    expect(workout.trainingLoad, 72);
+    expect(workout.earnedVitality, 8);
+    expect(workout.heartRateZones, hasLength(2));
+    expect(workout.samples, hasLength(2));
+    expect(workout.samples.last.steps, 5);
+    expect(workout.samples.last.distanceMeters, 15);
+    expect(workout.samples.last.altitudeMeters, 124);
+    expect(workout.route, hasLength(2));
+    expect(workout.route.last.latitude, closeTo(31.231, 0.0001));
+    expect(workout.recovery?.recoveredHeartRate, 118);
+    expect(workout.recovery?.heartRates, [150, 132, 118]);
+  });
+
+  test('parses swimming sections and their heart-rate series', () {
+    const startedSeconds = 1_787_472_000;
+    const endedSeconds = startedSeconds + 60;
+    final body = BytesBuilder()
+      ..add(_u32(1))
+      ..add(_u32(startedSeconds))
+      ..addByte(0)
+      ..add(_u32(endedSeconds))
+      ..addByte(2)
+      ..add(_u16(95))
+      ..add(_u16(42))
+      ..add(_u16(50))
+      ..add(_u16(10))
+      ..add(_u16(20))
+      ..add(_u16(1))
+      ..add(const [30, 0, 0, 30, 0, 0])
+      ..add(_u16(12))
+      ..add(const [0, 0, 0])
+      ..add(_u16(0))
+      ..add(_u32(3))
+      ..add(const [100, 110, 105]);
+    final file = _activityFile([
+      ..._u32(startedSeconds),
+      0,
+      3,
+      0xa4,
+      0,
+      0xff,
+      0xff,
+      0xf0,
+      ...body.toBytes(),
+    ]);
+
+    final result = XiaomiHealthSystem().parseActivityFilesForDebug([
+      XiaomiActivityRawFile(id: 'swimming-record', data: file),
+    ]);
+
+    expect(result.failedFiles, isEmpty);
+    expect(result.workouts, hasLength(1));
+    final samples = result.workouts.single.samples;
+    expect(samples.where((sample) => sample.heartRate != null), hasLength(3));
+    final section = samples.singleWhere((sample) => sample.swolf != null);
+    expect(section.swimmingStroke, 2);
+    expect(section.swimmingPaceSecondsPer100Meters, 95);
+    expect(section.swolf, 42);
+    expect(section.distanceMeters, 50);
+    expect(section.strokeFrequency, 30);
   });
 
   test('parses Vela daily-type-9 high and low heart-rate records', () {
@@ -95,8 +614,7 @@ void main() {
       9 << 2,
       ...body.toBytes(),
     ];
-    final crc = _crc32(Uint8List.fromList(prefix));
-    final file = Uint8List.fromList([...prefix, ..._u32(crc)]);
+    final file = _activityFile(prefix);
     final records = XiaomiHealthSystem()
         .parseActivityAbnormalHeartRateFileForTesting(file);
 
@@ -139,6 +657,39 @@ void main() {
     );
   });
 
+  test('parses Vela v2 daily-type-9 abnormal heart-rate records with 1-byte threshold', () {
+    const startedSeconds = 1_790_933_297;
+    const endedSeconds = 1_790_933_897;
+    final body = BytesBuilder()
+      ..add(_u32(startedSeconds))
+      ..add(_u32(endedSeconds))
+      ..addByte(1) // HR_HIGH
+      ..addByte(100) // 1-byte threshold
+      ..add(_u16(2)) // count: 2
+      ..add(_u32(startedSeconds + 16))
+      ..addByte(107)
+      ..add(_u32(startedSeconds + 17))
+      ..addByte(109);
+
+    final prefix = <int>[
+      ..._u32(startedSeconds),
+      32,
+      2, // version 2
+      9 << 2,
+      0, // padding
+      ...body.toBytes(),
+    ];
+    final file = _activityFile(prefix);
+    final records = XiaomiHealthSystem()
+        .parseActivityAbnormalHeartRateFileForTesting(file);
+
+    expect(records, hasLength(2));
+    expect(records[0].kind, XiaomiActivityAbnormalHeartRateKind.high);
+    expect(records[0].threshold, 100);
+    expect(records[0].value, 107);
+    expect(records[1].value, 109);
+  });
+
   test('parses the Mi Fitness v5 sleep record and stage packets', () {
     const startedSeconds = 1_787_472_000;
     const endedSeconds = startedSeconds + 7 * 60 * 60;
@@ -166,15 +717,21 @@ void main() {
     u32(endedSeconds + 15 * 60);
 
     u16(60); // heart-rate interval, seconds
-    u16(2);
+    u16(452);
     u32(startedSeconds);
     u8(60);
-    u8(70);
+    for (var index = 0; index < 450; index++) {
+      u8(0); // no sample during the gap between sleep segments
+    }
+    u8(70); // a sample in the second sleep segment
     u16(60); // blood-oxygen interval, seconds
-    u16(2);
+    u16(452);
     u32(startedSeconds);
     u8(96);
-    u8(97);
+    for (var index = 0; index < 450; index++) {
+      u8(0); // no sample during the gap between sleep segments
+    }
+    u8(98); // a sample in the second sleep segment
 
     u16(300); // snore interval, seconds
     u16(0); // no snore samples in this fixture
@@ -210,6 +767,18 @@ void main() {
     u8(0x14); // has REM and device stages
     u8(0); // reserved duration
 
+    // A later type-16 packet with the same source timestamp is a progressive
+    // snapshot of the first segment, not another sleep session.
+    packetHeader(timestamp: startedSeconds, type: 16, dataLength: 13);
+    u8(0x11);
+    packetU16(420);
+    packetU16(30);
+    packetU16(120);
+    packetU16(90);
+    packetU16(180);
+    u8(0x14);
+    u8(0);
+
     packetHeader(
       timestamp: startedSeconds + (420 + 30) * 60,
       type: 16,
@@ -238,8 +807,7 @@ void main() {
       0xe0, // v5 validity: fixed fields, HR, SpO2 and snore
       ...body.toBytes(),
     ];
-    final crc = _crc32(Uint8List.fromList(prefix));
-    final file = Uint8List.fromList([...prefix, ..._u32(crc)]);
+    final file = _activityFile(prefix);
     final system = XiaomiHealthSystem();
     final records = system.parseActivitySleepFilesForTesting(file);
     final parsed = system.parseActivitySleepFileForTesting(file);
@@ -248,7 +816,7 @@ void main() {
     expect(records, hasLength(2));
     expect(records.first.sleepIndex, 1);
     expect(records.last.sleepIndex, 2);
-    expect(parsed!.durationSeconds, 7 * 60 * 60);
+    expect(parsed!.durationSeconds, 420 * 60);
     expect(parsed.startedAt, xiaomiActivityTimestamp(startedSeconds));
     // The device type-16 summary includes the 30-minute awake interval in
     // the report end, while durationSeconds remains sleep duration.
@@ -258,12 +826,24 @@ void main() {
     );
     expect(parsed.sleepEfficiency, 91);
     expect(parsed.bedDurationSeconds, 8 * 60 * 60);
-    expect(parsed.averageHeartRate, 65);
-    expect(parsed.averageBloodOxygen, 97);
+    expect(parsed.averageHeartRate, 60);
+    expect(parsed.averageBloodOxygen, 96);
+    expect(parsed.heartRatePoints, hasLength(1));
+    expect(parsed.heartRatePoints.first.value, 60);
+    expect(
+      parsed.heartRatePoints.first.timestamp,
+      xiaomiActivityTimestamp(startedSeconds),
+    );
+    expect(parsed.bloodOxygenPoints, hasLength(1));
+    expect(parsed.bloodOxygenPoints.first.value, 96);
+    expect(records.last.averageHeartRate, 70);
+    expect(records.last.averageBloodOxygen, 98);
+    expect(records.last.heartRatePoints.single.value, 70);
+    expect(records.last.bloodOxygenPoints.single.value, 98);
     expect(parsed.minimumHeartRate, 60);
-    expect(parsed.maximumHeartRate, 70);
+    expect(parsed.maximumHeartRate, 60);
     expect(parsed.minimumBloodOxygen, 96);
-    expect(parsed.maximumBloodOxygen, 97);
+    expect(parsed.maximumBloodOxygen, 96);
     expect(parsed.averageHrv, isNull);
     expect(parsed.hrvPoints, isEmpty);
     expect(parsed.durationSeconds, 420 * 60);
@@ -387,7 +967,7 @@ void main() {
     u16be(20);
     u16be(0);
     u16be(10);
-    u8(0x04); // device stages, no REM
+    u8(0x00); // no stages and no REM
     u8(0);
 
     final prefix = <int>[
@@ -401,8 +981,7 @@ void main() {
       0xfe, // all v6 fields except the reserved validity bit
       ...body.toBytes(),
     ];
-    final crc = _crc32(Uint8List.fromList(prefix));
-    final file = Uint8List.fromList([...prefix, ..._u32(crc)]);
+    final file = _activityFile(prefix);
     final system = XiaomiHealthSystem();
     final records = system.parseActivitySleepFilesForTesting(file);
     final parsed = system.parseActivitySleepFileForTesting(file);
@@ -429,7 +1008,22 @@ void main() {
       parsed.hrvPoints.first.timestamp,
       xiaomiActivityTimestamp(startedSeconds + 5 * 60),
     );
+    expect(parsed.heartRatePoints, hasLength(2));
+    expect(parsed.heartRatePoints.first.value, 60);
+    expect(parsed.heartRatePoints.last.value, 70);
+    expect(parsed.bloodOxygenPoints, hasLength(2));
+    expect(parsed.bloodOxygenPoints.first.value, 96);
+    expect(parsed.bloodOxygenPoints.last.value, 97);
     expect(records.last.hrvPoints, isEmpty);
+    expect(records.last.heartRatePoints, isEmpty);
+    expect(records.last.bloodOxygenPoints, isEmpty);
+    expect(records.last.hasStage, isFalse);
+    expect(records.last.averageHeartRate, isNull);
+    expect(records.last.minimumHeartRate, isNull);
+    expect(records.last.maximumHeartRate, isNull);
+    expect(records.last.averageBloodOxygen, isNull);
+    expect(records.last.minimumBloodOxygen, isNull);
+    expect(records.last.maximumBloodOxygen, isNull);
     expect(parsed.averageHeartRate, 65);
     expect(parsed.averageBloodOxygen, 97);
     expect(parsed.sleepIndex, 1);
@@ -496,8 +1090,7 @@ void main() {
       0x1a, // heart rate, blood oxygen, and snore only
       ...body.toBytes(),
     ];
-    final crc = _crc32(Uint8List.fromList(prefix));
-    final file = Uint8List.fromList([...prefix, ..._u32(crc)]);
+    final file = _activityFile(prefix);
     final parsed = XiaomiHealthSystem().parseActivitySleepFileForTesting(file);
 
     expect(parsed, isNotNull);
@@ -534,8 +1127,7 @@ void main() {
 
     final prefix = <int>[..._u32(startedSeconds), 0, 2, 3 << 2, 0];
     prefix.addAll(body.toBytes());
-    final crc = _crc32(Uint8List.fromList(prefix));
-    final file = Uint8List.fromList([...prefix, ..._u32(crc)]);
+    final file = _activityFile(prefix);
     final parsed = XiaomiHealthSystem().parseActivitySleepFileForTesting(file);
 
     expect(parsed, isNotNull);
@@ -556,12 +1148,20 @@ void main() {
           date: DateTime(2026, 8, 15),
           steps: 1234,
           activeCalories: 321,
+          calories: 456,
+          floorsClimbed: 7,
           restingHeartRate: 55,
+          currentHeartRate: 81,
+          minHeartRateAt: DateTime(2026, 8, 15, 4),
+          maxHeartRateAt: DateTime(2026, 8, 15, 18),
           averageHeartRate: 78,
           averageStress: 24,
           averageBloodOxygen: 97,
           standingBitmap: 0x15,
           vitalityCurrent: 42,
+          vitalityLast7Days: 42,
+          trainingLoadLast7Days: 180,
+          fitnessBalance: -8,
         ),
       ],
       samples: [
@@ -569,6 +1169,18 @@ void main() {
           timestamp: DateTime(2026, 8, 15, 8),
           metric: XiaomiHealthMetric.heartRate,
           value: 78,
+        ),
+      ],
+      activitySamples: [
+        HealthActivitySample(
+          timestamp: DateTime(2026, 8, 15, 8),
+          steps: 12,
+          activeCalories: 2,
+          caloriesDelta: 3,
+          pressure: 42,
+          lightSensation: 55,
+          volumeMomentum: 4,
+          floors: 1,
         ),
       ],
       sleep: [
@@ -588,6 +1200,18 @@ void main() {
           hrvPoints: [
             HealthSleepHrvPoint(timestamp: DateTime(2026, 8, 15, 1), value: 42),
           ],
+          heartRatePoints: [
+            HealthSleepVitalPoint(
+              timestamp: DateTime(2026, 8, 15, 2),
+              value: 63,
+            ),
+          ],
+          bloodOxygenPoints: [
+            HealthSleepVitalPoint(
+              timestamp: DateTime(2026, 8, 15, 3),
+              value: 97,
+            ),
+          ],
           stages: [
             HealthSleepStageSegment(
               startedAt: DateTime(2026, 8, 15, 0),
@@ -605,6 +1229,44 @@ void main() {
           threshold: 120,
         ),
       ],
+      workouts: [
+        HealthWorkoutSummary(
+          startedAt: DateTime(2026, 8, 15, 18),
+          endedAt: DateTime(2026, 8, 15, 18, 30),
+          activityType: 9,
+          distanceMeters: 1000,
+          averageSwolf: 42,
+          heartRateZones: const [
+            HealthWorkoutHeartRateZone(
+              zone: 3,
+              durationSeconds: 600,
+              lowerLimit: 145,
+            ),
+          ],
+          samples: [
+            HealthWorkoutSample(
+              timestamp: DateTime(2026, 8, 15, 18, 1),
+              heartRate: 146,
+              swimmingStroke: 2,
+              swolf: 42,
+              swimmingPaceSecondsPer100Meters: 95,
+            ),
+          ],
+          route: [
+            HealthWorkoutRoutePoint(
+              timestamp: DateTime(2026, 8, 15, 18),
+              latitude: 31.23,
+              longitude: 121.47,
+            ),
+          ],
+          recovery: HealthWorkoutHeartRateRecovery(
+            startedAt: DateTime(2026, 8, 15, 18, 30),
+            recoveredHeartRate: 112,
+            recoveryRate: 20,
+            heartRates: const [140, 124, 112],
+          ),
+        ),
+      ],
       capabilities: const XiaomiHealthCapabilities(
         heartRate: true,
         bloodOxygen: true,
@@ -618,13 +1280,23 @@ void main() {
     final decoded = XiaomiHealthData.decode(data.encode());
 
     expect(decoded.latestDay?.steps, 1234);
+    expect(decoded.latestDay?.calories, 456);
+    expect(decoded.latestDay?.floorsClimbed, 7);
     expect(decoded.latestDay?.restingHeartRate, 55);
+    expect(decoded.latestDay?.currentHeartRate, 81);
+    expect(decoded.latestDay?.fitnessBalance, -8);
     expect(decoded.latestDay?.standingHours, 3);
     expect(decoded.samplesFor(XiaomiHealthMetric.heartRate), hasLength(1));
+    expect(decoded.activitySamples.single.steps, 12);
+    expect(decoded.activitySamples.single.caloriesDelta, 3);
+    expect(decoded.activitySamples.single.pressure, 42);
+    expect(decoded.activitySamples.single.floors, 1);
     expect(decoded.latestSleep?.durationSeconds, 8 * 60 * 60);
     expect(decoded.latestSleep?.deepSleepDurationSeconds, 2 * 60 * 60);
     expect(decoded.latestSleep?.averageHrv, 42);
     expect(decoded.latestSleep?.hrvPoints.single.value, 42);
+    expect(decoded.latestSleep?.heartRatePoints.single.value, 63);
+    expect(decoded.latestSleep?.bloodOxygenPoints.single.value, 97);
     expect(decoded.latestSleep?.stages.single.kind, HealthSleepStageKind.deep);
     expect(decoded.abnormalHealthRecords.single.value, 126);
     expect(
@@ -632,6 +1304,11 @@ void main() {
       HealthAbnormalHealthKind.highHeartRate,
     );
     expect(decoded.abnormalHeartRates.single.value, 126);
+    expect(decoded.workouts.single.averageSwolf, 42);
+    expect(decoded.workouts.single.heartRateZones.single.lowerLimit, 145);
+    expect(decoded.workouts.single.samples.single.swimmingStroke, 2);
+    expect(decoded.workouts.single.route.single.latitude, 31.23);
+    expect(decoded.workouts.single.recovery?.heartRates, [140, 124, 112]);
     expect(decoded.capabilities.vitality, isTrue);
     expect(decoded.lastSyncedAt, DateTime(2026, 8, 15, 8));
   });
@@ -653,6 +1330,54 @@ void main() {
     );
 
     expect(data.latestSleep?.endedAt, DateTime(2026, 8, 26, 8));
+  });
+
+  test('latest sleep day keeps long sleep before later naps', () {
+    final longSleep = HealthSleepSummary(
+      startedAt: DateTime(2026, 8, 25, 23),
+      endedAt: DateTime(2026, 8, 26, 7),
+      durationSeconds: 7 * 60 * 60,
+      sleepIndex: 1,
+    );
+    final nap = HealthSleepSummary(
+      startedAt: DateTime(2026, 8, 26, 13),
+      endedAt: DateTime(2026, 8, 26, 14),
+      durationSeconds: 60 * 60,
+      sleepIndex: 2,
+    );
+    final previousDay = HealthSleepSummary(
+      startedAt: DateTime(2026, 8, 24, 23),
+      endedAt: DateTime(2026, 8, 25, 7),
+      durationSeconds: 7 * 60 * 60,
+    );
+    final data = XiaomiHealthData(sleep: [nap, previousDay, longSleep]);
+
+    expect(data.latestSleep, same(nap));
+    expect(data.latestSleepDay, [same(longSleep), same(nap)]);
+    expect(data.latestPrimarySleep, same(longSleep));
+    expect(data.latestSleepDayDurationSeconds, 8 * 60 * 60);
+  });
+
+  test('vitality 7-day total keeps zero days in the calendar window', () {
+    HealthDailySummary day(int year, int month, int day, int? vitality) =>
+        HealthDailySummary(
+          date: DateTime(year, month, day),
+          vitalityCurrent: vitality,
+        );
+    final anchor = day(2026, 9, 10, 5);
+    final data = XiaomiHealthData(
+      daily: [
+        anchor,
+        // Zero-earned days must contribute 0, not be skipped.
+        day(2026, 9, 9, 0),
+        day(2026, 9, 8, 0),
+        day(2026, 9, 7, 7),
+        // Outside the 7-day window and must not be counted.
+        day(2026, 9, 3, 100),
+      ],
+    );
+
+    expect(data.vitalitySevenDayTotal(anchor), 12);
   });
 
   test(
@@ -701,56 +1426,101 @@ void main() {
   );
 
   test(
-    'sync stores Gadgetbridge-style summary and timestamped samples',
-    () async {
-      final store = _MemoryHealthStore(const XiaomiHealthData());
-      final service = XiaomiHealthSyncService(
-        system: _FakeHealthSystem(
-          XiaomiActivityFileSyncResult(
-            daily: [
-              XiaomiActivityDailyRecord(
-                date: DateTime(2026, 8, 15),
-                steps: 1500,
-                activeCalories: 300,
-                averageHeartRate: 72,
-                averageStress: 18,
-                averageBloodOxygen: 97,
-                vitalityCurrent: 36,
-              ),
-            ],
-            samples: [
-              XiaomiActivitySampleRecord(
-                timestamp: DateTime(2026, 8, 15, 10),
-                heartRate: 72,
-                bloodOxygen: 97,
-                stress: 18,
-                activeCalories: 12,
-              ),
-            ],
-            sleep: const [],
-            workouts: const [],
-            filesReceived: 2,
+    'derives activity totals from raw record deltas when samples are absent',
+    () {
+      final data = XiaomiHealthData(
+        activitySamples: [
+          HealthActivitySample(
+            timestamp: DateTime(2026, 8, 21, 8),
+            steps: 100,
+            activeCalories: 20,
           ),
-        ),
-        deviceId: 'test-device',
-        store: store,
+          HealthActivitySample(
+            timestamp: DateTime(2026, 8, 21, 10),
+            steps: 200,
+            activeCalories: 50,
+          ),
+        ],
       );
 
-      final result = await service.sync();
-
-      expect(result.updatedDaily, isTrue);
-      expect(result.updatedSamples, isTrue);
-      expect(result.data.latestDay?.steps, 1500);
-      expect(result.data.samplesFor(XiaomiHealthMetric.stress), hasLength(1));
-      expect(
-        result.data.samplesFor(XiaomiHealthMetric.activeCalories),
-        hasLength(1),
-      );
-      expect(result.data.capabilities.vitality, isTrue);
-      expect(result.data.capabilities.sleep, isFalse);
-      expect(result.data.capabilities.workouts, isFalse);
+      expect(data.activitySummary?.steps, 300);
+      expect(data.activitySummary?.activeCalories, 70);
+      expect(data.activitySummary?.standingHours, 2);
     },
   );
+
+  test('prefers daily report totals over record deltas', () {
+    final data = XiaomiHealthData(
+      daily: [
+        HealthDailySummary(
+          date: DateTime(2026, 8, 21),
+          steps: 1234,
+          activeCalories: 321,
+          calories: 999,
+        ),
+      ],
+      activitySamples: [
+        HealthActivitySample(
+          timestamp: DateTime(2026, 8, 21, 8),
+          steps: 100,
+          activeCalories: 20,
+        ),
+      ],
+    );
+
+    expect(data.activitySummary?.steps, 1234);
+    expect(data.activitySummary?.activeCalories, 321);
+  });
+
+  test('sync stores Xiaomi summary and timestamped samples', () async {
+    final store = _MemoryHealthStore(const XiaomiHealthData());
+    final service = XiaomiHealthSyncService(
+      system: _FakeHealthSystem(
+        XiaomiActivityFileSyncResult(
+          daily: [
+            XiaomiActivityDailyRecord(
+              date: DateTime(2026, 8, 15),
+              steps: 1500,
+              activeCalories: 300,
+              averageHeartRate: 72,
+              averageStress: 18,
+              averageBloodOxygen: 97,
+              vitalityCurrent: 36,
+            ),
+          ],
+          samples: [
+            XiaomiActivitySampleRecord(
+              timestamp: DateTime(2026, 8, 15, 10),
+              heartRate: 72,
+              bloodOxygen: 97,
+              stress: 18,
+              activeCalories: 12,
+            ),
+          ],
+          sleep: const [],
+          workouts: const [],
+          filesReceived: 2,
+        ),
+      ),
+      deviceId: 'test-device',
+      store: store,
+    );
+
+    final result = await service.sync();
+
+    expect(result.updatedDaily, isTrue);
+    expect(result.updatedSamples, isTrue);
+    expect(result.data.latestDay?.steps, 1500);
+    expect(result.data.samplesFor(XiaomiHealthMetric.stress), hasLength(1));
+    expect(
+      result.data.samplesFor(XiaomiHealthMetric.activeCalories),
+      hasLength(1),
+    );
+    expect(result.data.activitySamples.single.activeCalories, 12);
+    expect(result.data.capabilities.vitality, isTrue);
+    expect(result.data.capabilities.sleep, isFalse);
+    expect(result.data.capabilities.workouts, isFalse);
+  });
 
   test(
     'does not infer health capabilities from an empty activity file',
@@ -872,61 +1642,54 @@ void main() {
     },
   );
 
-  test(
-    'uses the protocol sleep summary when no sleep activity file exists',
-    () async {
-      const startedSeconds = 1_787_472_000;
-      const endedSeconds = startedSeconds + 8 * 60 * 60;
-      final store = _MemoryHealthStore(const XiaomiHealthData());
-      final service = XiaomiHealthSyncService(
-        system: _FakeHealthSystem(
-          const XiaomiActivityFileSyncResult(
-            daily: [],
-            samples: [],
-            sleep: [],
-            workouts: [],
-            filesReceived: 1,
-          ),
-          sleepResult: pb_fitness.SleepResult(
-            sectionList: [
-              pb_fitness.SleepResult_Section(
-                sleepTimestamp: startedSeconds,
-                wakeupTimestamp: endedSeconds,
-                validSleepTime: 7 * 60 * 60,
-                averageHeartRate: 61,
-                averageBloodOxygen: 96,
-                extraData: pb_fitness.SleepResult_ExtraData(
-                  sleepQuality: 82,
-                  sleepEfficiency: 91,
-                ),
-              ),
-            ],
-          ),
-        ),
-        deviceId: 'test-device',
-        store: store,
-      );
+  test('does not request an unverified protocol sleep summary', () async {
+    final store = _MemoryHealthStore(const XiaomiHealthData());
+    final system = _FakeHealthSystem(
+      const XiaomiActivityFileSyncResult(
+        daily: [],
+        samples: [],
+        sleep: [],
+        workouts: [],
+        filesReceived: 1,
+      ),
+    );
+    final service = XiaomiHealthSyncService(
+      system: system,
+      deviceId: 'test-device',
+      store: store,
+    );
 
-      final result = await service.sync();
-      final sleep = result.data.latestSleep;
-
-      expect(sleep, isNotNull);
-      expect(sleep!.startedAt, xiaomiActivityTimestamp(startedSeconds));
-      expect(sleep.endedAt, xiaomiActivityTimestamp(endedSeconds));
-      expect(sleep.durationSeconds, 7 * 60 * 60);
-      expect(sleep.averageHeartRate, 61);
-      expect(sleep.averageBloodOxygen, 96);
-      expect(sleep.quality, 82);
-      expect(sleep.sleepEfficiency, 91);
-      expect(sleep.stages, isEmpty);
-      expect(sleep.hrvPoints, isEmpty);
-    },
-  );
+    final result = await service.sync();
+    expect(system.sleepRequests, 0);
+    expect(result.data.latestSleep, isNull);
+  });
 }
 
 List<int> _u32(int value) {
   final bytes = ByteData(4)..setUint32(0, value, Endian.little);
   return bytes.buffer.asUint8List();
+}
+
+List<int> _u16(int value) {
+  final bytes = ByteData(2)..setUint16(0, value, Endian.little);
+  return bytes.buffer.asUint8List();
+}
+
+List<int> _i32(int value) {
+  final bytes = ByteData(4)..setInt32(0, value, Endian.little);
+  return bytes.buffer.asUint8List();
+}
+
+void _setValidityBit(Uint8List bytes, int index) {
+  bytes[index ~/ 8] |= 1 << (7 - index % 8);
+}
+
+Uint8List _activityFile(List<int> prefix) {
+  final bytes = Uint8List.fromList(prefix);
+  // FitnessDataId byte 4 is the device timezone in signed 15-minute units.
+  // Keep the value supplied by each fixture: zero means a UTC device and 32
+  // is the explicit UTC+8 case exercised by the timezone regression.
+  return Uint8List.fromList([...bytes, ..._u32(_crc32(bytes))]);
 }
 
 int _crc32(Uint8List data) {
@@ -949,16 +1712,20 @@ class _MemoryHealthStore extends HealthStore {
   Future<XiaomiHealthData> read(String deviceId) async => value;
 
   @override
-  Future<void> write(String deviceId, XiaomiHealthData data) async {
+  Future<XiaomiHealthData> write(
+    String deviceId,
+    XiaomiHealthData data, {
+    bool flushImmediately = false,
+  }) async {
     value = data;
+    return data;
   }
 }
 
 class _FakeHealthSystem extends XiaomiHealthSystem {
-  _FakeHealthSystem(this.result, {this.sleepResult, this.activityError});
+  _FakeHealthSystem(this.result, {this.activityError});
 
   final XiaomiActivityFileSyncResult result;
-  final pb_fitness.SleepResult? sleepResult;
   final Object? activityError;
   var sleepRequests = 0;
 
@@ -966,11 +1733,5 @@ class _FakeHealthSystem extends XiaomiHealthSystem {
   Future<XiaomiActivityFileSyncResult> syncActivityFiles() async {
     if (activityError != null) throw activityError!;
     return result;
-  }
-
-  @override
-  Future<pb_fitness.SleepResult> fetchSleepResult({Duration? timeout}) async {
-    sleepRequests++;
-    return sleepResult ?? pb_fitness.SleepResult();
   }
 }

@@ -3,10 +3,15 @@ import 'package:flutter/services.dart';
 
 class LicenseRegistryService {
   static const _licenses = [
+    (package: 'OronBox', asset: 'assets/licenses/oronbox.txt'),
     (package: 'AstroBox-Public', asset: 'assets/licenses/astrobox_public.txt'),
     (
       package: 'AstroBox-NG-Module-Core',
       asset: 'assets/licenses/astrobox_ng_core.txt',
+    ),
+    (
+      package: 'AstroBox-NG-Module-Pb',
+      asset: 'assets/licenses/astrobox_ng_pb.txt',
     ),
     (
       package: 'AstroBox-NG-Module-AppWasm',

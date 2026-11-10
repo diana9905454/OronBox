@@ -1,0 +1,52 @@
+{
+  // OronBox 自定义标准化数据类型（UTD）声明。
+  //
+  // 文件管理器「其他应用打开」按 UTD 类型匹配 skills 中声明的
+  // ohos.want.action.viewData + linkFeature "FileOpen" 能力。rpk/obp 等
+  // 扩展名不在系统预置 UTD 表内，必须由本应用声明 FilenameExtensions
+  // 后，系统才能把这些扩展名的文件归到下列类型并匹配到 OronBox。
+  //
+  // 约束（HarmonyOS 文档）：TypeId 必须为 bundleName + 类型名；扩展名
+  // 必须以 . 开头；与 module.json5 skills.uris[].type 一一对应。
+  //
+  // 注意：不声明 .bin（桌面端 handled 集合里虽有 bin，但声称能打开所有
+  // .bin 文件过于激进，容易被审核驳回，也影响文件管理器体验）。
+  "UniformDataTypeDeclarations": [
+    {
+      "TypeId": "org.zxor.oronbox.rpk",
+      "BelongingToTypes": ["general.file"],
+      "FilenameExtensions": [".rpk"],
+      "Description": "Vela quick app package"
+    },
+    {
+      "TypeId": "org.zxor.oronbox.obp",
+      "BelongingToTypes": ["general.file"],
+      "FilenameExtensions": [".obp"],
+      "Description": "OronBox plugin package"
+    },
+    {
+      "TypeId": "org.zxor.oronbox.abp",
+      "BelongingToTypes": ["general.file"],
+      "FilenameExtensions": [".abp"],
+      "Description": "AstroBox plugin package"
+    },
+    {
+      "TypeId": "org.zxor.oronbox.zpk",
+      "BelongingToTypes": ["general.file"],
+      "FilenameExtensions": [".zpk"],
+      "Description": "Quick app resource package"
+    },
+    {
+      "TypeId": "org.zxor.oronbox.mwz",
+      "BelongingToTypes": ["general.file"],
+      "FilenameExtensions": [".mwz"],
+      "Description": "Mi Band watch face package"
+    },
+    {
+      "TypeId": "org.zxor.oronbox.face",
+      "BelongingToTypes": ["general.file"],
+      "FilenameExtensions": [".face"],
+      "Description": "Wearable watch face package"
+    }
+  ]
+}

@@ -88,15 +88,12 @@ Future<void> _showRestrictedWatchfaceDialog(BuildContext context) async {
   await showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(l10n.resourceTypeUnknownTitle),
-      content: Text(l10n.resourceTypeUnknownNoType),
+      title: Text(l10n.watchfaceRestrictedTitle),
+      content: Text(l10n.watchfaceRestrictedMessage),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          child: Text(l10n.resourceTypeUnknownCancel),
+          child: Text(l10n.close),
         ),
       ],
     ),

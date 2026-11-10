@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:segmented_list/tile/abstract_segmented_tile.dart';
 import 'package:segmented_list/tile/segmented_tile_info.dart';
 import 'package:segmented_list/section/abstract_segmented_section.dart';
@@ -19,6 +19,7 @@ class SegmentedSection extends AbstractSegmentedSection {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final inheritedTextStyle = DefaultTextStyle.of(context).style;
 
     return Padding(
@@ -33,7 +34,7 @@ class SegmentedSection extends AbstractSegmentedSection {
               child: DefaultTextStyle(
                 style: inheritedTextStyle.merge(TextStyle(
                   fontSize: 13,
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 )),
                 child: title!,
@@ -46,7 +47,7 @@ class SegmentedSection extends AbstractSegmentedSection {
               child: DefaultTextStyle(
                 style: inheritedTextStyle.merge(TextStyle(
                   fontSize: 13,
-                  color: Theme.of(context).hintColor,
+                  color: theme.colorScheme.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 )),
                 child: bottomInfo!,

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:archive/archive.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
+import 'package:oronbox/src/core/storage/data_archive.dart';
 import 'package:oronbox/src/device/core/watchface_install_policy.dart';
 import 'package:oronbox/src/device/zeppos/install/zeppos_package_parser.dart';
 
@@ -29,6 +30,7 @@ class ResourcePayloadAnalysis {
     required this.evidence,
     this.name,
     this.version,
+    this.versionCode,
     this.identifier,
     this.target,
   });
@@ -40,6 +42,7 @@ class ResourcePayloadAnalysis {
   final List<String> evidence;
   final String? name;
   final String? version;
+  final int? versionCode;
   final String? identifier;
   final String? target;
 
@@ -92,6 +95,7 @@ class ResourcePayloadAnalyzer {
   }
 
   ResourcePayloadAnalysis? _analyzeZip(String fileName, Uint8List bytes) {
+    validateDataArchive(bytes, maxBytes: 128 * 1024 * 1024, maxFiles: 4096);
     final archive = ZipDecoder().decodeBytes(bytes);
     final names = <String>{
       for (final entry in archive)
@@ -161,6 +165,15 @@ class ResourcePayloadAnalyzer {
       'package_name',
     ]);
     if (packageName != null) {
+      final watch = _jsonFile(archive, 'manifest-watch.json');
+      final versionManifest =
+          watch != null &&
+              (_firstString(watch, const ['versionName', 'version_name']) !=
+                      null ||
+                  _versionCode(watch['versionCode'] ?? watch['version_code']) !=
+                      null)
+          ? watch
+          : manifest;
       return ResourcePayloadAnalysis(
         type: LocalDeviceInstallType.app,
         platform: ResourcePlatform.vela,
@@ -168,7 +181,14 @@ class ResourcePayloadAnalyzer {
         payload: bytes,
         identifier: packageName,
         name: _firstString(manifest, const ['name', 'appName']),
-        version: _firstString(manifest, const ['versionName', 'version']),
+        version: _firstString(versionManifest, const [
+          'versionName',
+          'version_name',
+          'version',
+        ]),
+        versionCode: _versionCode(
+          versionManifest?['versionCode'] ?? versionManifest?['version_code'],
+        ),
         evidence: ['quick-app manifest package=$packageName'],
       );
     }
@@ -195,6 +215,7 @@ class ResourcePayloadAnalyzer {
       payload: resource,
       name: name,
       version: version,
+      versionCode: _watchfaceVersionCode(resource),
       identifier: _validWatchfaceId(identifier) ? identifier : null,
       target: target,
       evidence: [
@@ -214,6 +235,7 @@ class ResourcePayloadAnalyzer {
         packageKind: ResourcePackageKind.rawPayload,
         payload: bytes,
         identifier: _validWatchfaceId(identifier) ? identifier : null,
+        versionCode: _watchfaceVersionCode(bytes),
         evidence: [
           'Vela watchface magic=5aa53412',
           if (!_validWatchfaceId(identifier)) 'missing or zero watchface id',
@@ -236,6 +258,21 @@ class ResourcePayloadAnalyzer {
     }
     return null;
   }
+
+  static int? _versionCode(Object? value) {
+    final number =
+        value is num && value.isFinite && value == value.truncateToDouble()
+        ? value.toInt()
+        : value is String
+        ? int.tryParse(value)
+        : null;
+    return number != null && number >= 0 && number <= 9007199254740991
+        ? number
+        : null;
+  }
+
+  static int? _watchfaceVersionCode(Uint8List bytes) =>
+      bytes.length < 7 ? null : bytes[4] | bytes[5] << 8 | bytes[6] << 16;
 
   static bool _isVelaOta(Set<String> names) {
     if (names.contains('ota.json') && names.contains('vela_ota.bin')) {

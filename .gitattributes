@@ -1,0 +1,17 @@
+# Auto-detect text files and normalize line endings
+* text=auto
+
+# Flutter localization generated code
+lib/src/app/generated/** linguist-generated=true
+
+# Xiaomi wearable protobuf generated code
+lib/src/device/xiaomi/protocol/generated/** linguist-generated=true
+
+# Build runner & Drift ORM generated files
+*.g.dart linguist-generated=true
+*.drift.dart linguist-generated=true
+
+# Precompiled Web runtime workers & WebAssembly
+web/drift_worker.js linguist-generated=true
+web/asr_worker.js linguist-generated=true
+web/sqlite3.wasm binary linguist-generated=true

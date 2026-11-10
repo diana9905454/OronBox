@@ -1,490 +1,497 @@
+import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/features/resources/application/creator/oronbox_creator_api.dart';
+import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
+
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:oronbox/src/app/utils/picked_file.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
+import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:oronbox/src/app/generated/app_localizations.dart';
-import 'package:oronbox/src/app/widgets/page_container.dart';
-import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
-import 'package:oronbox/src/core/constants/style_constants.dart';
+import 'package:oronbox/src/commands/command_protocol.dart';
+import 'package:oronbox/src/host/application_host_provider.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
 import 'package:oronbox/src/features/resources/domain/creator_workspace.dart';
-import 'package:oronbox/src/features/resources/pages/creator/creator_resource_list.dart';
-import 'package:oronbox/src/features/resources/pages/creator/creator_shared.dart';
+import 'package:oronbox/src/features/resources/services/resource_image_processor.dart';
 
 class CreatorCollectionPage extends ConsumerStatefulWidget {
   const CreatorCollectionPage({
     super.key,
     required this.collectionId,
     this.item,
+    this.initialName = '',
+    this.initialSummary = '',
+    this.initialKind = 'quickapp',
+    this.revisionId,
   });
-
-  final String collectionId;
+  final String collectionId, initialName, initialSummary, initialKind;
+  final String? revisionId;
   final Map<String, Object?>? item;
-
   @override
   ConsumerState<CreatorCollectionPage> createState() =>
       _CreatorCollectionPageState();
 }
 
 class _CreatorCollectionPageState extends ConsumerState<CreatorCollectionPage> {
-  final _name = TextEditingController();
-  final _summary = TextEditingController();
+  final _name = TextEditingController(),
+      _summary = TextEditingController(),
+      _description = TextEditingController();
+  final _members = <String>[];
+  final _images = <String, Uint8List>{};
+  final _digests = <String, String>{};
   Map<String, Object?>? _item;
-  var _loading = true;
-  var _saving = false;
-  var _creatingResource = false;
-
+  String _kind = 'quickapp', _representative = '', _slug = '', _history = '';
+  bool _loading = true, _busy = false;
+  Object? _error;
+  AppLocalizations get _l10n => AppLocalizations.of(context)!;
+  bool get _new => widget.collectionId == 'new';
   @override
   void initState() {
     super.initState();
-    _item = widget.item;
-    _seedFields();
+    _kind = widget.initialKind;
+    _name.text = widget.initialName;
+    _summary.text = widget.initialSummary;
+    _slug = 'collection-${DateTime.now().microsecondsSinceEpoch}';
     WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_load()));
-  }
-
-  void _seedFields() {
-    final pending = _item?['pending_revision'] as Map?;
-    final current = _item?['current_revision'] as Map?;
-    final metadata = pending ?? current;
-    _name.text = metadata?['name']?.toString() ?? '';
-    _summary.text = metadata?['summary']?.toString() ?? '';
-  }
-
-  Future<void> _load() async {
-    if (mounted) setState(() => _loading = true);
-    try {
-      final controller = ref.read(creatorWorkspaceProvider.notifier);
-      await controller.refresh();
-      _adoptCollectionFromWorkspace();
-    } catch (error) {
-      if (mounted) showCreatorFailure(context, error);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _save() async {
-    if (_saving || _name.text.trim().isEmpty) return;
-    setState(() => _saving = true);
-    try {
-      await ref
-          .read(creatorWorkspaceProvider.notifier)
-          .updateCollection(
-            collectionId: widget.collectionId,
-            name: _name.text.trim(),
-            summary: _summary.text.trim(),
-          );
-      _adoptCollectionFromWorkspace();
-    } catch (error) {
-      if (mounted) showCreatorFailure(context, error);
-    } finally {
-      if (mounted) setState(() => _saving = false);
-    }
-  }
-
-  Future<void> _createResource(
-    CreatorResourceKind kind,
-    List<CreatorWorkspace> children,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    final name = TextEditingController();
-    final accepted = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.creatorNewResource),
-        content: TextField(
-          controller: name,
-          autofocus: true,
-          maxLength: 120,
-          textInputAction: TextInputAction.done,
-          decoration: InputDecoration(labelText: l10n.creatorResourceName),
-          onSubmitted: (value) {
-            if (value.trim().isNotEmpty) Navigator.pop(context, true);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (name.text.trim().isNotEmpty) Navigator.pop(context, true);
-            },
-            child: Text(l10n.creatorNewResource),
-          ),
-        ],
-      ),
-    );
-    final resourceName = name.text.trim();
-    name.dispose();
-    if (accepted != true || !mounted) return;
-    final controller = ref.read(creatorWorkspaceProvider.notifier);
-    setState(() => _creatingResource = true);
-    try {
-      final slug = 'resource-${DateTime.now().microsecondsSinceEpoch}';
-      await controller.create(slug, resourceName, kind);
-      final created = ref.read(creatorWorkspaceProvider).selected;
-      if (created == null) return;
-      final resourceIds = [
-        ...children.map((entry) => entry.resource.id),
-        created.resource.id,
-      ];
-      await controller.setCollectionResources(
-        collectionId: widget.collectionId,
-        resourceIds: resourceIds,
-        representativeResourceId:
-            _item?['representative_resource_id']?.toString().isNotEmpty == true
-            ? _item!['representative_resource_id'].toString()
-            : created.resource.id,
-      );
-      final attached = ref
-          .read(creatorWorkspaceProvider)
-          .resources
-          .where((entry) => entry.resource.id == created.resource.id)
-          .firstOrNull;
-      if (attached != null) controller.select(attached);
-      if (mounted) context.push('/resources/creator/resource');
-    } catch (error) {
-      if (mounted) showCreatorFailure(context, error);
-    } finally {
-      if (mounted) setState(() => _creatingResource = false);
-    }
-  }
-
-  Future<void> _chooseRepresentative(List<CreatorWorkspace> children) async {
-    if (children.isEmpty) return;
-    final l10n = AppLocalizations.of(context)!;
-    final selected = await showDialog<CreatorWorkspace>(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(l10n.creatorCollectionRepresentative),
-        children: [
-          for (final workspace in children)
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(context, workspace),
-              child: Text(creatorWorkspaceTitle(workspace)),
-            ),
-        ],
-      ),
-    );
-    if (selected == null) return;
-    try {
-      await ref
-          .read(creatorWorkspaceProvider.notifier)
-          .setCollectionResources(
-            collectionId: widget.collectionId,
-            resourceIds: children.map((item) => item.resource.id).toList(),
-            representativeResourceId: selected.resource.id,
-          );
-      _adoptCollectionFromWorkspace();
-    } catch (error) {
-      if (mounted) showCreatorFailure(context, error);
-    }
-  }
-
-  void _adoptCollectionFromWorkspace() {
-    final item = ref
-        .read(creatorWorkspaceProvider)
-        .collections
-        .where((entry) => entry['id']?.toString() == widget.collectionId)
-        .firstOrNull;
-    if (!mounted || item == null) return;
-    setState(() {
-      _item = item;
-      _seedFields();
-    });
   }
 
   @override
   void dispose() {
     _name.dispose();
     _summary.dispose();
+    _description.dispose();
     super.dispose();
+  }
+
+  Future<Object?> _command(String method, Map<String, Object?> params) async {
+    final result = await ref
+        .read(applicationHostProvider)
+        .execute(OronBoxCommand(method: method, params: params));
+    if (!result.ok) {
+      throw CreatorApiException(
+        code: result.error?.code ?? 'creator_failed',
+        message: result.error?.message ?? '',
+        details: const {},
+      );
+    }
+    return result.value;
+  }
+
+  void _seed(Map snapshot) {
+    _name.text = snapshot['name']?.toString() ?? '';
+    _summary.text = snapshot['summary']?.toString() ?? '';
+    _description.text = snapshot['description']?.toString() ?? '';
+    _members
+      ..clear()
+      ..addAll(
+        (snapshot['resource_ids'] as List? ?? []).map((v) => v.toString()),
+      );
+    _representative = snapshot['representative_resource_id']?.toString() ?? '';
+    for (final role in ['icon', 'cover']) {
+      _digests[role] = snapshot['${role}_sha256']?.toString() ?? '';
+    }
+    _history = snapshot['id']?.toString() ?? '';
+  }
+
+  Future<void> _load() async {
+    try {
+      await ref.read(creatorWorkspaceProvider.notifier).refresh();
+      if (!_new) {
+        final value = await _command('creator.collection.get', {
+          'collection': widget.collectionId,
+          if (widget.revisionId != null) 'revision': widget.revisionId,
+        });
+        _item = (value as Map).cast<String, Object?>();
+        _kind = _item!['kind']?.toString() ?? 'quickapp';
+        final versions = _item!['revisions'] as List? ?? [];
+        final requested = versions
+            .whereType<Map>()
+            .where((v) => v['id'] == widget.revisionId)
+            .firstOrNull;
+        _seed(
+          requested ??
+              _item!['pending_revision'] as Map? ??
+              _item!['current_revision'] as Map? ??
+              {},
+        );
+        await _loadImages();
+      }
+    } catch (e) {
+      _error = e;
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadImages() async {
+    _images.clear();
+    for (final role in ['icon', 'cover']) {
+      final sha = _digests[role] ?? '';
+      if (sha.isEmpty) continue;
+      try {
+        final result = await _command('creator.media.get', {'sha': sha}) as Map;
+        if (!mounted) return;
+        _images[role] = base64Decode(result['bytes'].toString());
+      } catch (_) {
+        /* keep metadata if the image is temporarily unavailable */
+      }
+    }
+  }
+
+  Future<void> _pick(String role) async {
+    setState(() => _busy = true);
+    try {
+      final picked = await pickFileData(type: FileType.image, loadBytes: true);
+      if (picked == null) return;
+      final raw = await picked.readAsBytes();
+      if (raw == null) {
+        throw const CreatorApiException(
+          code: 'image_read_failed',
+          message: '',
+          details: {},
+        );
+      }
+      final processed = await processResourceImage(
+        raw,
+        maxDimension: creatorMediaMaxDimension,
+      );
+      if (processed == null) {
+        throw const CreatorApiException(
+          code: 'image_process_failed',
+          message: '',
+          details: {},
+        );
+      }
+      final result = await _command('creator.media.upload', {
+        'bytes': base64Encode(processed.bytes),
+      }) as Map;
+      if (!mounted) return;
+      setState(() {
+        _images[role] = processed.bytes;
+        _digests[role] = result['sha256'].toString();
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _submit() async {
+    if (!await ensurePublishingAgreement(context) || !mounted) return;
+    if (_busy) return;
+    final pending = _item?['pending_revision'] as Map?;
+    if (pending != null) {
+      final yes = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(_l10n.creatorCollectionReplacePendingTitle),
+          content: Text(
+            AppLocalizations.of(context)!
+                .creatorCollectionReplacePendingDescription,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(_l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: Text(_l10n.creatorCollectionReplaceAndSubmit),
+            ),
+          ],
+        ),
+      );
+      if (yes != true) return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = true);
+    try {
+      final result = await _command('creator.collection.submit', {
+        'collection': _new ? '' : widget.collectionId,
+        'snapshot': {
+          'slug': _slug,
+          'kind': _kind,
+          'name': _name.text.trim(),
+          'summary': _summary.text.trim(),
+          'description': _description.text,
+          'resource_ids': _members,
+          'representative_resource_id': _representative,
+          'icon_sha256': _digests['icon'] ?? '',
+          'cover_sha256': _digests['cover'] ?? '',
+          if (!_new) 'expected_edit_version': _item?['edit_version'],
+          'replace_pending_revision_id': pending?['id'] ?? '',
+        },
+      }) as Map;
+      await ref.read(creatorWorkspaceProvider.notifier).refresh();
+      if (!mounted) return;
+      context.go('/resources/creator/collections/${result['id']}');
+      if (!_new) {
+        setState(() => _loading = true);
+        await _load();
+      }
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final state = ref.watch(creatorWorkspaceProvider);
-    final controller = ref.read(creatorWorkspaceProvider.notifier);
-    final kind = _item?['kind'] == 'watchface'
-        ? CreatorResourceKind.watchface
-        : CreatorResourceKind.quickApp;
-    final candidates = state.resources
-        .where((entry) => entry.resource.kind == kind)
+    final resources = ref
+        .watch(creatorWorkspaceProvider)
+        .resources
+        .where(
+          (w) =>
+              (w.resource.kind == CreatorResourceKind.watchface
+                      ? 'watchface'
+                      : 'quickapp') ==
+                  _kind &&
+              (w.resource.collectionId.isEmpty ||
+                  w.resource.collectionId == widget.collectionId),
+        )
         .toList();
-    final children =
-        candidates
-            .where(
-              (entry) => entry.resource.collectionId == widget.collectionId,
-            )
-            .toList()
-          ..sort(
-            (a, b) => a.resource.collectionPosition.compareTo(
-              b.resource.collectionPosition,
-            ),
-          );
-    final representativeId =
-        _item?['representative_resource_id']?.toString() ?? '';
-    final representative = candidates
-        .where((entry) => entry.resource.id == representativeId)
-        .firstOrNull;
-
+    final names = {
+      for (final w in resources) w.resource.id: w.resource.draftName,
+    };
+    final revisions = (_item?['revisions'] as List? ?? [])
+        .whereType<Map>()
+        .toList();
     return Scaffold(
       appBar: SysAppBar(
         secondary: true,
-        title: Text(_name.text.isEmpty ? l10n.creatorCollections : _name.text),
-        actions: [
-          IconButton(
-            tooltip: l10n.refresh,
-            onPressed: _loading ? null : _load,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
+        title: Text(
+          _new
+              ? _l10n.creatorCollectionCreateTitle
+              : _l10n.creatorCollectionEditTitle,
+        ),
       ),
       body: _loading
-          ? LoadingView(message: l10n.creatorOperationRefreshing)
-          : SingleChildScrollView(
-              child: PageContainer(
-                maxWidth: 1000,
-                padding: const EdgeInsets.all(StyleConstants.pagePadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CreatorSectionTitle(
-                      icon: Icons.description_outlined,
-                      title: l10n.basicInfo,
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                bottomContentPadding(context, extra: 16),
+              ),
+              children: [
+                if (_error != null)
+                  Text(
+                    localizedErrorMessage(_l10n, _error!),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
                     ),
-                    const SizedBox(height: 8),
-                    CreatorEditorCard(
-                      child: Column(
-                        children: [
-                          TextField(
-                            controller: _name,
-                            maxLength: 120,
-                            decoration: InputDecoration(
-                              labelText: l10n.creatorCollectionName,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextField(
-                            controller: _summary,
-                            minLines: 3,
-                            maxLines: 8,
-                            decoration: InputDecoration(
-                              labelText: l10n.creatorCollectionSummary,
-                            ),
-                          ),
-                        ],
-                      ),
+                  ),
+                if (_item?['current_revision'] is Map)
+                  Text(
+                    _l10n.creatorCollectionCurrentRevision(
+                      '${(_item!['current_revision'] as Map)['number']}',
                     ),
-                    const SizedBox(height: 24),
-                    CreatorSectionTitle(
-                      icon: Icons.collections_outlined,
-                      title: l10n.creatorIconCover,
+                  ),
+                if (_item?['pending_revision'] is Map)
+                  Text(
+                    _l10n.creatorCollectionPendingRevision(
+                      '${(_item!['pending_revision'] as Map)['number']}',
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        _CollectionMediaCard(
-                          key: ValueKey('icon-$representativeId'),
-                          workspace: representative,
-                          controller: controller,
-                          role: 'icon',
-                          title: l10n.creatorOptionalIcon,
-                          width: 208,
-                          onChange: children.isEmpty
-                              ? null
-                              : () => _chooseRepresentative(children),
+                  ),
+                if (revisions.isNotEmpty)
+                  DropdownButtonFormField<String>(
+                    initialValue: revisions.any((v) => v['id'] == _history)
+                        ? _history
+                        : null,
+                    decoration: InputDecoration(
+                      labelText: _l10n.creatorCollectionHistory,
+                    ),
+                    items: [
+                      for (final v in revisions)
+                        DropdownMenuItem(
+                          value: v['id'].toString(),
+                          child: Text('v${v['number']} · ${v['state']}'),
                         ),
-                        _CollectionMediaCard(
-                          key: ValueKey('cover-$representativeId'),
-                          workspace: representative,
-                          controller: controller,
-                          role: 'cover',
-                          title: l10n.creatorOptionalCover,
-                          width: 300,
-                          onChange: children.isEmpty
+                    ],
+                    onChanged: _busy
+                        ? null
+                        : (id) {
+                            final v = revisions.firstWhere(
+                              (v) => v['id'] == id,
+                            );
+                            setState(() => _seed(v));
+                            unawaited(
+                              _loadImages().then((_) {
+                                if (mounted) setState(() {});
+                              }),
+                            );
+                          },
+                  ),
+                if (_new)
+                  DropdownButtonFormField<String>(
+                    initialValue: _kind,
+                    items: [
+                      DropdownMenuItem(
+                        value: 'quickapp',
+                        child: Text(_l10n.quickApp),
+                      ),
+                      DropdownMenuItem(
+                        value: 'watchface',
+                        child: Text(_l10n.watchface),
+                      ),
+                    ],
+                    onChanged: _busy
+                        ? null
+                        : (v) => setState(() {
+                            _kind = v!;
+                            _members.clear();
+                            _representative = '';
+                          }),
+                  ),
+                TextField(
+                  controller: _name,
+                  decoration: InputDecoration(
+                    labelText: _l10n.creatorCollectionName,
+                  ),
+                  maxLength: 120,
+                ),
+                TextField(
+                  controller: _summary,
+                  decoration: InputDecoration(
+                    labelText: _l10n.creatorCollectionSummary,
+                  ),
+                  maxLength: 1000,
+                ),
+                TextField(
+                  controller: _description,
+                  decoration: InputDecoration(
+                    labelText: _l10n.creatorCollectionBody,
+                  ),
+                  minLines: 5,
+                  maxLines: 12,
+                ),
+                for (final role in ['icon', 'cover'])
+                  ListTile(
+                    title: Text(
+                      role == 'icon'
+                          ? _l10n.creatorMediaIcon
+                          : _l10n.creatorMediaCover,
+                    ),
+                    leading: _images[role] != null
+                        ? Image.memory(
+                            _images[role]!,
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                    subtitle: Text(
+                      (_digests[role] ?? '').isEmpty
+                          ? _l10n.creatorMediaUnset
+                          : _l10n.creatorMediaSet,
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: _busy ? null : () => _pick(role),
+                          icon: const Icon(Icons.image_outlined),
+                        ),
+                        IconButton(
+                          onPressed: _busy
                               ? null
-                              : () => _chooseRepresentative(children),
+                              : () => setState(() {
+                                  _digests[role] = '';
+                                  _images.remove(role);
+                                }),
+                          icon: const Icon(Icons.clear),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
-                    CreatorSectionTitle(
-                      icon: Icons.inventory_2_outlined,
-                      title: l10n.creatorResourceList,
+                  ),
+                Text(_l10n.creatorCollectionMemberOrder),
+                for (var i = 0; i < _members.length; i++)
+                  ListTile(
+                    title: Text(
+                      names[_members[i]] ??
+                          _l10n.creatorCollectionMemberUnavailable,
                     ),
-                    const SizedBox(height: 8),
-                    for (final workspace in children)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: CreatorResourceCard(
-                          workspace: workspace,
-                          controller: controller,
-                          onTap: () {
-                            controller.select(workspace);
-                            context.push('/resources/creator/resource');
-                          },
+                    leading: IconButton(
+                      tooltip: _l10n.creatorCollectionSetRepresentative,
+                      icon: Icon(
+                        _members[i] == _representative
+                            ? Icons.radio_button_checked
+                            : Icons.radio_button_unchecked,
+                      ),
+                      onPressed: _busy
+                          ? null
+                          : () => setState(() => _representative = _members[i]),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          onPressed: _busy || i == 0
+                              ? null
+                              : () => setState(() {
+                                  final v = _members.removeAt(i);
+                                  _members.insert(i - 1, v);
+                                }),
+                          icon: const Icon(Icons.arrow_upward),
                         ),
-                      ),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: FilledButton.tonalIcon(
-                        onPressed: _creatingResource
-                            ? null
-                            : () => _createResource(kind, children),
-                        icon: _creatingResource
-                            ? const SizedBox.square(
-                                dimension: 18,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Icon(Icons.add),
-                        label: Text(l10n.creatorNewResource),
-                      ),
+                        IconButton(
+                          onPressed: _busy
+                              ? null
+                              : () => setState(() {
+                                  final id = _members.removeAt(i);
+                                  if (id == _representative) {
+                                    _representative =
+                                        _members.firstOrNull ?? '';
+                                  }
+                                }),
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 88),
-                  ],
-                ),
-              ),
-            ),
-      bottomNavigationBar: _loading && _item == null
-          ? null
-          : CreatorBottomBar(
-              children: [
-                const Spacer(),
-                FilledButton.icon(
-                  onPressed: _saving ? null : _save,
-                  icon: _saving
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.save_outlined),
-                  label: Text(l10n.save),
+                  ),
+                Text(_l10n.creatorCollectionAddMember),
+                for (final w in resources.where(
+                  (w) => !_members.contains(w.resource.id),
+                ))
+                  ListTile(
+                    title: Text(w.resource.draftName),
+                    trailing: IconButton(
+                      onPressed: _busy
+                          ? null
+                          : () => setState(() {
+                              _members.add(w.resource.id);
+                              if (_representative.isEmpty) {
+                                _representative = w.resource.id;
+                              }
+                            }),
+                      icon: const Icon(Icons.add),
+                    ),
+                  ),
+                if (resources.isEmpty)
+                  Text(
+                    AppLocalizations.of(context)!
+                        .creatorCollectionNoMatchingResources,
+                  ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: _busy || _members.isEmpty ? null : _submit,
+                  child: Text(
+                    _busy
+                        ? _l10n.creatorOperationWorking
+                        : _l10n.creatorSubmitReview,
+                  ),
                 ),
               ],
             ),
     );
   }
-}
-
-class _CollectionMediaCard extends StatefulWidget {
-  const _CollectionMediaCard({
-    super.key,
-    required this.workspace,
-    required this.controller,
-    required this.role,
-    required this.title,
-    required this.width,
-    this.onChange,
-  });
-
-  final CreatorWorkspace? workspace;
-  final CreatorWorkspaceController controller;
-  final String role;
-  final String title;
-  final double width;
-  final VoidCallback? onChange;
-
-  @override
-  State<_CollectionMediaCard> createState() => _CollectionMediaCardState();
-}
-
-class _CollectionMediaCardState extends State<_CollectionMediaCard> {
-  Uint8List? _bytes;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(_load());
-  }
-
-  Future<void> _load() async {
-    final workspace = widget.workspace;
-    final media = workspace?.media
-        .where((entry) => entry.role == widget.role)
-        .firstOrNull;
-    if (workspace == null || media == null) return;
-    try {
-      final bytes = await widget.controller.blob(
-        workspace.resource.id,
-        media.sha256,
-      );
-      if (mounted) setState(() => _bytes = bytes);
-    } catch (_) {}
-  }
-
-  @override
-  Widget build(BuildContext context) => SizedBox(
-    width: widget.width,
-    child: Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: 184,
-            width: double.infinity,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: _bytes == null
-                  ? ColoredBox(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      child: const Icon(Icons.image_outlined),
-                    )
-                  : Image.memory(_bytes!, fit: BoxFit.contain),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(widget.title, style: Theme.of(context).textTheme.titleSmall),
-          const SizedBox(height: 2),
-          Text(
-            _media() == null
-                ? ' '
-                : '${_mediaWidth()} × ${_mediaHeight()} · ${formatCreatorFileSize(_mediaSize())}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: widget.onChange,
-                  icon: const Icon(Icons.file_upload_outlined, size: 18),
-                  label: Text(
-                    _media() == null
-                        ? AppLocalizations.of(context)!.add
-                        : AppLocalizations.of(context)!.replace,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
-
-  CreatorMedia? _media() => widget.workspace?.media
-      .where((entry) => entry.role == widget.role)
-      .firstOrNull;
-
-  int _mediaWidth() => _media()?.width ?? 0;
-  int _mediaHeight() => _media()?.height ?? 0;
-  int _mediaSize() => _media()?.sizeBytes ?? 0;
 }

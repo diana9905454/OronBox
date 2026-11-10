@@ -2,18 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 
 class BandBbsApiClient {
-  BandBbsApiClient({
-    required this.dio,
-    required this.auth,
-    this.onSessionExpired,
-  });
+  BandBbsApiClient({required this.dio, required this.auth});
 
   final Dio dio;
   final BandBbsAuthNotifier auth;
-
-  /// Runs after a 401 wiped the local credentials; lets the wiring propagate
-  /// the expiry to the daemon so every login gate observes it.
-  final Future<void> Function()? onSessionExpired;
 
   static const _baseUrl = 'https://www.bandbbs.cn';
   static const _developerApiBaseUrl = 'https://api.bandbbs.cn';
@@ -183,7 +175,7 @@ class BandBbsApiClient {
   Future<Options> _authOptions() async {
     final token = await auth.refreshIfNeeded();
     if (token == null) {
-      throw StateError('BandBBS account is not signed in');
+      throw const OronBoxAuthRequiredException();
     }
     return Options(headers: {'Authorization': 'Bearer ${token.accessToken}'});
   }
@@ -204,15 +196,11 @@ class BandBbsApiClient {
       if (error.response?.statusCode != 401 || !expireSessionOnUnauthorized) {
         rethrow;
       }
-      // The token was rejected: the credential is dead everywhere, wipe it
-      // and propagate instead of leaving UI gated on a stale login.
-      try {
-        await auth.expireSession();
-      } catch (_) {}
-      try {
-        await onSessionExpired?.call();
-      } catch (_) {}
-      throw const BandBbsSessionExpiredException();
+      // Only refresh this platform's AT. Neither an upstream 401 nor a
+      // transient refresh failure establishes that the OronBox RT is invalid.
+      final refreshed = await auth.refreshIfNeeded(forceRefresh: true);
+      if (refreshed == null) throw const OronBoxAuthRequiredException();
+      return request();
     }
   }
 }

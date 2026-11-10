@@ -9,42 +9,92 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/network/dio_provider.dart';
-import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+import 'package:oronbox/src/core/network/http_observability_interceptor.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/features/accounts/models/mi_account_models.dart';
 
+const maxWearableLogArchiveBytes = 64 * 1024 * 1024;
+const maxWearableLogFileBytes = 32 * 1024 * 1024;
+const maxWearableLogBatchBytes = 128 * 1024 * 1024;
+final _wearableLogFilePattern = RegExp(
+  r'\.log(?:\.bak\.\d+)?$',
+  caseSensitive: false,
+);
+
+bool isWearableLogArchive(String name) => name.toLowerCase().endsWith('.zip');
+
+bool isWearableLogInput(String name) =>
+    isWearableLogArchive(name) || _wearableLogFilePattern.hasMatch(name);
+
 /// Extracts bound-device credentials from a Xiaomi Fitness wearable-log ZIP.
-///
-/// Xiaomi devices expose the device key as `encrypt_key`, while Huami devices
-/// use `auth_key`. Only complete source-list records with a valid MAC and a
-/// 16-byte hexadecimal key are returned; account-cookie `auth_key` values are
-/// therefore ignored.
 List<MiCloudDevice> extractMiDevicesFromWearableLogZip(List<int> bytes) {
-  const maxArchiveBytes = 64 * 1024 * 1024;
-  const maxLogBytes = 32 * 1024 * 1024;
-  const maxTotalLogBytes = 128 * 1024 * 1024;
-  if (bytes.isEmpty || bytes.length > maxArchiveBytes) {
+  if (bytes.isEmpty || bytes.length > maxWearableLogArchiveBytes) {
     throw const FormatException('Invalid or oversized wearable log archive');
   }
+  return _extractMiDevicesFromLogs(ZipDecoder().decodeBytes(bytes).files);
+}
 
-  final archive = ZipDecoder().decodeBytes(bytes);
+/// Scans a selection as a single batch so companion logs can resolve MACs
+/// redacted in device records.
+List<MiCloudDevice> extractMiDevicesFromWearableLogs(
+  List<({String name, Uint8List bytes})> inputs,
+) {
+  Iterable<ArchiveFile> entries() sync* {
+    for (final input in inputs) {
+      if (input.bytes.isEmpty) continue;
+      if (isWearableLogArchive(input.name)) {
+        if (input.bytes.length > maxWearableLogArchiveBytes) continue;
+        Archive archive;
+        try {
+          archive = ZipDecoder().decodeBytes(input.bytes);
+        } catch (_) {
+          continue;
+        }
+        yield* archive.files;
+      } else if (_wearableLogFilePattern.hasMatch(input.name) &&
+          input.bytes.length <= maxWearableLogFileBytes) {
+        yield ArchiveFile(input.name, input.bytes.length, input.bytes);
+      }
+    }
+  }
+
+  return _extractMiDevicesFromLogs(entries(), skipUnreadable: true);
+}
+
+/// Device records must have a valid address and key, which excludes account
+/// cookie values even when they use the same auth_key field name.
+List<MiCloudDevice> _extractMiDevicesFromLogs(
+  Iterable<ArchiveFile> files, {
+  bool skipUnreadable = false,
+}) {
   final candidates = <String, MiCloudDevice>{};
+  final logAddresses = <String>{};
   var totalLogBytes = 0;
-  final recordPattern = RegExp(
-    r'\{"sid":"(?:\\.|[^"])*".*?"detail":\{[^{}]*\}\}',
-    dotAll: true,
-  );
-  final responsePattern = RegExp(
-    r'provideHttpLog:\s*(\{"code":0.*"result":\{"list":\[.*\]\}\})',
-  );
   final keyPattern = RegExp(r'^[0-9a-fA-F]{32}$');
   final macPattern = RegExp(r'^(?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}$');
+  final macSuffixPattern = RegExp(r'^[0-9a-fA-F]{2}(?::[0-9a-fA-F]{2}){1,5}$');
+  final embeddedMacPattern = RegExp(
+    r'(?<![0-9a-fA-F])(?:[0-9a-fA-F]{2}:){5}[0-9a-fA-F]{2}(?![0-9a-fA-F])',
+  );
+  final deviceJsonLogPattern = RegExp(
+    r'^XiaomiFit\.(?:device|main)\.log(?:\.bak\.\d+)?$',
+  );
 
   void addRecord(Map<dynamic, dynamic> value) {
     final device = MiCloudDevice.fromJson(value.cast<String, dynamic>());
-    final mac = device.mac.trim().toUpperCase();
+    final mac = _normalizeLogMac(device.mac);
     final authKey = device.authKey.trim().toLowerCase();
-    if (!macPattern.hasMatch(mac) || !keyPattern.hasMatch(authKey)) return;
-    candidates[mac] = MiCloudDevice(
+    if ((!macPattern.hasMatch(mac) && !macSuffixPattern.hasMatch(mac)) ||
+        !keyPattern.hasMatch(authKey)) {
+      return;
+    }
+    final candidateId = [
+      device.model,
+      device.name,
+      device.serialNumber,
+      mac,
+    ].join('|');
+    candidates[candidateId] = MiCloudDevice(
       name: device.name.trim(),
       model: device.model.trim(),
       mac: mac,
@@ -54,48 +104,147 @@ List<MiCloudDevice> extractMiDevicesFromWearableLogZip(List<int> bytes) {
     );
   }
 
-  for (final file in archive.files) {
+  for (final file in files) {
     if (!file.isFile) continue;
     final name = file.name.split(RegExp(r'[/\\]')).last;
-    if (!RegExp(
-      r'^XiaomiFit\.(?:device|main)\.log(?:\.bak\.\d+)?$',
-    ).hasMatch(name)) {
+    if (!_wearableLogFilePattern.hasMatch(name)) {
       continue;
     }
-    if (file.size > maxLogBytes) continue;
-    totalLogBytes += file.size;
-    if (totalLogBytes > maxTotalLogBytes) {
+    if (file.size > maxWearableLogFileBytes) continue;
+    if (totalLogBytes + file.size > maxWearableLogBatchBytes) {
+      if (skipUnreadable) continue;
       throw const FormatException('Wearable log archive is too large');
     }
+    totalLogBytes += file.size;
 
-    final content = file.readBytes();
+    Uint8List? content;
+    try {
+      content = file.readBytes();
+    } catch (_) {
+      if (skipUnreadable) continue;
+      rethrow;
+    }
     if (content == null) continue;
     final log = utf8.decode(content, allowMalformed: true);
-    for (final match in responsePattern.allMatches(log)) {
-      try {
-        final value = jsonDecode(match.group(1)!);
-        List? list;
-        if (value is Map && value['result'] is Map) {
-          list = (value['result'] as Map)['list'] as List?;
-        }
-        for (final record in list ?? const []) {
-          if (record is Map) addRecord(record);
-        }
-      } on FormatException {
-        // Fall through to individual-record recovery below.
-      }
+    for (final match in embeddedMacPattern.allMatches(log)) {
+      logAddresses.add(_normalizeLogMac(match.group(0)!));
     }
-    for (final match in recordPattern.allMatches(log)) {
-      try {
-        final value = jsonDecode(match.group(0)!);
-        if (value is Map) addRecord(value);
-      } on FormatException {
-        // Logs can end mid-line. Ignore incomplete records and keep scanning.
+    if (deviceJsonLogPattern.hasMatch(name)) {
+      for (final value in _scanJsonObjects(log)) {
+        _visitDeviceJson(value, addRecord);
       }
     }
     file.clear();
   }
-  return candidates.values.toList(growable: false);
+  // A device can appear both as a full-MAC record and as a redacted-suffix
+  // record, producing two candidates with the same authKey. Deduplicate after
+  // address resolution and prefer the entry that carries a complete MAC.
+  final resolvedByIdentity = <String, MiCloudDevice>{};
+  for (final device in candidates.values) {
+    final address = resolveMiCloudDeviceAddress(device, logAddresses);
+    final resolved = address == null
+        ? device
+        : MiCloudDevice(
+            name: device.name,
+            model: device.model,
+            mac: address,
+            authKey: device.authKey,
+            firmwareVersion: device.firmwareVersion,
+            serialNumber: device.serialNumber,
+          );
+    final identity = '${resolved.authKey}|${resolved.serialNumber}';
+    final existing = resolvedByIdentity[identity];
+    if (existing == null ||
+        (!macPattern.hasMatch(existing.mac) &&
+            macPattern.hasMatch(resolved.mac))) {
+      resolvedByIdentity[identity] = resolved;
+    }
+  }
+  return resolvedByIdentity.values.toList(growable: false);
+}
+
+String _normalizeLogMac(String value) {
+  final normalized = value.trim().replaceAll('-', ':').toUpperCase();
+  return normalized;
+}
+
+/// Yields complete JSON objects embedded in Xiaomi's line-oriented logs.
+///
+/// The app writes both compact HTTP responses and pretty-printed device
+/// snapshots. Matching a single fixed record shape misses the latter and also
+/// breaks as soon as Xiaomi adds a nested object. A small balanced-brace
+/// scanner keeps this parser independent of the surrounding log prefix while
+/// still avoiding a permissive regex over the whole archive.
+Iterable<Object?> _scanJsonObjects(String source) sync* {
+  const maxObjectBytes = 4 * 1024 * 1024;
+  var start = -1;
+  var depth = 0;
+  var inString = false;
+  var escaped = false;
+
+  for (var index = 0; index < source.length; index += 1) {
+    final char = source.codeUnitAt(index);
+    if (start < 0) {
+      if (char == 0x7b) {
+        start = index;
+        depth = 1;
+        inString = false;
+        escaped = false;
+      }
+      continue;
+    }
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char == 0x5c) {
+        escaped = true;
+      } else if (char == 0x22) {
+        inString = false;
+      }
+      continue;
+    }
+    if (char == 0x22) {
+      inString = true;
+    } else if (char == 0x7b) {
+      depth += 1;
+    } else if (char == 0x7d) {
+      depth -= 1;
+      if (depth == 0) {
+        final fragment = source.substring(start, index + 1);
+        try {
+          yield jsonDecode(fragment);
+        } on FormatException {
+          // Plain-text log messages also contain braces; ignore those.
+        }
+        start = -1;
+      }
+    }
+
+    if (start >= 0 && index - start >= maxObjectBytes) {
+      start = -1;
+      depth = 0;
+      inString = false;
+      escaped = false;
+    }
+  }
+}
+
+void _visitDeviceJson(Object? value, void Function(Map<dynamic, dynamic>) add) {
+  if (value is Map) {
+    final detail = value['detail'];
+    if (detail is Map &&
+        (value.containsKey('model') || value.containsKey('name'))) {
+      add(value);
+    }
+    for (final child in value.values) {
+      _visitDeviceJson(child, add);
+    }
+  } else if (value is List) {
+    for (final child in value) {
+      _visitDeviceJson(child, add);
+    }
+  }
 }
 
 class MiAccountService {
@@ -104,8 +253,7 @@ class MiAccountService {
   static final _log = getLogger('MiAccountService');
   final Dio _dio;
 
-  static const _sessionKey = 'mi.account.token';
-  static const _legacySessionKey = 'mi_account.session';
+  static const _sessionKey = PrivateAppState.miToken;
   static const _sdkVersion = 'accountsdk-18.8.15';
   static const _healthSid = 'miothealth';
   static const _serviceLoginUrl =
@@ -120,10 +268,9 @@ class MiAccountService {
       '(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36';
 
   Future<MiAccountToken?> loadStoredToken() async {
-    final prefs = SharedPrefsService.instance;
-    if (!prefs.isInitialized) await prefs.init();
-    final raw =
-        prefs.getString(_sessionKey) ?? prefs.getString(_legacySessionKey);
+    final store = PrivateAppState.instance;
+    await store.reload(key: _sessionKey);
+    final raw = store.readString(_sessionKey);
     if (raw == null || raw.isEmpty) return null;
     try {
       final value = jsonDecode(raw);
@@ -132,10 +279,6 @@ class MiAccountService {
           : value is Map
           ? MiAccountToken.fromJson(value.cast<String, Object?>())
           : null;
-      if (token != null && prefs.getString(_sessionKey) == null) {
-        await prefs.setString(_sessionKey, jsonEncode(token.toJson()));
-        await prefs.remove(_legacySessionKey);
-      }
       return token;
     } catch (_) {
       // Treat a malformed session as signed out.
@@ -147,17 +290,13 @@ class MiAccountService {
     if (!token.isValid) {
       throw StateError('Cannot persist an invalid Xiaomi session');
     }
-    final prefs = SharedPrefsService.instance;
-    if (!prefs.isInitialized) await prefs.init();
-    await prefs.setString(_sessionKey, jsonEncode(token.toJson()));
-    await prefs.remove(_legacySessionKey);
+    await PrivateAppState.instance.update({
+      _sessionKey: jsonEncode(token.toJson()),
+    });
   }
 
   Future<void> clearStoredToken() async {
-    final prefs = SharedPrefsService.instance;
-    if (!prefs.isInitialized) await prefs.init();
-    await prefs.remove(_sessionKey);
-    await prefs.remove(_legacySessionKey);
+    await PrivateAppState.instance.update({_sessionKey: null});
   }
 
   /// Renews the short-lived Xiaomi service session with the stored pass token.
@@ -244,9 +383,22 @@ class MiAccountService {
   /// failed. A login started concurrently must not be removed by an older
   /// request completing later.
   Future<void> invalidateStoredToken(MiAccountToken token) async {
-    final stored = await loadStoredToken();
-    if (stored == null || !_sameSession(stored, token)) return;
-    await clearStoredToken();
+    final removed = await PrivateAppState.instance.update(
+      {_sessionKey: null},
+      when: (current) {
+        final raw = current[_sessionKey] as String?;
+        if (raw == null) return false;
+        try {
+          final stored = MiAccountToken.fromJson(
+            (jsonDecode(raw) as Map).cast(),
+          );
+          return stored != null && _sameSession(stored, token);
+        } catch (_) {
+          return false;
+        }
+      },
+    );
+    if (!removed) return;
     _log.warning(
       'Xiaomi account session invalidated after authentication failure',
     );
@@ -256,6 +408,42 @@ class MiAccountService {
     required String username,
     required String password,
     String userAgent = defaultUserAgent,
+  }) async {
+    try {
+      return await _login(
+        username: username,
+        password: password,
+        userAgent: userAgent,
+      );
+    } on MiAccountTwoFactorRequired {
+      _log.info('Xiaomi account login requires two-factor verification');
+      rethrow;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Xiaomi account login failed: ${_describeFailure(error)}',
+        error,
+        stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// One-line description of a login failure with nothing secret in it.
+  String _describeFailure(Object error) {
+    if (error is DioException) {
+      final status = error.response?.statusCode;
+      final endpoint = safeHttpEndpoint(error.requestOptions.uri);
+      return '${error.type.name} on $endpoint'
+          '${status == null ? '' : ' (HTTP $status)'}';
+    }
+    final text = error.toString().replaceAll(RegExp(r'\s+'), ' ').trim();
+    return text.length <= 240 ? text : '${text.substring(0, 237)}...';
+  }
+
+  Future<MiAccountToken> _login({
+    required String username,
+    required String password,
+    required String userAgent,
   }) async {
     final deviceId = _randomDeviceId();
     final cookieJar = _CookieJar()
@@ -301,6 +489,11 @@ class MiAccountService {
     cookieJar.mergeSetCookie(step2.headers);
 
     final step2Body = _decodeJsonBody(step2.data);
+    _log.info(
+      'Xiaomi account auth response: code=${_parseCode(step2Body)}, '
+      'verification=${(step2Body['notificationUrl']?.toString() ?? '').isNotEmpty}, '
+      'ssecurity=${(step2Body['ssecurity']?.toString() ?? '').isEmpty ? 'absent' : 'present'}',
+    );
     // A non-empty `_sign` here means Xiaomi wants an extra credential step
     // (two-factor verification). `_finishLogin` already inspects
     // `notificationUrl` and throws `MiAccountTwoFactorRequired` so the host
@@ -402,6 +595,16 @@ class MiAccountService {
     required String cookieHeader,
     String userAgent = defaultUserAgent,
   }) async {
+    // `passToken` is the only cookie that proves the browser verification
+    // actually succeeded. Without it the service-login exchange cannot succeed,
+    // so fail with a precise reason instead of retrying three times and
+    // reporting a vague credential error.
+    if (_extractCookieValue(cookieHeader, 'passToken') == null) {
+      _log.warning('Xiaomi 2FA returned no passToken; verification incomplete');
+      throw StateError(
+        'Xiaomi 2FA did not return a pass token; verification incomplete',
+      );
+    }
     final deviceId =
         _extractCookieValue(cookieHeader, 'deviceId') ?? challenge.deviceId;
     final cookieJar = _CookieJar()
@@ -598,10 +801,7 @@ class MiAccountService {
         await invalidateStoredToken(token);
         throw const MiAccountSessionExpired();
       }
-      final refreshed = await refreshToken(
-        token: token,
-        userAgent: userAgent,
-      );
+      final refreshed = await refreshToken(token: token, userAgent: userAgent);
       return _miServiceCallEncrypted(
         token: refreshed,
         url: url,

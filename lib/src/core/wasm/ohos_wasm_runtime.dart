@@ -48,48 +48,9 @@ import 'package:wasm_run/src/wasm_bindings/wasm_interface.dart'
 
 import 'ohos_wasm3_ffi.dart';
 
-/// Compiles a wasm binary on OpenHarmony using the wasm3 interpreter.
-Future<WasmModule> compileWasmModule(
-  Uint8List bytes, {
-  Object? config,
-}) async {
-  return compileWasmModuleSync(bytes, config: config);
-}
-
-/// Synchronous compile (wasm3 parses synchronously anyway).
-WasmModule compileWasmModuleSync(
-  Uint8List bytes, {
-  Object? config,
-}) {
-  final bindings = Wasm3Bindings.open();
-
-  final env = bindings.newEnvironment();
-  if (env == nullptr) {
-    throw StateError('wasm3: failed to create environment');
-  }
-
-  // A runtime per module keeps memory/instances isolated and lifetime simple.
-  // 512 KB of interpreter stack is plenty for opus/webp decode.
-  const stackSize = 512 * 1024;
-  final runtime = bindings.newRuntime(env, stackSize, nullptr);
-  if (runtime == nullptr) {
-    bindings.freeEnvironment(env);
-    throw StateError('wasm3: failed to create runtime');
-  }
-
-  final bytesPtr = malloc.allocate<Uint8>(bytes.length);
-  try {
-    bytesPtr.asTypedList(bytes.length).setAll(0, bytes);
-    final module = bindings.compile(runtime, bytesPtr, bytes.length);
-    if (module == nullptr) {
-      bindings.freeRuntime(runtime);
-      bindings.freeEnvironment(env);
-      throw StateError('wasm3: compile failed: ${_error(bindings, runtime)}');
-    }
-    return _OhosWasmModule._(bindings, env, runtime, module);
-  } finally {
-    malloc.free(bytesPtr);
-  }
+/// Prepares a reusable wasm3 module. Native parsing happens per instance.
+Future<WasmModule> compileWasmModule(Uint8List bytes, {Object? config}) async {
+  return _OhosWasmModule(Uint8List.fromList(bytes));
 }
 
 String _error(Wasm3Bindings b, Pointer<Void> runtime) {
@@ -106,26 +67,17 @@ String _error(Wasm3Bindings b, Pointer<Void> runtime) {
 /// Maps a wasm3 type id (see wasm3_bridge.h type ids:
 /// 0=none 1=i32 2=i64 3=f32 4=f64) to a [ValueTy].
 ValueTy _typeFromId(int id) => switch (id) {
-      1 => ValueTy.i32,
-      2 => ValueTy.i64,
-      3 => ValueTy.f32,
-      4 => ValueTy.f64,
-      _ => ValueTy.i32,
-    };
+  1 => ValueTy.i32,
+  2 => ValueTy.i64,
+  3 => ValueTy.f32,
+  4 => ValueTy.f64,
+  _ => ValueTy.i32,
+};
 
 final class _OhosWasmModule implements WasmModule {
-  _OhosWasmModule._(this._bindings, this._env, this._runtime, this._module);
+  _OhosWasmModule(this.bytes);
 
-  final Wasm3Bindings _bindings;
-  final Pointer<Void> _env;
-  final Pointer<Void> _runtime;
-  final Pointer<Void> _module;
-
-  bool _disposed = false;
-
-  Pointer<Void> get moduleHandle => _module;
-  Pointer<Void> get runtimeHandle => _runtime;
-  Wasm3Bindings get bindings => _bindings;
+  final Uint8List bytes;
 
   @override
   WasmInstanceBuilder builder({WasiConfig? wasiConfig, Object? workersConfig}) {
@@ -151,14 +103,6 @@ final class _OhosWasmModule implements WasmModule {
   @override
   List<WasmModuleExport> getExports() {
     return const [];
-  }
-
-  void dispose() {
-    if (_disposed) return;
-    _disposed = true;
-    // Freeing the runtime releases any loaded module and the environment.
-    _bindings.freeRuntime(_runtime);
-    _bindings.freeEnvironment(_env);
   }
 }
 
@@ -221,32 +165,35 @@ final class _OhosWasmInstanceBuilder implements WasmInstanceBuilder {
 
   @override
   WasmInstance buildSync() {
-    final b = _module.bindings;
-
-    // 1. Load the (parsed) module into its runtime. wasm3 requires the module
-    //    to be loaded before m3_LinkRawFunctionEx can locate its imports, so
-    //    this must precede import linking.
-    final loadRc = b.loadModule(_module.runtimeHandle, _module.moduleHandle);
-    if (loadRc != 0) {
-      throw StateError(
-        'wasm3: load module failed: ${_error(b, _module.runtimeHandle)}',
+    final instance = _OhosWasmInstance.create(_module);
+    final b = instance.bindings;
+    try {
+      // wasm3 must load the module before linking host functions.
+      final loadRc = b.loadModule(
+        instance.runtimeHandle,
+        instance.moduleHandle,
       );
-    }
+      if (loadRc != 0) {
+        throw StateError(
+          'wasm3: load module failed: ${_error(b, instance.runtimeHandle)}',
+        );
+      }
 
-    // 2. Link all host function imports against the loaded module.
-    for (final imp in _imports) {
-      _linkImport(b, _module, imp);
-    }
+      for (final imp in _imports) {
+        _linkImport(b, instance, imp);
+      }
 
-    // 3. Run the start section now that all imports are linked.
-    final startRc = b.runStart(_module.moduleHandle);
-    if (startRc != 0) {
-      throw StateError(
-        'wasm3: run start failed: ${_error(b, _module.runtimeHandle)}',
-      );
+      final startRc = b.runStart(instance.moduleHandle);
+      if (startRc != 0) {
+        throw StateError(
+          'wasm3: run start failed: ${_error(b, instance.runtimeHandle)}',
+        );
+      }
+      return instance;
+    } catch (_) {
+      instance.dispose();
+      rethrow;
     }
-
-    return _OhosWasmInstance._(_module);
   }
 }
 
@@ -257,10 +204,10 @@ class _PendingImport {
   final WasmFunction function;
 }
 
-/// Registers a host function import with wasm3 against [module].
+/// Registers a host function import with wasm3 against [instance].
 void _linkImport(
   Wasm3Bindings b,
-  _OhosWasmModule module,
+  _OhosWasmInstance instance,
   _PendingImport imp,
 ) {
   // Build the wasm3 signature string from the Dart WasmFunction.
@@ -268,12 +215,12 @@ void _linkImport(
   final results = imp.function.results ?? const <ValueTy>[];
 
   String sigChar(ValueTy t) => switch (t) {
-        ValueTy.i32 => 'i',
-        ValueTy.i64 => 'I',
-        ValueTy.f32 => 'f',
-        ValueTy.f64 => 'F',
-        _ => 'i',
-      };
+    ValueTy.i32 => 'i',
+    ValueTy.i64 => 'I',
+    ValueTy.f32 => 'f',
+    ValueTy.f64 => 'F',
+    _ => 'i',
+  };
 
   // wasm3's signature language requires a leading return-type token even for
   // void returns: "v(i)", not "(i)". An empty result list must map to 'v'.
@@ -282,17 +229,15 @@ void _linkImport(
   final signature = '$retPart($argPart)';
 
   // Create a Dart callback trampoline that marshals the raw wasm3 stack.
-  // The NativeCallable is stored globally to keep it alive; the returned
-  // nativeFunction pointer is handed to wasm3.
   final callable = _makeHostCall(imp.function);
-  _hostCallRegistry.add(callable);
+  instance._hostCalls.add(callable);
 
   final modNamePtr = imp.moduleName.toNativeUtf8();
   final namePtr = imp.name.toNativeUtf8();
   final sigPtr = signature.toNativeUtf8();
   try {
     final rc = b.linkFunction(
-      module.moduleHandle,
+      instance.moduleHandle,
       modNamePtr,
       namePtr,
       sigPtr,
@@ -302,7 +247,7 @@ void _linkImport(
     if (rc != 0) {
       throw StateError(
         'wasm3: link import ${imp.moduleName}.${imp.name} failed: '
-        '${_error(b, module.runtimeHandle)}',
+        '${_error(b, instance.runtimeHandle)}',
       );
     }
   } finally {
@@ -312,13 +257,63 @@ void _linkImport(
   }
 }
 
-/// Global registry to keep host-call callables alive (prevent GC).
-final List<NativeCallable<WbHostCall>> _hostCallRegistry = [];
-
 final class _OhosWasmInstance implements WasmInstance {
-  _OhosWasmInstance._(this._module);
+  _OhosWasmInstance._(
+    this._module,
+    this.bindings,
+    this._environment,
+    this.runtimeHandle,
+    this.moduleHandle,
+    this._bytes,
+  );
+
+  factory _OhosWasmInstance.create(_OhosWasmModule module) {
+    final b = Wasm3Bindings.open();
+    final environment = b.newEnvironment();
+    if (environment == nullptr) {
+      throw StateError('wasm3: failed to create environment');
+    }
+
+    // Each parsed module binds to one runtime. Its byte buffer must also
+    // outlive the runtime because wasm3 compiles function bodies lazily.
+    Pointer<Void> runtime = nullptr;
+    Pointer<Uint8> bytes = nullptr;
+    try {
+      runtime = b.newRuntime(environment, 512 * 1024, nullptr);
+      if (runtime == nullptr) {
+        throw StateError('wasm3: failed to create runtime');
+      }
+
+      bytes = malloc.allocate<Uint8>(module.bytes.length);
+      bytes.asTypedList(module.bytes.length).setAll(0, module.bytes);
+      final handle = b.compile(runtime, bytes, module.bytes.length);
+      if (handle == nullptr) {
+        throw StateError('wasm3: compile failed: ${_error(b, runtime)}');
+      }
+      return _OhosWasmInstance._(
+        module,
+        b,
+        environment,
+        runtime,
+        handle,
+        bytes,
+      );
+    } catch (_) {
+      if (runtime != nullptr) b.freeRuntime(runtime);
+      b.freeEnvironment(environment);
+      if (bytes != nullptr) malloc.free(bytes);
+      rethrow;
+    }
+  }
 
   final _OhosWasmModule _module;
+  final Wasm3Bindings bindings;
+  final Pointer<Void> _environment;
+  final Pointer<Void> runtimeHandle;
+  final Pointer<Void> moduleHandle;
+  final Pointer<Uint8> _bytes;
+  final List<NativeCallable<WbHostCall>> _hostCalls = [];
+  bool _disposed = false;
 
   late final Map<String, WasmExternal> _exports = <String, WasmExternal>{};
 
@@ -327,15 +322,16 @@ final class _OhosWasmInstance implements WasmInstance {
 
   @override
   WasmFunction? getFunction(String name) {
-    final b = _module.bindings;
-    final out = malloc.allocate<Pointer<Void>>(1);
+    _ensureActive();
+    final b = bindings;
+    final out = malloc<Pointer<Void>>();
     try {
       final namePtr = name.toNativeUtf8();
       try {
-        final found = b.findFunction(out, _module.runtimeHandle, namePtr);
+        final found = b.findFunction(out, runtimeHandle, namePtr);
         if (found == 0) return null;
         final fn = out.value;
-        return _wrapExportedFunction(b, fn);
+        return _wrapExportedFunction(b, fn, _ensureActive);
       } finally {
         malloc.free(namePtr);
       }
@@ -352,12 +348,19 @@ final class _OhosWasmInstance implements WasmInstance {
 
   @override
   WasmMemory? getMemory(String name) {
-    final b = _module.bindings;
-    final sizePtr = malloc.allocate<Uint64>(1);
+    _ensureActive();
+    final b = bindings;
+    final sizePtr = malloc<Uint64>();
     try {
-      final mem = b.getMemory(_module.moduleHandle, 0, sizePtr);
+      final mem = b.getMemory(moduleHandle, 0, sizePtr);
       if (mem == nullptr) return null;
-      return _OhosWasmMemory._(b, mem, sizePtr.value, _module.moduleHandle);
+      return _OhosWasmMemory._(
+        b,
+        mem,
+        sizePtr.value,
+        moduleHandle,
+        _ensureActive,
+      );
     } finally {
       malloc.free(sizePtr);
     }
@@ -404,13 +407,30 @@ final class _OhosWasmInstance implements WasmInstance {
 
   @override
   void dispose() {
-    // Instances share the module's runtime; disposal of the module frees it.
-    // Nothing per-instance to release in wasm3.
+    if (_disposed) return;
+    _disposed = true;
+    // The bridge frees only parsed modules that were never loaded.
+    bindings.freeModule(moduleHandle);
+    bindings.freeRuntime(runtimeHandle);
+    bindings.freeEnvironment(_environment);
+    for (final callable in _hostCalls) {
+      callable.close();
+    }
+    _hostCalls.clear();
+    malloc.free(_bytes);
+  }
+
+  void _ensureActive() {
+    if (_disposed) throw StateError('wasm3: instance is disposed');
   }
 }
 
 /// Wraps a wasm3 exported function into a [WasmFunction].
-WasmFunction _wrapExportedFunction(Wasm3Bindings b, Pointer<Void> fn) {
+WasmFunction _wrapExportedFunction(
+  Wasm3Bindings b,
+  Pointer<Void> fn,
+  void Function() ensureActive,
+) {
   final argCount = b.argCount(fn);
   final retCount = b.retCount(fn);
 
@@ -424,6 +444,7 @@ WasmFunction _wrapExportedFunction(Wasm3Bindings b, Pointer<Void> fn) {
   );
 
   List<Object?> call([List<Object?>? args]) {
+    ensureActive();
     final argList = args ?? const [];
     if (argList.length != argCount) {
       throw StateError(
@@ -432,8 +453,8 @@ WasmFunction _wrapExportedFunction(Wasm3Bindings b, Pointer<Void> fn) {
     }
 
     // Pack arguments into 64-bit slots.
-    final argSlots = malloc.allocate<Uint64>(argCount == 0 ? 1 : argCount);
-    final retSlots = malloc.allocate<Uint64>(retCount == 0 ? 1 : retCount);
+    final argSlots = malloc<Uint64>(argCount == 0 ? 1 : argCount);
+    final retSlots = malloc<Uint64>(retCount == 0 ? 1 : retCount);
     try {
       for (var i = 0; i < argCount; i++) {
         argSlots[i] = _encodeValue(argList[i], params[i]);
@@ -455,12 +476,7 @@ WasmFunction _wrapExportedFunction(Wasm3Bindings b, Pointer<Void> fn) {
     }
   }
 
-  return WasmFunction(
-    _noop,
-    params: params,
-    results: results,
-    call: call,
-  );
+  return WasmFunction(_noop, params: params, results: results, call: call);
 }
 
 void _noop() {}
@@ -506,8 +522,7 @@ Object? _decodeValue(int slot, ValueTy t) {
 
 /// Creates a native trampoline for a host import function.
 ///
-/// Returns a [NativeCallable] that the caller must keep alive (stored in
-/// [_hostCallRegistry]).
+/// The instance retains the [NativeCallable] until its runtime is released.
 NativeCallable<WbHostCall> _makeHostCall(WasmFunction function) {
   final params = function.params;
   final results = function.results ?? const <ValueTy>[];
@@ -553,15 +568,23 @@ Object? _decodeHostArg(int slot, ValueTy t) => _decodeValue(slot, t);
 int _encodeHostRet(Object? v, ValueTy t) => _encodeValue(v, t);
 
 final class _OhosWasmMemory implements WasmMemory {
-  _OhosWasmMemory._(this._bindings, this._base, this._sizeBytes, this._module);
+  _OhosWasmMemory._(
+    this._bindings,
+    this._base,
+    this._sizeBytes,
+    this._module,
+    this._ensureActive,
+  );
 
   final Wasm3Bindings _bindings;
   final Pointer<Uint8> _base;
   final int _sizeBytes;
   final Pointer<Void> _module;
+  final void Function() _ensureActive;
 
   @override
   void grow(int deltaPages) {
+    _ensureActive();
     _bindings.growMemory(_module, deltaPages);
   }
 
@@ -572,7 +595,10 @@ final class _OhosWasmMemory implements WasmMemory {
   int get lengthInPages => _sizeBytes ~/ WasmMemory.bytesPerPage;
 
   @override
-  Uint8List get view => _base.asTypedList(_sizeBytes);
+  Uint8List get view {
+    _ensureActive();
+    return _base.asTypedList(_sizeBytes);
+  }
 
   @override
   MemoryTy? get type => null;
@@ -583,8 +609,7 @@ final class _OhosWasmMemory implements WasmMemory {
     required T Function(WasmTable table) table,
     required T Function(WasmGlobal global) global,
     required T Function(WasmFunction function) function,
-  }) =>
-      memory(this);
+  }) => memory(this);
 
   @override
   WasmExternalKind get kind => WasmExternalKind.memory;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
@@ -24,22 +25,29 @@ class HuamiPublisherPage extends ConsumerWidget {
         title: Text(name.isEmpty ? '@' : '@$name'),
       ),
       body: resources.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const LoadingView(message: '')
           : resources.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) =>
-                  Center(child: Text(localizedErrorMessage(l10n, error))),
+              loading: () => const LoadingView(message: ''),
+              error: (error, _) => ErrorStateView(
+                message: localizedErrorMessage(l10n, error),
+                onRetry: () =>
+                    ref.invalidate(huamiPublisherResourcesProvider(name)),
+              ),
               data: (items) {
                 if (name.isEmpty || items.isEmpty) {
-                  return Center(child: Text(l10n.notFound));
+                  return EmptyStateView(
+                    icon: Icons.search_off_outlined,
+                    title: l10n.notFound,
+                  );
                 }
                 return RefreshIndicator(
                   onRefresh: () async {
                     ref.invalidate(huamiPublisherResourcesProvider(name));
                   },
                   child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: StyleConstants.pagePadding,
+                    padding: EdgeInsets.only(
+                      top: StyleConstants.pagePadding,
+                      bottom: bottomContentPadding(context),
                     ),
                     itemBuilder: (context, index) => PageContainer(
                       safeArea: false,

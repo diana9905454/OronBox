@@ -7,6 +7,7 @@ import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/widgets/network_img_layer.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
 import 'package:oronbox/src/core/constants/oronbox_server.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
@@ -14,9 +15,14 @@ import 'package:oronbox/src/data/oronbox/oronbox_home_api.dart';
 import 'package:oronbox/src/features/resources/application/home_providers.dart';
 import 'package:oronbox/src/features/resources/application/resource_catalog_providers.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource.dart';
-import 'package:oronbox/src/features/resources/widgets/blog_labels.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_external_link.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_media_hero.dart';
+
+String blogTypeLabel(AppLocalizations l10n, String type) => switch (type) {
+  'recommendation' => l10n.blogTypeRecommendation,
+  'docs' => l10n.blogTypeDocs,
+  _ => l10n.blogTypeAnnouncement,
+};
 
 class BlogPostPage extends ConsumerWidget {
   const BlogPostPage({super.key, required this.slug, this.preview});
@@ -62,7 +68,7 @@ class _BlogPostBody extends StatelessWidget {
 
   List<Widget> _contentSegments(BuildContext context) {
     final theme = Theme.of(context);
-    final styleSheet = MarkdownStyleSheet.fromTheme(theme).copyWith(
+    final styleSheet = markdownStyleSheetFromTheme(theme).copyWith(
       p: theme.textTheme.bodyMedium?.copyWith(height: 1.6),
       pPadding: const EdgeInsets.only(bottom: 12),
       h1: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700),
@@ -72,10 +78,12 @@ class _BlogPostBody extends StatelessWidget {
       h3: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
       h3Padding: const EdgeInsets.only(top: 12, bottom: 6),
     );
-    final body = post.body.replaceAll(
-      '](/api/blobs/',
-      ']($oronBoxServerBaseUrl/api/blobs/',
-    );
+    final body = post.body
+        .replaceAll("](/api/blobs/", "](/api/v1/blobs/")
+        .replaceAll(
+          '](/api/v1/blobs/',
+          ']($oronBoxServerBaseUrl/api/v1/blobs/',
+        );
     final segments = <Widget>[];
     var cursor = 0;
     for (final match in _directivePattern.allMatches(body)) {
@@ -101,9 +109,13 @@ class _BlogPostBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
+      padding: EdgeInsets.only(
+        bottom: bottomContentPadding(context, extra: 24),
+      ),
       children: [
         _BlogPostHeader(post: post),
         PageContainer(
+          safeArea: false,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: _contentSegments(context),
@@ -121,9 +133,13 @@ class _BlogPostPreviewHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListView(
+    padding: EdgeInsets.only(bottom: bottomContentPadding(context, extra: 24)),
     children: [
       _BlogPostHeader(post: post),
-      PageContainer(child: Column(children: [const LinearProgressIndicator()])),
+      PageContainer(
+        safeArea: false,
+        child: Column(children: [const LinearProgressIndicator()]),
+      ),
     ],
   );
 }
@@ -373,9 +389,8 @@ class _EmbeddedResourceSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(
-      context,
-    ).colorScheme.onSurfaceVariant.withValues(alpha: .12);
+    final color = Theme.of(context).colorScheme.onSurfaceVariant
+        .withValues(alpha: .12);
     Widget bar(double width, double height) => Container(
       width: width,
       height: height,

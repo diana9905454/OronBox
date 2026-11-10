@@ -119,9 +119,13 @@ Uint8List _package({
           : utf8.encode('export {}'));
   final manifestBytes = utf8.encode(jsonEncode(manifest));
   final archive = Archive()
-    ..addFile(ArchiveFile('manifest.json', 0, manifestBytes));
+    ..addFile(
+      ArchiveFile('manifest.json', manifestBytes.length, manifestBytes),
+    );
   if (includeEntry) {
-    archive.addFile(ArchiveFile(archiveEntryName ?? entry, 0, content));
+    archive.addFile(
+      ArchiveFile(archiveEntryName ?? entry, content.length, content),
+    );
   }
   return Uint8List.fromList(ZipEncoder().encode(archive));
 }
