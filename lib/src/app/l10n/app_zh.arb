@@ -210,9 +210,9 @@
   "protocol": "协议",
   "error": "错误",
   "errorBluetoothUnavailable": "蓝牙不可用，请检查蓝牙是否已开启，并确认系统权限已允许 OronBox 使用蓝牙",
-  "errorBluetoothConnectFailed": "连接失败，请确认蓝牙权限已授予且蓝牙已开启、设备在附近、未被其他工具或设备占用，并在设备端开启“连接新手机”模式后重试",
+  "errorBluetoothConnectFailed": "连接失败，请确认蓝牙权限已授予且蓝牙已开启、设备在附近、未被其他工具或设备占用，并进入“连接新手机”模式后重试",
   "errorBluetoothDisconnected": "蓝牙连接已断开，请重新连接设备",
-  "errorOperationTimeout": "操作超时，请确认设备仍在附近并重试",
+  "errorOperationTimeout": "操作超时",
   "errorDeviceNotReady": "设备尚未准备好，请先连接并完成认证",
   "errorBleCharacteristicsMissing": "未找到需要的 BLE 通道，请重新连接设备或检查设备是否支持该功能",
   "errorWebSerialUnavailable": "当前浏览器不支持 Web Serial，请使用 Chrome / Edge 等支持 Web Serial 的浏览器",
@@ -241,6 +241,12 @@
   "errorInvalidRequest": "提交的信息有误，请检查后重试",
   "errorOperationCancelled": "操作已取消",
   "errorUnsupportedFileType": "不支持或无法识别的文件类型",
+  "errorDeviceFeatureUnsupported": "当前设备或固件暂不支持此功能",
+  "errorDeviceMusicUnsupported": "当前设备或固件暂不支持音乐传输功能",
+  "errorDeviceRecordingUnsupported": "当前设备或固件暂不支持录音导出功能",
+  "errorDeviceScreenMirrorUnsupported": "当前设备或固件暂不支持屏幕镜像功能",
+  "errorNotInstalled": "未安装所需组件或应用",
+  "errorInvalidOperation": "当前状态下无法执行此操作",
   "errorCertificateVerificationFailed": "证书校验失败，如正在使用代理，请关闭代理对本应用的 HTTPS 拦截，或确保证书受信任",
   "errorUnknownWithDetail": "操作失败：{detail}",
   "@errorUnknownWithDetail": {
@@ -335,7 +341,7 @@
   },
   "expand": "展开",
   "collapse": "收起",
-  "voiceLabTitle": "语音实验室",
+  "voiceLabTitle": "语音助手",
   "voiceLabXiaoAi": "小爱同学",
   "voiceLabReceivingAudio": "正在接收手表音频",
   "voiceLabWaiting": "等待语音会话",
@@ -590,6 +596,7 @@
   "deviceHealthDistance": "距离",
   "deviceHealthCalories": "卡路里",
   "deviceHealthHeartRate": "心率",
+  "deviceHealthAverageHeartRateLabel": "平均心率",
   "deviceHealthRestingHeartRate": "静息心率",
   "deviceHealthAbnormalHeartRate": "异常心率",
   "deviceHealthHeartRateHigh": "心率过高",
@@ -705,6 +712,8 @@
   },
   "deviceRecordingsTitle": "录音同步",
   "deviceRecordingsDescription": "从手表同步并导出录音",
+  "deviceRecordingsLibrary": "设备录音",
+  "deviceRecordingsLibraryDescription": "导出设备中的录音",
   "deviceRecordingsHint": "录音通过设备文件通道逐条接收并校验\n完成后可单独导出原始文件",
   "deviceRecordingsSync": "同步录音",
   "deviceRecordingsReading": "正在读取录音列表",
@@ -752,6 +761,28 @@
       }
     }
   },
+  "deviceRecordingsSavedBadge": "已存本地",
+  "deviceRecordingsSelectAll": "全选",
+  "deviceRecordingsDeselectAll": "取消全选",
+  "deviceRecordingsExportSelected": "导出所选 ({count})",
+  "@deviceRecordingsExportSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "deviceRecordingsOpenDirectory": "打开存储目录",
+  "deviceRecordingsExported": "已导出到 {path}",
+  "@deviceRecordingsExported": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "deviceRecordingsSaveSuccess": "录音导出完成",
+  "deviceRecordingsRefresh": "刷新",
   "deviceMusicTransferTitle": "传输 MP3 文件",
   "deviceMusicVelaDescription": "将 MP3 文件同步至设备，单个文件不得超过 100 MB。",
   "deviceMusicZeppDescription": "支持最大 50 MB 的 MP3 文件。建议使用经典蓝牙以获得更快的传输速度；也可使用 BLE，但传输时间较长。",
@@ -936,6 +967,8 @@
   "settingsMiAccountLogNoDevices": "日志中未找到包含完整 MAC 和 authkey 的设备",
   "settingsWearableLogSync": "读取运动健康日志",
   "settingsWearableLogGuide": "打开 小米运动健康\n“我的”页面底部“关于”\n连续狂点橙色圆环 logo 图标\n在弹出的对话框点击“确认”\n等待 toast 提示 log has been...\n回到此处点击扫描",
+  "settingsWearableLogGet": "获取",
+  "settingsWearableLogGuideOhos": "打开小米运动健康，在「我的」页面底部进入「关于」\n连续点击橙色圆环图标，在弹出的对话框中点「确认」\n等到出现「log has been...」提示后，回到这里点「获取」\n\n依次打开「我的手机 → 兼容应用数据 → Android → data → com.mi.health → files → log」\n全选文件后点「完成」",
   "settingsWearableLogFound": "识别到 {count} 个设备，点击以导入",
   "@settingsWearableLogFound": {
     "placeholders": {
@@ -955,6 +988,13 @@
   "settingsMiAccountLoginWindowClosed": "登录窗口已关闭",
   "settingsMiAccountSyncedDevices": "已同步 {count} 台小米设备",
   "xiaomiAccountRequiredForEphemeris": "未登录小米账号，请先登录后再同步星历",
+  "xiaomiWifiPasswordRequestTitle": "Wi-Fi 连接请求",
+  "xiaomiWifiPasswordRequestMessage": "设备请求连接 Wi-Fi 网络“{ssid}”",
+  "@xiaomiWifiPasswordRequestMessage": {
+    "placeholders": {
+      "ssid": {}
+    }
+  },
   "@settingsMiAccountSyncedDevices": {
     "placeholders": {
       "count": {
@@ -1005,6 +1045,11 @@
   "settingsOledDark": "OLED 深色",
   "settingsThemeMode": "主题模式",
   "settingsThemeModeDesc": "更改应用主题外观",
+  "settingsThemePreset": "主题风格",
+  "settingsThemePresetDesc": "选择应用的视觉风格",
+  "settingsThemePresetMaterial3": "Material 3",
+  "settingsThemePresetMaterial2": "Material 2",
+  "settingsThemePresetFluent": "Fluent",
   "settingsDynamicColor": "动态取色",
   "settingsDynamicColorDesc": "使用系统主题色调整应用配色",
   "settingsColorScheme": "配色方案",
@@ -1021,25 +1066,26 @@
   "settingsDesktopAccentSourceGtk": "GTK",
   "settingsDesktopAccentSourceQt": "Qt",
   "settingsCancel": "取消",
-  "settingsTeamRoleMain": "主开发 / 设计",
-  "settingsTeamRoleZeppOS": "ZeppOS 实现",
-  "settingsTeamRoleHarmony": "HarmonyOS 适配",
+  "settingsTeamRoleMain": "主开发 / 架构 / 设计",
+  "settingsTeamRoleHarmonyOS": "HarmonyOS 移植维护",
+  "settingsTeamRoleDeviceConnection": "macOS 连接优化贡献",
+  "settingsTeamRoleZeppOS": "ZeppOS 适配实现",
   "settingsAboutSoftware": "关于软件",
   "settingsAboutSoftwareDesc": "版本、更新日志与开发团队",
   "settingsAboutSoftwareTagline": "一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建",
   "settingsAboutSoftwareRepository": "打开 GitHub 仓库",
   "settingsAboutSoftwareTeam": "开发团队",
-  "settingsSpecialThanks": "特别感谢",
   "settingsAboutSoftwareBuildInfo": "构建信息",
   "settingsAboutSoftwareCopyright": "Copyright © 2026 OrPudding",
   "acknowledgementsKazumi": "Material Design 组件与界面设计参考",
-  "acknowledgementsAstroBoxPublic": "界面结构、资源流程与交互设计参考",
-  "acknowledgementsAstroBoxNgCore": "小米设备协议、安装流程与传输行为参考",
-  "acknowledgementsAstroBoxNgBluetooth": "蓝牙连接行为参考",
-  "acknowledgementsAstroBoxNgAccount": "小米账号登录、设备同步与 authkey 获取流程参考",
-  "acknowledgementsAstroBoxNgProvider": "社区资源索引、CDN 与清单解析流程参考",
-  "acknowledgementsAstroBoxNgAppWasm": "Web Serial 与浏览器端连接流程参考",
-  "acknowledgementsGadgetbridge": "ZeppOS 与可穿戴设备协议研究参考",
+  "acknowledgementsAstroBoxPublic": "界面结构与交互设计参考",
+  "acknowledgementsAstroBoxNgCore": "小米设备协议与传输层，移植改写",
+  "acknowledgementsAstroBoxNgPb": "小米 wear 协议定义，逐字采用",
+  "acknowledgementsAstroBoxNgBluetooth": "蓝牙连接流程参考",
+  "acknowledgementsAstroBoxNgAccount": "小米账号登录与 authkey 获取流程参考",
+  "acknowledgementsAstroBoxNgProvider": "社区资源索引与清单解析流程参考",
+  "acknowledgementsAstroBoxNgAppWasm": "Web Serial 连接流程参考",
+  "acknowledgementsGadgetbridge": "ZeppOS 协议实现移植改写",
   "acknowledgementsBreezyWeather": "中国天气源实现参考",
   "acknowledgementsOpenMeteo": "天气预报、空气质量与地点搜索数据，遵循 CC BY 4.0",
   "resourceHomeRecommended": "每日推荐",
@@ -1201,8 +1247,10 @@
   "devToolsOperationFailed": "无法更改 DevTools 状态",
   "resourceTypeErrorTitle": "错误的资源类型",
   "resourceTypeUnknownTitle": "无法识别的资源类型",
-  "resourceTypeUnknownNoType": "OronBox 无法识别此文件的资源类型，该文件似乎已损坏",
+  "resourceTypeUnknownNoType": "OronBox 无法识别此文件的资源类型\n该文件似乎已损坏",
   "resourceTypeUnknownCancel": "取消",
+  "watchfaceRestrictedTitle": "无法安装的资源",
+  "watchfaceRestrictedMessage": "为尊重知识产权及遵守相关政策，应小米方面要求\nOronBox 无法安装疑似来自官方表盘商城的表盘\n如果你认为这是一个误报，请让表盘作者联系我们",
   "resourceTypeMismatchMessage": "这似乎是一个{detectedType}资源，但您选择的资源类型为{selectedType}，请选择安装方式",
   "@resourceTypeMismatchMessage": {
     "placeholders": {
@@ -1344,6 +1392,8 @@
   "creatorOperationAuthorizing": "正在等待授权",
   "creatorResolvingPublicationTarget": "正在识别发布分区",
   "creatorStateApproved": "审核通过",
+  "creatorStateReviewing": "审核中",
+  "creatorStatePublishing": "发布中",
   "creatorStateExternalReview": "外部审核中",
   "creatorStateFailed": "发布失败",
   "creatorStateSuperseded": "已被新版本取代",
@@ -1359,7 +1409,6 @@
   "creatorAuthorize": "授权",
   "installQueueFixWatchfaceId": "修改表盘 ID",
   "installQueueFixWatchfaceIdHint": "输入12位以内数字",
-  "creatorAuthorize": "授权",
   "authorize": "授权",
   "creatorBandBbsAuthorized": "已获得米坛资源发布授权",
   "creatorBandBbsAuthorizationRequired": "需要单独授权 OronBox 代表您发布米坛资源",
@@ -1421,7 +1470,7 @@
   "oobeDeclineWebHint": "不接受协议将无法继续使用，请关闭本页面",
   "oobeLoginTitle": "登录账号",
   "oobeLoginBandBbsDesc": "登录米坛账号以访问米坛资源并准备使用创作者服务",
-  "oobeLoginLocalNote": "小米和华米账号登录均在本地完成，相关数据不会被发送给小米/华米以外的第三方",
+  "oobeLoginLocalNote": "小米和华米账号登录均在本地完成\n相关数据不会被发送给小米/华米以外的第三方",
   "oobeLoginXiaomiDesc": "登录小米账号以同步已绑定的小米设备",
   "oobeLoginHuamiDesc": "登录华米账号以访问华米应用商店资源",
   "oobeCdnTesting": "测速中…",
@@ -1430,6 +1479,8 @@
   "oobeDoneTitle": "一切就绪",
   "oobeDoneBody": "开始探索 OronBox 吧",
   "oobeFinish": "完成",
+  "oobeRestoreAction": "从备份恢复",
+  "oobeRestoreSuccess": "备份恢复成功",
   "settingsReplayOobe": "重新引导",
   "settingsReplayOobeDesc": "再次查看欢迎向导与初始设置",
   "creatorConnect": "连接",
@@ -1487,23 +1538,105 @@
   "messageApprovedBody": "你的提交已通过审核。",
   "messageNeedsChangesBody": "审核发现需要修改的问题。",
   "messageReasonBody": "原因：{reason}",
-  "@messageReasonBody": {"placeholders": {"reason": {"type": "String"}}},
+  "@messageReasonBody": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "messageReviewNoteBody": "审核意见：{note}",
-  "@messageReviewNoteBody": {"placeholders": {"note": {"type": "String"}}},
+  "@messageReviewNoteBody": {
+    "placeholders": {
+      "note": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReviewerPrefix": "审核员：{reviewer}",
+  "@messageReviewerPrefix": {
+    "placeholders": {
+      "reviewer": {
+        "type": "String"
+      }
+    }
+  },
+  "messageOperatorPrefix": "操作人：{operator}",
+  "@messageOperatorPrefix": {
+    "placeholders": {
+      "operator": {
+        "type": "String"
+      }
+    }
+  },
+  "messageReferencePrefix": "关联：{reference}",
+  "@messageReferencePrefix": {
+    "placeholders": {
+      "reference": {
+        "type": "String"
+      }
+    }
+  },
+  "messageTargetsPrefix": "发布渠道：{targets}",
+  "@messageTargetsPrefix": {
+    "placeholders": {
+      "targets": {
+        "type": "String"
+      }
+    }
+  },
+  "messageUnapprovedItemsPrefix": "待改进项：{items}",
+  "@messageUnapprovedItemsPrefix": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
   "messageStatusChangedBody": "该项目的状态已发生变化。",
   "messageReportStatusBody": "举报状态：{status}",
-  "@messageReportStatusBody": {"placeholders": {"status": {"type": "String"}}},
+  "@messageReportStatusBody": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
   "messageCoinAddedBody": "你的账号增加了 {amount} 枚硬币。",
-  "@messageCoinAddedBody": {"placeholders": {"amount": {"type": "String"}}},
+  "@messageCoinAddedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "messageCoinDeductedBody": "你的账号扣除了 {amount} 枚硬币。",
-  "@messageCoinDeductedBody": {"placeholders": {"amount": {"type": "String"}}},
+  "@messageCoinDeductedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "messageCoinVoteRevokedBody": "你对该资源投出的 {amount} 枚硬币已被作废。",
-  "@messageCoinVoteRevokedBody": {"placeholders": {"amount": {"type": "String"}}},
+  "@messageCoinVoteRevokedBody": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "messageAppealOverturnedBody": "管理员已撤销原处理结果。",
   "messageAppealUpheldBody": "复核后维持原处理结果。",
   "messageAppealDismissedBody": "该申诉未被受理。",
   "messageRoleChangedBody": "你的账号角色已变更为 {role}。",
-  "@messageRoleChangedBody": {"placeholders": {"role": {"type": "String"}}},
+  "@messageRoleChangedBody": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "cleanMode": "功能开关",
   "cleanModeDescription": "管理主导航、社区功能与资源源",
   "cleanPluginsEntry": "插件主入口",
@@ -1534,22 +1667,39 @@
   "settingsCategorySupport": "支持与信息",
   "settingsCategoryAdvanced": "高级设置",
   "settingsAdvancedDescription": "查看日志与开发者工具",
-  "debugServerTitle": "调试服务",
-  "debugServerDescription": "为可信开发工具提供本地调试接口",
-  "debugServerEnable": "启用调试服务",
-  "debugServerEnableDescription": "允许局域网内已批准的客户端检查和控制 OronBox",
-  "debugServerEndpoint": "访问地址",
-  "debugServerFingerprint": "服务指纹",
-  "debugServerPendingClients": "待批准客户端",
-  "debugServerAuthorizedClients": "已批准客户端",
-  "debugServerApprove": "批准",
-  "debugServerReject": "拒绝",
-  "debugServerRevoke": "撤销访问",
-  "debugServerNoPendingClients": "没有等待批准的客户端",
-  "debugServerNoAuthorizedClients": "暂无已批准客户端",
-  "debugServerSecurityNotice": "请只在可信网络中启用此服务",
-  "debugServerStartFailed": "调试服务启动失败",
-  "debugServerStopFailed": "调试服务停止失败",
+  "localServerTitle": "本地 API 服务",
+  "localServerDescription": "为外部开发与自动化工具提供本地 API 服务",
+  "localServerEnable": "启用本地 API 服务",
+  "localServerEnableDescription": "允许局域网内已批准的客户端检查和控制 OronBox",
+  "localServerEndpoint": "访问地址",
+  "localServerFingerprint": "服务指纹",
+  "localServerPendingClients": "待批准配对",
+  "localServerAuthorizedClients": "已批准客户端",
+  "localServerApprove": "批准",
+  "localServerReject": "拒绝",
+  "localServerRevoke": "撤销访问",
+  "localServerNoPendingClients": "没有等待批准的配对请求",
+  "localServerNoAuthorizedClients": "暂无已批准客户端",
+  "localServerSecurityNotice": "请只在可信网络中启用此服务",
+  "localServerStartFailed": "本地 API 服务启动失败",
+  "localServerStopFailed": "本地 API 服务停止失败",
+  "localServerPairingTitle": "允许通过本地 API 控制 OronBox 吗",
+  "localServerPairingDescription": "“{clientName}” 正在请求管理此设备上的可穿戴服务与命令总线",
+  "@localServerPairingDescription": {
+    "placeholders": {
+      "clientName": {
+        "type": "String"
+      }
+    }
+  },
+  "localServerPairingFingerprint": "Ed25519 SHA-256 指纹",
+  "localServerPairingAlwaysAllow": "始终允许来自此计算机的连接",
+  "localServerPairingAllow": "允许",
+  "localServerPairingDeny": "拒绝",
+  "localServerPairingScopes": "请求权限",
+  "wifiPasswordInputPlaceholder": "请输入 Wi-Fi 密码",
+  "wifiConnectButton": "连接",
+  "wifiCancelButton": "取消",
   "xmsDeveloperMode": "XMS 开发模式",
   "xmsDeveloperModeDescription": "允许不一致的安卓应用签名",
   "oronBoxCoinsTitle": "资源投币",
@@ -1741,48 +1891,915 @@
   "resourcePurchaseFullVersion": "外部购买",
   "creatorBandBbsOverwritePrevious": "覆盖上次提交",
   "creatorBandBbsOverwritePreviousDescription": "创建新版本后删除米坛上一次提交的版本",
-  "deviceAboutTitle": "关于设备", "deviceValueUnavailable": "未提供",
-  "deviceHealthActivityOverview": "活动概览", "deviceHealthActiveCalories": "消耗", "deviceHealthStanding": "站立",
-  "deviceHealthBloodOxygen": "血氧", "deviceHealthStress": "压力", "deviceHealthVitality": "元气值", "deviceHealthWorkout": "运动记录",
-  "deviceHealthAllDaySleep": "全天睡眠", "deviceHealthLongSleep": "长睡眠", "deviceHealthSleepStructure": "睡眠结构", "deviceHealthSleepAverageHeartRate": "睡眠平均心率", "deviceHealthSleepAverageBloodOxygen": "睡眠平均血氧",
-  "deviceHealthTodayTotal": "今日累计", "deviceHealthRecordCount": "条记录", "deviceHealthNoDetailedRange": "暂无详细范围",
-  "deviceHealthActivityTrend": "活动趋势", "deviceHealthTrend": "趋势", "deviceHealthDayView": "日", "deviceHealthWeekView": "周", "deviceHealthMonthView": "月", "deviceHealthLatest": "最新", "deviceHealthAverage": "平均", "deviceHealthRange": "范围",
-  "deviceHealthNoSamples": "暂无详细采样数据", "deviceHealthCurrentVitality": "当前元气值", "deviceHealthLightIntensity": "低强度",
-  "deviceHealthModerateHighIntensity": "中高强度", "deviceHealthNoSleep": "暂无睡眠数据", "deviceHealthNoWorkouts": "暂无运动记录",
-  "deviceHealthSleepStages": "睡眠阶段", "deviceHealthSleepHrv": "睡眠 HRV", "deviceHealthSleepAwake": "清醒", "deviceHealthSleepLight": "浅睡", "deviceHealthSleepDeep": "深睡", "deviceHealthSleepRem": "REM", "deviceHealthSleepNoStages": "暂无睡眠阶段数据",
-  "deviceHealthStepValue": "{value} 步", "deviceHealthFeatureDescription": "查看活动、心率、血氧、压力和睡眠数据",
-  "weatherSyncTitle": "天气同步", "weatherSyncDescription": "选择城市并同步当前天气与预报",
-  "weatherAutoSyncTitle": "自动同步天气数据", "weatherAutoSyncDescription": "在同步设备数据时自动同步天气数据",
-  "alarmManagementTitle": "闹钟管理", "alarmManagementDescription": "添加、编辑、启用或删除设备闹钟",
+  "deviceAboutTitle": "关于设备",
+  "deviceValueUnavailable": "未提供",
+  "deviceHealthActivityOverview": "活动概览",
+  "deviceHealthActiveCalories": "消耗",
+  "deviceHealthStanding": "站立",
+  "deviceHealthBloodOxygen": "血氧",
+  "deviceHealthStress": "压力",
+  "deviceHealthVitality": "元气值",
+  "deviceHealthWorkout": "运动记录",
+  "deviceHealthAllDaySleep": "全天睡眠",
+  "deviceHealthLongSleep": "长睡眠",
+  "deviceHealthSleepStructure": "睡眠结构",
+  "deviceHealthSleepDetails": "睡眠详情",
+  "deviceHealthSleepAverageHeartRate": "睡眠平均心率",
+  "deviceHealthSleepAverageBloodOxygen": "睡眠平均血氧",
+  "deviceHealthTodayTotal": "今日累计",
+  "deviceHealthRecordCount": "条记录",
+  "deviceHealthNoDetailedRange": "暂无详细范围",
+  "deviceHealthActivityTrend": "活动趋势",
+  "deviceHealthTrend": "趋势",
+  "deviceHealthDayView": "日",
+  "deviceHealthWeekView": "周",
+  "deviceHealthMonthView": "月",
+  "deviceHealthLatest": "最新",
+  "deviceHealthAverage": "平均",
+  "deviceHealthRange": "范围",
+  "deviceHealthNoSamples": "暂无详细采样数据",
+  "deviceHealthCurrentVitality": "当前元气值",
+  "deviceHealthLightIntensity": "低强度",
+  "deviceHealthModerateHighIntensity": "中高强度",
+  "deviceHealthNoSleep": "暂无睡眠数据",
+  "deviceHealthNoWorkouts": "暂无运动记录",
+  "deviceHealthSleepStages": "睡眠阶段",
+  "deviceHealthSleepHrv": "睡眠 HRV",
+  "deviceHealthSleepAwake": "清醒",
+  "deviceHealthSleepWakeCount": "{count} 次",
+  "@deviceHealthSleepWakeCount": {
+    "description": "睡眠清醒次数",
+    "placeholders": {
+      "count": {
+        "type": "num",
+        "format": "compact"
+      }
+    }
+  },
+  "deviceHealthSleepLight": "浅睡",
+  "deviceHealthSleepDeep": "深睡",
+  "deviceHealthSleepRem": "REM",
+  "deviceHealthSleepNoStages": "暂无睡眠阶段数据",
+  "deviceHealthStepValue": "{value} 步",
+  "deviceHealthFeatureDescription": "查看活动、心率、血氧、压力和睡眠数据",
+  "weatherSyncTitle": "天气同步",
+  "weatherSyncDescription": "选择城市并同步当前天气与预报",
+  "weatherAutoSyncTitle": "自动同步天气数据",
+  "weatherAutoSyncDescription": "在同步设备数据时自动同步天气数据",
+  "alarmManagementTitle": "闹钟管理",
+  "alarmManagementDescription": "添加、编辑、启用或删除设备闹钟",
   "findDeviceDescription": "让设备持续振动或响铃",
-  "appOrderTitle": "应用顺序管理", "appOrderDescription": "拖动调整设备启动器中的应用顺序", "appOrderSaved": "应用顺序已保存",
-  "appOrderReload": "重新读取", "appOrderUndo": "撤销更改", "appOrderSaving": "保存中…", "appOrderSave": "保存更改",
+  "appOrderTitle": "应用顺序",
+  "appOrderDescription": "拖动调整设备启动器中的应用顺序",
+  "appOrderSaved": "应用顺序已保存",
+  "appOrderReload": "重新读取",
+  "appOrderUndo": "撤销更改",
+  "appOrderSaving": "保存中…",
+  "appOrderSave": "保存更改",
   "appOrderEmpty": "设备没有返回可排序的应用",
-  "appLayoutTitle": "应用布局设置", "appLayoutDescription": "选择设备应用列表的显示方式", "appLayoutLoadFailed": "无法读取应用布局",
-  "appLayoutList": "列表", "appLayoutGrid": "网格", "appLayoutTextGrid": "带文字网格",
-  "firmwareUpdateDescription": "检查更新或安装本地固件", "deviceAboutDescription": "查看型号、系统版本、存储空间和设备标识",
-  "alarmAdd": "添加闹钟", "alarmEdit": "编辑闹钟", "alarmHour": "小时", "alarmMinute": "分钟", "alarmRepeat": "重复",
-  "alarmOnce": "仅一次", "alarmEveryDay": "每天", "alarmWorkdays": "工作日", "alarmHolidays": "节假日", "alarmCustom": "自定义",
-  "alarmLabel": "标签", "alarmDeleteTitle": "删除闹钟？", "alarmWeekly": "每周", "alarmMonthly": "每月", "alarmYearly": "每年",
-  "alarmNoRepeat": "不重复", "alarmCustomDays": "周{days}",
-  "weekdayMonShort": "一", "weekdayTueShort": "二", "weekdayWedShort": "三", "weekdayThuShort": "四", "weekdayFriShort": "五", "weekdaySatShort": "六", "weekdaySunShort": "日",
-  "weatherCityLabel": "同步城市", "weatherCityHint": "输入城市名称", "weatherSyncAction": "同步天气", "weatherSyncing": "同步中…",
-  "weatherHumidity": "相对湿度", "weatherWind": "风力", "weatherAirQuality": "空气质量", "weatherAqiGood": "优", "weatherAqiModerate": "良", "weatherAqiSensitive": "轻度污染", "weatherAqiUnhealthy": "中度污染", "weatherAqiVeryUnhealthy": "重度污染", "weatherAqiHazardous": "严重污染", "weatherUv": "紫外线", "weatherPressure": "气压",
-  "weatherNext24Hours": "未来 24 小时", "weatherNext7Days": "未来 7 天",
+  "appLayoutTitle": "应用布局",
+  "appLayoutDescription": "选择设备应用列表的显示方式",
+  "appLayoutLoadFailed": "无法读取应用布局",
+  "appLayoutList": "列表",
+  "appLayoutGrid": "网格",
+  "appLayoutTextGrid": "带文字网格",
+  "firmwareUpdateDescription": "检查更新或安装本地固件",
+  "deviceAboutDescription": "查看型号、系统版本、存储空间和设备标识",
+  "alarmAdd": "添加闹钟",
+  "alarmEdit": "编辑闹钟",
+  "alarmHour": "小时",
+  "alarmMinute": "分钟",
+  "alarmRepeat": "重复",
+  "alarmOnce": "仅一次",
+  "alarmEveryDay": "每天",
+  "alarmWorkdays": "工作日",
+  "alarmHolidays": "节假日",
+  "alarmCustom": "自定义",
+  "alarmLabel": "标签",
+  "alarmDeleteTitle": "删除闹钟？",
+  "alarmWeekly": "每周",
+  "alarmMonthly": "每月",
+  "alarmYearly": "每年",
+  "alarmNoRepeat": "不重复",
+  "alarmCustomDays": "周{days}",
+  "weekdayMonShort": "一",
+  "weekdayTueShort": "二",
+  "weekdayWedShort": "三",
+  "weekdayThuShort": "四",
+  "weekdayFriShort": "五",
+  "weekdaySatShort": "六",
+  "weekdaySunShort": "日",
+  "weatherCityLabel": "同步城市",
+  "weatherCityHint": "输入城市名称",
+  "weatherSyncAction": "同步天气",
+  "weatherSyncing": "同步中…",
+  "weatherHumidity": "相对湿度",
+  "weatherWind": "风力",
+  "weatherAirQuality": "空气质量",
+  "weatherAqiGood": "优",
+  "weatherAqiModerate": "良",
+  "weatherAqiSensitive": "轻度污染",
+  "weatherAqiUnhealthy": "中度污染",
+  "weatherAqiVeryUnhealthy": "重度污染",
+  "weatherAqiHazardous": "严重污染",
+  "weatherUv": "紫外线",
+  "weatherPressure": "气压",
+  "weatherNext24Hours": "未来 24 小时",
+  "weatherNext7Days": "未来 7 天",
   "weatherDataSource": "数据来源：{source}",
-  "@weatherDataSource": {"placeholders": {"source": {}}},
-  "weatherLevelDirection": "{level} 级 · {direction}", "weatherLevelDirectionCompact": "{level} 级 {direction}",
+  "@weatherDataSource": {
+    "placeholders": {
+      "source": {}
+    }
+  },
+  "weatherLevelDirection": "{level} 级 · {direction}",
+  "weatherLevelDirectionCompact": "{level} 级 {direction}",
   "weatherForecastSummary": "{condition} · 日出 {sunrise} · 日落 {sunset}",
-  "weatherClear": "晴", "weatherPartlyCloudy": "少云", "weatherCloudy": "阴", "weatherLightRain": "小雨", "weatherHeavyRain": "大雨",
-  "weatherThunderstorm": "雷雨", "weatherSnow": "降雪", "weatherFog": "雾", "weatherUnknown": "未知", "weatherUnknownDate": "未知日期",
+  "weatherClear": "晴",
+  "weatherPartlyCloudy": "少云",
+  "weatherCloudy": "阴",
+  "weatherLightRain": "小雨",
+  "weatherHeavyRain": "大雨",
+  "weatherThunderstorm": "雷雨",
+  "weatherSnow": "降雪",
+  "weatherFog": "雾",
+  "weatherUnknown": "未知",
+  "weatherUnknownDate": "未知日期",
   "weatherUpdatedAt": "{time} 更新",
-  "windNorth": "北", "windNorthEast": "东北", "windEast": "东", "windSouthEast": "东南", "windSouth": "南", "windSouthWest": "西南", "windWest": "西", "windNorthWest": "西北",
+  "windNorth": "北",
+  "windNorthEast": "东北",
+  "windEast": "东",
+  "windSouthEast": "东南",
+  "windSouth": "南",
+  "windSouthWest": "西南",
+  "windWest": "西",
+  "windNorthWest": "西北",
   "xiaomiScreenshotTitle": "设备截图",
   "xiaomiScreenshotDescription": "在设备上使用组合键截图，截图会自动同步到这里",
   "xiaomiScreenshotAction": "获取截图",
   "xiaomiScreenshotLoading": "获取中…",
   "xiaomiScreenshotEmpty": "暂无截图",
   "xiaomiScreenshotFailed": "获取截图失败",
+  "xiaomiScreenshotDownloadStarted": "已发起截图下载",
+  "xiaomiScreenshotSaveFailed": "保存截图失败",
   "xiaomiScreenshotSaved": "手表截图已保存至：{path}",
-  "@xiaomiScreenshotSaved": {"placeholders": {"path": {}}}
+  "@xiaomiScreenshotSaved": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "deviceHealthRecoveryTime": "恢复时间",
+  "deviceHealthTodayLoad": "今日负荷",
+  "deviceHealthSevenDayLoad": "7 日负荷",
+  "deviceHealthLoadLevel": "负荷等级",
+  "deviceHealthFitnessBalance": "体能平衡",
+  "deviceHealthFitnessLevel": "体能水平",
+  "deviceHealthFatigueLevel": "疲劳水平",
+  "deviceHealthTrainingStress": "训练压力",
+  "deviceHealthTrainingStatus": "训练状态",
+  "deviceHealthSevenDayVitality": "近 7 日元气值",
+  "deviceHealthEarnedToday": "当日获得",
+  "deviceHealthEarnedInPeriod": "所选期间获得",
+  "deviceHealthModerateIntensity": "中等强度",
+  "deviceHealthHighIntensity": "高强度",
+  "deviceHealthNap": "小睡",
+  "deviceHealthNapSingular": "小睡",
+  "deviceHealthWorkoutOverview": "运动概览",
+  "deviceHealthWorkoutHistory": "历史记录",
+  "deviceHealthWorkoutDuration": "运动时长",
+  "deviceHealthWorkoutRoute": "运动路线",
+  "deviceHealthWorkoutDetails": "详细数据",
+  "deviceHealthSwimmingSections": "游泳分段",
+  "deviceHealthWorkoutCharts": "运动曲线",
+  "deviceHealthActiveDuration": "有效时长",
+  "deviceHealthAveragePace": "平均配速",
+  "deviceHealthBestPace": "最佳配速",
+  "deviceHealthHeartRateRange": "心率范围",
+  "deviceHealthBloodOxygenRange": "血氧范围",
+  "deviceHealthMainStroke": "主要泳姿",
+  "deviceHealthHeartRateZones": "心率区间",
+  "deviceHealthZoneLabel": "区间 {zone}",
+  "@deviceHealthZoneLabel": {
+    "placeholders": {
+      "zone": {}
+    }
+  },
+  "deviceHealthZoneWarmup": "热身",
+  "deviceHealthZoneFatBurning": "燃脂",
+  "deviceHealthZoneAerobic": "有氧",
+  "deviceHealthZoneAnaerobic": "无氧",
+  "deviceHealthZoneExtreme": "极限",
+  "deviceHealthRecoveryAfterWorkout": "运动后心率恢复",
+  "deviceHealthRecoveredHeartRate": "恢复心率",
+  "deviceHealthRecoveryRate": "恢复率",
+  "deviceHealthSamples": "采样点",
+  "deviceHealthAverageSpeed": "平均速度",
+  "deviceHealthTopSpeed": "最高速度",
+  "deviceHealthAverageStride": "平均步幅",
+  "deviceHealthAverageCadence": "平均步频",
+  "deviceHealthMaximumCadence": "最高步频",
+  "deviceHealthAverageBloodOxygenDetail": "平均血氧",
+  "deviceHealthTotalAscent": "累计上升",
+  "deviceHealthTotalDescent": "累计下降",
+  "deviceHealthAverageAltitude": "平均海拔",
+  "deviceHealthAerobicEffect": "有氧训练效果",
+  "deviceHealthAnaerobicEffect": "无氧训练效果",
+  "deviceHealthPeakEffect": "巅峰训练效果",
+  "deviceHealthVo2Max": "最大摄氧量",
+  "deviceHealthBodyEnergyUsed": "身体能量消耗",
+  "deviceHealthExpectedRecovery": "预计恢复",
+  "deviceHealthTrainingLoad": "训练负荷",
+  "deviceHealthVitalityEarned": "获得元气值",
+  "deviceHealthAveragePower": "平均功率",
+  "deviceHealthMaximumPower": "最大功率",
+  "deviceHealthArmPulls": "划水次数",
+  "deviceHealthAverageStrokeRate": "平均划频",
+  "deviceHealthMaximumStrokeRate": "最高划频",
+  "deviceHealthTurns": "转身次数",
+  "deviceHealthAverageSwolf": "平均 SWOLF",
+  "deviceHealthBestSwolf": "最佳 SWOLF",
+  "deviceHealthPoolLength": "泳池长度",
+  "deviceHealthJumps": "跳绳次数",
+  "deviceHealthAverageJumpRate": "平均跳频",
+  "deviceHealthBestJumpRate": "最佳跳频",
+  "deviceHealthTrips": "绊脚次数",
+  "deviceHealthSets": "组数",
+  "deviceHealthTotalStrokes": "总划次",
+  "deviceHealthAverageRowingRate": "平均桨频",
+  "deviceHealthBestRowingRate": "最佳桨频",
+  "deviceHealthChartHeartRate": "心率",
+  "deviceHealthChartCadence": "步频",
+  "deviceHealthChartPace": "配速",
+  "deviceHealthChartSpeed": "速度",
+  "deviceHealthChartPower": "功率",
+  "deviceHealthChartStrokeRate": "划频",
+  "deviceHealthChartJumpRate": "跳频",
+  "deviceHealthChartBloodOxygen": "血氧",
+  "deviceHealthChartStress": "压力",
+  "deviceHealthWorkoutOutdoorRunning": "户外跑步",
+  "deviceHealthWorkoutOutdoorWalking": "户外健走",
+  "deviceHealthWorkoutIndoorRunning": "室内跑步",
+  "deviceHealthWorkoutMountaineering": "登山",
+  "deviceHealthWorkoutTrailRunning": "越野跑",
+  "deviceHealthWorkoutOutdoorCycling": "户外骑行",
+  "deviceHealthWorkoutIndoorCycling": "室内骑行",
+  "deviceHealthWorkoutFreeTraining": "自由训练",
+  "deviceHealthWorkoutSwimming": "游泳",
+  "deviceHealthWorkoutElliptical": "椭圆机",
+  "deviceHealthWorkoutRowing": "划船机",
+  "deviceHealthWorkoutJumpRope": "跳绳",
+  "deviceHealthWorkoutHiking": "徒步",
+  "deviceHealthWorkoutGeneric": "运动",
+  "deviceHealthWorkoutExport": "导出 FIT",
+  "deviceHealthWorkoutExported": "FIT 已导出至 {path}",
+  "deviceHealthWorkoutExportFailed": "无法导出 FIT：{error}",
+  "@deviceHealthWorkoutExported": {
+    "placeholders": {
+      "path": {}
+    }
+  },
+  "@deviceHealthWorkoutExportFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "deviceHealthStrokeMedley": "混合泳",
+  "deviceHealthStrokeBreaststroke": "蛙泳",
+  "deviceHealthStrokeFreestyle": "自由泳",
+  "deviceHealthStrokeBackstroke": "仰泳",
+  "deviceHealthStrokeButterfly": "蝶泳",
+  "deviceHealthSectionLabel": "分段",
+  "deviceHealthVitalityRunSuggestion": "建议跑步 {minutes} 分钟以接近下一个目标",
+  "@deviceHealthVitalityRunSuggestion": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "deviceHealthVitalityActiveMinutes": "距离下一个目标还需 {minutes} 分钟活动",
+  "@deviceHealthVitalityActiveMinutes": {
+    "placeholders": {
+      "minutes": {}
+    }
+  },
+  "deviceHealthLatestHeartRate": "最近心率",
+  "deviceHealthLatestBloodOxygen": "最近血氧",
+  "deviceHealthLatestStress": "最近压力",
+  "deviceHealthDebugSnapshots": "活动文件",
+  "deviceHealthDebugSnapshotList": "活动文件",
+  "deviceHealthDebugSnapshotsDescription": "已保存的活动文件，可导出",
+  "deviceHealthDebugRefresh": "刷新",
+  "deviceHealthDebugRefreshDescription": "重新读取已保存的活动文件列表",
+  "deviceHealthDebugClearAll": "全部清除",
+  "deviceHealthDebugClearAllDescription": "删除所有已保存的活动文件",
+  "deviceHealthDebugNoSnapshots": "暂无活动文件",
+  "deviceHealthDebugReload": "重放",
+  "deviceHealthDebugReloaded": "活动文件已重放",
+  "deviceHealthDebugFiles": "{count} 个文件",
+  "@deviceHealthDebugFiles": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "creatorAccounts": "账号",
+  "creatorPendingItems": "待处理事项",
+  "creatorResourceStatus": "资源状态",
+  "creatorOverview": "概览",
+  "creatorManage": "管理",
+  "creatorManageUnavailable": "管理功能暂不可用",
+  "creatorReviewTab": "审核",
+  "creatorReviewQueue": "审核列表",
+  "creatorReviewStatus": "审核状态",
+  "creatorReviewActive": "进行中",
+  "creatorReviewChangesRequested": "需要修改",
+  "creatorReviewDeclined": "已拒绝",
+  "creatorReviewClosed": "已关闭",
+  "creatorReviewFixedPending": "已修复待复核",
+  "creatorNoPendingReviews": "暂无待审核",
+  "creatorNoReviews": "暂无审核",
+  "creatorNeedsChanges": "需要修改",
+  "creatorConnected": "已连接",
+  "creatorNotConnected": "未连接",
+  "creatorCenterExitTitle": "退出创作者中心",
+  "creatorCenterExitMessage": "确定要退出创作者中心吗？",
+  "creatorEditComment": "编辑评论",
+  "creatorReply": "回复",
+  "creatorReplyingTo": "正在回复 #{id}",
+  "@creatorReplyingTo": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "creatorReplyPrefix": "回复 #{id}：",
+  "@creatorReplyPrefix": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "creatorSupplement": "补充说明",
+  "creatorModifyResource": "修改资源",
+  "creatorAstroBoxReview": "AstroBox 审核",
+  "creatorGithubPr": "GitHub 仓库与 PR",
+  "creatorApplyChanges": "应用修改",
+  "creatorUpdatedAt": "更新时间",
+  "creatorSubmittedAt": "提交时间",
+  "creatorPublicationStatus": "发布状态",
+  "creatorStageInfo": "编辑信息",
+  "creatorStageFiles": "文件绑定",
+  "creatorStagePublish": "发布配置",
+  "creatorNextStep": "下一步",
+  "creatorWatchfaceMissingId": "表盘识别失败或全零：表盘缺少 ID，无法上传",
+  "creatorWatchfaceZeroIdTitle": "识别到表盘 ID 为全零，请修改后上传",
+  "creatorWatchfacePayloadTooShort": "表盘文件过小，无法写入 ID 字段",
+  "creatorQuickAppMissingPackage": "快应用识别失败：快应用缺少包名，无法上传",
+  "creatorVelajsDefaultPackage": "识别到快应用包名为 com.application.watch.demo，这是 VelaJS 项目默认包名，请先修改后再上传",
+  "creatorFilteredSupport": "过滤支持",
+  "creatorSkippedPublication": "跳过发布",
+  "creatorAstroBoxUnsupportedDevicesNotice": "勾选的部分支持设备暂不支持同步发布到 AstroBox，将会过滤这部分设备的支持声明",
+  "creatorBandBbsUnsupportedDevicesNotice": "勾选的部分支持设备暂不支持同步发布到米坛社区，将会跳过这部分设备的发布",
+  "errorSppBondRemovalFailed": "安卓版本低于 11，系统不支持 removeBond，如果出现频繁断连，请先在小米运动健康中切换到其他设备，或关闭其“发现附近的设备”权限",
+  "viewAllResources": "查看全部",
+  "deviceHealthMinimum": "最低",
+  "deviceHealthMaximum": "最高",
+  "deviceHealthResting": "静息",
+  "deviceHealthDebugExport": "导出活动文件",
+  "deviceHealthDebugExportTooltip": "导出活动文件",
+  "deviceHealthDebugExported": "活动文件已导出到：{path}",
+  "deviceHealthDebugExportFailed": "无法导出活动文件：{error}",
+  "deviceHealthDebugImport": "导入活动文件",
+  "deviceHealthDebugImportDescription": "导入此前导出的活动文件",
+  "deviceHealthDebugImported": "已导入 {deviceCode}（{files} 个文件）",
+  "deviceHealthDebugImportFailed": "无法导入活动文件：{error}",
+  "commentDeletedPlaceholder": "评论已删除",
+  "commentViewReplies": "查看全部 {count} 条回复",
+  "commentThreadTitle": "评论详情",
+  "commentReplyTarget": "回复 {username}",
+  "commentLoadEarlier": "加载更早的回复",
+  "@commentViewReplies": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@commentReplyTarget": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "messageCommentCreatedTitle": "资源收到新评论",
+  "scanQrCode": "扫描二维码",
+  "deviceSwitchQrImport": "扫描分享二维码导入已有设备",
+  "creatorCollectionReplacePendingDescription": "提交后将替换待审版本\n已上线版本不受影响",
+  "creatorCollectionNoMatchingResources": "暂无同类型资源\n请先在创作者中心创建资源",
+  "commentCreateFailed": "发表评论失败，请重试",
+  "commentsReadFailed": "读取评论失败，请重试",
+  "commentDeleteFailed": "删除评论失败，请重试",
+  "errorRequestTimeout": "请求超时，请重试",
+  "creatorCollectionReplacePendingTitle": "替换待审版本？",
+  "creatorCollectionReplaceAndSubmit": "替换并提审",
+  "creatorCollectionCreateTitle": "创建合集",
+  "creatorCollectionEditTitle": "编辑合集",
+  "creatorCollectionCurrentRevision": "线上版本：{number}",
+  "@creatorCollectionCurrentRevision": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorCollectionPendingRevision": "待审版本：{number}",
+  "@creatorCollectionPendingRevision": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorCollectionHistory": "查看／参考历史版本",
+  "creatorCollectionBody": "正文（Markdown）",
+  "creatorMediaIcon": "图标",
+  "creatorMediaCover": "封面",
+  "creatorMediaUnset": "未设置",
+  "creatorMediaSet": "已设置",
+  "creatorCollectionMemberOrder": "成员顺序与代表资源",
+  "creatorCollectionMemberUnavailable": "资源不可用，请移除",
+  "creatorCollectionSetRepresentative": "设为代表资源",
+  "creatorCollectionAddMember": "添加成员",
+  "creatorImageReadFailed": "无法读取图片",
+  "creatorImageProcessFailed": "无法处理图片",
+  "creatorPublicationRetry": "重试发布",
+  "creatorTermsLoadFailed": "发布条款加载失败",
+  "creatorReviewItems": "整改项",
+  "creatorReviewFixReplied": "已回复修正",
+  "creatorReviewReplyFix": "回复修正",
+  "creatorTermsUpdated": "资源发布条款已更新",
+  "creatorPublishingLater": "暂不发布",
+  "creatorTermsAgree": "已阅读并同意",
+  "updateAssetUnavailable": "此版本没有适用于当前平台的安装包",
+  "legalDocumentUnavailable": "文档暂不可用，请重试",
+  "deviceImportTitle": "导入设备",
+  "qrScanFromImage": "从图片识别",
+  "qrScanNoCode": "未识别到二维码",
+  "qrScanImageFailed": "无法识别这张图片",
+  "qrScanCameraUnavailable": "相机不可用\n可以选择图片识别二维码",
+  "qrScanChooseCode": "选择二维码",
+  "qrScanCodeLabel": "二维码 {index}",
+  "@qrScanCodeLabel": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "qrScanUnsupported": "当前平台暂不支持二维码识别",
+  "featureLabTitle": "功能实验室",
+  "featureLabDescription": "测试一些正在开发中的功能",
+  "voiceAssistantDescription": "接收设备语音、监听和回复",
+  "voiceLabConnectDevice": "连接设备后，在设备上唤醒语音助手",
+  "voiceLabCaptureLimit": "录音已达到上限，请清空后重试",
+  "voiceLabReplyTooLong": "回复内容过长",
+  "voiceLabRecognitionLabel": "识别结果",
+  "voiceLabRecognitionHint": "输入识别出的文字",
+  "appDataTitle": "应用数据",
+  "appDataDescription": "查看存储占用和导出文件",
+  "appDataSpaceUsage": "分类占用",
+  "appDataHealth": "活动文件",
+  "appDataPlugins": "插件",
+  "appDataZeppos": "ZeppOS 应用数据",
+  "appDataRecovery": "导入恢复数据",
+  "appDataDownloads": "资源和更新下载",
+  "appDataPluginCache": "插件缓存",
+  "appDataManageSnapshots": "管理已保存的活动文件",
+  "appDataExported": "已保存导出文件",
+  "appDataLoadFailed": "无法读取应用数据",
+  "appDataExportFailed": "文件导出失败",
+  "appDataArchiveTooLarge": "活动文件过大，请分别导出",
+  "appDataUpdateFailed": "应用数据修改失败",
+  "appDataBackup": "导出备份",
+  "appDataBackupDescription": "选择并导出需要保留的本地数据",
+  "appDataRestore": "恢复备份",
+  "appDataRestoreDescription": "选择要恢复的数据\n相同设备的本地健康历史将被替换",
+  "appDataSettings": "应用设置",
+  "appDataHealthDevices": "健康历史（{count} 台设备）",
+  "appDataRestored": "备份已恢复\n重启应用以应用全部设置",
+  "appDataRestoreFailed": "备份恢复失败",
+  "appDataRecover": "撤销上次恢复",
+  "appDataRecoveryPending": "上次恢复未完成，请先选择是否撤销",
+  "appDataRecoverDescription": "将恢复到上次导入前的设置和健康历史\n之后新增的本地健康数据也会被替换",
+  "@appDataHealthDevices": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "voiceAsrMethod": "识别方式",
+  "voiceAsrManual": "手动输入",
+  "voiceAsrLocal": "本地识别",
+  "voiceAsrWeType": "微信输入法",
+  "voiceAsrDoubao": "豆包输入法",
+  "voiceAsrWasm": "WASM 实验",
+  "voiceAsrCloudConsent": "录音将发送至{provider}进行识别\n仅在此页面使用时发送",
+  "voiceAsrPreparing": "正在准备识别",
+  "voiceAsrRecognizing": "正在识别",
+  "voiceAsrFinishing": "正在处理最后的语音",
+  "voiceAsrFinished": "识别完成",
+  "voiceAsrModelReady": "本地中英识别数据已就绪",
+  "voiceAsrModelDescription": "本地中英识别\n首次使用需下载模型和识别组件",
+  "voiceAsrDownloadModel": "下载识别数据",
+  "voiceAsrDeleteModel": "删除识别数据",
+  "voiceAsrSendRecognition": "发送识别结果",
+  "voiceAsrModelMissing": "请先下载本地识别数据",
+  "voiceAsrModelDamaged": "识别数据损坏，请删除后重新下载",
+  "voiceAsrDownloadFailed": "模型下载失败，请检查网络后重试",
+  "voiceAsrRegistrationFailed": "无法启用此识别服务，请稍后重试",
+  "voiceAsrServiceRejected": "识别服务拒绝了本次请求",
+  "voiceAsrTimeout": "等待识别结果超时，请重新说话",
+  "voiceAsrOpusUnsupported": "此设备的音频暂不适用于微信输入法",
+  "voiceAsrUnsupported": "此平台暂不支持这种识别方式",
+  "voiceAsrTooSlow": "识别处理过慢，请结束本轮后重试",
+  "voiceAsrNoSpeech": "未识别到语音",
+  "voiceAsrInvalidResponse": "识别服务返回了无效结果",
+  "voiceAsrInferenceFailed": "本地识别失败，请重新选择识别方式",
+  "voiceAsrCancelled": "已取消识别",
+  "voiceAsrConnectionFailed": "无法连接识别服务，请检查网络后重试",
+  "@voiceAsrCloudConsent": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "appDataModels": "语音识别数据",
+  "appDataTasks": "任务记录",
+  "appDataDocuments": "文档缓存",
+  "privateStateLoadFailed": "暂时无法读取已保存的账号和设备\n请重试",
+  "privateStateSaveFailed": "未能保存账号或设备的更改\n请重试",
+  "resetPrivateStorageAction": "重置本地凭证",
+  "resetPrivateStorageTitle": "重置本地账号与设备",
+  "resetPrivateStorageMessage": "重置后需要重新登录账号并重新连接设备\n已保存的运动健康历史数据与应用设置不会丢失",
+  "confirmReset": "确认重置",
+  "voiceAsrStorageFull": "存储空间不足\n请清理后重试",
+  "voiceAsrReconnect": "重新连接识别服务",
+  "voiceAsrReconnectDescription": "重新连接后将重新注册此识别服务\n不会影响已登录的账号",
+  "voiceAsrReconnectFailed": "重新连接失败",
+  "appDataClearCache": "清理缓存",
+  "appDataClearCacheDescription": "清理图片、插件、文档缓存及过期临时文件\n运行中的插件和设备应用将停止",
+  "appDataCacheCleared": "缓存已清理",
+  "voiceAsrReplayRecording": "回放当前录音",
+  "voiceAsrImportWave": "导入 WAV",
+  "voiceAsrReplayDescription": "选择识别方式后回放录音或导入 WAV\n仅支持 16 kHz 单声道 PCM16，最长 60 秒\n在线识别会将音频发送给所选服务",
+  "voiceAsrReplayMetrics": "耗时 {elapsed} ms · 首次结果 {first} ms · 实时因子 {factor}",
+  "voiceAsrExportReport": "导出测试报告",
+  "voiceAsrWaveFormat": "请选择 16 kHz 单声道 PCM16 WAV\n音频时长不超过 60 秒",
+  "voiceAsrReplayBusy": "请先结束当前语音或识别任务",
+  "@voiceAsrReplayMetrics": {
+    "placeholders": {
+      "elapsed": {
+        "type": "String"
+      },
+      "first": {
+        "type": "String"
+      },
+      "factor": {
+        "type": "String"
+      }
+    }
+  },
+  "appDataExtensionSettings": "插件与设备应用数据",
+  "appDataExtensionSettingsDescription": "插件和设备应用的设置及数据",
+  "appDataExtensionMissing": "请先安装备份中相同版本的插件和对应设备应用",
+  "appDataImageCache": "图片缓存",
+  "appDataSelectBackup": "选择要备份的数据",
+  "appDataSettingsDescription": "主题、语言和功能偏好",
+  "appDataHealthDescription": "设备同步的运动健康数据",
+  "appDataDeviceKeys": "设备配对与密钥",
+  "appDataDeviceKeysDescription": "设备列表及连接所需的认证信息",
+  "appDataXiaomiAccount": "小米与华米账号信息",
+  "appDataXiaomiAccountDescription": "账号密码及当前登录会话",
+  "appDataSensitiveBackup": "备份包含未加密的账号凭证\n请妥善保管，不要分享",
+  "appDataImportDescription": "从备份文件选择数据进行恢复",
+  "appDataPluginDescription": "已安装插件及其本地数据",
+  "appDataZepposDescription": "设备应用脚本和本地设置",
+  "appDataLogsDescription": "应用运行和问题排查记录",
+  "appDataRecoveryDescription": "恢复未完成时保留的数据",
+  "appDataDownloadsDescription": "下载和安装产生的临时文件",
+  "appDataPluginCacheDescription": "插件缓存和可回收临时文件",
+  "appDataImagesDescription": "浏览资源时保存的图片缓存",
+  "appDataModelsDescription": "已下载的语音模型和识别组件",
+  "appDataTasksDescription": "下载和安装任务的进度记录",
+  "appDataDocumentsDescription": "协议和隐私说明的本地副本",
+  "phoneLocationTitle": "辅助定位",
+  "deviceFeaturesGroupTitle": "常用功能与应用",
+  "deviceSettingsGroupTitle": "设备设置与维护",
+  "phoneLocationStatusSection": "运行状态",
+  "phoneLocationPermissionsSection": "定位权限",
+  "phoneLocationOptionsSection": "协同选项",
+  "phoneLocationReady": "辅助定位已就绪",
+  "phoneLocationReadyDesc": "设备发起户外运动时将自动协同定位",
+  "phoneLocationServiceEnabled": "系统定位服务",
+  "phoneLocationPreciseTitle": "精确位置",
+  "phoneLocationPreciseGranted": "已授予精确位置",
+  "phoneLocationPreciseDenied": "未授予精确位置",
+  "phoneLocationBackgroundTitle": "后台定位",
+  "phoneLocationBackgroundAlways": "始终允许",
+  "phoneLocationBackgroundWhileInUse": "仅在使用中允许",
+  "phoneLocationBackgroundDenied": "未授权",
+  "phoneLocationAutoSync": "自动辅助定位",
+  "phoneLocationAutoSyncDesc": "设备发起户外运动时自动提供手机 GPS 定位",
+  "phoneLocationEnabledText": "已开启",
+  "phoneLocationDisabledText": "未开启",
+  "phoneLocationNotification": "向设备提供运动位置",
+  "phoneLocationDescription": "运动准备和进行期间提供手机位置",
+  "phoneLocationOpenApp": "打开 OronBox 继续定位",
+  "phoneLocationRecovery": "打开应用后重试设备上的运动",
+  "phoneLocationPermission": "需要精确位置权限",
+  "phoneLocationBackground": "允许后台定位",
+  "phoneLocationBackgroundDescription": "在后台接收设备的运动定位请求",
+  "phoneLocationSettings": "打开系统设置",
+  "phoneLocationServiceOff": "定位服务未开启",
+  "phoneLocationPermissionHelp": "请授予精确位置权限后重试",
+  "phoneLocationMobileOnly": "此功能仅支持 Android 和 iOS",
+  "phoneLocationUnavailable": "无法获取手机位置\n请检查定位权限和定位服务",
+  "deviceConnectionAbnormalTitle": "设备连接异常",
+  "deviceConnectionAbnormalMessage": "设备频繁断开，建议重新配对或确保设备端进入“连接新手机”模式，以提升连接稳定性",
+  "deviceRePair": "重新配对",
+  "appDataClearCategoryTitle": "清理{category}？",
+  "appDataClearCategoryDescription": "将移除此分类的本地数据\n其它分类不受影响",
+  "appDataClearHealthDescription": "将删除已同步的活动文件\n本地运动健康数据将清空",
+  "appDataClearCachedCategoryDescription": "仅清理未使用的缓存文件\n需要时会重新下载",
+  "appDataClearModelsDescription": "保留当前模型\n清理未使用的旧版本和过期下载",
+  "settingsPermissionsTitle": "权限管理",
+  "settingsPermissionsDesc": "应用运行与设备协同权限",
+  "appArrangementTitle": "应用排布",
+  "appArrangementDescription": "调整应用显示顺序与抽屉布局",
+  "appOrderMainSection": "显示应用",
+  "appOrderMoreSection": "更多应用",
+  "appOrderHiddenSection": "隐藏应用",
+  "appOrderMoreSectionDesc": "设备二级抽屉中显示的应用",
+  "appOrderHiddenSectionDesc": "不在设备上显示的应用",
+  "appOrderMoveToMore": "移入更多",
+  "appOrderMoveToMain": "移入列表",
+  "appOrderHide": "隐藏",
+  "appOrderUnhide": "显示",
+  "appOrderCannotHide": "系统常驻应用不可隐藏",
+  "privateStateAccessPromptTitle": "OronBox 需要访问系统安全存储保护的账号凭据",
+  "privateStateAccessPromptMacOs": "若出现系统授权弹窗，请输入用户密码并点击“始终允许”以避免重复提示",
+  "privateStateAccessPromptLinux": "若出现系统解锁弹窗，请输入用户密码解锁密钥环",
+  "creatorSubmissionPreview": "查看提交预览",
+  "creatorResourceBinding": "资源关联",
+  "creatorPublicationIdentity": "发布账号",
+  "creatorPublicationRange": "本次发布",
+  "creatorNewPublication": "首次发布",
+  "creatorUpdatePublication": "更新已有资源",
+  "creatorAppendSubmission": "追加至 PR #{number}",
+  "@creatorAppendSubmission": {
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorPublicationExcludedDevices": "暂不发布到这些设备：{devices}",
+  "@creatorPublicationExcludedDevices": {
+    "placeholders": {
+      "devices": {
+        "type": "String"
+      }
+    }
+  },
+  "creatorBackToEdit": "返回修改",
+  "creatorPackageVersionCodeMissing": "安装包缺少有效的版本代码，请重新打包后上传",
+  "creatorReopenSubmission": "请求重新审核",
+  "creatorReopenRequested": "已请求重新审核",
+  "creatorFixesForSubmission": "本次已修复的问题",
+  "creatorFixNote": "修复说明",
+  "creatorNameRequired": "请填写资源名称",
+  "creatorSummaryRequired": "请填写资源简介",
+  "creatorSubmitForReview": "提交审核",
+  "creatorAstroBoxPRBody": "PR 说明（选填）",
+  "autoBackupTitle": "定时备份",
+  "autoBackupDescription": "定期将应用数据备份并保存至系统文档目录",
+  "autoBackupEnabled": "启用定时备份",
+  "autoBackupInterval": "备份频率",
+  "autoBackupEvery": "每",
+  "autoBackupUnitDay": "天",
+  "autoBackupUnitWeek": "周",
+  "autoBackupUnitMonth": "月",
+  "autoBackupRetention": "保留份数",
+  "autoBackupRetentionCount": "{count} 份",
+  "@autoBackupRetentionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "autoBackupRetentionUnlimited": "不限制",
+  "autoBackupPasswordEnable": "密码保护",
+  "autoBackupPasswordEnableDesc": "使用标准 AES-256 为备份加密",
+  "autoBackupPassword": "备份密码",
+  "autoBackupPasswordConfirm": "确认密码",
+  "autoBackupPasswordMismatch": "两次输入的密码不一致",
+  "autoBackupPasswordPlaceholder": "请输入密码",
+  "autoBackupScope": "备份范围",
+  "autoBackupScopeSettings": "偏好设置",
+  "autoBackupScopeHealth": "健康数据",
+  "autoBackupScopeExtensions": "扩展应用数据",
+  "autoBackupScopeDevices": "设备连接信息",
+  "autoBackupStorageLocation": "存储位置",
+  "autoBackupStorageLocationDesc": "备份文件自动保存至系统公有文档目录",
+  "autoBackupOpenFolder": "在文件管理器中打开",
+  "autoBackupStatusEnabled": "已开启 · 每 {value} {unit}",
+  "@autoBackupStatusEnabled": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "autoBackupStatusDisabled": "未开启",
+  "autoBackupRunNow": "立即备份",
+  "autoBackupRunSuccess": "自动备份完成",
+  "autoBackupRunFailed": "自动备份失败",
+  "backupPasswordDialogTitle": "输入备份密码",
+  "backupPasswordDialogMessage": "此备份已加密，请输入密码解密",
+  "backupPasswordIncorrect": "密码错误，无法解密",
+  "backupPasswordRequired": "请输入密码",
+  "exportBackupPasswordOptional": "备份密码（可选）",
+  "exportBackupPasswordPlaceholder": "留空则不加密",
+  "backupTargetPublicDocuments": "保存至系统文档目录",
+  "backupTargetCustom": "另存为外部文件",
+  "restoreFromDocumentsTitle": "选择要恢复的备份",
+  "restorePickExternalFile": "选择其他外部文件...",
+  "backupSavedToDocuments": "备份已保存至系统文档目录",
+  "appDataExporting": "正在导出并加密备份，请稍等",
+  "appDataDecrypting": "正在解密备份，请稍等",
+  "appDataRestoring": "正在恢复数据，请稍等",
+  "autoBackupRetentionInputHint": "0 为不限制",
+  "autoBackupRetentionLabel": "保留份数（0 为不限制）",
+  "autoBackupRetentionUnit": "份",
+  "backupTypeAuto": "定时备份",
+  "backupTypeManual": "手动备份",
+  "autoBackupStatusDetail": "已开启 · 每 {value} {unit} · 保留 {retentionText}",
+  "@autoBackupStatusDetail": {
+    "placeholders": {
+      "value": {
+        "type": "int"
+      },
+      "unit": {
+        "type": "String"
+      },
+      "retentionText": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiTitle": "全局 AI",
+  "globalAiDescription": "配置大语言模型及穿戴助手智能联动",
+  "globalAiEnableSwitch": "启用全局 AI",
+  "globalAiEnableSwitchDesc": "开启客户端全局大语言模型接入与智能能力支持",
+  "globalAiProviders": "提供商管理",
+  "globalAiProvidersCount": "已配置 {count} 个提供商",
+  "@globalAiProvidersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiModelSettings": "模型设置",
+  "globalAiTestConnection": "测试连接",
+  "globalAiStreamResponse": "流式响应",
+  "globalAiStreamResponseDesc": "启用后模型将逐字打字机下发",
+  "globalAiWearableSection": "穿戴设备",
+  "globalAiWearableEnable": "穿戴侧启用",
+  "globalAiWearableEnableDesc": "开启后穿戴设备语音助手将由大语言模型接管",
+  "globalAiWearableAdvancedSettings": "穿戴侧设置",
+  "globalAiToolsScope": "工具权限范围",
+  "globalAiToolDeviceStatus": "设备状态",
+  "globalAiToolDeviceStatusDesc": "读取设备连接状态、电量与基本信息",
+  "globalAiToolHealthData": "健康数据",
+  "globalAiToolHealthDataDesc": "读取步数、活动消耗、距离与心率",
+  "globalAiToolWeather": "天气查询",
+  "globalAiToolWeatherDesc": "查询实时天气与未来预报",
+  "globalAiToolSearchResources": "搜索资源",
+  "globalAiToolSearchResourcesDesc": "搜索表盘与第三方应用",
+  "globalAiToolInstallResources": "安装资源",
+  "globalAiToolInstallResourcesDesc": "下载并安装表盘或应用到穿戴设备",
+  "globalAiToolDeleteResources": "删除资源",
+  "globalAiToolDeleteResourcesDesc": "卸载或删除设备上的资源",
+  "globalAiToolManageAlarms": "闹钟管理",
+  "globalAiToolManageAlarmsDesc": "新建或管理穿戴设备闹钟",
+  "globalAiToolFindDevice": "查找设备",
+  "globalAiToolFindDeviceDesc": "让手表或手环持续振动/响铃",
+  "globalAiToolAppArrangement": "应用排布",
+  "globalAiToolAppArrangementDesc": "查询并调整设备端应用排序",
+  "globalAiToolPhoneLocation": "手机定位",
+  "globalAiToolPhoneLocationDesc": "仅在客户端手机支持，读取定位信息辅助查询",
+  "globalAiAddProvider": "添加提供商",
+  "globalAiEditProvider": "编辑提供商",
+  "globalAiProviderName": "提供商名称",
+  "globalAiProviderBaseUrl": "API 基础地址",
+  "globalAiProviderApiKey": "API Key",
+  "globalAiProviderModels": "模型列表",
+  "globalAiAddModel": "添加模型",
+  "globalAiModelId": "模型 ID",
+  "globalAiProtocolType": "协议类型",
+  "globalAiProtocolCompletions": "Completions",
+  "globalAiProtocolResponses": "Responses",
+  "globalAiMultimodalSupport": "多模态能力",
+  "globalAiSupportImages": "图片",
+  "globalAiSupportAudio": "音频",
+  "globalAiContextLength": "上下文长度",
+  "globalAiWearableReplyLength": "穿戴侧回复长度",
+  "globalAiWearableLengthShort": "短（50 字以内）",
+  "globalAiWearableLengthMedium": "中（100 字以内）",
+  "globalAiWearableLengthLong": "长（200 字以内）",
+  "globalAiWearableLengthUnlimited": "不限",
+  "globalAiWearableToolPolicy": "工具调用策略",
+  "globalAiToolPolicyDisabled": "禁用工具",
+  "globalAiToolPolicyReadOnly": "只读模式",
+  "globalAiToolPolicyReadWrite": "读写模式",
+  "globalAiConfirmationMode": "敏感操作确认方式",
+  "globalAiConfirmModeWearableVoice": "穿戴侧语音回复确认",
+  "globalAiConfirmModeManual": "客户端侧手动确认",
+  "globalAiTesting": "正在连接...",
+  "globalAiTestSuccess": "已收到模型响应",
+  "globalAiTestFailed": "连接测试失败",
+  "globalAiTestDuration": "耗时 {ms} 毫秒",
+  "@globalAiTestDuration": {
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "globalAiSectionModelAndProvider": "模型与提供商",
+  "globalAiTestConnectionDesc": "验证当前提供商与模型的连通性与时延",
+  "globalAiWearableAdvancedDesc": "回复长度、工具权限模式与敏感操作确认方式",
+  "globalAiNoModelSelected": "未配置或未选择模型",
+  "globalAiSave": "保存",
+  "globalAiCancel": "取消",
+  "globalAiClose": "关闭",
+  "globalAiBack": "返回",
+  "globalAiRetry": "重试",
+  "globalAiDelete": "删除",
+  "globalAiNoProvidersPrompt": "暂未添加任何提供商\n请在上方添加新提供商",
+  "globalAiNoModelsPrompt": "暂无可用模型，请先添加模型",
+  "globalAiSystemPrompt": "系统提示词",
+  "globalAiSystemPromptDescription": "编辑模型指令，设备和工具安全规则会自动追加",
+  "globalAiSystemPromptHint": "输入系统提示词模板",
+  "globalAiSystemPromptPlaceholders": "可用占位符",
+  "globalAiDeleteProvider": "删除此供应商",
+  "globalAiDeleteModel": "删除模型",
+  "globalAiConnecting": "正在建立连接...",
+  "globalAiReceiving": "正在接收响应...",
+  "globalAiWaitingFirstToken": "等待首字响应...",
+  "globalAiTargetLabel": "目标 {provider} / {model}",
+  "@globalAiTargetLabel": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      },
+      "model": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiNoProviderConfigured": "未配置有效的提供商或模型",
+  "globalAiNoApiKeyConfigured": "未找到 API 密钥，请检查提供商设置",
+  "globalAiSelectActiveModel": "选择生效模型",
+  "globalAiContextLengthHint": "例如 4096、8192、131072",
+  "globalAiModelNameHint": "如 deepseek-flash, qwen3.8-flash",
+  "globalAiProviderNameHint": "如 DeepSeek, OpenAI, 硅基流动",
+  "globalAiBaseUrlHint": "如 https://api.deepseek.com",
+  "globalAiApiKeyHint": "sk-...",
+  "globalAiConfirmDeleteProvider": "确定删除此提供商及其所有模型吗？",
+  "globalAiConfirmDeleteModel": "确定删除此模型配置吗？",
+  "globalAiModelAlreadyExists": "该模型 ID 已存在",
+  "globalAiModelAdded": "模型已添加",
+  "globalAiProviderAdded": "提供商已添加",
+  "globalAiVoiceAssistantProcessing": "AI 思考并流式回复中...",
+  "globalAiVoiceAssistantError": "AI 回复出错：{error}",
+  "@globalAiVoiceAssistantError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "globalAiAsrEngine": "语音识别引擎",
+  "globalAiAsrManual": "手动输入",
+  "globalAiAsrNative": "本地离线模型",
+  "globalAiAsrWeType": "微信输入法",
+  "globalAiAsrDoubao": "火山豆包",
+  "globalAiTestRequestLabel": "发送请求",
+  "globalAiTestResponseLabel": "模型响应",
+  "globalAiTestStart": "开始测试"
 }

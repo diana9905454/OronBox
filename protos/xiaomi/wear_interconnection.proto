@@ -58,6 +58,13 @@ message Interconnection {
         RESPONSE_DEVICE_CERT = 37;
         REQUEST_PROPS = 38;
         RESPONSE_PROPS = 39;
+
+        REQUEST_GAME_CMD  = 49;
+        GET_GAME_STATUS   = 50;
+        REQUEST_GAME_INFO = 51;
+        SEND_GAME_INFO    = 52;
+        SEND_GAME_SCENE   = 53;
+        SEND_GAME_EVENT   = 54;
     }
 
     oneof payload {
@@ -88,8 +95,60 @@ message Interconnection {
         Cert.Response cert_response = 25;
         Prop.Request prop_request = 26;
         Prop.Response prop_response = 27;
+
+        GameModeCmd          game_cmd          = 37;
+        GameModeCmdResponse  game_cmd_response  = 38;
+        GameModeState        game_state        = 39;
+        GameModeInfo         game_info         = 40;
+        GameModeScene        game_scene        = 41;
+        GameModeEvent        game_event        = 42;
     }
 
+}
+
+message GameModeCmd {
+    enum CmdType {
+        START  = 1;
+        PAUSE  = 2;
+        RESUME = 3;
+        STOP   = 4;
+    }
+    required CmdType cmd = 1;
+}
+
+message GameModeCmdResponse {
+    enum Status {
+        SUCCESS   = 0;
+        FAIL      = 1;
+        EXCLUSION = 2;
+    }
+    required GameModeCmd.CmdType cmd = 1;
+    required Status status = 2;
+}
+
+message GameModeState {
+    enum State {
+        NOT_IN_GAME_MODE = 0;
+        IN_GAME_MODE     = 1;
+        PAUSED           = 2;
+    }
+    required State state = 1;
+}
+
+message GameModeInfo {
+    required uint32 game_id   = 1; // Game ID from whitelist config
+    required string game_name = 2; // Game display name
+}
+
+message GameModeScene {
+    required uint32 scene_style   = 1; // Scene style from event config
+    required string scene_title   = 2; // Scene title
+    required string scene_message = 3; // Scene detailed message
+}
+
+message GameModeEvent {
+    required uint32 event_id   = 1; // Event ID from event config
+    required uint32 event_type = 2; // Event type from event config
 }
 
 message PhoneStatus {

@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/data/huami/huami_app_store_api_client.dart';
 import 'package:oronbox/src/features/accounts/services/huami_auth_service.dart';
@@ -212,12 +212,13 @@ class HuamiAppStoreCatalog implements CommunityResourceCatalog {
       );
     }
 
-    final directory = Directory(
-      '${(await getTemporaryDirectory()).path}/oronbox_downloads/${request.resource.ref.id}',
+    final path = await ManagedTemporaryFiles.create(
+      TemporaryFilePurpose.downloads,
+      fileName,
+      (path) async {
+        await File(path).writeAsBytes(bytes, flush: true);
+      },
     );
-    await directory.create(recursive: true);
-    final path = '${directory.path}/$fileName';
-    await File(path).writeAsBytes(bytes, flush: true);
     return CommunityResourceDownloadResult(path: path, fileName: fileName);
   }
 

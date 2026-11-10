@@ -11,6 +11,7 @@ import 'package:oronbox/src/core/utils/layout.dart';
 import 'package:oronbox/src/features/resources/services/download_queue_notifier.dart';
 import 'package:oronbox/src/features/resources/services/install_queue_notifier.dart';
 import 'package:oronbox/src/features/messages/widgets/announcement_gate.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 
 bool _hasPending(List<ResourceTask> dl, List<InstallTask> il) =>
     dl.any((t) => t.status != ResourceTaskStatus.completed) ||
@@ -86,14 +87,14 @@ class AppScaffold extends ConsumerWidget {
     }
     return ShellBranchIndex(
       index: navigationShell.currentIndex,
+      onBranchSelected: navigationShell.goBranch,
       child: Scaffold(
         body: Container(
           color: Theme.of(context).colorScheme.surfaceContainer,
-          child: AnnouncementGate(child: navigationShell),
-        ),
-        bottomNavigationBar: AppBottomNavigationBar(
-          currentBranch: navigationShell.currentIndex,
-          onBranchSelected: (branch) => navigationShell.goBranch(branch),
+          child: OronBoxScaffoldMessenger(
+            key: appScaffoldMessengerKey,
+            child: AnnouncementGate(child: navigationShell),
+          ),
         ),
       ),
     );
@@ -111,6 +112,10 @@ class AppScaffold extends ConsumerWidget {
         .map((index) => _railDestination(context, l10n, queue, doneAt, index))
         .toList(growable: false);
     final selectedIndex = branchIndices.indexOf(navigationShell.currentIndex);
+    final content = OronBoxScaffoldMessenger(
+      key: appScaffoldMessengerKey,
+      child: AnnouncementGate(child: navigationShell),
+    );
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
       body: Row(
@@ -143,7 +148,7 @@ class AppScaffold extends ConsumerWidget {
                   topLeft: Radius.circular(28),
                   bottomLeft: Radius.circular(28),
                 ),
-                child: AnnouncementGate(child: navigationShell),
+                child: content,
               ),
             ),
           ),

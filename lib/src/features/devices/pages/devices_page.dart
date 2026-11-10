@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/app/utils/picked_file.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
@@ -24,8 +25,7 @@ import 'package:oronbox/src/features/devices/widgets/device_connection_text.dart
 import 'package:oronbox/src/features/devices/widgets/xiaomi_fitness_logo.dart';
 import 'package:oronbox/src/features/resources/services/install_queue_notifier.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_install_confirmation.dart';
-import 'package:oronbox/src/features/devices/pages/install/local_file_picker_policy.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 class DevicesPage extends ConsumerStatefulWidget {
   const DevicesPage({super.key});
@@ -58,6 +58,10 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
     if (!mounted || event is! PassiveReconnectStatus) return;
     if (ModalRoute.of(context)?.isCurrent != true) return;
     final l10n = AppLocalizations.of(context)!;
+    if (event.phase == PassiveReconnectPhase.failed) {
+      _showFrequentDisconnectDialog(event.deviceId);
+      return;
+    }
     final message = switch (event.phase) {
       PassiveReconnectPhase.attempt => l10n.deviceReconnectAttempting,
       PassiveReconnectPhase.success => l10n.deviceReconnectSucceeded,
@@ -65,6 +69,42 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
         '${l10n.deviceReconnectFailedPrefix}${l10n.errorBluetoothConnectFailed}',
     };
     _showDeviceStatusSnackBar(message, replaceCurrent: true);
+  }
+
+  Future<void> _showFrequentDisconnectDialog(String deviceId) async {
+    if (!mounted || ModalRoute.of(context)?.isCurrent != true) return;
+    final l10n = AppLocalizations.of(context)!;
+    final rePair = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deviceConnectionAbnormalTitle),
+        content: Text(l10n.deviceConnectionAbnormalMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.deviceRePair),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || rePair != true) return;
+    final devices = ref.read(deviceManagerProvider).pairedDevices;
+    final device = devices.where((item) => item.addr == deviceId).isEmpty
+        ? null
+        : devices.firstWhere((item) => item.addr == deviceId);
+    if (device == null || device.authkey == null) return;
+    await ref
+        .read(deviceManagerProvider.notifier)
+        .connect(
+          device.addr,
+          device.name,
+          device.authkey!,
+          connectType: device.connectType,
+        );
   }
 
   void _showDeviceStatusSnackBar(
@@ -189,7 +229,9 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           );
 
           return ListView(
-            padding: EdgeInsets.zero,
+            padding: EdgeInsets.only(
+              bottom: bottomContentPadding(context, extra: 16),
+            ),
             children: [
               PageContainer(
                 padding: EdgeInsets.zero,
@@ -457,10 +499,10 @@ class _DeviceInfoPanel extends StatelessWidget {
             child: _BatteryCard(
               battery: battery,
               borderRadius: isNarrow
-                  ? BorderRadius.circular(20)
-                  : const BorderRadiusDirectional.only(
-                      topStart: Radius.circular(20),
-                      bottomStart: Radius.circular(20),
+                  ? BorderRadius.circular(cardRadiusFor(context))
+                  : BorderRadiusDirectional.only(
+                      topStart: Radius.circular(cardRadiusFor(context)),
+                      bottomStart: Radius.circular(cardRadiusFor(context)),
                       topEnd: Radius.circular(3),
                       bottomEnd: Radius.circular(3),
                     ),
@@ -471,12 +513,12 @@ class _DeviceInfoPanel extends StatelessWidget {
             child: _StorageCard(
               storage: storage,
               borderRadius: isNarrow
-                  ? BorderRadius.circular(20)
-                  : const BorderRadiusDirectional.only(
+                  ? BorderRadius.circular(cardRadiusFor(context))
+                  : BorderRadiusDirectional.only(
                       topStart: Radius.circular(3),
                       bottomStart: Radius.circular(3),
-                      topEnd: Radius.circular(20),
-                      bottomEnd: Radius.circular(20),
+                      topEnd: Radius.circular(cardRadiusFor(context)),
+                      bottomEnd: Radius.circular(cardRadiusFor(context)),
                     ),
             ),
           ),
@@ -676,7 +718,8 @@ class _DeviceMetricCard extends StatelessWidget {
             elevation: 0,
             color: scheme.surfaceContainerHigh,
             shape: RoundedRectangleBorder(
-              borderRadius: borderRadius ?? BorderRadius.circular(20),
+              borderRadius:
+                  borderRadius ?? BorderRadius.circular(cardRadiusFor(context)),
             ),
             clipBehavior: Clip.antiAlias,
             child: Padding(
@@ -804,154 +847,149 @@ class _DeviceFeaturesPanelState extends ConsumerState<_DeviceFeaturesPanel> {
     final appCount = state.apps
         .where((app) => !app.packageName.startsWith('com.xiaomi.miwear.'))
         .length;
-    final isNarrow = widget.compact;
 
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: isNarrow ? 0 : 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.showInstall)
-            _InstallSection(
-              compact: widget.compact,
-              enabled: widget.enabled,
-              appCount: appCount,
-              watchfaceCount: state.watchfaces.length,
-              onManageApps: () => context.push('/devices/apps'),
-              onManageWatchfaces: () => context.push('/devices/watchfaces'),
-              onInstallApp: () =>
-                  _pickAndEnqueue(context, ref, LocalDeviceInstallType.app),
-              onInstallWatchface: () => _pickAndEnqueue(
-                context,
-                ref,
-                LocalDeviceInstallType.watchface,
-              ),
-            ),
-          SegmentedSection(
-            margin: const EdgeInsetsDirectional.only(
-              start: 16,
-              end: 16,
-              bottom: 16,
-            ),
-            tiles: [
-              if (widget.isZeppOs)
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/zeppos-more'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.functions),
-                  title: Text(l10n.zeppOsMoreFeatures),
-                  description: Text(l10n.zeppOsMoreFeaturesDescription),
-                )
-              else ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-health'),
-                  enabled: widget.enabled,
-                  leading: const XiaomiFitnessLogo(),
-                  title: Text(l10n.deviceHealthTitle),
-                  description: Text(l10n.deviceHealthFeatureDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-music'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.music_note_outlined),
-                  title: Text(l10n.deviceMusicSync),
-                  description: Text(l10n.deviceMusicSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-recordings'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.mic_none),
-                  title: Text(l10n.deviceRecordingsTitle),
-                  description: Text(l10n.deviceRecordingsDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-weather'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.cloud_outlined),
-                  title: Text(l10n.weatherSyncTitle),
-                  description: Text(l10n.weatherSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-alarms'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.alarm_outlined),
-                  title: Text(l10n.alarmManagementTitle),
-                  description: Text(l10n.alarmManagementDescription),
-                ),
-                SegmentedTile.switchTile(
-                  leading: const Icon(Icons.vibration),
-                  title: Text(l10n.zeppOsFindDevice),
-                  description: Text(l10n.findDeviceDescription),
-                  initialValue: state.findingXiaomiWearable,
-                  enabled: widget.enabled && !_findingBusy,
-                  onToggle: (value) => _setFinding(value ?? false),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-app-order'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.swap_vert_outlined),
-                  title: Text(l10n.appOrderTitle),
-                  description: Text(l10n.appOrderDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/velaos-app-layout'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.grid_view_outlined),
-                  title: Text(l10n.appLayoutTitle),
-                  description: Text(l10n.appLayoutDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/firmware'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.memory_outlined),
-                  title: Text(l10n.deviceFeaturesInstallFirmware),
-                  description: Text(l10n.firmwareUpdateDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/info'),
-                  enabled: widget.hasDevice,
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(l10n.deviceAboutTitle),
-                  description: Text(l10n.deviceAboutDescription),
-                ),
-              ],
-              if (widget.isZeppOs) ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/zeppos-more/music'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.music_note_outlined),
-                  title: Text(l10n.deviceMusicSync),
-                  description: Text(l10n.deviceMusicSyncDescription),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) =>
-                      context.push('/devices/zeppos-more/voice-memos'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.mic_none),
-                  title: Text(l10n.deviceRecordingsTitle),
-                  description: Text(l10n.deviceRecordingsDescription),
-                ),
-              ],
-              if (widget.isZeppOs) ...[
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/firmware'),
-                  enabled: widget.enabled,
-                  leading: const Icon(Icons.memory_outlined),
-                  title: Text(l10n.deviceFeaturesInstallFirmware),
-                  description: Text(l10n.deviceFeaturesInstallFirmwareDesc),
-                ),
-                SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/devices/info'),
-                  enabled: widget.hasDevice,
-                  leading: const Icon(Icons.info_outline),
-                  title: Text(l10n.deviceFeaturesDeviceInfo),
-                  description: Text(l10n.deviceFeaturesDeviceInfoDesc),
-                ),
-              ],
-            ],
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (widget.showInstall)
+          _InstallSection(
+            compact: widget.compact,
+            enabled: widget.enabled,
+            appCount: appCount,
+            watchfaceCount: state.watchfaces.length,
+            onManageApps: () => context.push('/devices/apps'),
+            onManageWatchfaces: () => context.push('/devices/watchfaces'),
+            onInstallApp: () =>
+                _pickAndEnqueue(context, ref, LocalDeviceInstallType.app),
+            onInstallWatchface: () =>
+                _pickAndEnqueue(context, ref, LocalDeviceInstallType.watchface),
           ),
-        ],
-      ),
+        SegmentedSection(
+          margin: const EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            bottom: 16,
+          ),
+          tiles: [
+            if (widget.isZeppOs) ...[
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/zeppos-more'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.functions),
+                title: Text(l10n.zeppOsMoreFeatures),
+                description: Text(l10n.zeppOsMoreFeaturesDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/zeppos-more/music'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.music_note_outlined),
+                title: Text(l10n.deviceMusicSync),
+                description: Text(l10n.deviceMusicSyncDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) =>
+                    context.push('/devices/zeppos-more/voice-memos'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.mic_none),
+                title: Text(l10n.deviceRecordingsTitle),
+                description: Text(l10n.deviceRecordingsDescription),
+              ),
+            ] else ...[
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-health'),
+                enabled: widget.enabled,
+                leading: const XiaomiFitnessLogo(),
+                title: Text(l10n.deviceHealthTitle),
+                description: Text(l10n.deviceHealthFeatureDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-weather'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.cloud_outlined),
+                title: Text(l10n.weatherSyncTitle),
+                description: Text(l10n.weatherSyncDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-music'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.music_note_outlined),
+                title: Text(l10n.deviceMusicSync),
+                description: Text(l10n.deviceMusicSyncDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-recordings'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.mic_none),
+                title: Text(l10n.deviceRecordingsTitle),
+                description: Text(l10n.deviceRecordingsDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/velaos-alarms'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.alarm_outlined),
+                title: Text(l10n.alarmManagementTitle),
+                description: Text(l10n.alarmManagementDescription),
+              ),
+            ],
+          ],
+        ),
+        SegmentedSection(
+          margin: const EdgeInsetsDirectional.only(
+            start: 16,
+            end: 16,
+            bottom: 16,
+          ),
+          tiles: [
+            if (widget.isZeppOs) ...[
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/firmware'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.memory_outlined),
+                title: Text(l10n.deviceFeaturesInstallFirmware),
+                description: Text(l10n.deviceFeaturesInstallFirmwareDesc),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/info'),
+                enabled: widget.hasDevice,
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.deviceFeaturesDeviceInfo),
+                description: Text(l10n.deviceFeaturesDeviceInfoDesc),
+              ),
+            ] else ...[
+              SegmentedTile.switchTile(
+                leading: const Icon(Icons.vibration),
+                title: Text(l10n.zeppOsFindDevice),
+                description: Text(l10n.findDeviceDescription),
+                initialValue: state.findingXiaomiWearable,
+                enabled: widget.enabled && !_findingBusy,
+                onToggle: (value) => _setFinding(value ?? false),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) =>
+                    context.push('/devices/velaos-app-arrangement'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.dashboard_customize_outlined),
+                title: Text(l10n.appArrangementTitle),
+                description: Text(l10n.appArrangementDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/firmware'),
+                enabled: widget.enabled,
+                leading: const Icon(Icons.memory_outlined),
+                title: Text(l10n.deviceFeaturesInstallFirmware),
+                description: Text(l10n.firmwareUpdateDescription),
+              ),
+              SegmentedTile.navigation(
+                onPressed: (_) => context.push('/devices/info'),
+                enabled: widget.hasDevice,
+                leading: const Icon(Icons.info_outline),
+                title: Text(l10n.deviceAboutTitle),
+                description: Text(l10n.deviceAboutDescription),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 
@@ -1019,7 +1057,7 @@ class _DeviceStatusGrid extends StatelessWidget {
         installTooltip: l10n.deviceFeaturesInstallApp,
         onOpen: onManageApps,
         onInstall: onInstallApp,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadiusFor(context)),
       ),
       _InstallSummaryCard(
         enabled: enabled,
@@ -1030,7 +1068,7 @@ class _DeviceStatusGrid extends StatelessWidget {
         installTooltip: l10n.deviceFeaturesInstallWatchface,
         onOpen: onManageWatchfaces,
         onInstall: onInstallWatchface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(cardRadiusFor(context)),
       ),
     ];
 
@@ -1127,10 +1165,10 @@ class _InstallSection extends StatelessWidget {
                   onOpen: onManageApps,
                   onInstall: onInstallApp,
                   borderRadius: isNarrow
-                      ? BorderRadius.circular(20)
-                      : const BorderRadiusDirectional.only(
-                          topStart: Radius.circular(20),
-                          bottomStart: Radius.circular(20),
+                      ? BorderRadius.circular(cardRadiusFor(context))
+                      : BorderRadiusDirectional.only(
+                          topStart: Radius.circular(cardRadiusFor(context)),
+                          bottomStart: Radius.circular(cardRadiusFor(context)),
                           topEnd: Radius.circular(3),
                           bottomEnd: Radius.circular(3),
                         ),
@@ -1148,12 +1186,12 @@ class _InstallSection extends StatelessWidget {
                   onOpen: onManageWatchfaces,
                   onInstall: onInstallWatchface,
                   borderRadius: isNarrow
-                      ? BorderRadius.circular(20)
-                      : const BorderRadiusDirectional.only(
+                      ? BorderRadius.circular(cardRadiusFor(context))
+                      : BorderRadiusDirectional.only(
                           topStart: Radius.circular(3),
                           bottomStart: Radius.circular(3),
-                          topEnd: Radius.circular(20),
-                          bottomEnd: Radius.circular(20),
+                          topEnd: Radius.circular(cardRadiusFor(context)),
+                          bottomEnd: Radius.circular(cardRadiusFor(context)),
                         ),
                 ),
               ),
@@ -1261,7 +1299,9 @@ class _InstallSummaryCard extends StatelessWidget {
                   message: installTooltip,
                   child: Material(
                     color: enabled
-                        ? colors.secondaryContainer
+                        ? Theme.of(context).useMaterial3
+                              ? colors.secondaryContainer
+                              : context.appSelectionContainer
                         : colors.surfaceContainerHighest,
                     shape: const CircleBorder(),
                     clipBehavior: Clip.antiAlias,
@@ -1275,7 +1315,9 @@ class _InstallSummaryCard extends StatelessWidget {
                             Icons.add,
                             size: 20,
                             color: enabled
-                                ? colors.onSecondaryContainer
+                                ? Theme.of(context).useMaterial3
+                                      ? colors.onSecondaryContainer
+                                      : context.appSelectionForeground
                                 : theme.disabledColor,
                           ),
                         ),

@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/app_localizations_delegates.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/resources/pages/creator/creator_collection_page.dart';
@@ -25,12 +25,7 @@ void main() {
       ProviderScope(
         overrides: [applicationHostProvider.overrideWithValue(host)],
         child: const MaterialApp(
-          localizationsDelegates: [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
+          localizationsDelegates: appLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: CreatorCollectionPage(
             collectionId: 'collection-1',
@@ -71,6 +66,12 @@ class _CollectionHost implements OronBoxCommandBus {
           'pending_revision': {'name': 'Collection', 'summary': 'Summary'},
         },
       ],
+    }),
+    'creator.collection.get' => const CommandResult.success({
+      'id': 'collection-1',
+      'kind': 'quickapp',
+      'edit_version': 0,
+      'pending_revision': {'name': 'Collection', 'summary': 'Summary'},
     }),
     'creator.devices' => const CommandResult.success({'devices': <Object?>[]}),
     'creator.grants' => const CommandResult.success(<String, Object?>{}),

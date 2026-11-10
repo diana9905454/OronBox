@@ -14,6 +14,7 @@ final class WasmOpusDecoder {
     this._inputPointer,
     this._outputPointer,
     this._inputCapacity,
+    this._sampleRate,
   );
 
   static const _assetPath = 'assets/wasm/opus_frame_decoder.wasm';
@@ -23,7 +24,8 @@ final class WasmOpusDecoder {
   final WasmScope _scope;
   final ScopedWasmInstance _instance;
   final WasmMemory _memory;
-  final int _decoderPointer;
+  int _decoderPointer;
+  final int _sampleRate;
   final int _mappingPointer;
   int _inputPointer;
   final int _outputPointer;
@@ -31,6 +33,7 @@ final class WasmOpusDecoder {
   bool _disposed = false;
 
   late final WasmFunction _decodeFunction = _instance.function('k');
+  // The Opus destroy export also frees the decoder allocation.
   late final WasmFunction _destroyFunction = _instance.function('l');
   late final WasmFunction _mallocFunction = _instance.function('j');
   late final WasmFunction _freeFunction = _instance.function('m');
@@ -87,6 +90,7 @@ final class WasmOpusDecoder {
         inputPointer,
         outputPointer,
         _initialInputCapacity,
+        sampleRate,
       );
     } catch (_) {
       scope.dispose();
@@ -115,14 +119,24 @@ final class WasmOpusDecoder {
       throw StateError('libopus returned too many samples: $samples');
     }
 
-    final view = _memory.view;
-    return Float32List.fromList(
-      Float32List.view(
-        view.buffer,
-        view.offsetInBytes + _outputPointer,
-        samples,
-      ),
+    // Copy the PCM out before creating a typed view over Dart-owned storage.
+    // The wasm3 memory view itself points at external native memory.
+    final end = _outputPointer + samples * Float32List.bytesPerElement;
+    final pcm = _memory.view.sublist(_outputPointer, end);
+    return Float32List.view(pcm.buffer, pcm.offsetInBytes, samples);
+  }
+
+  void reset() {
+    _ensureActive();
+    final replacement = _intResult(
+      _instance.function('i')([_sampleRate, 1, 1, 0, _mappingPointer, 0, 0]),
     );
+    if (replacement == 0) {
+      throw StateError('libopus WASM decoder reset failed');
+    }
+    final previous = _decoderPointer;
+    _decoderPointer = replacement;
+    _destroyFunction([previous]);
   }
 
   void dispose() {
@@ -130,7 +144,6 @@ final class WasmOpusDecoder {
     _disposed = true;
     try {
       _destroyFunction([_decoderPointer]);
-      _freeFunction([_decoderPointer]);
       _freeFunction([_mappingPointer]);
       _freeFunction([_inputPointer]);
       _freeFunction([_outputPointer]);

@@ -42,12 +42,6 @@ final localCommunityCatalogProviderForSource =
               (settings) => settings.bandbbsShowAllCategories,
             ),
           ),
-          // A 401 handled here proves the credential is dead; tell the host
-          // so every login gate (which reads daemon state) observes it.
-          onSessionExpired: () => ref
-              .read(applicationHostProvider)
-              .execute(const OronBoxCommand(method: 'account.session.expire'))
-              .then((_) {}),
         ),
         CommunitySourceId.huamiAppStore => HuamiAppStoreCatalog(
           dio: dio,

@@ -94,6 +94,12 @@ message WatchFaceItem {
     optional ImageFormat support_image_format = 11;
     repeated string background_image_list = 12;
     repeated WatchFaceSlot.Item slot_item_list = 13;
+    optional bytes foreground_color = 14;
+    optional uint32 style_color_index = 15;
+    optional bool support_image_group = 16;
+    optional WatchFaceImage.GroupList image_group_list = 17;
+    optional bool on_trial = 18;
+    optional uint32 support_video_format = 20;
 }
 
 message WatchFaceInfo {

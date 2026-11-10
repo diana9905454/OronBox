@@ -22,7 +22,7 @@ class OronBoxSupportApi {
 
   Future<String> legalDocument(String id, {required String language}) async =>
       (await _dio.get<String>(
-        '$oronBoxServerBaseUrl/api/meta/legal/$id',
+        '$oronBoxServerBaseUrl/api/v1/meta/legal/$id',
         queryParameters: {'lang': language},
         options: Options(responseType: ResponseType.plain),
       )).data ??
@@ -34,7 +34,7 @@ class OronBoxSupportApi {
   }) async {
     try {
       final response = await _dio.get<Object?>(
-        '$oronBoxServerBaseUrl/api/app/releases',
+        '$oronBoxServerBaseUrl/api/v1/app/releases',
         queryParameters: {
           'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
           'arch': '',
@@ -46,14 +46,19 @@ class OronBoxSupportApi {
       return AppReleaseInfo.fromJson(_map(response.data));
     } on DioException {
       final response = await _dio.get<Object?>(
-        'https://api.github.com/repos/zxor-org/oronbox/releases/latest',
+        'https://api.github.com/repos/OronCanopy/OronBox/releases/latest',
         options: Options(headers: {'Accept': 'application/vnd.github+json'}),
       );
       final release = GitHubRelease.fromJson(_map(response.data));
       if (release.tagName.isEmpty) rethrow;
       return AppReleaseInfo(
         latestVersion: release.tagName,
-        releaseNotes: release.body,
+        tag: release.tagName,
+        serverPolicyAvailable: false,
+        releaseNotes: extractGithubReleaseNotes(
+          release.body,
+          language: language,
+        ),
         sourceUrl:
             _map(response.data)['html_url']?.toString() ??
             '${AppConstants.githubRepoUrl}/releases/latest',
@@ -125,25 +130,48 @@ class OronBoxSupportApi {
       value is Map ? value.cast<String, Object?>() : const {};
 }
 
+final _fullChangelogLinePattern = RegExp(
+  r'^\s*\*{0,2}Full Changelog\*{0,2}\s*:.*$',
+  multiLine: true,
+  caseSensitive: false,
+);
+final _releaseNotesDividerPattern = RegExp(r'(?:^|\n)[ \t]*---[ \t]*(?:\n|$)');
+
+String extractGithubReleaseNotes(String body, {required String language}) {
+  final cleaned = body
+      .replaceAll('\r\n', '\n')
+      .replaceAll(_fullChangelogLinePattern, '')
+      .trim();
+  if (cleaned.isEmpty) return '';
+  final parts = cleaned.split(_releaseNotesDividerPattern);
+  if (parts.length >= 2) {
+    final zh = parts.first.trim();
+    final en = parts.sublist(1).join('\n\n---\n\n').trim();
+    if (zh.isNotEmpty && en.isNotEmpty) {
+      return language == 'en' ? en : zh;
+    }
+  }
+  return cleaned;
+}
+
 class AppReleaseInfo {
   const AppReleaseInfo({
     required this.latestVersion,
     this.minimumVersion = '',
     this.releaseNotes = '',
-    this.downloadUrl = '',
+    this.tag = '',
+    this.serverPolicyAvailable = true,
     this.sourceUrl = '',
   });
-  final String latestVersion,
-      minimumVersion,
-      releaseNotes,
-      downloadUrl,
-      sourceUrl;
+  final String latestVersion, minimumVersion, releaseNotes, tag, sourceUrl;
+  final bool serverPolicyAvailable;
   factory AppReleaseInfo.fromJson(Map<String, Object?> j) => AppReleaseInfo(
     latestVersion: j['latest_version']?.toString() ?? '',
     minimumVersion: j['minimum_version']?.toString() ?? '',
     releaseNotes: j['release_notes']?.toString() ?? '',
-    downloadUrl: j['download_url']?.toString() ?? '',
-    sourceUrl: j['source_url']?.toString() ?? '',
+    tag: j['tag']?.toString() ?? '',
+    sourceUrl:
+        '${AppConstants.githubRepoUrl}/releases/tag/${Uri.encodeComponent(j['tag']?.toString() ?? '')}',
   );
 }
 

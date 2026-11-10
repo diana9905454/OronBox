@@ -44,6 +44,17 @@ final class DeviceAuthenticated extends DeviceEvent {
   const DeviceAuthenticated({required super.deviceId});
 }
 
+final class XiaomiDeviceCapabilitiesUpdated extends DeviceEvent {
+  const XiaomiDeviceCapabilitiesUpdated({
+    required super.deviceId,
+    required this.deviceCapability,
+    required this.deviceCapabilityV2,
+  });
+
+  final int deviceCapability;
+  final int deviceCapabilityV2;
+}
+
 final class AuthFailed extends DeviceEvent {
   const AuthFailed({required super.deviceId, required this.error});
 
@@ -98,12 +109,38 @@ final class XiaomiScreenshotReceived extends DeviceEvent {
   final Uint8List bytes;
 }
 
+final class XiaomiAudioRecordReceived extends DeviceEvent {
+  const XiaomiAudioRecordReceived({
+    required super.deviceId,
+    required this.id,
+    required this.bytes,
+  });
+
+  final String id;
+  final Uint8List bytes;
+}
+
 /// The wearable requested Xiaomi-hosted GNSS assistance data, but the host
 /// does not have a signed-in Xiaomi account session.
 final class XiaomiGnssAccountRequired extends DeviceEvent {
   const XiaomiGnssAccountRequired({required super.deviceId});
 
   static const commandEvent = 'device.xiaomi.gnss.account_required';
+}
+
+final class XiaomiWifiPasswordRequested extends DeviceEvent {
+  const XiaomiWifiPasswordRequested({
+    required super.deviceId,
+    required this.ssid,
+    required this.authMode,
+    required this.frequency,
+  });
+
+  static const commandEvent = 'device.xiaomi.wifi.password_requested';
+
+  final String ssid;
+  final int authMode;
+  final int frequency;
 }
 
 /// A structured protocol trace item emitted after a Xiaomi transport frame has
@@ -199,8 +236,26 @@ final class XiaoAiSessionStarted extends DeviceEvent {
   final Map<String, Object?> capabilities;
 }
 
+/// Identifies the wearable voice session that owns a recognition request.
+/// Replies must keep this target instead of resolving the current session
+/// again after the AI request completes.
+class XiaoAiSessionTarget {
+  const XiaoAiSessionTarget({
+    required this.deviceId,
+    required this.sessionId,
+    required this.generation,
+    this.useStream,
+  });
+
+  final String deviceId;
+  final int sessionId;
+  final int generation;
+  final bool? useStream;
+}
+
 final class XiaoAiSessionEnded extends DeviceEvent {
-  const XiaoAiSessionEnded({required super.deviceId});
+  const XiaoAiSessionEnded({required super.deviceId, this.cancelled = false});
+  final bool cancelled;
 }
 
 final class XiaoAiOpusFrameReceived extends DeviceEvent {
@@ -212,6 +267,17 @@ final class XiaoAiOpusFrameReceived extends DeviceEvent {
 
   final int sequence;
   final Uint8List frame;
+}
+
+final class XiaoAiRecognitionUpdated extends DeviceEvent {
+  const XiaoAiRecognitionUpdated({
+    required super.deviceId,
+    required this.text,
+    required this.isFinal,
+  });
+
+  final String text;
+  final bool isFinal;
 }
 
 class DeviceEventBus {

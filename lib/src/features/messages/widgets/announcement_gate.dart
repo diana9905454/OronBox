@@ -1,10 +1,12 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:flutter/material.dart';
+
+import 'package:oronbox/src/app/modal/global_modal_coordinator.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
+import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 
 class AnnouncementGate extends ConsumerStatefulWidget {
@@ -39,6 +41,8 @@ class _AnnouncementGateState extends ConsumerState<AnnouncementGate>
     if (_checking || !mounted) return;
     final clean = ref.read(appSettingsProvider).clean;
     if (!clean.announcementsEnabled) return;
+    final isSignedIn = ref.read(hostAccountsProvider).bandbbs.isSignedIn;
+    if (!isSignedIn) return;
     _checking = true;
     try {
       final host = ref.read(applicationHostProvider);
@@ -52,25 +56,22 @@ class _AnnouncementGateState extends ConsumerState<AnnouncementGate>
       for (final raw in items) {
         if (!mounted) return;
         final item = raw.cast<String, Object?>();
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: Text(item['title']?.toString() ?? ''),
-            content: Text(item['body']?.toString() ?? ''),
-            actions: [
-              FilledButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(
-                  AppLocalizations.of(context)!.announcementAcknowledge,
-                ),
-              ),
-            ],
-          ),
-        );
-      }
-      if (items.isNotEmpty) {
-        await host.execute(const OronBoxCommand(method: 'announcement.read'));
+        final id =
+            item['id']?.toString() ?? '${item['title']}_${item['createdAt']}';
+        ref
+            .read(globalModalCoordinatorProvider.notifier)
+            .showAnnouncement(
+              announcementId: id,
+              title: item['title']?.toString() ?? '',
+              body: item['body']?.toString() ?? '',
+              onAcknowledge: () {
+                unawaited(
+                  host.execute(
+                    const OronBoxCommand(method: 'announcement.read'),
+                  ),
+                );
+              },
+            );
       }
     } finally {
       _checking = false;

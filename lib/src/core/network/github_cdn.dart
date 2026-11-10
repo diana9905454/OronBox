@@ -46,7 +46,7 @@ Future<List<(GitHubCdn cdn, int? milliseconds)>> testGithubCdns({
         ),
       );
   const testUrl =
-      'https://raw.githubusercontent.com/zxor-org/oronbox/main/README.md';
+      'https://raw.githubusercontent.com/OronCanopy/OronBox/main/README.md';
   final results = await Future.wait(
     GitHubCdn.values.where((cdn) => cdn != GitHubCdn.auto).map((cdn) async {
       return _testGithubCdn(client, testUrl, cdn);

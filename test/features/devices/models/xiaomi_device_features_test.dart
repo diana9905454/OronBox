@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_clock.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_clock.pb.dart'
     as pb_clock;
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_common.pb.dart'
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_common.pb.dart'
     as pb_common;
 
 void main() {

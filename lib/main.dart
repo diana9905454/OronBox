@@ -1,27 +1,31 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/oronbox_app.dart';
-import 'package:oronbox/src/app/window/desktop_window_bootstrap.dart';
-import 'package:oronbox/src/app/window/debug_window_preference.dart';
-import 'package:oronbox/src/app/window/window_launch_spec.dart';
-import 'package:oronbox/src/app/window/window_launcher.dart';
-import 'package:oronbox/src/cli/cli_entrypoint.dart';
+import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/logging/diagnostic_event.dart';
 import 'package:oronbox/src/core/services/license_registry_service.dart';
 import 'package:oronbox/src/core/services/bluetooth_permission_bootstrap.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
+// HarmonyOS: universal_ble and file_picker have no native implementation on
+// ohos, so we inject our own platform implementations (see below).
 import 'package:oronbox/src/core/services/ohos_ble_channel.dart';
 import 'package:oronbox/src/core/services/ohos_file_picker.dart';
 import 'package:file_picker_platform_interface/file_picker_platform_interface.dart';
-import 'package:oronbox/src/host/gui_host_overrides.dart';
-import 'package:oronbox/src/features/devices/widgets/device_deep_link_handler.dart';
-import 'package:oronbox/src/features/debug/pages/debug_window_app.dart';
-import 'package:oronbox/src/features/plugins/pages/plugin_window_app.dart';
 import 'package:universal_ble/universal_ble.dart';
+import 'package:oronbox/src/host/gui_host_overrides.dart';
+import 'package:oronbox/src/app/integrations/app_link_handler.dart';
+import 'package:oronbox/src/features/debug/pages/debug_window_app.dart';
+import 'package:oronbox/src/app/widgets/private_state_gate.dart';
+import 'package:oronbox/src/features/plugins/pages/plugin_window_app.dart';
+import 'package:oronbox/src/features/devices/health/health_store.dart';
 
 void main(List<String> args) async {
   final startupStopwatch = Stopwatch()..start();
@@ -36,20 +40,38 @@ void main(List<String> args) async {
   final process = switch (window.role) {
     OronBoxWindowRole.debug => DiagnosticProcess.debugWindow,
     OronBoxWindowRole.plugin => DiagnosticProcess.pluginWindow,
-    OronBoxWindowRole.main =>
-      args.contains('--nogui')
-          ? args.contains('daemon') && args.contains('run')
-                ? DiagnosticProcess.backend
-                : DiagnosticProcess.cli
-          : DiagnosticProcess.frontend,
+    OronBoxWindowRole.main => DiagnosticProcess.frontend,
   };
   await initLogging(arguments: args, process: process);
   installGlobalErrorLogging();
+  if (defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS) {
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        statusBarColor: Colors.transparent,
+      ),
+    );
+  }
   await SharedPrefsService.instance.init();
-  await runCliIfRequested(args);
+  try {
+    await PrivateAppState.instance.initialize();
+  } catch (_) {
+    // If keychain access requires user authorization or fails,
+    // PrivateStateGate handles the retry gate.
+  }
+  if (window.role == OronBoxWindowRole.main) {
+    await HealthStore().resetForStorageMigration();
+  }
   if (!await initializeWindowCoordinator(window, launchArguments: args)) return;
   if (window.role == OronBoxWindowRole.main) {
     await requestBluetoothPermissionOnStartup();
+    // The bundled documents are sufficient for startup. Refresh remote
+    // revisions after the first frame so a slow server cannot hold the app
+    // behind the legal-manifest request.
+    unawaited(LegalAgreements.refreshManifest());
   }
   await LicenseRegistryService.registerThirdPartyLicenses();
   await initializeDesktopWindow(spec: window);
@@ -59,13 +81,15 @@ void main(List<String> args) async {
         ...guiHostOverrides(),
         initialDeepLinksProvider.overrideWithValue(args),
       ],
-      child: switch (window.role) {
-        OronBoxWindowRole.debug => const DebugWindowApp(),
-        OronBoxWindowRole.plugin => PluginWindowApp(
-          pluginId: window.targetId ?? '',
-        ),
-        OronBoxWindowRole.main => const OronBoxApp(),
-      },
+      child: PrivateStateGate(
+        child: switch (window.role) {
+          OronBoxWindowRole.debug => const DebugWindowApp(),
+          OronBoxWindowRole.plugin => PluginWindowApp(
+            pluginId: window.targetId ?? '',
+          ),
+          OronBoxWindowRole.main => const OronBoxApp(),
+        },
+      ),
     ),
   );
   startupStopwatch.stop();

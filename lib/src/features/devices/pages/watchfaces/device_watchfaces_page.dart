@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/models/bt_models.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart' as proto;
+import 'package:oronbox/src/device/core/device_state.dart' as proto;
 
 class DeviceWatchfacesPage extends ConsumerStatefulWidget {
   const DeviceWatchfacesPage({super.key});
@@ -60,21 +61,30 @@ class _DeviceWatchfacesPageState extends ConsumerState<DeviceWatchfacesPage> {
         ],
       ),
       body: !ready
-          ? Center(child: Text(l10n.deviceNotConnected))
+          ? EmptyStateView(
+              icon: Icons.bluetooth_disabled_outlined,
+              title: l10n.deviceNotConnected,
+            )
           : _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-          ? Center(child: Text(localizedErrorMessage(l10n, _error)))
+          ? ErrorStateView(
+              message: localizedErrorMessage(l10n, _error),
+              onRetry: _refresh,
+            )
           : state.watchfaces.isEmpty
-          ? Center(child: Text(l10n.watchfaceManagementNone))
+          ? EmptyStateView(
+              icon: Icons.watch_outlined,
+              title: l10n.watchfaceManagementNone,
+            )
           : PageContainer(
               padding: EdgeInsets.zero,
               child: ListView.separated(
-                padding: const EdgeInsets.fromLTRB(
+                padding: EdgeInsets.fromLTRB(
                   StyleConstants.pagePadding,
                   8,
                   StyleConstants.pagePadding,
-                  16,
+                  bottomContentPadding(context, extra: 16),
                 ),
                 itemCount: state.watchfaces.length,
                 itemBuilder: (context, index) {

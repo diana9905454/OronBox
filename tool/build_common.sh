@@ -13,9 +13,9 @@ BUILD_USER=""
 APP_NAME="oronbox"
 PACKAGE_NAME="org.zxor.oronbox"
 DESCRIPTION="A pretty fast wearable management tool for VelaOS and ZeppOS built with Flutter."
-MAINTAINER="OronBox Team"
+MAINTAINER="OronCanopy"
 LICENSE="AGPL-3.0"
-HOMEPAGE="https://github.com/zxor-org/OronBox"
+HOMEPAGE="https://github.com/OronCanopy/OronBox"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -158,11 +158,16 @@ arch_pkgver() {
   echo "${1//-/.}"
 }
 
-init_build() {
+init_build_metadata() {
   parse_common_args "$@"
   GIT_HASH="$(get_git_hash)"
   BUILD_USER="$(get_build_user)"
   VERSION="$(compute_version "${DEV_MODE}")"
+}
+
+init_build() {
+  init_build_metadata "$@"
+  setup_build_integrity
 }
 
 ensure_release_dir() {
@@ -182,13 +187,29 @@ require_command() {
 }
 
 require_flutter() {
-  require_command flutter
+  if command -v flutter &>/dev/null; then
+    return 0
+  fi
+  if command -v fvm &>/dev/null || [[ -x "/opt/homebrew/bin/fvm" ]]; then
+    return 0
+  fi
+  log_error "Required command not found: flutter or fvm"
+  exit 1
+}
+
+setup_build_integrity() {
+  require_command python3
+  python3 "${SCRIPT_DIR}/prepare_build_integrity.py" \
+    --project-root "${PROJECT_ROOT}" \
+    --version "${VERSION}" \
+    --commit "$(git -C "${PROJECT_ROOT}" rev-parse HEAD)"
 }
 
 flutter_release_defines() {
   echo "--dart-define=APP_VERSION=${VERSION}"
   echo "--dart-define=GIT_COMMIT_HASH=${GIT_HASH}"
   echo "--dart-define=BUILD_USER=${BUILD_USER}"
+  echo "--dart-define-from-file=${PROJECT_ROOT}/build/integrity_defines.json"
 }
 
 build_number_or_default() {
@@ -214,6 +235,17 @@ build_number_or_default() {
 
 run_cmd() {
   log_info "Running: $*"
+  if [[ "$1" == "flutter" ]] && ! command -v flutter &>/dev/null; then
+    if command -v fvm &>/dev/null; then
+      shift
+      fvm flutter "$@"
+      return
+    elif [[ -x "/opt/homebrew/bin/fvm" ]]; then
+      shift
+      /opt/homebrew/bin/fvm flutter "$@"
+      return
+    fi
+  fi
   "$@"
 }
 
@@ -262,9 +294,14 @@ archive_zip() {
 setup_android_signing() {
   local props_file="${PROJECT_ROOT}/android/key.properties"
 
+  if [[ -f "${props_file}" ]]; then
+    log_info "Found existing ${props_file}; using existing Android release signing config."
+    return 0
+  fi
+
   if [[ -z "${ORONBOX_KEYSTORE_PATH:-}" ]]; then
-    log_warn "ORONBOX_KEYSTORE_PATH not set; Android build will use the debug signing config."
-    log_warn "Set ORONBOX_KEYSTORE_PATH, ORONBOX_KEYSTORE_PASSWORD, ORONBOX_KEY_ALIAS, and ORONBOX_KEY_PASSWORD for release signing."
+    log_warn "Neither android/key.properties nor ORONBOX_KEYSTORE_PATH was found; Android build will use the debug signing config."
+    log_warn "Set ORONBOX_KEYSTORE_PATH, ORONBOX_KEYSTORE_PASSWORD, ORONBOX_KEY_ALIAS, and ORONBOX_KEY_PASSWORD or provide android/key.properties for release signing."
     return 0
   fi
 

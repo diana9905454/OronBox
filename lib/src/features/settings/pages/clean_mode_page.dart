@@ -1,10 +1,10 @@
 import 'package:segmented_list/segmented_list.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
 
@@ -27,25 +27,21 @@ class CleanModePage extends ConsumerWidget {
       appBar: SysAppBar(secondary: true, title: Text(l10n.cleanMode)),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(
+        contentPadding: EdgeInsets.only(
           top: 8,
+          bottom: bottomContentPadding(context, extra: 16),
         ),
         sections: [
           SegmentedSection(
             title: Text(l10n.cleanNavigationGroup),
             tiles: [
-              _switch(
-                l10n.cleanExploreEntry,
-                value.exploreEntry,
-                (enabled) {
-                  var next = value.copyWith(exploreEntry: enabled);
-                  if (enabled && !value.homeFeed && !value.explore) {
-                    next = next.copyWith(explore: true);
-                  }
-                  update(next);
-                },
-                icon: Icons.apps_outlined,
-              ),
+              _switch(l10n.cleanExploreEntry, value.exploreEntry, (enabled) {
+                var next = value.copyWith(exploreEntry: enabled);
+                if (enabled && !value.homeFeed && !value.explore) {
+                  next = next.copyWith(explore: true);
+                }
+                update(next);
+              }, icon: Icons.apps_outlined),
               _switch(
                 l10n.cleanPluginsEntry,
                 value.pluginsEntry,
@@ -202,21 +198,6 @@ class CleanModePage extends ConsumerWidget {
               ),
             ],
           ),
-          // 鸿蒙端不提供「启动时检查更新」（更新走系统应用市场）。
-          if (defaultTargetPlatform != TargetPlatform.ohos)
-            SegmentedSection(
-              title: Text(l10n.cleanUpdateGroup),
-              tiles: [
-                _switch(
-                  l10n.cleanCheckUpdates,
-                  ref.watch(appSettingsProvider).checkUpdateOnLaunch,
-                  (enabled) => ref
-                      .read(appSettingsProvider.notifier)
-                      .setCheckUpdateOnLaunch(enabled),
-                  icon: Icons.system_update_outlined,
-                ),
-              ],
-            ),
         ],
       ),
     );

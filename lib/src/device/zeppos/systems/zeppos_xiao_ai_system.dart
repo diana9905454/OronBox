@@ -13,6 +13,7 @@ class ZeppOsXiaoAiSystem extends System {
   static const _cmdEnd = 0x02;
   static const _cmdStartAck = 0x03;
   static const _cmdVoiceData = 0x05;
+  static const _cmdRecognitionResult = 0x07;
   static const _cmdReplySimple = 0x09;
   static const _cmdReplyVoiceMore = 0x0b;
   static const _cmdCapabilitiesResponse = 0x21;
@@ -23,7 +24,37 @@ class ZeppOsXiaoAiSystem extends System {
   Timer? _replyTimer;
   bool _continuousCapture = false;
   bool _sessionActive = false;
-  String? _pendingReply;
+  (String, String)? _pendingReply;
+  int _generation = 0;
+  String? _lastRecognition;
+  bool _lastRecognitionFinal = false;
+
+  Future<void> sendRecognitionResult(
+    String text, {
+    required bool isFinal,
+  }) async {
+    final value = text.trim();
+    if (value.isEmpty ||
+        (value == _lastRecognition && isFinal == _lastRecognitionFinal)) {
+      return;
+    }
+    final generation = _generation;
+    await entity.getRequired<ZeppOsDeviceComponent>().sendToEndpoint(
+      _endpoint,
+      Uint8List.fromList([
+        _cmdRecognitionResult,
+        isFinal ? 1 : 0,
+        ...utf8.encode(value),
+        0,
+      ]),
+      encrypted: true,
+    );
+    if (generation == _generation) {
+      _lastRecognition = value;
+      _lastRecognitionFinal = isFinal;
+    }
+  }
+
   DateTime? _sessionStartedAt;
   int _endpoint = xiaoAiEndpoint;
   int _assistantVersion = 3;
@@ -35,6 +66,7 @@ class ZeppOsXiaoAiSystem extends System {
       throw ArgumentError.value(endpoint, 'endpoint', 'Unsupported assistant');
     }
     if (_endpoint == endpoint) return;
+    _generation++;
     _endpoint = endpoint;
     _assistantVersion = endpoint == zeppFlowEndpoint ? 5 : 3;
     _continuousCapture = false;
@@ -78,20 +110,28 @@ class ZeppOsXiaoAiSystem extends System {
     }
   }
 
-  Future<void> sendTextReply(String text) async {
+  Future<void> sendTextReply(
+    String text, {
+    required String recognizedText,
+  }) async {
+    final recognition = recognizedText.trim();
+    if (recognition.isEmpty) throw ArgumentError('Recognition cannot be empty');
     final value = text.trim();
     if (value.isEmpty) {
       throw ArgumentError.value(text, 'text', 'Reply cannot be empty');
     }
     if (_sessionActive) {
-      _pendingReply = value;
+      _pendingReply = (value, recognition);
       _schedulePendingReplyFallback();
       return;
     }
-    await _sendTextReplyNow(value);
+    await _sendTextReplyNow(value, recognition);
   }
 
-  Future<void> _sendTextReplyNow(String value) async {
+  Future<void> _sendTextReplyNow(String value, String recognition) async {
+    final generation = _generation;
+    await sendRecognitionResult(recognition, isFinal: true);
+    if (generation != _generation) return;
     final payload = Uint8List.fromList([
       _cmdReplySimple,
       ...utf8.encode(value),
@@ -105,6 +145,10 @@ class ZeppOsXiaoAiSystem extends System {
   }
 
   void _handleStart(Uint8List payload) {
+    _generation++;
+    _lastRecognition = null;
+    _lastRecognitionFinal = false;
+    _pendingReply = null;
     _sessionActive = true;
     _sessionStartedAt = DateTime.now();
     _replyTimer?.cancel();
@@ -159,7 +203,7 @@ class ZeppOsXiaoAiSystem extends System {
     if (pendingReply != null) {
       _continueTimer?.cancel();
       _continueTimer = Timer(const Duration(milliseconds: 120), () async {
-        await _sendTextReplyNow(pendingReply);
+        await _sendTextReplyNow(pendingReply.$1, pendingReply.$2);
         if (_continuousCapture) {
           await Future<void>.delayed(const Duration(milliseconds: 500));
           await _requestMoreVoice();
@@ -185,7 +229,7 @@ class ZeppOsXiaoAiSystem extends System {
         final reply = _pendingReply;
         if (reply == null) return;
         _pendingReply = null;
-        await _sendTextReplyNow(reply);
+        await _sendTextReplyNow(reply.$1, reply.$2);
       },
     );
   }
@@ -214,10 +258,11 @@ class ZeppOsXiaoAiSystem extends System {
 
   void _handleVoiceData(Uint8List payload) {
     if (payload.length <= 5) return;
-    final sequence = ByteData.sublistView(payload, 1, 5).getUint32(
-      0,
-      Endian.little,
-    );
+    final sequence = ByteData.sublistView(
+      payload,
+      1,
+      5,
+    ).getUint32(0, Endian.little);
     _voiceBuffer.add(Uint8List.sublistView(payload, 5));
     var bytes = _voiceBuffer.takeBytes();
     var offset = 0;
@@ -225,10 +270,11 @@ class ZeppOsXiaoAiSystem extends System {
       final headerLength = _assistantVersion >= 5 ? 8 : 1;
       if (bytes.length - offset < headerLength) break;
       final frameLength = _assistantVersion >= 5
-          ? ByteData.sublistView(bytes, offset, offset + 4).getUint32(
-              0,
-              Endian.big,
-            )
+          ? ByteData.sublistView(
+              bytes,
+              offset,
+              offset + 4,
+            ).getUint32(0, Endian.big)
           : bytes[offset];
       if (frameLength > 65536) {
         _voiceBuffer.clear();
@@ -262,6 +308,7 @@ class ZeppOsXiaoAiSystem extends System {
 
   @override
   Future<void> dispose() async {
+    _generation++;
     _sessionActive = false;
     _sessionStartedAt = null;
     _pendingReply = null;

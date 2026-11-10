@@ -206,13 +206,19 @@ class ShellBranchIndex extends InheritedWidget {
   const ShellBranchIndex({
     super.key,
     required this.index,
+    this.onBranchSelected,
     required super.child,
   });
 
   final int index;
+  final ValueChanged<int>? onBranchSelected;
 
   static int? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<ShellBranchIndex>()?.index;
+
+  static ValueChanged<int>? onBranchSelectedOf(BuildContext context) => context
+      .dependOnInheritedWidgetOfExactType<ShellBranchIndex>()
+      ?.onBranchSelected;
 
   @override
   bool updateShouldNotify(ShellBranchIndex oldWidget) =>
@@ -330,6 +336,19 @@ class PrimaryBranchScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (useWideLayout(MediaQuery.sizeOf(context).width)) return child;
-    return Scaffold(body: child);
+    // Keep the bar inside the branch-root page. A nested route is then painted
+    // above this scaffold during its transition, so the bar is naturally
+    // covered instead of being removed from the shell mid-animation.
+    final currentBranch = ShellBranchIndex.maybeOf(context);
+    final onBranchSelected = ShellBranchIndex.onBranchSelectedOf(context);
+    return Scaffold(
+      body: child,
+      bottomNavigationBar: currentBranch == null || onBranchSelected == null
+          ? null
+          : AppBottomNavigationBar(
+              currentBranch: currentBranch,
+              onBranchSelected: onBranchSelected,
+            ),
+    );
   }
 }

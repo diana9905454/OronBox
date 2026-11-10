@@ -1,3 +1,5 @@
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
+
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -147,7 +149,8 @@ class ResourceInstallService {
     } finally {
       if (deleteAfterInstall && !kIsWeb) {
         try {
-          await File(filePath).delete();
+          await ManagedTemporaryFiles.release(filePath);
+          if (await File(filePath).exists()) await File(filePath).delete();
         } catch (_) {}
       }
     }

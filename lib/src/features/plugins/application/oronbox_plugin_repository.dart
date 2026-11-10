@@ -37,7 +37,7 @@ class OronBoxPluginRepository implements PluginRepository {
     if (!force && _cache != null) return _entries(_cache!);
     final token = accessToken?.call();
     final response = await _dio.get<Object?>(
-      '$baseUrl/api/plugins',
+      '$baseUrl/api/v1/plugins',
       options: token == null
           ? null
           : Options(headers: {'Authorization': 'Bearer $token'}),
@@ -124,7 +124,7 @@ class OronBoxPluginPublisher {
   Future<Map<String, Object?>> upload(Uint8List bytes) async {
     final response = await _sessions.send<Object?>(
       (authorization) => _dio.post<Object?>(
-        '/api/plugins',
+        '/api/v1/plugins',
         data: bytes,
         options: authorization.copyWith(
           contentType: 'application/octet-stream',
@@ -141,7 +141,7 @@ class OronBoxPluginPublisher {
   Future<void> remove(String id) async {
     await _sessions.send<Object?>(
       (authorization) => _dio.delete<Object?>(
-        '/api/plugins/${Uri.encodeComponent(id)}',
+        '/api/v1/plugins/${Uri.encodeComponent(id)}',
         options: authorization,
       ),
     );

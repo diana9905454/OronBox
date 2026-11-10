@@ -4,7 +4,6 @@ import 'dart:io';
 
 import 'package:path_provider/path_provider.dart';
 import 'package:oronbox/src/core/services/build_info_service.dart';
-import 'package:oronbox/src/daemon/daemon_endpoint.dart';
 
 Future<Map<String, Object?>> collectDebugRuntimeEnvironment() async => {
   'system': {
@@ -16,7 +15,7 @@ Future<Map<String, Object?>> collectDebugRuntimeEnvironment() async => {
     'processors': Platform.numberOfProcessors,
   },
   'host': {
-    'kind': 'oronbox-daemon',
+    'kind': 'oronbox-host',
     'pid': pid,
     'executable': Platform.resolvedExecutable,
     'workingDirectory': Directory.current.path,
@@ -34,12 +33,13 @@ Future<Map<String, Object?>> collectDebugRuntimeEnvironment() async => {
 Future<Map<String, Directory>> _hostRoots() async {
   final support = await getApplicationSupportDirectory();
   final cache = await getApplicationCacheDirectory();
+  final temp = await getTemporaryDirectory();
   return {
     'data': support,
     'cache': cache,
     'logs': Directory('${support.path}${Platform.pathSeparator}logs'),
-    'temporary': await getTemporaryDirectory(),
-    'runtime': Directory(daemonRuntimeDirectory),
+    'temporary': temp,
+    'runtime': Directory('${temp.path}${Platform.pathSeparator}oronbox'),
   };
 }
 

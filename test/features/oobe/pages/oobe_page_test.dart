@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/app_localizations_delegates.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/oobe/oobe_state.dart';
@@ -44,7 +45,7 @@ Widget _wrap(Widget child, {GoRouter? router}) {
     overrides: [applicationHostProvider.overrideWithValue(_FakeHostBus())],
     child: MaterialApp.router(
       locale: const Locale('zh'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      localizationsDelegates: appLocalizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: effectiveRouter,
     ),
@@ -95,6 +96,7 @@ void main() {
 
     // Accounts.
     expect(find.text('登录账号'), findsWidgets);
+    expect(find.text('从备份恢复'), findsOneWidget);
     expect(find.text('登录小米账号以同步已绑定的小米设备'), findsOneWidget);
     expect(find.text('登录华米账号以访问华米应用商店资源'), findsOneWidget);
     await tester.tap(find.text('下一步'));
@@ -141,10 +143,7 @@ void main() {
       }
     }
 
-    expect(
-      tester.widget<Checkbox>(find.byType(Checkbox)).onChanged,
-      isNotNull,
-    );
+    expect(tester.widget<Checkbox>(find.byType(Checkbox)).onChanged, isNotNull);
     expect(find.text('请阅读并滚动到底部'), findsNothing);
 
     await tester.tap(find.byType(Checkbox));

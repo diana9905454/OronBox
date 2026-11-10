@@ -99,7 +99,10 @@ class OhosUniversalBlePlatform extends UniversalBlePlatform {
 
   @override
   Future<void> requestPermissions({bool withAndroidFineLocation = false}) async {
-    await _methodChannel.invokeMethod<bool>('requestPermissions');
+    final granted = await _methodChannel.invokeMethod<bool>('requestPermissions');
+    if (granted != true) {
+      throw PlatformException(code: 'permission_denied');
+    }
   }
 
   @override
@@ -120,8 +123,7 @@ class OhosUniversalBlePlatform extends UniversalBlePlatform {
 
   @override
   Future<bool> isScanning() async {
-    // 鸿蒙端未单独跟踪扫描状态，简化处理。
-    return false;
+    return await _methodChannel.invokeMethod<bool>('isScanning') ?? false;
   }
 
   @override
@@ -129,9 +131,13 @@ class OhosUniversalBlePlatform extends UniversalBlePlatform {
     String deviceId, {
     Duration? connectionTimeout,
     bool autoConnect = false,
+    ConnectionPlatformConfig? platformConfig,
   }) async {
     _ensureListening();
-    await _methodChannel.invokeMethod<bool>('connect', {'deviceId': deviceId});
+    await _methodChannel.invokeMethod<bool>('connect', {
+      'deviceId': deviceId,
+      'timeoutMs': connectionTimeout?.inMilliseconds ?? 12000,
+    });
   }
 
   @override
@@ -237,7 +243,7 @@ class OhosUniversalBlePlatform extends UniversalBlePlatform {
       'deviceId': deviceId,
       'mtu': expectedMtu,
     });
-    return result ?? expectedMtu;
+    return result ?? 23;
   }
 
   @override
@@ -246,6 +252,40 @@ class OhosUniversalBlePlatform extends UniversalBlePlatform {
       'deviceId': deviceId,
     });
     return result ?? 0;
+  }
+
+  // 鸿蒙 BLE 的 ArkTS API 不直接暴露 descriptor 读写，这里给出降级实现：
+  // 读返回空数据、写抛 UnsupportedError（上层均按可选能力调用）。
+  @override
+  Future<Uint8List> readDescriptorValue(
+    String deviceId,
+    String service,
+    String characteristic,
+    String descriptor, {
+    Duration? timeout,
+  }) async {
+    return Uint8List(0);
+  }
+
+  @override
+  Future<void> writeDescriptorValue(
+    String deviceId,
+    String service,
+    String characteristic,
+    String descriptor,
+    Uint8List value,
+  ) async {
+    throw UnsupportedError(
+      'Descriptor writes are not supported on OpenHarmony',
+    );
+  }
+
+  @override
+  Future<void> requestConnectionPriority(
+    String deviceId,
+    BleConnectionPriority priority,
+  ) async {
+    // 鸿蒙 BLE 无连接优先级 API，忽略请求。
   }
 
   @override
@@ -267,9 +307,13 @@ class OhosUniversalBlePlatform extends UniversalBlePlatform {
 
   @override
   Future<BleConnectionState> getConnectionState(String deviceId) async {
-    // 鸿蒙端连接状态通过 connectionState 事件推送，此处返回已连接需额外状态查询。
-    // 简化：返回 disconnected（上层主要依赖 connectionStream）。
-    return BleConnectionState.disconnected;
+    final connected = await _methodChannel.invokeMethod<bool>(
+      'isConnected',
+      {'deviceId': deviceId},
+    );
+    return connected == true
+        ? BleConnectionState.connected
+        : BleConnectionState.disconnected;
   }
 
   @override

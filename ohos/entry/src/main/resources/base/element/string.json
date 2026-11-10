@@ -27,6 +27,10 @@
     {
       "name": "perm_bg",
       "value": "需要后台运行权限以持续同步"
+    },
+    {
+      "name": "perm_download",
+      "value": "需要下载目录权限以导出日志文件"
     }
   ]
 }

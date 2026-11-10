@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FLUTTER_VERSION: 3.47.1
+  FLUTTER_VERSION: 3.47.9
 
 jobs:
   test:
@@ -45,9 +45,6 @@ jobs:
 
       - name: Analyze
         run: flutter analyze --fatal-warnings --no-fatal-infos
-
-      - name: Set up wasm runtime
-        run: dart run wasm_run:setup
 
       - name: Test
         run: flutter test --no-pub --reporter expanded

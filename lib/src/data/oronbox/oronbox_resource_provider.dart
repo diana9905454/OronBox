@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
 import 'package:oronbox/src/core/constants/oronbox_server.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
@@ -27,7 +25,7 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
   @override
   Future<CommunityResourcePage> getPage(CommunityResourceQuery query) async {
     final response = await _dio.get<Object?>(
-      '$oronBoxServerBaseUrl/api/resources',
+      '$oronBoxServerBaseUrl/api/v1/resources',
       queryParameters: {
         'limit': query.pageSize,
         'offset': query.page * query.pageSize,
@@ -61,7 +59,7 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
   Future<CommunityResourceDetail> getDetail(ResourceRef ref) async {
     _requireSource(ref);
     final response = await _dio.get<Object?>(
-      '$oronBoxServerBaseUrl/api/resources/${Uri.encodeComponent(ref.id)}',
+      '$oronBoxServerBaseUrl/api/v1/resources/${Uri.encodeComponent(ref.id)}',
     );
     final json = _map(response.data);
     final summary = _summary(json);
@@ -117,8 +115,10 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
       collectionName: summary.collectionName,
       tags: summary.tags,
       content: CommunityResourceContent(
-        format: ResourceContentFormat.plainText,
-        value: summary.summary,
+        format: json['description_format'] == 'markdown'
+            ? ResourceContentFormat.markdown
+            : ResourceContentFormat.plainText,
+        value: json['description']?.toString() ?? '',
       ),
       previews: previews,
       previewImages: previewImages,
@@ -166,7 +166,7 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
 
   Future<OronBoxCollectionDetail> getCollection(String id) async {
     final response = await _dio.get<Object?>(
-      '$oronBoxServerBaseUrl/api/collections/${Uri.encodeComponent(id)}',
+      '$oronBoxServerBaseUrl/api/v1/collections/${Uri.encodeComponent(id)}',
     );
     final json = _map(response.data);
     final resources = (json['resources'] as List? ?? const [])
@@ -185,6 +185,9 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
             .firstOrNull,
     };
     return OronBoxCollectionDetail(
+      description: json['description']?.toString() ?? '',
+      iconUrl: _blobUri(json['icon_sha256']?.toString() ?? ''),
+      coverUrl: _blobUri(json['cover_sha256']?.toString() ?? ''),
       id: json['id']?.toString() ?? id,
       name: json['name']?.toString() ?? '',
       summary: json['summary']?.toString() ?? '',
@@ -201,7 +204,7 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
   @override
   Future<List<CommunityResourceDevice>> getDevices() async {
     final response = await _dio.get<Object?>(
-      '$oronBoxServerBaseUrl/api/devices',
+      '$oronBoxServerBaseUrl/api/v1/devices',
     );
     return (_map(response.data)['devices'] as List? ?? const [])
         .whereType<Map>()
@@ -234,12 +237,11 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
         bytes: bytes,
       );
     }
-    final directory = Directory(
-      '${(await getTemporaryDirectory()).path}/oronbox_downloads/${request.resource.ref.id}',
+    final destination = await ManagedTemporaryFiles.create(
+      TemporaryFilePurpose.downloads,
+      fileName,
+      (path) => _downloadFileWithFallback(url, path, request),
     );
-    await directory.create(recursive: true);
-    final destination = '${directory.path}/$fileName';
-    await _downloadFileWithFallback(url, destination, request);
     return CommunityResourceDownloadResult(
       path: destination,
       fileName: fileName,
@@ -375,11 +377,11 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
   }
 
   Uri? _blobUri(String digest) => digest.length == 64
-      ? Uri.parse('$oronBoxServerBaseUrl/api/blobs/$digest')
+      ? Uri.parse('$oronBoxServerBaseUrl/api/v1/blobs/$digest')
       : null;
 
   Uri? _imageBlobUri(String digest) => digest.length == 64
-      ? Uri.parse('$oronBoxServerBaseUrl/api/blobs/$digest?line=local')
+      ? Uri.parse('$oronBoxServerBaseUrl/api/v1/blobs/$digest?line=local')
       : null;
 
   CommunityResourceType _parseType(String? value) => switch (value) {
@@ -415,7 +417,12 @@ class OronBoxResourceCatalog implements CommunityResourceCatalog {
 }
 
 class OronBoxCollectionDetail {
+  final String description;
+  final Uri? iconUrl, coverUrl;
   const OronBoxCollectionDetail({
+    this.description = '',
+    this.iconUrl,
+    this.coverUrl,
     required this.id,
     required this.name,
     required this.summary,

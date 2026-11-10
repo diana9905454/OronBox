@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/errors/coded_error.dart';
-import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
+import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
 
 final oronBoxCoinServiceProvider = Provider<OronBoxCoinService>(
@@ -15,9 +15,14 @@ final oronBoxMyCoinsProvider = FutureProvider.autoDispose.family<int, String>((
   ref,
   resourceId,
 ) {
-  if (!ref.watch(bandBbsAuthProvider).isSignedIn) return 0;
+  final account = ref.watch(
+    hostAccountsProvider.select(
+      (state) => (state.bandbbs.isSignedIn, state.bandbbs.userId),
+    ),
+  );
+  if (!account.$1) return 0;
   return ref.watch(oronBoxCoinServiceProvider).myCoins(resourceId);
-});
+}, retry: (_, _) => null);
 
 class CoinAccount {
   const CoinAccount({required this.balanceUnits, this.frozenReason = ''});

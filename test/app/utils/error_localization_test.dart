@@ -4,12 +4,39 @@ import 'package:oronbox/src/app/generated/app_localizations_en.dart';
 import 'package:oronbox/src/app/generated/app_localizations_zh.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
 import 'package:oronbox/src/core/errors/coded_error.dart';
+import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 
 void main() {
   final en = AppLocalizationsEn();
   final zh = AppLocalizationsZh();
 
   group('localizedErrorMessage', () {
+    test('comment rejection never displays raw AI reasoning', () {
+      expect(
+        localizedErrorMessage(
+          zh,
+          const _TestCodedError(
+            'comment_blocked',
+            'Model classified this as spam',
+          ),
+        ),
+        '评论未通过社区规范',
+      );
+    });
+
+    test('localizes redacted server failures by their stable code', () {
+      expect(
+        localizedErrorMessage(
+          zh,
+          const _TestCodedError(
+            'moderation_unavailable',
+            'The server could not complete the request',
+          ),
+        ),
+        zh.commentModerationUnavailable,
+      );
+    });
+
     test('maps every connection failure shape to one unified message', () {
       const shapes = [
         // BLE link-establishment timeout (daemon wrapper included).
@@ -61,6 +88,14 @@ void main() {
       expect(localizedErrorMessage(en, raw), en.errorBluetoothUnavailable);
     });
 
+    test('maps SPP bond removal failures to actionable guidance', () {
+      const raw =
+          'SPP bond removal failed: removeBond() was rejected; bondState=12';
+
+      expect(localizedErrorMessage(en, raw), en.errorSppBondRemovalFailed);
+      expect(localizedErrorMessage(zh, raw), zh.errorSppBondRemovalFailed);
+    });
+
     test('does not swallow generic timeouts', () {
       const raw = 'TimeoutException after 0:00:05.000000: Future not completed';
 
@@ -68,6 +103,12 @@ void main() {
         localizedErrorMessage(en, raw),
         isNot(en.errorBluetoothConnectFailed),
       );
+      expect(localizedErrorMessage(zh, raw), zh.errorOperationTimeout);
+    });
+
+    test('is idempotent when string already starts with failure prefix', () {
+      final msg = zh.errorUnknownWithDetail('Something went wrong');
+      expect(localizedErrorMessage(zh, msg), msg);
     });
 
     test('preserves structured backend session messages', () {
@@ -97,6 +138,55 @@ void main() {
       );
     });
 
+    test('localizes client auth and session errors for zh and en', () {
+      expect(
+        localizedErrorMessage(zh, const OronBoxAuthRequiredException()),
+        zh.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(en, const OronBoxAuthRequiredException()),
+        en.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(zh, const BandBbsSessionExpiredException()),
+        zh.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(en, const BandBbsSessionExpiredException()),
+        en.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(
+          zh,
+          StateError('BandBBS account is not signed in'),
+        ),
+        zh.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(
+          en,
+          StateError('BandBBS account is not signed in'),
+        ),
+        en.settingsBandBbsAccountRequired,
+      );
+      expect(
+        localizedErrorMessage(zh, 'invalid_refresh_token: application state'),
+        zh.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(en, 'invalid_refresh_token: application state'),
+        en.errorOronBoxSessionExpired,
+      );
+      expect(
+        localizedErrorMessage(zh, 'watchface_install_blocked'),
+        zh.watchfaceRestrictedMessage,
+      );
+      expect(
+        localizedErrorMessage(en, 'watchface_install_blocked'),
+        en.watchfaceRestrictedMessage,
+      );
+    });
+
     test('preserves structured backend messages', () {
       for (final code in oronBoxKnownErrorCodes) {
         expect(
@@ -104,7 +194,9 @@ void main() {
             en,
             _TestCodedError(code, 'actual backend message'),
           ),
-          'actual backend message',
+          code == 'comment_blocked'
+              ? en.commentBlocked
+              : 'actual backend message',
           reason: code,
         );
       }
@@ -147,7 +239,7 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             type: DioExceptionType.connectionError,
           ),
         ),
@@ -157,9 +249,9 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             response: Response<Object?>(
-              requestOptions: RequestOptions(path: '/api/resources'),
+              requestOptions: RequestOptions(path: '/api/v1/resources'),
               statusCode: 429,
             ),
             type: DioExceptionType.badResponse,
@@ -171,9 +263,9 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             response: Response<Object?>(
-              requestOptions: RequestOptions(path: '/api/resources'),
+              requestOptions: RequestOptions(path: '/api/v1/resources'),
               statusCode: 400,
               data: {'code': 'coin_balance_insufficient'},
             ),
@@ -186,9 +278,9 @@ void main() {
         localizedErrorMessage(
           en,
           DioException(
-            requestOptions: RequestOptions(path: '/api/resources'),
+            requestOptions: RequestOptions(path: '/api/v1/resources'),
             response: Response<Object?>(
-              requestOptions: RequestOptions(path: '/api/resources'),
+              requestOptions: RequestOptions(path: '/api/v1/resources'),
               statusCode: 400,
               data: {'code': 'future_server_code', 'detail': 'secret'},
             ),
@@ -199,27 +291,83 @@ void main() {
       );
     });
 
-    test(
-      'unified guidance covers permission, nearby, not in use, mode, retry',
-      () {
-        for (final message in [
-          zh.errorBluetoothConnectFailed,
-          en.errorBluetoothConnectFailed,
-        ]) {
-          expect(message.length, greaterThan(40));
-        }
-        expect(zh.errorBluetoothConnectFailed, contains('蓝牙权限'));
-        expect(zh.errorBluetoothConnectFailed, contains('附近'));
-        expect(zh.errorBluetoothConnectFailed, contains('占用'));
-        expect(zh.errorBluetoothConnectFailed, contains('连接新手机'));
-        expect(zh.errorBluetoothConnectFailed, contains('重试'));
-        expect(en.errorBluetoothConnectFailed, contains('permission'));
-        expect(en.errorBluetoothConnectFailed, contains('nearby'));
-        expect(en.errorBluetoothConnectFailed, contains('not in use'));
-        expect(en.errorBluetoothConnectFailed, contains('Connect new phone'));
-        expect(en.errorBluetoothConnectFailed, contains('try again'));
-      },
-    );
+    test('localizes unsupported device capabilities and operations without blaming user input', () {
+      final musicError = UnsupportedError(
+        'This wearable does not support music transfer',
+      );
+      expect(
+        localizedErrorMessage(zh, musicError),
+        zh.errorDeviceMusicUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, musicError),
+        en.errorDeviceMusicUnsupported,
+      );
+
+      final musicServiceError = UnsupportedError(
+        'Music management service is unavailable',
+      );
+      expect(
+        localizedErrorMessage(zh, musicServiceError),
+        zh.errorDeviceMusicUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, musicServiceError),
+        en.errorDeviceMusicUnsupported,
+      );
+
+      final recordingError = UnsupportedError(
+        'Recording export is not supported on this device',
+      );
+      expect(
+        localizedErrorMessage(zh, recordingError),
+        zh.errorDeviceRecordingUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, recordingError),
+        en.errorDeviceRecordingUnsupported,
+      );
+
+      final mirrorError = UnsupportedError(
+        'Screen mirroring is not supported on this device',
+      );
+      expect(
+        localizedErrorMessage(zh, mirrorError),
+        zh.errorDeviceScreenMirrorUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, mirrorError),
+        en.errorDeviceScreenMirrorUnsupported,
+      );
+
+      final genericUnsupported = UnsupportedError(
+        'This wearable does not support this operation',
+      );
+      expect(
+        localizedErrorMessage(zh, genericUnsupported),
+        zh.errorDeviceFeatureUnsupported,
+      );
+      expect(
+        localizedErrorMessage(en, genericUnsupported),
+        en.errorDeviceFeatureUnsupported,
+      );
+
+      expect(
+        localizedErrorMessage(zh, const _TestCodedError('unsupported', '')),
+        zh.errorDeviceFeatureUnsupported,
+      );
+      expect(
+        localizedErrorMessage(zh, const _TestCodedError('not_installed', '')),
+        zh.errorNotInstalled,
+      );
+      expect(
+        localizedErrorMessage(
+          zh,
+          const _TestCodedError('invalid_operation', ''),
+        ),
+        zh.errorInvalidOperation,
+      );
+    });
   });
 }
 

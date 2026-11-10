@@ -1,3 +1,5 @@
+import 'package:oronbox/src/features/settings/application/app_data_maintenance.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -11,6 +13,7 @@ import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/services/build_info_service.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
+import 'package:oronbox/src/features/plugins/domain/plugin_execution_models.dart';
 import 'package:oronbox/src/features/plugins/domain/plugin_package.dart';
 import 'package:oronbox/src/features/plugins/domain/plugin_permission.dart';
 import 'package:oronbox/src/features/plugins/legacy/astrobox_legacy_adapter.dart';
@@ -23,6 +26,8 @@ import 'package:oronbox/src/features/plugins/runtime/plugin_wasm_host.dart';
 import 'package:oronbox/src/features/plugins/storage/plugin_storage.dart';
 import 'package:oronbox/src/features/plugins/storage/plugin_storage_factory.dart';
 import 'package:oronbox/src/features/resources/services/resource_install_service.dart';
+
+export 'package:oronbox/src/features/plugins/domain/plugin_execution_models.dart';
 
 class PluginManager {
   PluginManager({
@@ -84,6 +89,24 @@ class PluginManager {
   var _requestSequence = 0;
   var _closed = false;
   bool _safeMode;
+
+  late final dataMaintenance = AppDataMaintenance(
+    deviceManager: deviceManager,
+    initialize: initialize,
+    stopRuntimes: () async {
+      await _runtimeTransition;
+      await _closeAllRuntimes();
+    },
+    reload: () async {
+      final installed = await (await _storage).loadInstalled();
+      _plugins
+        ..clear()
+        ..addEntries(
+          installed.map((plugin) => MapEntry(plugin.manifest.id, plugin)),
+        );
+    },
+  );
+  bool get maintainingData => dataMaintenance.active;
 
   Future<void> initialize() => _initialization ??= _loadInstalledPlugins();
 
@@ -240,6 +263,7 @@ class PluginManager {
     Uint8List bytes, {
     bool includeIcon = true,
   }) async {
+    if (maintainingData) throw StateError('Data maintenance is active');
     await initialize();
     final package = const PluginPackageReader().read(bytes);
     final id = package.manifest.id;
@@ -300,6 +324,7 @@ class PluginManager {
   }
 
   Future<void> clearData(String id) async {
+    if (maintainingData) throw StateError('Data maintenance is active');
     await initialize();
     final plugin = _requirePlugin(id);
     await _closeRuntime(id);
@@ -313,6 +338,7 @@ class PluginManager {
   }
 
   Future<void> remove(String id) async {
+    if (maintainingData) throw StateError('Data maintenance is active');
     await initialize();
     _requirePlugin(id);
     await _closeRuntime(id);
@@ -400,7 +426,7 @@ class PluginManager {
     await initialize();
     if (_closed) throw StateError('Plugin manager is closed');
     final plugin = _requirePlugin(id);
-    if (_safeMode) {
+    if (_safeMode || maintainingData) {
       throw PluginExecutionException(
         plugin.manifest.id,
         plugin.manifest.name,
@@ -496,6 +522,14 @@ class PluginManager {
   }
 
   Future<Object?> _handleHostCall(
+    InstalledPlugin plugin,
+    String method,
+    List<Object?> arguments,
+  ) => dataMaintenance.hostCall(
+    () => _dispatchHostCall(plugin, method, arguments),
+  );
+
+  Future<Object?> _dispatchHostCall(
     InstalledPlugin plugin,
     String method,
     List<Object?> arguments,
@@ -1440,9 +1474,8 @@ class PluginManager {
     List<Object?> arguments,
   ) async {
     final path = arguments.firstOrNull?.toString() ?? '';
-    return (await _wasmHost(
-      plugin,
-    )).load(path, _jsonMap(arguments.elementAtOrNull(1)));
+    return (await _wasmHost(plugin))
+        .load(path, _jsonMap(arguments.elementAtOrNull(1)));
   }
 
   Future<List<Object?>> _wasmCall(
@@ -1484,9 +1517,8 @@ class PluginManager {
     InstalledPlugin plugin,
     List<Object?> arguments,
   ) async {
-    (await _wasmHost(
-      plugin,
-    )).disposeInstance(arguments.firstOrNull?.toString() ?? '');
+    (await _wasmHost(plugin))
+        .disposeInstance(arguments.firstOrNull?.toString() ?? '');
   }
 
   Future<PluginWasmHost> _wasmHost(InstalledPlugin plugin) async {
@@ -2062,49 +2094,6 @@ class PluginManager {
     _dio.close(force: true);
     await (await _storage).close();
   }
-}
-
-class PluginExecutionFailure {
-  const PluginExecutionFailure({
-    required this.pluginId,
-    required this.pluginName,
-    required this.phase,
-    required this.message,
-    required this.occurredAt,
-  });
-
-  final String pluginId;
-  final String pluginName;
-  final String phase;
-  final String message;
-  final DateTime occurredAt;
-
-  Map<String, Object?> toJson() => {
-    'pluginId': pluginId,
-    'pluginName': pluginName,
-    'phase': phase,
-    'message': message,
-    'occurredAt': occurredAt.toIso8601String(),
-  };
-}
-
-class PluginExecutionException implements Exception {
-  const PluginExecutionException(this.pluginId, this.pluginName, this.message);
-
-  factory PluginExecutionException.fromFailure(
-    PluginExecutionFailure failure,
-  ) => PluginExecutionException(
-    failure.pluginId,
-    failure.pluginName,
-    failure.message,
-  );
-
-  final String pluginId;
-  final String pluginName;
-  final String message;
-
-  @override
-  String toString() => '$pluginName: $message';
 }
 
 class _PluginZmlAttachment {

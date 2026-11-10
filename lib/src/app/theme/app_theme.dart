@@ -3,6 +3,134 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+@immutable
+class AppSemanticColors extends ThemeExtension<AppSemanticColors> {
+  const AppSemanticColors({
+    required this.success,
+    required this.warning,
+    required this.info,
+    required this.healthHeartRate,
+    required this.healthRestingHeartRate,
+    required this.healthBloodOxygen,
+    required this.healthStress,
+    required this.healthVitality,
+    required this.healthSleep,
+    required this.sleepAwake,
+    required this.sleepRem,
+    required this.sleepLight,
+    required this.sleepDeep,
+  });
+
+  final Color success;
+  final Color warning;
+  final Color info;
+  final Color healthHeartRate;
+  final Color healthRestingHeartRate;
+  final Color healthBloodOxygen;
+  final Color healthStress;
+  final Color healthVitality;
+  final Color healthSleep;
+  final Color sleepAwake;
+  final Color sleepRem;
+  final Color sleepLight;
+  final Color sleepDeep;
+
+  static AppSemanticColors defaults(Brightness brightness) {
+    final dark = brightness == Brightness.dark;
+    return AppSemanticColors(
+      success: dark ? const Color(0xFF8BD49A) : const Color(0xFF2E7D32),
+      warning: dark ? const Color(0xFFFFCC80) : const Color(0xFFB26A00),
+      info: dark ? const Color(0xFF90CAF9) : const Color(0xFF1565C0),
+      healthHeartRate: dark ? const Color(0xFFFF8A9A) : const Color(0xFFD32F2F),
+      healthRestingHeartRate: dark
+          ? const Color(0xFFFFAB91)
+          : const Color(0xFFC2185B),
+      healthBloodOxygen: dark
+          ? const Color(0xFF9FA8DA)
+          : const Color(0xFF3949AB),
+      healthStress: dark ? const Color(0xFFFFCC80) : const Color(0xFFEF6C00),
+      healthVitality: Colors.amber,
+      healthSleep: dark ? const Color(0xFFB39DDB) : const Color(0xFF5E35B1),
+      sleepAwake: const Color(0xFFB8C1D5),
+      sleepRem: const Color(0xFF47BEFF),
+      sleepLight: const Color(0xFF3986F6),
+      sleepDeep: const Color(0xFF2231B6),
+    );
+  }
+
+  @override
+  AppSemanticColors copyWith({
+    Color? success,
+    Color? warning,
+    Color? info,
+    Color? healthHeartRate,
+    Color? healthRestingHeartRate,
+    Color? healthBloodOxygen,
+    Color? healthStress,
+    Color? healthVitality,
+    Color? healthSleep,
+    Color? sleepAwake,
+    Color? sleepRem,
+    Color? sleepLight,
+    Color? sleepDeep,
+  }) => AppSemanticColors(
+    success: success ?? this.success,
+    warning: warning ?? this.warning,
+    info: info ?? this.info,
+    healthHeartRate: healthHeartRate ?? this.healthHeartRate,
+    healthRestingHeartRate:
+        healthRestingHeartRate ?? this.healthRestingHeartRate,
+    healthBloodOxygen: healthBloodOxygen ?? this.healthBloodOxygen,
+    healthStress: healthStress ?? this.healthStress,
+    healthVitality: healthVitality ?? this.healthVitality,
+    healthSleep: healthSleep ?? this.healthSleep,
+    sleepAwake: sleepAwake ?? this.sleepAwake,
+    sleepRem: sleepRem ?? this.sleepRem,
+    sleepLight: sleepLight ?? this.sleepLight,
+    sleepDeep: sleepDeep ?? this.sleepDeep,
+  );
+
+  @override
+  AppSemanticColors lerp(covariant AppSemanticColors? other, double t) {
+    if (other == null) return this;
+    return AppSemanticColors(
+      success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      info: Color.lerp(info, other.info, t)!,
+      healthHeartRate: Color.lerp(healthHeartRate, other.healthHeartRate, t)!,
+      healthRestingHeartRate: Color.lerp(
+        healthRestingHeartRate,
+        other.healthRestingHeartRate,
+        t,
+      )!,
+      healthBloodOxygen: Color.lerp(
+        healthBloodOxygen,
+        other.healthBloodOxygen,
+        t,
+      )!,
+      healthStress: Color.lerp(healthStress, other.healthStress, t)!,
+      healthVitality: Color.lerp(healthVitality, other.healthVitality, t)!,
+      healthSleep: Color.lerp(healthSleep, other.healthSleep, t)!,
+      sleepAwake: Color.lerp(sleepAwake, other.sleepAwake, t)!,
+      sleepRem: Color.lerp(sleepRem, other.sleepRem, t)!,
+      sleepLight: Color.lerp(sleepLight, other.sleepLight, t)!,
+      sleepDeep: Color.lerp(sleepDeep, other.sleepDeep, t)!,
+    );
+  }
+}
+
+extension AppThemeContext on BuildContext {
+  AppSemanticColors get appColors =>
+      Theme.of(this).extension<AppSemanticColors>() ??
+      AppSemanticColors.defaults(Theme.of(this).brightness);
+
+  Color get appSelectionContainer =>
+      Theme.of(this).colorScheme.primaryContainer;
+
+  Color get appSelectionForeground =>
+      Theme.of(this).colorScheme.onPrimaryContainer;
+}
+
 ThemeData oledDarkTheme(ThemeData defaultDarkTheme) {
   return defaultDarkTheme.copyWith(
     scaffoldBackgroundColor: Colors.black,
@@ -35,7 +163,7 @@ abstract final class AppTheme {
 
   static const pageTransitionsTheme = PageTransitionsTheme(
     builders: {
-      TargetPlatform.android: PredictiveBackPageTransitionsBuilder(),
+      TargetPlatform.android: _ForegroundPredictiveBackTransitionsBuilder(),
       TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
       TargetPlatform.linux: FadeUpwardsPageTransitionsBuilder(),
       TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
@@ -200,6 +328,7 @@ abstract final class AppTheme {
         hoverElevation: 0,
         disabledElevation: 0,
       ),
+      extensions: [AppSemanticColors.defaults(brightness)],
     );
   }
 
@@ -222,5 +351,39 @@ abstract final class AppTheme {
 
   static Color _tintedSurface(Color base, Color tint, double alpha) {
     return Color.alphaBlend(tint.withValues(alpha: alpha), base);
+  }
+}
+
+class _ForegroundPredictiveBackTransitionsBuilder
+    extends PageTransitionsBuilder {
+  const _ForegroundPredictiveBackTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    // A branch route can be current in its Navigator while a root route covers it.
+    var navigator = route.navigator;
+    var visible = TickerMode.valuesOf(context).enabled;
+    while (navigator != null) {
+      final parentRoute = ModalRoute.of(navigator.context);
+      if (parentRoute == null) break;
+      visible = visible && (ModalRoute.isCurrentOf(navigator.context) ?? true);
+      navigator = parentRoute.navigator;
+    }
+    final PageTransitionsBuilder builder = visible
+        ? const PredictiveBackPageTransitionsBuilder()
+        : const ZoomPageTransitionsBuilder();
+    return builder.buildTransitions(
+      route,
+      context,
+      animation,
+      secondaryAnimation,
+      child,
+    );
   }
 }

@@ -3,6 +3,40 @@ import 'package:oronbox/src/features/resources/domain/creator_publication_plan.d
 import 'package:oronbox/src/features/resources/domain/creator_workspace.dart';
 
 void main() {
+  test(
+    'uses server publication mapping instead of hardcoded category guesses',
+    () {
+      final plan = buildCreatorPublicationPlan(
+        workspace: _workspace(
+          artifacts: {
+            'artifact': ['device-n67'],
+          },
+        ),
+        devices: const [
+          CreatorDevice(
+            id: 'device-n67',
+            codename: 'n67',
+            name: 'Band 9 Pro',
+            astroBoxId: 'xmb9p',
+          ),
+        ],
+        bandBbsCategories: const [
+          {'id': 991, 'title': 'Official category', 'children': []},
+        ],
+        publicationOptions: const {
+          'resource_prefixes': {'quickapp': 912},
+          'bandbbs': {
+            'n67': {'category_id': 991},
+          },
+        },
+      );
+      expect(plan.bandBbsTargets.single.categoryId, 991);
+      expect(plan.bandBbsTargets.single.categoryName, 'Official category');
+      expect(plan.bandBbsTargets.single.prefixId, 912);
+      expect(plan.astroBoxDeviceIds, ['xmb9p']);
+    },
+  );
+
   test('maps OronBox devices to BandBBS and AstroBox identities', () {
     final plan = buildCreatorPublicationPlan(
       workspace: _workspace(
@@ -150,6 +184,32 @@ void main() {
     expect(plan.bandBbsTargets, isEmpty);
     expect(plan.bandBbsProblem, CreatorBandBbsPlanProblem.unmappedDevices);
     expect(plan.unmappedDeviceNames, ['Xiaomi Smart Band 10 NFC']);
+  });
+
+  test('blocks BandBBS when any selected device is unmapped', () {
+    final plan = buildCreatorPublicationPlan(
+      workspace: _workspace(
+        artifacts: {
+          'artifact': const ['n67', 'unknown-device'],
+        },
+      ),
+      devices: const [
+        CreatorDevice(id: 'n67', codename: 'n67', name: 'Band 9 Pro'),
+        CreatorDevice(
+          id: 'unknown-device',
+          codename: 'unknown-device',
+          name: 'Unknown Device',
+        ),
+      ],
+      bandBbsCategories: const [
+        {'id': 1, 'title': '小米手环9 Pro', 'children': []},
+      ],
+    );
+
+    expect(plan.bandBbsTargets, isEmpty);
+    expect(plan.bandBbsProblem, CreatorBandBbsPlanProblem.unmappedDevices);
+    expect(plan.unmappedDeviceNames, ['Unknown Device']);
+    expect(plan.canPublishToBandBbs, isFalse);
   });
 
   test('rejects multiple artifacts sharing one category', () {

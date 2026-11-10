@@ -81,42 +81,49 @@ export class OronBoxStubPlugins {
   private readPrefsMap(): Map<string, Object> {
     const map = new Map<string, Object>();
     const path = this.prefsFilePath();
+    if (!fs.accessSync(path)) return map;
+    const file = fs.openSync(path, fs.OpenMode.READ_ONLY);
     try {
-      if (!fs.accessSync(path)) {
-        return map;
+      const size = fs.statSync(file.fd).size;
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      while (offset < size) {
+        const part = new ArrayBuffer(size - offset);
+        const count = fs.readSync(file.fd, part);
+        if (count <= 0) throw new Error('Incomplete preferences read');
+        bytes.set(new Uint8Array(part, 0, count), offset);
+        offset += count;
       }
-      const file = fs.openSync(path, fs.OpenMode.READ_ONLY);
-      const stat = fs.statSync(path);
-      const buf = new ArrayBuffer(stat.size);
-      fs.readSync(file.fd, buf);
+      const obj = JSON.parse(this.bufToString(bytes.buffer as ArrayBuffer)) as Record<string, Object>;
+      for (const key of Object.keys(obj)) map.set(key, obj[key]);
+      return map;
+    } finally {
       fs.closeSync(file);
-      const text = this.bufToString(buf);
-      if (text.length === 0) {
-        return map;
-      }
-      const obj = JSON.parse(text) as Record<string, Object>;
-      for (const key of Object.keys(obj)) {
-        map.set(key, obj[key]);
-      }
-    } catch (e) {
-      console.error(TAG + ': readPrefsMap failed: ' + JSON.stringify(e));
     }
-    return map;
   }
 
   private writePrefsMap(map: Map<string, Object>): void {
     const obj: Record<string, Object> = {};
-    map.forEach((value, key) => {
-      obj[key] = value;
-    });
+    map.forEach((value, key) => { obj[key] = value; });
     const path = this.prefsFilePath();
+    const temporary = path + '.tmp';
+    const encoder = new util.TextEncoder();
+    const bytes = encoder.encodeInto(JSON.stringify(obj));
+    const file = fs.openSync(temporary, fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
     try {
-      const file = fs.openSync(path, fs.OpenMode.READ_WRITE | fs.OpenMode.CREATE | fs.OpenMode.TRUNC);
-      fs.writeSync(file.fd, JSON.stringify(obj));
+      let offset = 0;
+      while (offset < bytes.length) {
+        const part = bytes.slice(offset);
+        const count = fs.writeSync(file.fd, part.buffer as ArrayBuffer);
+        if (count <= 0) throw new Error('Incomplete preferences write');
+        offset += count;
+      }
+      fs.fsyncSync(file.fd);
+    } finally {
       fs.closeSync(file);
-    } catch (e) {
-      console.error(TAG + ': writePrefsMap failed: ' + JSON.stringify(e));
     }
+    // Preserve the previous complete file if writing the replacement fails.
+    fs.renameSync(temporary, path);
   }
 
   private bufToString(buf: ArrayBuffer): string {

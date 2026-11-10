@@ -44,7 +44,9 @@ abstract class SyncTime with _$SyncTime {
 @freezed
 abstract class SyncTimeZone with _$SyncTimeZone {
   const factory SyncTimeZone({
+    /// Signed offset in 15-minute blocks, as required by Xiaomi's protobuf.
     required int offset,
+    /// Daylight-saving adjustment in the same signed 15-minute units.
     @Default(0) int dstOffset,
     required String id,
   }) = _SyncTimeZone;

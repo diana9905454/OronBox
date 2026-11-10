@@ -36,11 +36,11 @@ interface BleEvent {
   deviceId?: string;
   name?: string;
   rssi?: number;
-  data?: ArrayBuffer;
+  data?: Uint8Array;
   connected?: boolean;
   serviceUuid?: string;
   charUuid?: string;
-  value?: ArrayBuffer;
+  value?: Uint8Array;
   mtu?: number;
 }
 
@@ -57,11 +57,22 @@ interface ServiceInfo {
   characteristics: Array<CharInfo>;
 }
 
+interface PendingBleResult {
+  result: MethodResult;
+  timer: number;
+}
+
 export class OhosBleBridge {
   private context: common.UIAbilityContext;
   private scanner: ble.BleScanner | null = null;
+  private disposed: boolean = false;
   private gattClients: Map<string, ble.GattClientDevice> = new Map();
   private eventSink: EventSink | null = null;
+  private connected: Set<string> = new Set();
+  private services: Map<string, Array<ble.GattService>> = new Map();
+  private mtus: Map<string, number> = new Map();
+  private pendingConnections: Map<string, PendingBleResult> = new Map();
+  private pendingMtus: Map<string, PendingBleResult> = new Map();
 
   constructor(context: common.UIAbilityContext) {
     this.context = context;
@@ -116,6 +127,12 @@ export class OhosBleBridge {
       switch (call.method) {
         case 'isAvailable':
           this.isAvailable(result);
+          break;
+        case 'isScanning':
+          result.success(this.scanner != null);
+          break;
+        case 'isConnected':
+          result.success(this.connected.has(call.argument('deviceId') as string));
           break;
         case 'requestPermissions':
           this.requestPermissions(result);
@@ -186,10 +203,13 @@ export class OhosBleBridge {
 
   private async startScan(call: MethodCall, result: MethodResult): Promise<void> {
     try {
+      if (this.disposed) throw new Error('BLE bridge has been destroyed');
       await this.stopScanInternal();
+      if (this.disposed) throw new Error('BLE bridge has been destroyed');
       const scanner = ble.createBleScanner();
       this.scanner = scanner;
       scanner.on('BLEDeviceFind', (report: ble.ScanReport) => {
+        if (this.scanner !== scanner || this.disposed) return;
         const results: Array<ble.ScanResult> = report.scanResult;
         for (const r of results) {
           const data: ArrayBuffer = r.data instanceof ArrayBuffer ? r.data : new ArrayBuffer(0);
@@ -198,7 +218,7 @@ export class OhosBleBridge {
             deviceId: r.deviceId,
             name: r.deviceName ?? '',
             rssi: r.rssi,
-            data: data,
+            data: new Uint8Array(data),
           });
         }
       });
@@ -236,77 +256,150 @@ export class OhosBleBridge {
   }
 
   private async stopScanInternal(): Promise<void> {
-    if (this.scanner != null) {
-      const scanner = this.scanner;
-      this.scanner = null;
-      try {
-        scanner.off('BLEDeviceFind');
-        await scanner.stopScan();
-      } catch (e) {
-        console.error(TAG + ': stopScanInternal failed: ' + JSON.stringify(e));
-      }
-    }
+    const scanner = this.scanner;
+    if (scanner == null) return;
+    await scanner.stopScan();
+    scanner.off('BLEDeviceFind');
+    if (this.scanner === scanner) this.scanner = null;
   }
 
   private getOrCreateClient(deviceId: string): ble.GattClientDevice {
-    let client = this.gattClients.get(deviceId);
-    if (client == null) {
-      client = ble.createGattClientDevice(deviceId);
-      client.on('BLEConnectionStateChange', (state: ble.BLEConnectionChangeState) => {
-        const connected = state.state === 2; // STATE_CONNECTED
-        const ev: BleEvent = { type: 'connectionState', deviceId: deviceId, connected: connected };
-        this.emit(ev);
+    const existing = this.gattClients.get(deviceId);
+    if (existing != null) return existing;
+    const client = ble.createGattClientDevice(deviceId);
+    this.gattClients.set(deviceId, client);
+    client.on('BLEConnectionStateChange', (state: ble.BLEConnectionChangeState) => {
+      if (this.gattClients.get(deviceId) !== client) return;
+      // Connecting/disconnecting are intermediate states, not link loss.
+      if (state.state !== 0 && state.state !== 2) return;
+      const connected = state.state === 2;
+      if (connected) this.connected.add(deviceId);
+      this.emit({ type: 'connectionState', deviceId: deviceId, connected: connected });
+      if (connected) {
+        const pending = this.pendingConnections.get(deviceId);
+        if (pending != null) {
+          this.pendingConnections.delete(deviceId);
+          clearTimeout(pending.timer);
+          pending.result.success(true);
+        }
+      } else {
+        this.releaseClient(deviceId);
+      }
+    });
+    client.on('BLECharacteristicChange', (characteristic: ble.BLECharacteristic) => {
+      if (this.gattClients.get(deviceId) !== client) return;
+      this.emit({
+        type: 'characteristicChanged', deviceId: deviceId,
+        serviceUuid: characteristic.serviceUuid,
+        charUuid: characteristic.characteristicUuid,
+        value: new Uint8Array(characteristic.characteristicValue),
       });
-      client.on('BLECharacteristicChange', (characteristic: ble.BLECharacteristic) => {
-        const ev: BleEvent = {
-          type: 'characteristicChanged',
-          deviceId: deviceId,
-          serviceUuid: characteristic.serviceUuid,
-          charUuid: characteristic.characteristicUuid,
-          value: characteristic.characteristicValue,
-        };
-        this.emit(ev);
-      });
-      client.on('BLEMtuChange', (mtu: number) => {
-        const ev: BleEvent = { type: 'mtuChanged', deviceId: deviceId, mtu: mtu };
-        this.emit(ev);
-      });
-      this.gattClients.set(deviceId, client);
-    }
+    });
+    client.on('BLEMtuChange', (mtu: number) => {
+      if (this.gattClients.get(deviceId) !== client || mtu < 23) return;
+      this.mtus.set(deviceId, mtu);
+      this.emit({ type: 'mtuChanged', deviceId: deviceId, mtu: mtu });
+      const pending = this.pendingMtus.get(deviceId);
+      if (pending != null) {
+        this.pendingMtus.delete(deviceId);
+        clearTimeout(pending.timer);
+        pending.result.success(mtu);
+      }
+    });
     return client;
   }
 
-  private connect(call: MethodCall, result: MethodResult): void {
+  private requireClient(deviceId: string): ble.GattClientDevice {
+    const client = this.gattClients.get(deviceId);
+    if (client == null || !this.connected.has(deviceId)) throw new Error('BLE device is not connected');
+    return client;
+  }
+
+  private releaseClient(deviceId: string): void {
+    const client = this.gattClients.get(deviceId);
+    this.gattClients.delete(deviceId);
+    this.connected.delete(deviceId);
+    this.services.delete(deviceId);
+    this.mtus.delete(deviceId);
+    for (const pendingMap of [this.pendingConnections, this.pendingMtus]) {
+      const pending = pendingMap.get(deviceId);
+      if (pending != null) {
+        pendingMap.delete(deviceId);
+        clearTimeout(pending.timer);
+        pending.result.error('disconnected', 'BLE device disconnected', null);
+      }
+    }
+    if (client == null) return;
+    try { client.off('BLEConnectionStateChange'); } catch (_) {}
+    try { client.off('BLECharacteristicChange'); } catch (_) {}
+    try { client.off('BLEMtuChange'); } catch (_) {}
+    try { client.disconnect(); } catch (_) {}
+    try { client.close(); } catch (_) {}
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.eventSink = null;
+    this.stopScanInternal().catch((error: Error) => {
+      console.warn(TAG + ': scan cleanup failed: ' + error.message);
+    });
+    for (const deviceId of Array.from(this.gattClients.keys())) this.releaseClient(deviceId);
+  }
+
+  private async connect(call: MethodCall, result: MethodResult): Promise<void> {
+    const deviceId: string = call.argument('deviceId');
     try {
-      const deviceId: string = call.argument('deviceId');
+      await this.stopScanInternal();
+      if (this.disposed) throw new Error('BLE bridge has been destroyed');
+      if (this.connected.has(deviceId)) { result.success(true); return; }
+      if (this.pendingConnections.has(deviceId)) {
+        result.error('connect_in_progress', 'BLE connection already pending', null);
+        return;
+      }
       const client = this.getOrCreateClient(deviceId);
-      client.connect();
-      result.success(true);
+      const timeoutMs: number = call.argument('timeoutMs') ?? 12000;
+      const timer = setTimeout(() => {
+        if (this.gattClients.get(deviceId) !== client) return;
+        this.pendingConnections.delete(deviceId);
+        this.releaseClient(deviceId);
+        result.error('connect_timeout', 'BLE connection timed out', null);
+      }, Math.max(100, timeoutMs - 250));
+      this.pendingConnections.set(deviceId, { result: result, timer: timer });
+      // Complete the method only when the connection-state event confirms readiness.
+      try {
+        client.connect();
+      } catch (error) {
+        this.pendingConnections.delete(deviceId);
+        clearTimeout(timer);
+        throw error as Error;
+      }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      result.error('connect_error', msg, null);
+      this.releaseClient(deviceId);
+      result.error('connect_error', e instanceof Error ? e.message : String(e), null);
     }
   }
 
   private disconnect(call: MethodCall, result: MethodResult): void {
-    try {
-      const deviceId: string = call.argument('deviceId');
-      const client = this.gattClients.get(deviceId);
-      if (client != null) {
-        client.disconnect();
-      }
-      result.success(true);
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      result.error('disconnect_error', msg, null);
-    }
+    const deviceId: string = call.argument('deviceId');
+    this.releaseClient(deviceId);
+    this.emit({ type: 'connectionState', deviceId: deviceId, connected: false });
+    result.success(true);
+  }
+
+  private async getServices(deviceId: string, client: ble.GattClientDevice): Promise<Array<ble.GattService>> {
+    const cached = this.services.get(deviceId);
+    if (cached != null) return cached;
+    const services = await client.getServices();
+    if (this.gattClients.get(deviceId) !== client) throw new Error('BLE session changed');
+    this.services.set(deviceId, services);
+    return services;
   }
 
   private async discoverServices(call: MethodCall, result: MethodResult): Promise<void> {
     try {
       const deviceId: string = call.argument('deviceId');
-      const client = this.getOrCreateClient(deviceId);
-      const services: Array<ble.GattService> = await client.getServices();
+      const client = this.requireClient(deviceId);
+      const services: Array<ble.GattService> = await this.getServices(deviceId, client);
       const resultList: Array<ServiceInfo> = [];
       for (const svc of services) {
         const chars: Array<CharInfo> = [];
@@ -333,21 +426,14 @@ export class OhosBleBridge {
     }
   }
 
-  private findCharacteristic(client: ble.GattClientDevice, serviceUuid: string, charUuid: string): Promise<ble.BLECharacteristic | null> {
-    return new Promise<ble.BLECharacteristic | null>((resolve, reject) => {
-      client.getServices().then((services: Array<ble.GattService>) => {
-        for (const svc of services) {
-          if (svc.serviceUuid.toUpperCase() !== serviceUuid.toUpperCase()) continue;
-          for (const ch of svc.characteristics) {
-            if (ch.characteristicUuid.toUpperCase() === charUuid.toUpperCase()) {
-              resolve(ch);
-              return;
-            }
-          }
-        }
-        resolve(null);
-      }).catch((e: Error) => reject(e));
-    });
+  private async findCharacteristic(deviceId: string, client: ble.GattClientDevice, serviceUuid: string, charUuid: string): Promise<ble.BLECharacteristic | null> {
+    for (const svc of await this.getServices(deviceId, client)) {
+      if (svc.serviceUuid.toUpperCase() !== serviceUuid.toUpperCase()) continue;
+      for (const ch of svc.characteristics) {
+        if (ch.characteristicUuid.toUpperCase() === charUuid.toUpperCase()) return ch;
+      }
+    }
+    return null;
   }
 
   private async write(call: MethodCall, result: MethodResult): Promise<void> {
@@ -355,16 +441,16 @@ export class OhosBleBridge {
       const deviceId: string = call.argument('deviceId');
       const serviceUuid: string = call.argument('serviceUuid');
       const charUuid: string = call.argument('charUuid');
-      const value: ArrayBuffer = call.argument('value');
+      const value: Uint8Array = call.argument('value');
       const writeType: number = call.argument('writeType');
-      const client = this.getOrCreateClient(deviceId);
-      const ch = await this.findCharacteristic(client, serviceUuid, charUuid);
+      const client = this.requireClient(deviceId);
+      const ch = await this.findCharacteristic(deviceId, client, serviceUuid, charUuid);
       if (ch == null) {
         result.error('char_not_found', 'characteristic not found: ' + charUuid, null);
         return;
       }
       const wt: ble.GattWriteType = writeType === 2 ? ble.GattWriteType.WRITE_NO_RESPONSE : ble.GattWriteType.WRITE;
-      ch.characteristicValue = value;
+      ch.characteristicValue = value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength) as ArrayBuffer;
       await client.writeCharacteristicValue(ch, wt);
       result.success(true);
     } catch (e) {
@@ -378,14 +464,14 @@ export class OhosBleBridge {
       const deviceId: string = call.argument('deviceId');
       const serviceUuid: string = call.argument('serviceUuid');
       const charUuid: string = call.argument('charUuid');
-      const client = this.getOrCreateClient(deviceId);
-      const ch = await this.findCharacteristic(client, serviceUuid, charUuid);
+      const client = this.requireClient(deviceId);
+      const ch = await this.findCharacteristic(deviceId, client, serviceUuid, charUuid);
       if (ch == null) {
         result.error('char_not_found', 'characteristic not found: ' + charUuid, null);
         return;
       }
       const read = await client.readCharacteristicValue(ch);
-      result.success(read.characteristicValue);
+      result.success(new Uint8Array(read.characteristicValue));
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       result.error('read_error', msg, null);
@@ -398,8 +484,8 @@ export class OhosBleBridge {
       const serviceUuid: string = call.argument('serviceUuid');
       const charUuid: string = call.argument('charUuid');
       const enable: boolean = call.argument('enable');
-      const client = this.getOrCreateClient(deviceId);
-      const ch = await this.findCharacteristic(client, serviceUuid, charUuid);
+      const client = this.requireClient(deviceId);
+      const ch = await this.findCharacteristic(deviceId, client, serviceUuid, charUuid);
       if (ch == null) {
         result.error('char_not_found', 'characteristic not found: ' + charUuid, null);
         return;
@@ -413,22 +499,35 @@ export class OhosBleBridge {
   }
 
   private requestMtu(call: MethodCall, result: MethodResult): void {
+    const deviceId: string = call.argument('deviceId');
     try {
-      const deviceId: string = call.argument('deviceId');
       const mtu: number = call.argument('mtu');
-      const client = this.getOrCreateClient(deviceId);
-      client.setBLEMtuSize(mtu);
-      result.success(mtu);
+      const client = this.requireClient(deviceId);
+      if (this.pendingMtus.has(deviceId)) {
+        result.error('mtu_in_progress', 'MTU negotiation already pending', null);
+        return;
+      }
+      const timer = setTimeout(() => {
+        this.pendingMtus.delete(deviceId);
+        result.success(this.mtus.get(deviceId) ?? 23);
+      }, 3500);
+      this.pendingMtus.set(deviceId, { result: result, timer: timer });
+      try {
+        client.setBLEMtuSize(mtu);
+      } catch (error) {
+        this.pendingMtus.delete(deviceId);
+        clearTimeout(timer);
+        throw error as Error;
+      }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
-      result.error('mtu_error', msg, null);
+      result.error('mtu_error', e instanceof Error ? e.message : String(e), null);
     }
   }
 
   private async getRssi(call: MethodCall, result: MethodResult): Promise<void> {
     try {
       const deviceId: string = call.argument('deviceId');
-      const client = this.getOrCreateClient(deviceId);
+      const client = this.requireClient(deviceId);
       const rssi = await client.getRssiValue();
       result.success(rssi);
     } catch (e) {

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/core/errors/coded_error.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 
 /// Error codes understood by the OronBox client.
@@ -9,6 +12,8 @@ import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 /// Keep this list in sync with the server's `errorBody` codes. It is also
 /// used when a code is embedded in a plain exception string.
 const oronBoxKnownErrorCodes = <String>{
+  'private_state_read_failed',
+  'private_state_write_failed',
   'admin_coin_failed',
   'already_exists',
   'announcement_read_failed',
@@ -17,6 +22,13 @@ const oronBoxKnownErrorCodes = <String>{
   'auth_required',
   'bandbbs_grant_invalid',
   'bandbbs_refresh_failed',
+  'bandbbs_reauthorization_required',
+  'bandbbs_refresh_unavailable',
+  'github_reauthorization_required',
+  'github_revoke_unavailable',
+  'session_unavailable',
+  'refresh_unavailable',
+  'revoke_unavailable',
   'bandbbs_scope_forbidden',
   'banned',
   'blob_failed',
@@ -69,6 +81,8 @@ const oronBoxKnownErrorCodes = <String>{
   'home_failed',
   'host_unavailable',
   'import_failed',
+  'image_read_failed',
+  'image_process_failed',
   'internal',
   'invalid_app',
   'invalid_argument',
@@ -87,12 +101,14 @@ const oronBoxKnownErrorCodes = <String>{
   'invalid_upload',
   'invalid_url',
   'list_failed',
+  'legal_document_unavailable',
   'message_read_failed',
   'messages_clear_failed',
   'messages_read_failed',
   'moderation_settings_failed',
   'moderation_unavailable',
   'network_error',
+  'request_timeout',
   'not_found',
   'not_installed',
   'oauth_start_failed',
@@ -125,26 +141,61 @@ const oronBoxKnownErrorCodes = <String>{
   'usage',
   'unsupported',
   'validation',
+  'watchface_install_blocked',
 };
 
 String localizedErrorMessage(AppLocalizations l10n, Object? error) {
+  if (error is String) {
+    final prefix = l10n
+        .errorUnknownWithDetail('')
+        .replaceAll('{detail}', '')
+        .trim();
+    if (prefix.isNotEmpty && error.startsWith(prefix)) {
+      return error;
+    }
+  }
   final raw = _flattenError(error);
   final normalized = raw.toLowerCase();
   final code = _errorCode(error, normalized);
   final backendMessage = _backendMessage(error);
+  if (code == 'comment_blocked') return l10n.commentBlocked;
   if (backendMessage != null) return backendMessage;
 
   switch (code) {
+    case 'private_state_read_failed':
+      return _withPrivateStateDetail(l10n.privateStateLoadFailed, error);
+    case 'private_state_write_failed':
+      return _withPrivateStateDetail(l10n.privateStateSaveFailed, error);
+    case 'legal_document_unavailable':
+      return l10n.legalDocumentUnavailable;
+    case 'image_read_failed':
+      return l10n.creatorImageReadFailed;
+    case 'image_process_failed':
+      return l10n.creatorImageProcessFailed;
+    case 'request_timeout':
+      return l10n.errorRequestTimeout;
+    case 'comment_create_failed':
+      return l10n.commentCreateFailed;
+    case 'comments_read_failed':
+      return l10n.commentsReadFailed;
+    case 'comment_delete_failed':
+      return l10n.commentDeleteFailed;
+    case 'watchface_install_blocked':
+      return l10n.watchfaceRestrictedMessage;
     case 'invalid_refresh_token':
     case 'session_expired':
-    case 'http_401':
       return l10n.errorOronBoxSessionExpired;
     case 'xiaomi_account_session_expired':
       return l10n.errorXiaomiAccountSessionExpired;
     case 'auth_required':
     case 'unauthenticated':
     case 'bandbbs_grant_invalid':
+    case 'bandbbs_reauthorization_required':
       return l10n.settingsBandBbsAccountRequired;
+    case 'github_reauthorization_required':
+      return l10n.creatorImportGitHubConnect;
+    case 'unauthorized':
+    case 'http_401':
     case 'forbidden':
     case 'banned':
     case 'creator_frozen':
@@ -214,15 +265,27 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'invalid_upload':
     case 'invalid_response':
     case 'invalid_app':
-    case 'invalid_operation':
     case 'invalid_url':
-    case 'not_installed':
-    case 'unsupported':
     case 'validation':
     case 'usage':
     case 'http_400':
     case 'http_422':
       return l10n.errorInvalidRequest;
+    case 'invalid_operation':
+      return l10n.errorInvalidOperation;
+    case 'not_installed':
+      return l10n.errorNotInstalled;
+    case 'unsupported':
+      if (normalized.contains('music')) {
+        return l10n.errorDeviceMusicUnsupported;
+      }
+      if (normalized.contains('record')) {
+        return l10n.errorDeviceRecordingUnsupported;
+      }
+      if (normalized.contains('mirror')) {
+        return l10n.errorDeviceScreenMirrorUnsupported;
+      }
+      return l10n.errorDeviceFeatureUnsupported;
     case 'network_error':
     case 'connection_error':
     case 'host_unavailable':
@@ -245,6 +308,11 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'release_read_failed':
     case 'grants_failed':
     case 'r2_unavailable':
+    case 'bandbbs_refresh_unavailable':
+    case 'github_revoke_unavailable':
+    case 'session_unavailable':
+    case 'refresh_unavailable':
+    case 'revoke_unavailable':
     case 'http_500':
     case 'http_502':
     case 'http_503':
@@ -254,15 +322,13 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
       return l10n.errorOperationCancelled;
     case 'github_not_configured':
       return l10n.errorGitHubNotConfigured;
+    case 'moderation_settings_failed':
     case 'moderation_unavailable':
       return l10n.commentModerationUnavailable;
     case 'bandbbs_refresh_failed':
     case 'blob_failed':
     case 'collaborations_failed':
     case 'collection_review_failed':
-    case 'comment_create_failed':
-    case 'comment_delete_failed':
-    case 'comments_read_failed':
     case 'feedback_create_failed':
     case 'feedback_list_failed':
     case 'feedback_read_failed':
@@ -286,13 +352,6 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     case 'publish_failed':
     case 'internal':
       return l10n.errorOperationFailed;
-  }
-
-  if (code == 'unauthorized' &&
-      (normalized.contains('expired') ||
-          normalized.contains('invalid') ||
-          normalized.contains('token'))) {
-    return l10n.errorOronBoxSessionExpired;
   }
 
   // Raw Dio calls (resource catalogs, home feed, update checks, and similar
@@ -339,6 +398,10 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
     return l10n.errorWebSerialUnavailable;
   }
 
+  if (normalized.contains('spp bond removal failed')) {
+    return l10n.errorSppBondRemovalFailed;
+  }
+
   if (normalized.contains('no rfcomm channel available')) {
     return l10n.errorUnknownWithDetail(_trimPlatformNoise(raw));
   }
@@ -379,9 +442,12 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
       normalized.contains('timed out') ||
       normalized.contains('future not completed') ||
       normalized.contains('操作超时')) {
-    // Preserve the connection stage carried by the error instead of reducing
-    // every failure to the same unactionable timeout message.
     final detail = _trimPlatformNoise(raw);
+    if (error is TimeoutException ||
+        detail.startsWith('TimeoutException') ||
+        detail.contains('Future not completed')) {
+      return l10n.errorOperationTimeout;
+    }
     return detail.isEmpty
         ? l10n.errorOperationTimeout
         : l10n.errorUnknownWithDetail(detail);
@@ -395,6 +461,39 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
       normalized.contains('unsupported file type') ||
       normalized.contains('unsupported file')) {
     return l10n.errorUnsupportedFileType;
+  }
+
+  if (normalized.contains('music') &&
+      (normalized.contains('unsupported') ||
+          normalized.contains('not support') ||
+          normalized.contains('unavailable'))) {
+    return l10n.errorDeviceMusicUnsupported;
+  }
+
+  if ((normalized.contains('record') || normalized.contains('recording')) &&
+      (normalized.contains('unsupported') ||
+          normalized.contains('not support') ||
+          normalized.contains('unavailable'))) {
+    return l10n.errorDeviceRecordingUnsupported;
+  }
+
+  if (normalized.contains('mirror') &&
+      (normalized.contains('unsupported') ||
+          normalized.contains('not support') ||
+          normalized.contains('unavailable'))) {
+    return l10n.errorDeviceScreenMirrorUnsupported;
+  }
+
+  if (error is UnsupportedError ||
+      normalized.contains('unsupportederror') ||
+      normalized.contains('unsupported operation') ||
+      normalized.contains('operation not supported') ||
+      normalized.contains('feature not supported') ||
+      normalized.contains('does not advertise') ||
+      normalized.contains('does not support') ||
+      normalized.contains('is not supported') ||
+      normalized.contains('not supported')) {
+    return l10n.errorDeviceFeatureUnsupported;
   }
 
   if (normalized.contains('required ble characteristics not found') ||
@@ -453,12 +552,24 @@ String localizedErrorMessage(AppLocalizations l10n, Object? error) {
   return l10n.errorUnknownWithDetail(_trimPlatformNoise(raw));
 }
 
+/// Keeps the localized sentence but appends the underlying platform cause, so
+/// a "could not save" report carries the actual reason.
+String _withPrivateStateDetail(String message, Object? error) {
+  if (error is! PrivateStateException || error.detail.isEmpty) return message;
+  return '$message\n${error.detail}';
+}
+
 String _errorCode(Object? error, String normalized) {
   if (error is CodedError) return error.code.trim().toLowerCase();
   if (error is DioException) {
     final data = error.response?.data;
     if (data is Map) {
-      final responseCode = data['code']?.toString().trim().toLowerCase();
+      final nested = data['error'];
+      final responseCode =
+          (nested is Map ? nested['code'] : nested ?? data['code'])
+              ?.toString()
+              .trim()
+              .toLowerCase();
       if (responseCode != null && responseCode.isNotEmpty) {
         return responseCode;
       }
@@ -467,9 +578,20 @@ String _errorCode(Object? error, String normalized) {
     if (status != null) return 'http_$status';
   }
   if (normalized.contains('oronbox session expired')) return 'session_expired';
+  if (normalized.contains('bandbbs account is not signed in')) {
+    return 'auth_required';
+  }
   var text = normalized.trim();
   for (final prefix in const ['exception: ', 'bad state: ']) {
     if (text.startsWith(prefix)) text = text.substring(prefix.length);
+  }
+  final tokenMatch = RegExp(r'^[a-z0-9_]+').firstMatch(text);
+  if (tokenMatch != null &&
+      oronBoxKnownErrorCodes.contains(tokenMatch.group(0))) {
+    return tokenMatch.group(0)!;
+  }
+  for (final known in oronBoxKnownErrorCodes) {
+    if (text.startsWith(known)) return known;
   }
   final http = RegExp(
     r'\bhttp[_ ](400|401|403|404|409|413|422|429|500|502|503|504)\b',
@@ -491,6 +613,31 @@ String _flattenError(Object? error) {
   return error.toString();
 }
 
+bool _isGenericAuthOrSessionMessage(String message) {
+  final lower = message.trim().toLowerCase();
+  return lower == 'the server could not complete the request' ||
+      lower == 'http request failed' ||
+      lower == 'the request to the oronbox server failed' ||
+      lower.startsWith('the oronbox server returned http ') ||
+      lower == 'moderation service is unavailable' ||
+      lower == 'the server did not respond in time' ||
+      lower == 'unable to connect to the oronbox server' ||
+      lower == 'oronbox session expired' ||
+      lower == 'bandbbs account is not signed in' ||
+      lower == 'bad state: bandbbs account is not signed in' ||
+      lower == 'xiaomi account session expired' ||
+      lower == 'xiaomi_account_session_expired' ||
+      lower == 'auth_required' ||
+      lower == 'invalid_refresh_token' ||
+      lower == 'session_expired' ||
+      lower == 'unauthenticated' ||
+      lower == 'watchface_install_blocked' ||
+      lower == 'watchface file is corrupted and cannot be installed' ||
+      lower.contains('无法安装疑似来自官方表盘商城的表盘') ||
+      lower.contains('禁止安装疑似来自官方表盘商城的表盘') ||
+      lower.contains('suspected of being from the official watchface store');
+}
+
 String? _backendMessage(Object? error) {
   String? message;
   if (error is CodedError) {
@@ -509,7 +656,11 @@ String? _backendMessage(Object? error) {
   }
   if (message == null) return null;
   final visibleMessage = _firstErrorLine(message);
-  return visibleMessage.isEmpty ? null : visibleMessage;
+  if (visibleMessage.isEmpty ||
+      _isGenericAuthOrSessionMessage(visibleMessage)) {
+    return null;
+  }
+  return visibleMessage;
 }
 
 String _trimPlatformNoise(String raw) {

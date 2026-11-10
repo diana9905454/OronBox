@@ -1,7 +1,10 @@
+import 'package:oronbox/src/core/storage/managed_temporary_files.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/command_bus/command_observability.dart';
@@ -11,10 +14,12 @@ import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/core/logging/file_log_sink.dart';
 import 'package:oronbox/src/core/logging/diagnostic_event.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
+import 'package:oronbox/src/core/services/private_app_state.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/device/core/connect_type.dart';
 import 'package:oronbox/src/device/core/event_bus.dart';
 import 'package:oronbox/src/device/core/watchface_install_policy.dart';
+import 'package:oronbox/src/device/xiaomi/systems/health_system.dart';
 import 'package:oronbox/src/data/community/community_source.dart';
 import 'package:oronbox/src/data/bandbbs/bandbbs_resource_provider.dart';
 import 'package:oronbox/src/data/huami/huami_app_store_resource_provider.dart';
@@ -22,6 +27,8 @@ import 'package:oronbox/src/features/devices/controllers/device_manager.dart';
 import 'package:oronbox/src/features/devices/models/xiaomi_device_features.dart';
 import 'package:oronbox/src/features/devices/services/device_log_archive.dart';
 import 'package:oronbox/src/features/devices/services/phone_finder.dart';
+import 'package:oronbox/src/core/services/phone_location_sessions.dart';
+import 'package:oronbox/src/features/devices/services/xiaomi_sync_preferences.dart';
 import 'package:oronbox/src/features/devices/controllers/interconnect_event_codec.dart';
 import 'package:oronbox/src/features/accounts/services/bandbbs_auth_service.dart';
 import 'package:oronbox/src/features/accounts/services/huami_auth_service.dart';
@@ -38,8 +45,8 @@ import 'package:oronbox/src/features/resources/domain/community_resource.dart';
 import 'package:oronbox/src/features/resources/domain/community_resource_codec.dart';
 import 'package:oronbox/src/features/resources/domain/resource_catalog.dart';
 import 'package:oronbox/src/host/application_host.dart';
-import 'package:oronbox/src/protocols/common/device_protocol.dart';
-import 'package:oronbox/src/protocols/generated/xiaomi/wear_system.pb.dart'
+import 'package:oronbox/src/device/core/device_state.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/generated/wear_system.pb.dart'
     as pb_system;
 
 class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
@@ -113,8 +120,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         // can be paused or absent while Android is in the background, but the
         // local command bus remains alive with the connected device manager.
         unawaited(
-          PhoneFinder.setFinding(finding).catchError((error, stackTrace) {
-            _log.warning('phone finder playback failed', error, stackTrace);
+          PhoneFinder.setFinding(finding).catchError((error) {
+            _log.warning('phone finder playback failed', error);
           }),
         );
         _events.add(
@@ -135,12 +142,37 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           ),
         );
       }
+      if (event case XiaomiAudioRecordReceived(:final id, :final bytes)) {
+        _events.add(
+          CommandEvent(
+            'device.xiaomi.audio_record.received',
+            data: {
+              'deviceId': event.deviceId,
+              'id': id,
+              'bytes': bytes.toList(growable: false),
+            },
+          ),
+        );
+      }
       if (event is XiaomiGnssAccountRequired) {
         _markXiaomiAccountSignedOut();
         _events.add(
           CommandEvent(
             XiaomiGnssAccountRequired.commandEvent,
             data: {'deviceId': event.deviceId},
+          ),
+        );
+      }
+      if (event is XiaomiWifiPasswordRequested) {
+        _events.add(
+          CommandEvent(
+            XiaomiWifiPasswordRequested.commandEvent,
+            data: {
+              'deviceId': event.deviceId,
+              'ssid': event.ssid,
+              'authMode': event.authMode,
+              'frequency': event.frequency,
+            },
           ),
         );
       }
@@ -330,8 +362,17 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
 
   Future<CommandResult> _execute(OronBoxCommand command) async {
     try {
+      if (_pluginManager.maintainingData &&
+          (command.method.startsWith('plugin.') ||
+              command.method.startsWith('device.zeppos.appside.'))) {
+        throw StateError('Data maintenance is active');
+      }
       final result = await _dispatch(command);
-      return CommandResult.success(_wireValue(result));
+      final wireValue = switch (command.method) {
+        'device.xiaomi.health.data' || 'device.xiaomi.health.sync' => result,
+        _ => _wireValue(result),
+      };
+      return CommandResult.success(wireValue);
     } on CommandFailure catch (error) {
       return CommandResult.failure(
         CommandError(error.code, error.message, details: error.details),
@@ -352,10 +393,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       return CommandResult.failure(
         CommandError(error.code, error.message, details: error.details),
       );
-    } catch (error, stackTrace) {
-      _log.severe('Command ${command.method} failed', error, stackTrace);
+    } catch (error) {
+      _log.severe('Command ${command.method} failed', error);
       return CommandResult.failure(
-        CommandError('internal', error.toString(), details: '$stackTrace'),
+        CommandError('internal', error.toString()),
       );
     }
   }
@@ -432,6 +473,12 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'device.xiaomi.health.sync' => _manager.syncXiaomiHealth().then(
       (value) => value.toJson(),
     ),
+    'device.xiaomi.health.snapshot.replay' => _replayXiaomiHealthSnapshot(
+      command.params,
+    ),
+    'device.xiaomi.weather.cached' => Future.value(_cachedXiaomiWeather()),
+    'device.phone.location' => _phoneLocation(),
+    'device.xiaomi.wifi.respond' => _respondXiaomiWifi(command.params),
     'device.xiaomi.appLayout.get' => _getXiaomiAppLayout(),
     'device.xiaomi.appLayout.set' => _setXiaomiAppLayout(command.params),
     'device.xiaomi.recordings.download' => _downloadXiaomiRecordings(),
@@ -466,6 +513,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'device.zeppos.xiaoai.reply' => _sendXiaoAiReply(
       command.params['text']?.toString(),
+      command.params['recognizedText']?.toString(),
     ),
     'device.zeppos.xiaoai.continuous' => _setXiaoAiContinuousCapture(
       command.params['enabled'] == true,
@@ -491,7 +539,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'device.xiaomi.alarm.enable' => _setXiaomiAlarmEnabled(command.params),
     'device.xiaomi.weather.sync' => _syncXiaomiWeather(command.params),
     'app.uninstall' => _uninstallApp(command.params['package']?.toString()),
-    'app.launch' => _launchApp(command.params['package']?.toString()),
+    'app.launch' => _launchApp(
+      command.params['package']?.toString(),
+      page: command.params['page']?.toString() ?? '',
+    ),
     'watchface.list' => _listWatchfaces(),
     'watchface.remove' => _removeWatchface(command.params['id']?.toString()),
     'watchface.set' => _setWatchface(command.params['id']?.toString()),
@@ -514,14 +565,14 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'resource.huami.publisher' => _huamiPublisher(command.params),
     'resource.download' => _resourceDownload(command.params, install: false),
     'resource.install' => _resourceDownload(command.params, install: true),
-    'support.feedback.list' => _creatorRequest('GET', '/api/feedback'),
+    'support.feedback.list' => _creatorRequest('GET', '/api/v1/feedback'),
     'support.feedback.get' => _creatorRequest(
       'GET',
-      '/api/feedback/${_requiredCreatorId(command.params, 'ticket')}',
+      '/api/v1/feedback/${_requiredCreatorId(command.params, 'ticket')}',
     ),
     'support.feedback.create' => _creatorRequest(
       'POST',
-      '/api/feedback',
+      '/api/v1/feedback',
       data: {
         'kind': command.params['kind'],
         'subject': command.params['subject'],
@@ -533,34 +584,47 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'support.feedback.reply' => _creatorRequest(
       'POST',
-      '/api/feedback/${_requiredCreatorId(command.params, 'ticket')}/replies',
+      '/api/v1/feedback/${_requiredCreatorId(command.params, 'ticket')}/replies',
       data: {'message': command.params['message']},
     ),
-    'account.grants' => _creatorRequest('GET', '/api/me/grants'),
+    'account.grants' => _creatorRequest('GET', '/api/v1/me/grants'),
+    'account.credentials.reload' =>
+      container
+          .read(bandBbsAuthProvider.notifier)
+          .reloadCredentials(clearWhenMissing: true),
     'account.session.expire' =>
       container.read(bandBbsAuthProvider.notifier).expireSession(),
-    'coins.account' => _creatorRequest('GET', '/api/coins'),
-    'coins.checkin' => _creatorRequest('POST', '/api/coins/checkin'),
+    'coins.account' => _creatorRequest('GET', '/api/v1/coins'),
+    'coins.checkin' => _creatorRequest('POST', '/api/v1/coins/checkin'),
     'coins.resource' => _creatorRequest(
       'POST',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
       data: {'coins': command.params['coins']},
     ),
     'coins.resource.status' => _creatorRequest(
       'GET',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/coins',
     ),
     'comment.list' => _creatorApi.publicRequest(
       'GET',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
       query: {
+        if (command.params['size'] != null) 'size': command.params['size'],
         if (command.params['before'] != null)
           'before': command.params['before'],
       },
     ),
+    'comment.thread' => _creatorApi.publicRequest(
+      'GET',
+      '/api/v1/comments/${_requiredCreatorId(command.params, 'comment')}',
+      query: {
+        for (final key in ['before', 'after', 'size'])
+          if (command.params[key] != null) key: command.params[key],
+      },
+    ),
     'comment.create' => _creatorRequest(
       'POST',
-      '/api/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
+      '/api/v1/resources/${_requiredCreatorId(command.params, 'resource')}/comments',
       data: {
         'body': command.params['body'],
         'parent_id': command.params['parentId'] ?? '',
@@ -568,47 +632,102 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'comment.delete' => _creatorRequest(
       'DELETE',
-      '/api/comments/${_requiredCreatorId(command.params, 'comment')}',
+      '/api/v1/comments/${_requiredCreatorId(command.params, 'comment')}',
     ),
-    'message.list' => _creatorRequest('GET', '/api/messages'),
-    'message.clear' => _creatorRequest('DELETE', '/api/messages'),
+    'message.list' => _creatorRequest(
+      'GET',
+      '/api/v1/messages',
+      query: command.params,
+    ),
+    'message.clear' => _creatorRequest('DELETE', '/api/v1/messages'),
     'message.read' => _creatorRequest(
       'POST',
-      '/api/messages/${_requiredCreatorId(command.params, 'message')}/read',
+      '/api/v1/messages/${_requiredCreatorId(command.params, 'message')}/read',
     ),
     'announcement.unread' => _creatorRequest(
       'GET',
-      '/api/announcements/unread',
+      '/api/v1/announcements/unread',
     ),
-    'announcement.read' => _creatorRequest('POST', '/api/announcements/read'),
-    'creator.list' => _creatorRequest('GET', '/api/creator/resources'),
-    'creator.devices' => _creatorRequest('GET', '/api/devices'),
-    'creator.grants' => _creatorRequest('GET', '/api/me/grants'),
+    'announcement.read' => _creatorRequest(
+      'POST',
+      '/api/v1/announcements/read',
+    ),
+    'creator.list' => _creatorRequest('GET', '/api/v1/creator/resources'),
+    'creator.reviews' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/reviews',
+      query: {
+        'limit': command.params['limit'] ?? 30,
+        if (command.params['cursor'] != null &&
+            command.params['cursor'].toString().isNotEmpty)
+          'cursor': command.params['cursor'],
+      },
+    ),
+    'creator.review' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}',
+    ),
+    'creator.review.astrobox' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox',
+    ),
+    'creator.review.astrobox.reopen' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/reopen',
+    ),
+    'creator.review.astrobox.comments' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments',
+    ),
+    'creator.review.astrobox.comment.create' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments',
+      data: {'body': command.params['body']},
+    ),
+    'creator.review.astrobox.comment.update' => _creatorRequest(
+      'PATCH',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments/${_requiredCreatorId(command.params, 'comment')}',
+      data: {'body': command.params['body']},
+    ),
+    'creator.review.astrobox.comment.delete' => _creatorRequest(
+      'DELETE',
+      '/api/v1/creator/reviews/${_requiredCreatorId(command.params, 'review')}/astrobox/comments/${_requiredCreatorId(command.params, 'comment')}',
+    ),
+    'creator.devices' => _creatorRequest('GET', '/api/v1/devices'),
+    'creator.grants' => _creatorRequest('GET', '/api/v1/me/grants'),
     'creator.github.start' => _creatorRequest(
       'POST',
-      '/api/oauth/github/web/start',
+      '/api/v1/oauth/github/web/start',
     ),
     'creator.github.status' => _creatorRequest(
       'POST',
-      '/api/oauth/github/web/status',
+      '/api/v1/oauth/github/web/status',
       data: {'flow_id': command.params['flowId']},
     ),
     'creator.github.disconnect' => _creatorRequest(
       'DELETE',
-      '/api/oauth/github/grant',
+      '/api/v1/oauth/github/grant',
     ),
     'creator.get' => _creatorRequest(
       'GET',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
     ),
     'creator.create' => _creatorRequest(
       'POST',
-      '/api/creator/resources',
+      '/api/v1/creator/resources',
       data: {
         'slug': command.params['slug'],
         'name': command.params['name'],
         'kind': command.params['kind'],
       },
+    ),
+    'creator.publicationOptions' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/publication-options',
+    ),
+    'creator.publication.retry' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/publications/${_requiredCreatorId(command.params, 'publication')}/retry',
     ),
     'creator.publish' => _creatorPublish(command.params),
     'creator.draft' => _creatorDraft(command.params),
@@ -626,19 +745,19 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'creator.blob' => _creatorBlob(command.params),
     'creator.relationships' => _creatorRequest(
       'GET',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}/relationships',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}/relationships',
     ),
     'creator.takedown' => _creatorRequest(
       'POST',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}/takedown',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}/takedown',
     ),
     'creator.restore' => _creatorRequest(
       'POST',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}/restore',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}/restore',
     ),
     'creator.delete' => _creatorRequest(
       'DELETE',
-      '/api/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
+      '/api/v1/creator/resources/${_requiredCreatorId(command.params, 'resource')}',
       query: {
         if ((command.params['deleteExternal'] as List? ?? const []).isNotEmpty)
           'delete_external': (command.params['deleteExternal'] as List).join(
@@ -646,13 +765,37 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           ),
       },
     ),
+    'creator.collection.get' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
+      query: {
+        if (command.params['revision'] != null)
+          'revision': command.params['revision'],
+      },
+    ),
+    'creator.collection.submit' => _creatorRequest(
+      'POST',
+      (command.params['collection']?.toString() ?? '').isEmpty
+          ? '/api/v1/creator/collections'
+          : '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}/submit',
+      data: command.params['snapshot'],
+    ),
+    'creator.media.upload' => _creatorRequest(
+      'POST',
+      '/api/v1/creator/media',
+      data: base64Decode(command.params['bytes'].toString()),
+    ),
+    'creator.media.get' => _creatorRequest(
+      'GET',
+      '/api/v1/creator/media/${_requiredCreatorId(command.params, 'sha')}',
+    ),
     'creator.collections.list' => _creatorRequest(
       'GET',
-      '/api/creator/collections',
+      '/api/v1/creator/collections',
     ),
     'creator.collections.create' => _creatorRequest(
       'POST',
-      '/api/creator/collections',
+      '/api/v1/creator/collections',
       data: {
         'slug': command.params['slug'],
         'name': command.params['name'],
@@ -662,7 +805,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.collections.resources' => _creatorRequest(
       'PUT',
-      '/api/creator/collections/${_requiredCreatorId(command.params, 'collection')}/resources',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}/resources',
       data: {
         'resource_ids': command.params['resourceIds'],
         'representative_resource_id':
@@ -671,7 +814,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.collections.update' => _creatorRequest(
       'PATCH',
-      '/api/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
       data: {
         'name': command.params['name'],
         'summary': command.params['summary'],
@@ -679,7 +822,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     ),
     'creator.collections.delete' => _creatorRequest(
       'DELETE',
-      '/api/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
+      '/api/v1/creator/collections/${_requiredCreatorId(command.params, 'collection')}',
     ),
     'account.list' => _accountList(),
     'account.status' => _freshAccountStatus(
@@ -734,6 +877,15 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     'debug.storage.roots' => debugHostStorageRoots(),
     'debug.storage.list' => _debugStorageList(command.params),
     'debug.storage.read' => _debugStorageRead(command.params),
+    'appdata.maintenance.begin' => _pluginManager.dataMaintenance.begin(),
+    'appdata.maintenance.validate' => Future.value(
+      _pluginManager.dataMaintenance.owns(
+        command.params['token']?.toString() ?? '',
+      ),
+    ),
+    'appdata.maintenance.end' => _pluginManager.dataMaintenance.end(
+      command.params['token']?.toString() ?? '',
+    ),
     'plugin.list' => _pluginManager.list(
       includeIcons: command.params['includeIcons'] != false,
     ),
@@ -825,8 +977,15 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     final bundle = base64Decode(encoded);
     final operationId = params['operationId']?.toString() ?? '';
     return _creatorApi.publish(
+      expectedEditVersion: (params['editVersion'] as num?)?.toInt(),
       resourceId: params['resource']?.toString() ?? '',
       bundle: bundle,
+      onDraftSaved: (workspace) => _events.add(
+        CommandEvent(
+          'creator.publish.draftSaved',
+          data: {'operationId': operationId, 'workspace': workspace},
+        ),
+      ),
       onProgress: (progress) => _events.add(
         CommandEvent(
           'creator.publish.progress',
@@ -842,6 +1001,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       throw const CommandFailure('usage', 'Missing draft bundle');
     }
     return _creatorApi.saveDraft(
+      expectedEditVersion: (params['editVersion'] as num?)?.toInt(),
       resourceId: params['resource']?.toString() ?? '',
       bundle: base64Decode(encoded),
     );
@@ -1139,11 +1299,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
 
   Map<String, Object?> _status() {
     final current = _state.currentDevice;
+    final storage = _state.systemInfo?.storageInfo;
     return {
       'connected': _state.protocolState == ProtocolState.ready,
       'protocolState': _state.protocolState.name,
       if (current != null) 'device': _deviceJson(current),
       if (_state.battery != null) 'battery': _state.battery!.capacity,
+      if (storage != null)
+        'storage': {
+          'totalBytes': storage.total,
+          'freeBytes': storage.total - storage.used,
+          'usedBytes': storage.used,
+        },
       if (_state.error != null) 'error': _state.error,
     };
   }
@@ -1186,7 +1353,12 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     }
     final target = requestedAddress == null || requestedAddress.isEmpty
         ? paired.first
-        : paired.where((device) => device.addr == requestedAddress).firstOrNull;
+        : paired
+              .where(
+                (device) =>
+                    device.addr.toLowerCase() == requestedAddress.toLowerCase(),
+              )
+              .firstOrNull;
     if (target == null) {
       throw CommandFailure(
         'no_device',
@@ -1194,7 +1366,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       );
     }
     if (_state.protocolState == ProtocolState.ready &&
-        _state.currentDevice?.addr == target.addr) {
+        _state.currentDevice?.addr.toLowerCase() == target.addr.toLowerCase()) {
       return _deviceJson(target);
     }
     final authKey = target.authkey ?? '';
@@ -1298,7 +1470,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     final device = _state.currentDevice;
     final info = _state.systemInfo;
     final battery = _state.battery;
+    final storage = info?.storageInfo;
     return {
+      'connected': _state.protocolState == ProtocolState.ready,
+      'protocolState': _state.protocolState.name,
       if (device != null)
         'device': {
           'name': device.name,
@@ -1307,29 +1482,19 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           'connectionType': device.connectType,
           if (device.codename != null) 'codename': device.codename,
         },
+      if (battery != null) 'battery': battery.capacity,
+      if (storage != null)
+        'storage': {
+          'totalBytes': storage.total,
+          'freeBytes': storage.total - storage.used,
+          'usedBytes': storage.used,
+        },
       if (info != null)
         'system': {
           'model': info.model,
           'imei': info.imei,
           'firmwareVersion': info.firmwareVersion,
           'serialNumber': info.serialNumber,
-          if (info.storageInfo != null)
-            'storage': {
-              'used': info.storageInfo!.used,
-              'total': info.storageInfo!.total,
-              'free': info.storageInfo!.total - info.storageInfo!.used,
-            },
-        },
-      if (battery != null)
-        'status': {
-          'battery': battery.capacity,
-          'chargeStatus': battery.chargeStatus.name,
-          if (battery.chargeInfo != null)
-            'chargeInfo': {
-              'state': battery.chargeInfo!.state,
-              if (battery.chargeInfo!.timestamp != null)
-                'timestamp': battery.chargeInfo!.timestamp,
-            },
         },
     };
   }
@@ -1403,30 +1568,6 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       );
       rethrow;
     }
-    String directory;
-    try {
-      final path = await getLogDirectoryPath();
-      if (path == null) {
-        throw const CommandFailure(
-          'storage_unavailable',
-          'The runtime log directory is unavailable',
-        );
-      }
-      directory = path;
-    } catch (error) {
-      _events.add(
-        CommandEvent(
-          'device.log.progress',
-          data: {
-            'stage': 'failed',
-            'message': error.toString(),
-            if (operationId != null) 'operationId': operationId,
-            if (deviceId != null) 'deviceId': deviceId,
-          },
-        ),
-      );
-      rethrow;
-    }
     final sourceName = pulled.fileName.trim();
     final safeName = sourceName
         .split(RegExp(r'[/\\]'))
@@ -1451,27 +1592,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         .replaceFirst(RegExp(r'[. ]+$'), '');
     final name =
         'device-${codename.isEmpty ? 'unknown' : codename}-$stamp-'
-        '${safeName.isEmpty ? 'logs.zip' : safeName}';
-    late final File file;
-    try {
-      file = await _uniqueOutputFile(
-        File('$directory${Platform.pathSeparator}$name'),
-      );
-    } catch (error) {
-      _events.add(
-        CommandEvent(
-          'device.log.progress',
-          data: {
-            'stage': 'failed',
-            'message': error.toString(),
-            if (operationId != null) 'operationId': operationId,
-            if (deviceId != null) 'deviceId': deviceId,
-          },
-        ),
-      );
-      rethrow;
-    }
-    final temporary = File('${file.path}.part');
+        '${safeName.isEmpty ? 'logs.tar.gz' : safeName}';
+
     _events.add(
       CommandEvent(
         'device.log.progress',
@@ -1484,11 +1606,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
         },
       ),
     );
+
+    late final String savedPath;
     try {
-      await temporary.writeAsBytes(pulled.data, flush: true);
-      await temporary.rename(file.path);
+      final path = await saveDeviceLogFile(name, pulled.data);
+      if (path == null) {
+        throw const CommandFailure(
+          'storage_unavailable',
+          'Failed to store device log archive',
+        );
+      }
+      savedPath = path;
     } catch (error) {
-      if (await temporary.exists()) await temporary.delete();
       _events.add(
         CommandEvent(
           'device.log.progress',
@@ -1502,6 +1631,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       );
       rethrow;
     }
+
     final currentLog = extractCurrentDeviceLog(pulled.data);
     if (currentLog == null) {
       _log.warning(
@@ -1512,22 +1642,12 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     String? currentLogName;
     if (currentLog != null && currentLog.isNotEmpty) {
       try {
-        currentLogName =
-            await _uniqueOutputFile(
-              File(
-                '$directory${Platform.pathSeparator}${name.replaceFirst(RegExp(r'(?:\.tar\.gz|\.tgz|\.zip)$'), '')}-tmp.log',
-              ),
-            ).then((target) async {
-              final temporary = File('${target.path}.part');
-              try {
-                await temporary.writeAsBytes(currentLog, flush: true);
-                await temporary.rename(target.path);
-              } catch (_) {
-                if (await temporary.exists()) await temporary.delete();
-                rethrow;
-              }
-              return target.path.split(Platform.pathSeparator).last;
-            });
+        final tmpName =
+            '${name.replaceFirst(RegExp(r'(?:\.tar\.gz|\.tgz|\.zip)$'), '')}-tmp.log';
+        final tmpPath = await saveDeviceLogFile(tmpName, currentLog);
+        if (tmpPath != null) {
+          currentLogName = tmpPath.split(Platform.pathSeparator).last;
+        }
       } catch (error, stackTrace) {
         _log.warning(
           'failed to save extracted current device log',
@@ -1552,7 +1672,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     );
     return {
       'name': name,
-      'path': file.path,
+      'path': savedPath,
       'size': pulled.data.length,
       'stored': true,
       if (currentLogName != null) 'currentLogName': currentLogName,
@@ -1606,6 +1726,82 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     return _deviceStateJson(_state);
   }
 
+  Future<Object?> _replayXiaomiHealthSnapshot(
+    Map<String, Object?> params,
+  ) async {
+    final deviceId = params['deviceId']?.toString();
+    final rawFiles = params['files'];
+    if (deviceId == null || deviceId.isEmpty || rawFiles is! List) {
+      throw const FormatException('Invalid Xiaomi health snapshot replay');
+    }
+    final files = rawFiles
+        .whereType<Map>()
+        .map(
+          (file) => XiaomiActivityRawFile(
+            id: file['id']?.toString() ?? '',
+            data: base64Decode(file['data']?.toString() ?? ''),
+          ),
+        )
+        .where((file) => file.id.isNotEmpty && file.data.isNotEmpty)
+        .toList(growable: false);
+    if (files.isEmpty) {
+      throw const FormatException('Xiaomi health snapshot has no files');
+    }
+    final value = await _manager.replayXiaomiHealthSnapshot(deviceId, files);
+    return value.toJson();
+  }
+
+  Map<String, Object?> _cachedXiaomiWeather() => {
+    'available': XiaomiSyncPreferences.cachedWeather != null,
+    if (XiaomiSyncPreferences.cachedWeather != null)
+      'weather': XiaomiSyncPreferences.cachedWeather!.toJson(),
+    if (XiaomiSyncPreferences.cachedWeatherSyncedAt != null)
+      'syncedAt': XiaomiSyncPreferences.cachedWeatherSyncedAt!
+          .toIso8601String(),
+  };
+
+  Future<Object?> _phoneLocation() async {
+    final lease = Object();
+    try {
+      final sessions = PhoneLocationSessions.instance;
+      final nextPosition = sessions.positions.first;
+      await sessions.acquire(lease);
+      final position = await nextPosition.timeout(const Duration(seconds: 10));
+      return {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'accuracy': position.accuracy,
+        'altitude': position.altitude,
+        'timestamp': position.timestamp.toIso8601String(),
+      };
+    } finally {
+      await PhoneLocationSessions.instance.release(lease);
+    }
+  }
+
+  Future<Object?> _respondXiaomiWifi(Map<String, Object?> params) async {
+    final deviceId = params['deviceId']?.toString().trim() ?? '';
+    final ssid = params['ssid']?.toString() ?? '';
+    final password = params['password']?.toString() ?? '';
+    final authMode = (params['authMode'] as num?)?.toInt();
+    final frequency = (params['frequency'] as num?)?.toInt();
+    if (deviceId.isEmpty ||
+        ssid.trim().isEmpty ||
+        authMode == null ||
+        frequency == null) {
+      throw const CommandFailure('usage', 'Invalid Xiaomi Wi-Fi response');
+    }
+    await _manager.sendXiaomiWifiConfig(
+      deviceId: deviceId,
+      ssid: ssid,
+      authMode: authMode,
+      frequency: frequency,
+      password: password,
+      identity: params['identity']?.toString() ?? '',
+    );
+    return const {'sent': true};
+  }
+
   Future<Object?> _uploadXiaomiMusic(Map<String, Object?> params) async {
     await _ensureConnected(null);
     final bytes = Uint8List.fromList(
@@ -1618,6 +1814,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       bytes,
       title: params['title']?.toString() ?? 'Unknown',
       artist: params['artist']?.toString() ?? 'Unknown',
+      album: params['album']?.toString(),
+      durationSecs:
+          (params['duration'] as num?)?.toInt() ??
+          (params['durationSecs'] as num?)?.toInt(),
       onProgress: (progress) =>
           _events.add(CommandEvent('progress', data: {'progress': progress})),
     );
@@ -1784,12 +1984,18 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     return {'appId': id, 'bytes': payload.length};
   }
 
-  Future<Object?> _sendXiaoAiReply(String? text) async {
+  Future<Object?> _sendXiaoAiReply(String? text, String? recognizedText) async {
     await _ensureConnected(null);
     if (text == null || text.trim().isEmpty) {
       throw const CommandFailure('invalid_argument', 'Reply cannot be empty');
     }
-    await _manager.sendXiaoAiReply(text);
+    if (recognizedText == null || recognizedText.trim().isEmpty) {
+      throw const CommandFailure(
+        'invalid_argument',
+        'Recognition cannot be empty',
+      );
+    }
+    await _manager.sendXiaoAiReply(text, recognizedText: recognizedText);
     return const {'sent': true};
   }
 
@@ -1945,7 +2151,7 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     );
   }
 
-  Future<Object?> _launchApp(String? packageName) async {
+  Future<Object?> _launchApp(String? packageName, {String page = ''}) async {
     await _ensureConnected(null);
     await _manager.fetchApps();
     final app = _state.apps
@@ -1954,8 +2160,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     if (app == null) {
       throw CommandFailure('not_found', 'App not found: $packageName');
     }
-    await _manager.openApp(app);
-    return {'launched': packageName};
+    await _manager.openApp(app, page: page);
+    return {'launched': packageName, if (page.isNotEmpty) 'page': page};
   }
 
   Future<Object?> _removeWatchface(String? id) async {
@@ -2216,7 +2422,8 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
           params['deleteAfter'] == true &&
           file != null &&
           await file.exists()) {
-        await file.delete();
+        await ManagedTemporaryFiles.release(file.path);
+        if (await file.exists()) await file.delete();
       }
     }
   }
@@ -2576,6 +2783,51 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     );
   }
 
+  /// Imports the cloud device list without invalidating a successful sign-in.
+  ///
+  /// The account is authenticated before this runs. A device-list or import
+  /// failure leaves a usable session, so it is reported as a warning instead of
+  /// turning the whole login into an error. An expired session still fails
+  /// loudly because the user has to sign in again.
+  Future<int> _importXiaomiDevices(
+    MiAccountService service,
+    MiAccountToken token,
+  ) async {
+    try {
+      final devices = await _fetchXiaomiBoundDevices(service, token);
+      return await _manager.importMiCloudDevices(devices);
+    } on CommandFailure {
+      rethrow;
+    } catch (error, stackTrace) {
+      _log.warning(
+        'Xiaomi sign-in succeeded but the device list could not be imported',
+        error,
+        stackTrace,
+      );
+      return 0;
+    }
+  }
+
+  /// Stores the Xiaomi session without failing the whole sign-in.
+  ///
+  /// The account is already authenticated at this point. If the private vault
+  /// is unavailable the session still works for this run, so report a warning
+  /// rather than turning a successful login into a failure.
+  Future<void> _persistXiaomiSession(
+    MiAccountService service,
+    MiAccountToken token,
+  ) async {
+    try {
+      await service.persistToken(token);
+    } on PrivateStateException catch (error) {
+      _log.warning(
+        'Xiaomi session could not be persisted '
+        '(${error.detail.isEmpty ? error.code : error.detail}); '
+        'continuing with the in-memory session',
+      );
+    }
+  }
+
   Future<List<MiCloudDevice>> _fetchXiaomiBoundDevices(
     MiAccountService service,
     MiAccountToken token,
@@ -2715,12 +2967,24 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
             'Xiaomi account requires two-factor verification',
             details: {'url': error.url, 'deviceId': error.deviceId},
           );
+        } on DioException catch (error) {
+          // A transport failure used to surface as `internal` with the raw
+          // DioException text, which reads like an application bug. Report it
+          // as a network problem so the UI shows the network message.
+          throw CommandFailure(
+            error.response == null ? 'network_error' : 'internal',
+            error.message ?? 'Xiaomi account login request failed',
+            details: {
+              'type': error.type.name,
+              if (error.response?.statusCode case final status?)
+                'statusCode': status,
+            },
+          );
         }
-        await service.persistToken(token);
+        await _persistXiaomiSession(service, token);
         _xiaomiAccountToken = token;
         _xiaomiAccountSessionLoaded = true;
-        final devices = await _fetchXiaomiBoundDevices(service, token);
-        final imported = await _manager.importMiCloudDevices(devices);
+        final imported = await _importXiaomiDevices(service, token);
         return {
           'provider': 'xiaomi',
           'signedIn': true,
@@ -2744,11 +3008,10 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
       ),
       cookieHeader: params['cookieHeader']?.toString() ?? '',
     );
-    await service.persistToken(token);
+    await _persistXiaomiSession(service, token);
     _xiaomiAccountToken = token;
     _xiaomiAccountSessionLoaded = true;
-    final devices = await _fetchXiaomiBoundDevices(service, token);
-    final imported = await _manager.importMiCloudDevices(devices);
+    final imported = await _importXiaomiDevices(service, token);
     return {
       'provider': 'xiaomi',
       'signedIn': true,
@@ -2800,8 +3063,13 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
   }
 
   Future<void> _ensureConnected(String? address) async {
-    if (_state.protocolState == ProtocolState.ready &&
-        (address == null || _state.currentDevice?.addr == address)) {
+    final current = _state.currentDevice;
+    final isCurrent =
+        address == null ||
+        address.isEmpty ||
+        (current != null &&
+            current.addr.toLowerCase() == address.toLowerCase());
+    if (_state.protocolState == ProtocolState.ready && isCurrent) {
       return;
     }
     await _connect(address);
@@ -2846,22 +3114,6 @@ class LocalCommandBus implements OronBoxCommandBus, ActiveOperationController {
     await _deviceEventSubscription.cancel();
     await _events.close();
   }
-}
-
-Future<File> _uniqueOutputFile(File requested) async {
-  if (!await requested.exists()) return requested;
-  final directory = requested.parent;
-  final name = requested.uri.pathSegments.last;
-  final dot = name.lastIndexOf('.');
-  final stem = dot > 0 ? name.substring(0, dot) : name;
-  final extension = dot > 0 ? name.substring(dot) : '';
-  for (var index = 2; index < 100000; index++) {
-    final candidate = File(
-      '${directory.path}${Platform.pathSeparator}$stem ($index)$extension',
-    );
-    if (!await candidate.exists()) return candidate;
-  }
-  throw StateError('Unable to allocate a unique output file name');
 }
 
 String _hexPreview(List<int> bytes) {

@@ -185,9 +185,9 @@ message Song {
     required bytes id = 1;
     required string name = 2;
     required uint32 size = 3;
-    optional uint32 duration = 5;
-    required string album = 6;
-    required string artist = 7;
+    optional uint32 duration = 4;
+    required string album = 5;
+    required string artist = 6;
 }
 
 message MediaFile {

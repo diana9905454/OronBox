@@ -7,9 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
-import 'package:oronbox/src/app/window/debug_window_preference.dart';
-import 'package:oronbox/src/app/window/window_launcher.dart';
+import 'package:oronbox/src/app/window/desktop_window.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/dialog_helper.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
@@ -81,7 +81,10 @@ class SettingsPage extends ConsumerWidget {
       ),
       body: SegmentedList(
         maxWidth: StyleConstants.pageMaxWidth,
-        contentPadding: const EdgeInsets.only(top: StyleConstants.pagePadding),
+        contentPadding: EdgeInsets.only(
+          top: StyleConstants.pagePadding,
+          bottom: bottomContentPadding(context, extra: 16),
+        ),
         sections: [
           if (category == null || category == SettingsCategory.accounts)
             _buildSection(
@@ -489,6 +492,21 @@ class SettingsPage extends ConsumerWidget {
                   title: Text(l10n.feedbackTitle),
                   description: Text(l10n.feedbackDesc),
                 ),
+                if (!kIsWeb &&
+                    (defaultTargetPlatform == TargetPlatform.android ||
+                        defaultTargetPlatform == TargetPlatform.iOS))
+                  SegmentedTile.navigation(
+                    onPressed: (_) => context.push('/settings/permissions'),
+                    leading: const Icon(Icons.security_outlined),
+                    title: Text(l10n.settingsPermissionsTitle),
+                    description: Text(l10n.settingsPermissionsDesc),
+                  ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/settings/data'),
+                  leading: const Icon(Icons.storage_outlined),
+                  title: Text(l10n.appDataTitle),
+                  description: Text(l10n.appDataDescription),
+                ),
                 SegmentedTile.navigation(
                   onPressed: (_) => context.push('/settings/advanced'),
                   leading: const Icon(Icons.tune_outlined),
@@ -515,10 +533,16 @@ class SettingsPage extends ConsumerWidget {
                   description: Text(l10n.settingsAboutLogsDescription),
                 ),
                 SegmentedTile.navigation(
-                  onPressed: (_) => context.push('/settings/debug-server'),
+                  onPressed: (_) => context.push('/settings/labs'),
+                  leading: const Icon(Icons.science_outlined),
+                  title: Text(l10n.featureLabTitle),
+                  description: Text(l10n.featureLabDescription),
+                ),
+                SegmentedTile.navigation(
+                  onPressed: (_) => context.push('/settings/local-server'),
                   leading: const Icon(Icons.developer_mode_outlined),
-                  title: Text(l10n.debugServerTitle),
-                  description: Text(l10n.debugServerDescription),
+                  title: Text(l10n.localServerTitle),
+                  description: Text(l10n.localServerDescription),
                 ),
                 if (showDebugWindowSettings)
                   SegmentedTile.switchTile(

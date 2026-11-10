@@ -21,6 +21,20 @@ void main() {
       }
     });
 
+    test('maps new resource devices without assuming connection support', () {
+      for (final (codename, inputs) in [
+        ('q66cn', ['xmb11', 'M2616B1', 'q66cn']),
+        ('q66nfc', ['xmb11nfc', 'M2617B1', 'q66nfc']),
+        ('q63', ['xmws541', 'M2606W1', 'M2607W1', 'q63']),
+      ]) {
+        for (final input in inputs) {
+          final identity = normalizeXiaomiWearableIdentity(input);
+          expect(identity?.codename, codename, reason: input);
+          expect(identity?.protocol, XiaomiWearableProtocol.unsupported);
+        }
+      }
+    });
+
     test('normalizes REDMI Watch 5 eSIM aliases', () {
       final inputs = [
         'xmrw5xring',

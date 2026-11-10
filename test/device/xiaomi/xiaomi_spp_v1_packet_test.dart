@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oronbox/src/device/core/xiaomi_wearable_catalog.dart';
 import 'package:oronbox/src/device/xiaomi/utils/auth_utils.dart';
-import 'package:oronbox/src/protocols/xiaomi/packet/spp_v1_packet.dart';
+import 'package:oronbox/src/device/xiaomi/protocol/packet/spp_v1_packet.dart';
 
 void main() {
   test('routes Vela generations to the correct SPP protocol', () {
@@ -66,6 +66,19 @@ void main() {
     expect(packets.single.channel, XiaomiSppV1Channel.protobuf);
     expect(packets.single.dataType, XiaomiSppV1Packet.auth);
     expect(packets.single.payload, [1, 2, 3, 4]);
+  });
+
+  test('routes fragmented SPP v1 channel 4 to voice rather than fitness', () {
+    final encoded = XiaomiSppV1Codec().encodeProtobuf(
+      Uint8List.fromList([0, 1, 0, 1, 255]),
+      authenticate: true,
+    );
+    encoded[3] = 4;
+    final receiver = XiaomiSppV1Codec();
+    expect(receiver.add(Uint8List.sublistView(encoded, 0, 9)), isEmpty);
+    final packets = receiver.add(Uint8List.sublistView(encoded, 9));
+    expect(packets.single.channel, XiaomiSppV1Channel.voice);
+    expect(packets.single.payload, [0, 1, 0, 1, 255]);
   });
 
   test('encrypts and decrypts SPP v1 protobuf frames', () {

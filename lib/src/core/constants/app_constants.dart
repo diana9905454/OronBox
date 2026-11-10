@@ -13,15 +13,19 @@ class TeamMember {
 }
 
 enum TeamRole {
-  mainDeveloperDesigner,
+  mainDeveloperArchitecture,
   zeppOSImplementation,
-  harmonyAdaptation,
+  harmonyOSPorting,
+  deviceConnectionCollaboration,
 }
 
 abstract final class AppConstants {
-  static const String githubRepoUrl = 'https://github.com/zxor-org/OronBox';
+  static const String githubRepoUrl = 'https://github.com/OronCanopy/OronBox';
   static const String githubRepoApiUrl =
-      'https://api.github.com/repos/zxor-org/OronBox';
+      'https://api.github.com/repos/OronCanopy/OronBox';
+  /// 本分支（HarmonyOS 移植）的仓库地址，About 页的「仓库」按钮指向这里；
+  /// [githubRepoUrl] 仍指上游，用于读取正式发版记录。
+  static const String forkRepoUrl = 'https://github.com/diana9905454/OronBox';
   static const String websiteUrl = 'https://oronbox.zxor.org';
   static const String androidCloudDownloadUrl =
       'https://cpwdxbd.lanzoue.com/oronbox';
@@ -29,7 +33,7 @@ abstract final class AppConstants {
   static const List<TeamMember> teamMembers = [
     TeamMember(
       name: 'OrPudding',
-      role: TeamRole.mainDeveloperDesigner,
+      role: TeamRole.mainDeveloperArchitecture,
       avatarAsset: 'assets/images/team/orpudding.jpg',
       githubUrl: 'https://github.com/orpudding',
     ),
@@ -39,15 +43,17 @@ abstract final class AppConstants {
       avatarAsset: 'assets/images/team/zxxhcj.jpg',
       githubUrl: 'https://github.com/zxxhcj',
     ),
-  ];
-
-  // 特别感谢：非项目核心成员，但对项目有重要贡献（如 HarmonyOS 移植）。
-  static const List<TeamMember> specialThanks = [
     TeamMember(
       name: 'Diana',
-      role: TeamRole.harmonyAdaptation,
-      avatarAsset: 'assets/images/team/diana.jpg',
+      role: TeamRole.harmonyOSPorting,
+      avatarAsset: 'assets/images/team/diana9905454.jpg',
       githubUrl: 'https://github.com/diana9905454',
+    ),
+    TeamMember(
+      name: 'IKUN_CXKPRO',
+      role: TeamRole.deviceConnectionCollaboration,
+      avatarAsset: 'assets/images/team/ikun_cxkpro.jpg',
+      githubUrl: 'https://github.com/IKUN-CXKPRO',
     ),
   ];
 }

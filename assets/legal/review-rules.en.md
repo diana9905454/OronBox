@@ -147,4 +147,4 @@ Urgent safety rules may apply immediately. For other material changes, OronBox w
 
 - Official instance operator: OronBox Operations Team
 - Publishing, complaints, and appeals: t3164473115@163.com
-- Public discussion: <https://github.com/zxor-org/OronBox/discussions>
+- Public discussion: <https://github.com/OronCanopy/OronBox/discussions>

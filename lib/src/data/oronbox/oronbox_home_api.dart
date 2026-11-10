@@ -164,7 +164,7 @@ class OronBoxHomeApi {
   Future<HomeFeed> fetchHome({int? seed}) async {
     final feedSeed = seed ?? math.Random.secure().nextInt(0x7fffffff);
     final homeFuture = _dio.get<Object?>(
-      '$oronBoxServerBaseUrl/api/home',
+      '$oronBoxServerBaseUrl/api/v1/home',
       queryParameters: {'seed': feedSeed},
     );
     final blogFuture = _fetchBlogRoot();
@@ -200,7 +200,7 @@ class OronBoxHomeApi {
   Future<Map<String, Object?>> _fetchBlogRoot() async {
     try {
       final response = await _dio.get<Object?>(
-        '$oronBoxServerBaseUrl/api/blog?limit=5',
+        '$oronBoxServerBaseUrl/api/v1/blog?limit=5',
       );
       return _map(response.data);
     } catch (_) {
@@ -212,7 +212,7 @@ class OronBoxHomeApi {
 
   Future<BlogPost> fetchBlogPost(String slug) async {
     final response = await _dio.get<Object?>(
-      '$oronBoxServerBaseUrl/api/blog/${Uri.encodeComponent(slug)}',
+      '$oronBoxServerBaseUrl/api/v1/blog/${Uri.encodeComponent(slug)}',
     );
     final json = _map(response.data);
     return BlogPost(
@@ -222,7 +222,10 @@ class OronBoxHomeApi {
       subtitle: json['subtitle']?.toString() ?? '',
       author: json['author']?.toString() ?? '',
       body: json['body']?.toString() ?? '',
-      coverUrl: _blobUri(json['cover_sha256']?.toString() ?? ''),
+      coverUrl:
+          Uri.tryParse(json['cover_url']?.toString() ?? '')?.hasScheme == true
+          ? Uri.parse(json['cover_url'].toString())
+          : _blobUri(json['cover_sha256']?.toString() ?? ''),
       publishedAt: DateTime.tryParse(json['published_at']?.toString() ?? ''),
     );
   }
@@ -238,7 +241,10 @@ class OronBoxHomeApi {
       },
       title: json['title']?.toString() ?? '',
       subtitle: json['subtitle']?.toString() ?? '',
-      coverUrl: _blobUri(json['cover_sha256']?.toString() ?? ''),
+      coverUrl:
+          Uri.tryParse(json['cover_url']?.toString() ?? '')?.hasScheme == true
+          ? Uri.parse(json['cover_url'].toString())
+          : _blobUri(json['cover_sha256']?.toString() ?? ''),
       resourceId: json['resource_id']?.toString() ?? '',
       blogSlug: json['blog_slug']?.toString() ?? '',
       linkUrl: link?.hasScheme == true ? link : null,
@@ -325,12 +331,15 @@ class OronBoxHomeApi {
     title: json['title']?.toString() ?? '',
     subtitle: json['subtitle']?.toString() ?? '',
     author: json['author']?.toString() ?? '',
-    coverUrl: _blobUri(json['cover_sha256']?.toString() ?? ''),
+    coverUrl:
+        Uri.tryParse(json['cover_url']?.toString() ?? '')?.hasScheme == true
+        ? Uri.parse(json['cover_url'].toString())
+        : _blobUri(json['cover_sha256']?.toString() ?? ''),
     publishedAt: DateTime.tryParse(json['published_at']?.toString() ?? ''),
   );
 
   Uri? _blobUri(String digest) => digest.length == 64
-      ? Uri.parse('$oronBoxServerBaseUrl/api/blobs/$digest?line=local')
+      ? Uri.parse('$oronBoxServerBaseUrl/api/v1/blobs/$digest?line=local')
       : null;
 
   Map<String, Object?> _map(Object? value) => value is Map

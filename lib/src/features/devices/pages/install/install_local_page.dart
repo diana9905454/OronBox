@@ -12,7 +12,6 @@ import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/resources/services/resource_install_service.dart';
 import 'package:oronbox/src/features/resources/widgets/resource_install_confirmation.dart';
-import 'package:oronbox/src/features/devices/pages/install/local_file_picker_policy.dart';
 
 class InstallLocalPage extends ConsumerStatefulWidget {
   const InstallLocalPage({super.key, required this.type});
@@ -142,9 +141,9 @@ class _InstallLocalPageState extends ConsumerState<InstallLocalPage> {
                               child: Text(
                                 '${(_fileSize! / 1024).toStringAsFixed(1)} KB',
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
                                 ),
                               ),
                             ),

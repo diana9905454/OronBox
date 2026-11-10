@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -566,8 +567,7 @@ class AppLocalizationsRu extends AppLocalizations {
       'Bluetooth отключён. Подключите устройство снова';
 
   @override
-  String get errorOperationTimeout =>
-      'Время операции истекло. Убедитесь, что устройство рядом, и повторите попытку';
+  String get errorOperationTimeout => 'Время операции истекло';
 
   @override
   String get errorDeviceNotReady =>
@@ -673,6 +673,30 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get errorUnsupportedFileType =>
       'Неподдерживаемый или неизвестный тип файла';
+
+  @override
+  String get errorDeviceFeatureUnsupported =>
+      'Эта функция не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorDeviceMusicUnsupported =>
+      'Передача музыки не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorDeviceRecordingUnsupported =>
+      'Экспорт записей не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorDeviceScreenMirrorUnsupported =>
+      'Дублирование экрана не поддерживается текущим устройством или прошивкой';
+
+  @override
+  String get errorNotInstalled =>
+      'Необходимый компонент или приложение не установлены';
+
+  @override
+  String get errorInvalidOperation =>
+      'Невозможно выполнить эту операцию в текущем состоянии';
 
   @override
   String get errorCertificateVerificationFailed =>
@@ -864,7 +888,7 @@ class AppLocalizationsRu extends AppLocalizations {
   String get collapse => 'Сворачивание';
 
   @override
-  String get voiceLabTitle => 'Голосовая лаборатория';
+  String get voiceLabTitle => 'Голосовой помощник';
 
   @override
   String get voiceLabXiaoAi => 'XiaoAI';
@@ -1389,6 +1413,9 @@ class AppLocalizationsRu extends AppLocalizations {
   String get deviceHealthHeartRate => 'Пульс';
 
   @override
+  String get deviceHealthAverageHeartRateLabel => 'Средний пульс';
+
+  @override
   String get deviceHealthRestingHeartRate => 'Пульс в покое';
 
   @override
@@ -1432,6 +1459,9 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get deviceHealthSleepStructure => 'Структура сна';
+
+  @override
+  String get deviceHealthSleepDetails => 'Детали сна';
 
   @override
   String get deviceHealthSleepAverageHeartRate =>
@@ -1567,6 +1597,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Синхронизация и экспорт записей с часов';
 
   @override
+  String get deviceRecordingsLibrary => 'Записи устройства';
+
+  @override
+  String get deviceRecordingsLibraryDescription =>
+      'Экспорт записей с устройства';
+
+  @override
   String get deviceRecordingsHint =>
       'Записи принимаются и проверяются по одной. После синхронизации экспортируйте каждый исходный файл';
 
@@ -1605,6 +1642,34 @@ class AppLocalizationsRu extends AppLocalizations {
   String deviceRecordingsSaveFailed(String error) {
     return 'Не удалось сохранить запись: $error';
   }
+
+  @override
+  String get deviceRecordingsSavedBadge => 'Сохранено';
+
+  @override
+  String get deviceRecordingsSelectAll => 'Выбрать все';
+
+  @override
+  String get deviceRecordingsDeselectAll => 'Снять выбор';
+
+  @override
+  String deviceRecordingsExportSelected(int count) {
+    return 'Экспорт выбранных ($count)';
+  }
+
+  @override
+  String get deviceRecordingsOpenDirectory => 'Открыть папку';
+
+  @override
+  String deviceRecordingsExported(String path) {
+    return 'Экспортировано в $path';
+  }
+
+  @override
+  String get deviceRecordingsSaveSuccess => 'Запись экспортирована';
+
+  @override
+  String get deviceRecordingsRefresh => 'Обновить';
 
   @override
   String get deviceMusicTransferTitle => 'Передача музыки';
@@ -2067,6 +2132,13 @@ class AppLocalizationsRu extends AppLocalizations {
       'Откройте Xiaomi Fitness\\nПерейдите в раздел «Профиль» → «О приложении»\\nНесколько раз нажмите оранжевый логотип-кольцо\\nВ появившемся окне нажмите «Подтвердить»\\nДождитесь уведомления «log has been...»\\nВернитесь сюда и нажмите «Сканировать»';
 
   @override
+  String get settingsWearableLogGet => 'Получить';
+
+  @override
+  String get settingsWearableLogGuideOhos =>
+      'Откройте Xiaomi Fitness и перейдите в раздел «О приложении» внизу страницы профиля\nНесколько раз нажмите оранжевый логотип и выберите «Подтвердить»\nКогда появится сообщение «log has been...», вернитесь сюда и нажмите «Получить»\n\nОткройте «Мой телефон → Данные совместимых приложений → Android → data → com.mi.health → files → log»\nВыберите все файлы и нажмите «Готово»';
+
+  @override
   String settingsWearableLogFound(int count) {
     return 'Найдено устройств: $count';
   }
@@ -2095,6 +2167,14 @@ class AppLocalizationsRu extends AppLocalizations {
   @override
   String get xiaomiAccountRequiredForEphemeris =>
       'Войдите в аккаунт Xiaomi перед синхронизацией эфемеридных данных';
+
+  @override
+  String get xiaomiWifiPasswordRequestTitle => 'Запрос на подключение к Wi-Fi';
+
+  @override
+  String xiaomiWifiPasswordRequestMessage(Object ssid) {
+    return 'Устройство запрашивает подключение к сети Wi-Fi «$ssid».';
+  }
 
   @override
   String get settingsHuamiAccount => 'Аккаунт Amazfit';
@@ -2240,6 +2320,21 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsThemeModeDesc => 'Изменить оформление приложения';
 
   @override
+  String get settingsThemePreset => 'Стиль темы';
+
+  @override
+  String get settingsThemePresetDesc => 'Выберите визуальный стиль приложения';
+
+  @override
+  String get settingsThemePresetMaterial3 => 'Material 3';
+
+  @override
+  String get settingsThemePresetMaterial2 => 'Material 2';
+
+  @override
+  String get settingsThemePresetFluent => 'Fluent';
+
+  @override
   String get settingsDynamicColor => 'Динамический цвет';
 
   @override
@@ -2290,13 +2385,19 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsCancel => 'Отмена';
 
   @override
-  String get settingsTeamRoleMain => 'Основной разработчик / дизайнер';
+  String get settingsTeamRoleMain =>
+      'Основная разработка / архитектура / дизайн';
 
   @override
-  String get settingsTeamRoleZeppOS => 'Разработка ZeppOS';
+  String get settingsTeamRoleHarmonyOS =>
+      'Портирование и сопровождение HarmonyOS';
 
   @override
-  String get settingsTeamRoleHarmony => 'Адаптация Harmony';
+  String get settingsTeamRoleDeviceConnection =>
+      'Вклад в оптимизацию подключения macOS';
+
+  @override
+  String get settingsTeamRoleZeppOS => 'Адаптация и реализация ZeppOS';
 
   @override
   String get settingsAboutSoftware => 'О программе';
@@ -2316,9 +2417,6 @@ class AppLocalizationsRu extends AppLocalizations {
   String get settingsAboutSoftwareTeam => 'Команда разработки';
 
   @override
-  String get settingsSpecialThanks => 'Особая благодарность';
-
-  @override
   String get settingsAboutSoftwareBuildInfo => 'Сведения о сборке';
 
   @override
@@ -2329,34 +2427,39 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get acknowledgementsAstroBoxPublic =>
-      'Благодарности AstroBox публичный';
+      'Ссылка на структуру интерфейса и дизайн взаимодействия';
 
   @override
   String get acknowledgementsAstroBoxNgCore =>
-      'Ссылки на исходный код ядра AstroBox NG';
+      'Протокол устройств Xiaomi и транспортный уровень, перенесено и изменено';
+
+  @override
+  String get acknowledgementsAstroBoxNgPb =>
+      'Определения протокола Xiaomi wear, приняты дословно';
 
   @override
   String get acknowledgementsAstroBoxNgBluetooth =>
-      'Ссылки на реализацию Bluetooth в AstroBox NG';
+      'Ссылка на процесс подключения по Bluetooth';
 
   @override
   String get acknowledgementsAstroBoxNgAccount =>
-      'Ссылки на работу с аккаунтами в AstroBox NG';
+      'Ссылка на процесс входа в аккаунт Xiaomi и получения authkey';
 
   @override
   String get acknowledgementsAstroBoxNgProvider =>
-      'Ссылки на провайдер ресурсов AstroBox NG';
+      'Ссылка на процесс индексации ресурсов сообщества и разбора манифестов';
 
   @override
   String get acknowledgementsAstroBoxNgAppWasm =>
-      'Ссылки на WebAssembly-приложение AstroBox NG';
+      'Ссылка на процесс подключения Web Serial';
 
   @override
-  String get acknowledgementsGadgetbridge => 'Благодарности Gadgetbridge';
+  String get acknowledgementsGadgetbridge =>
+      'Реализация протокола ZeppOS, перенесено и изменено';
 
   @override
   String get acknowledgementsBreezyWeather =>
-      '参考 реализации китайского источника погоды';
+      'Ссылка на реализацию китайского источника погоды';
 
   @override
   String get acknowledgementsOpenMeteo =>
@@ -2683,6 +2786,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get resourceTypeUnknownCancel => 'Отмена';
 
   @override
+  String get watchfaceRestrictedTitle => 'Невозможно установить ресурс';
+
+  @override
+  String get watchfaceRestrictedMessage =>
+      'В целях соблюдения прав интеллектуальной собственности и применимых правил, по требованию Xiaomi,\nOronBox не может устанавливать циферблаты, предположительно происходящие из официального магазина.\nЕсли вы считаете это ошибкой, попросите автора циферблата связаться с нами.';
+
+  @override
   String resourceTypeMismatchMessage(Object detectedType, Object selectedType) {
     return 'Похоже, это ресурс типа $detectedType, но выбран тип $selectedType. Выберите способ установки';
   }
@@ -2878,6 +2988,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get creatorStateApproved => 'Одобрено';
+
+  @override
+  String get creatorStateReviewing => 'На проверке';
+
+  @override
+  String get creatorStatePublishing => 'Публикация';
 
   @override
   String get creatorStateExternalReview => 'Внешняя проверка';
@@ -3111,7 +3227,7 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get oobeLoginLocalNote =>
-      'Вход в Xiaomi и Amazfit выполняется только на этом устройстве; соответствующие данные не передаются третьим сторонам, кроме Xiaomi/Amazfit';
+      'Вход в Xiaomi и Amazfit выполняется только на этом устройстве\nСоответствующие данные не передаются третьим сторонам, кроме Xiaomi/Amazfit';
 
   @override
   String get oobeLoginXiaomiDesc =>
@@ -3138,6 +3254,12 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get oobeFinish => 'Готово';
+
+  @override
+  String get oobeRestoreAction => 'Восстановить из копии';
+
+  @override
+  String get oobeRestoreSuccess => 'Резервная копия восстановлена';
 
   @override
   String get settingsReplayOobe => 'Повторить знакомство';
@@ -3325,6 +3447,31 @@ class AppLocalizationsRu extends AppLocalizations {
   }
 
   @override
+  String messageReviewerPrefix(String reviewer) {
+    return 'Проверяющий: $reviewer';
+  }
+
+  @override
+  String messageOperatorPrefix(String operator) {
+    return 'Оператор: $operator';
+  }
+
+  @override
+  String messageReferencePrefix(String reference) {
+    return 'Связано: $reference';
+  }
+
+  @override
+  String messageTargetsPrefix(String targets) {
+    return 'Каналы публикации: $targets';
+  }
+
+  @override
+  String messageUnapprovedItemsPrefix(String items) {
+    return 'Требует доработки: $items';
+  }
+
+  @override
   String get messageStatusChangedBody => 'Статус этого объекта изменился.';
 
   @override
@@ -3456,55 +3603,90 @@ class AppLocalizationsRu extends AppLocalizations {
       'Журналы и инструменты разработчика';
 
   @override
-  String get debugServerTitle => 'Сервис отладки';
+  String get localServerTitle => 'Локальный API сервер';
 
   @override
-  String get debugServerDescription =>
-      'Локальный API для доверенных инструментов разработки';
+  String get localServerDescription =>
+      'Локальный API для внешних CLI и инструментов разработки';
 
   @override
-  String get debugServerEnable => 'Включить сервис отладки';
+  String get localServerEnable => 'Включить локальный API сервер';
 
   @override
-  String get debugServerEnableDescription =>
-      'Разрешить одобренным клиентам в локальной сети просматривать и управлять OronBox';
+  String get localServerEnableDescription =>
+      'Разрешить одобренным клиентам в локальной сети управлять OronBox';
 
   @override
-  String get debugServerEndpoint => 'Адрес';
+  String get localServerEndpoint => 'Адрес';
 
   @override
-  String get debugServerFingerprint => 'Отпечаток сервера';
+  String get localServerFingerprint => 'Отпечаток сервера';
 
   @override
-  String get debugServerPendingClients => 'Ожидают одобрения';
+  String get localServerPendingClients => 'Ожидают одобрения';
 
   @override
-  String get debugServerAuthorizedClients => 'Одобренные клиенты';
+  String get localServerAuthorizedClients => 'Одобренные клиенты';
 
   @override
-  String get debugServerApprove => 'Одобрить';
+  String get localServerApprove => 'Одобрить';
 
   @override
-  String get debugServerReject => 'Отклонить';
+  String get localServerReject => 'Отклонить';
 
   @override
-  String get debugServerRevoke => 'Отозвать доступ';
+  String get localServerRevoke => 'Отозвать доступ';
 
   @override
-  String get debugServerNoPendingClients => 'Нет клиентов, ожидающих одобрения';
+  String get localServerNoPendingClients => 'Нет запросов, ожидающих одобрения';
 
   @override
-  String get debugServerNoAuthorizedClients => 'Нет одобренных клиентов';
+  String get localServerNoAuthorizedClients => 'Нет одобренных клиентов';
 
   @override
-  String get debugServerSecurityNotice =>
+  String get localServerSecurityNotice =>
       'Включайте сервис только в доверенной сети';
 
   @override
-  String get debugServerStartFailed => 'Не удалось запустить сервис отладки';
+  String get localServerStartFailed =>
+      'Не удалось запустить локальный API сервер';
 
   @override
-  String get debugServerStopFailed => 'Не удалось остановить сервис отладки';
+  String get localServerStopFailed =>
+      'Не удалось остановить локальный API сервер';
+
+  @override
+  String get localServerPairingTitle => 'Разрешить доступ через локальный API?';
+
+  @override
+  String localServerPairingDescription(String clientName) {
+    return '«$clientName» запрашивает управление сервисами носимых устройств';
+  }
+
+  @override
+  String get localServerPairingFingerprint => 'Отпечаток Ed25519 SHA-256';
+
+  @override
+  String get localServerPairingAlwaysAllow =>
+      'Всегда разрешать подключение с этого компьютера';
+
+  @override
+  String get localServerPairingAllow => 'Разрешить';
+
+  @override
+  String get localServerPairingDeny => 'Отклонить';
+
+  @override
+  String get localServerPairingScopes => 'Запрашиваемые разрешения';
+
+  @override
+  String get wifiPasswordInputPlaceholder => 'Введите пароль Wi-Fi';
+
+  @override
+  String get wifiConnectButton => 'Подключить';
+
+  @override
+  String get wifiCancelButton => 'Отмена';
 
   @override
   String get xmsDeveloperMode => 'Режим разработчика XMS';
@@ -3952,6 +4134,23 @@ class AppLocalizationsRu extends AppLocalizations {
   String get deviceHealthSleepAwake => 'Бодрствование';
 
   @override
+  String deviceHealthSleepWakeCount(num count) {
+    final intl.NumberFormat countNumberFormat = intl.NumberFormat.compact(
+      locale: localeName,
+    );
+    final String countString = countNumberFormat.format(count);
+
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$countString раз',
+      few: '$countString раза',
+      one: '$countString раз',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get deviceHealthSleepLight => 'Лёгкий сон';
 
   @override
@@ -4278,7 +4477,1922 @@ class AppLocalizationsRu extends AppLocalizations {
   String get xiaomiScreenshotFailed => 'Не удалось получить снимок экрана';
 
   @override
+  String get xiaomiScreenshotDownloadStarted => 'Загрузка снимка экрана начата';
+
+  @override
+  String get xiaomiScreenshotSaveFailed => 'Не удалось сохранить снимок экрана';
+
+  @override
   String xiaomiScreenshotSaved(Object path) {
     return 'Снимок экрана часов сохранён в: $path';
   }
+
+  @override
+  String get deviceHealthRecoveryTime => 'Восстановление';
+
+  @override
+  String get deviceHealthTodayLoad => 'Нагрузка сегодня';
+
+  @override
+  String get deviceHealthSevenDayLoad => 'Нагрузка за 7 дней';
+
+  @override
+  String get deviceHealthLoadLevel => 'Уровень нагрузки';
+
+  @override
+  String get deviceHealthFitnessBalance => 'Баланс формы';
+
+  @override
+  String get deviceHealthFitnessLevel => 'Форма';
+
+  @override
+  String get deviceHealthFatigueLevel => 'Усталость';
+
+  @override
+  String get deviceHealthTrainingStress => 'Тренировочный стресс';
+
+  @override
+  String get deviceHealthTrainingStatus => 'Статус тренировки';
+
+  @override
+  String get deviceHealthSevenDayVitality => 'Активность за 7 дней';
+
+  @override
+  String get deviceHealthEarnedToday => 'Заработано за день';
+
+  @override
+  String get deviceHealthEarnedInPeriod => 'Заработано за период';
+
+  @override
+  String get deviceHealthModerateIntensity => 'Средняя';
+
+  @override
+  String get deviceHealthHighIntensity => 'Высокая';
+
+  @override
+  String get deviceHealthNap => 'Дневной сон';
+
+  @override
+  String get deviceHealthNapSingular => 'Дневной сон';
+
+  @override
+  String get deviceHealthWorkoutOverview => 'Обзор тренировок';
+
+  @override
+  String get deviceHealthWorkoutHistory => 'История';
+
+  @override
+  String get deviceHealthWorkoutDuration => 'Длительность';
+
+  @override
+  String get deviceHealthWorkoutRoute => 'Маршрут';
+
+  @override
+  String get deviceHealthWorkoutDetails => 'Подробности';
+
+  @override
+  String get deviceHealthSwimmingSections => 'Секции плавания';
+
+  @override
+  String get deviceHealthWorkoutCharts => 'Графики тренировки';
+
+  @override
+  String get deviceHealthActiveDuration => 'Активное время';
+
+  @override
+  String get deviceHealthAveragePace => 'Средний темп';
+
+  @override
+  String get deviceHealthBestPace => 'Лучший темп';
+
+  @override
+  String get deviceHealthHeartRateRange => 'Диапазон пульса';
+
+  @override
+  String get deviceHealthBloodOxygenRange => 'Диапазон SpO2';
+
+  @override
+  String get deviceHealthMainStroke => 'Основной стиль';
+
+  @override
+  String get deviceHealthHeartRateZones => 'Зоны пульса';
+
+  @override
+  String deviceHealthZoneLabel(Object zone) {
+    return 'Зона $zone';
+  }
+
+  @override
+  String get deviceHealthZoneWarmup => 'Разминка';
+
+  @override
+  String get deviceHealthZoneFatBurning => 'Жиросжигание';
+
+  @override
+  String get deviceHealthZoneAerobic => 'Аэробная';
+
+  @override
+  String get deviceHealthZoneAnaerobic => 'Анаэробная';
+
+  @override
+  String get deviceHealthZoneExtreme => 'Предельная';
+
+  @override
+  String get deviceHealthRecoveryAfterWorkout => 'Восстановление пульса';
+
+  @override
+  String get deviceHealthRecoveredHeartRate => 'Пульс восстановления';
+
+  @override
+  String get deviceHealthRecoveryRate => 'Скорость восстановления';
+
+  @override
+  String get deviceHealthSamples => 'Точки';
+
+  @override
+  String get deviceHealthAverageSpeed => 'Средняя скорость';
+
+  @override
+  String get deviceHealthTopSpeed => 'Макс. скорость';
+
+  @override
+  String get deviceHealthAverageStride => 'Средний шаг';
+
+  @override
+  String get deviceHealthAverageCadence => 'Средняя каденция';
+
+  @override
+  String get deviceHealthMaximumCadence => 'Макс. каденция';
+
+  @override
+  String get deviceHealthAverageBloodOxygenDetail => 'Средний SpO2';
+
+  @override
+  String get deviceHealthTotalAscent => 'Общий подъём';
+
+  @override
+  String get deviceHealthTotalDescent => 'Общий спуск';
+
+  @override
+  String get deviceHealthAverageAltitude => 'Средняя высота';
+
+  @override
+  String get deviceHealthAerobicEffect => 'Аэробный эффект';
+
+  @override
+  String get deviceHealthAnaerobicEffect => 'Анаэробный эффект';
+
+  @override
+  String get deviceHealthPeakEffect => 'Пиковый эффект';
+
+  @override
+  String get deviceHealthVo2Max => 'VO₂ max';
+
+  @override
+  String get deviceHealthBodyEnergyUsed => 'Расход энергии';
+
+  @override
+  String get deviceHealthExpectedRecovery => 'Ожидаемое восстановление';
+
+  @override
+  String get deviceHealthTrainingLoad => 'Тренировочная нагрузка';
+
+  @override
+  String get deviceHealthVitalityEarned => 'Заработанная активность';
+
+  @override
+  String get deviceHealthAveragePower => 'Средняя мощность';
+
+  @override
+  String get deviceHealthMaximumPower => 'Макс. мощность';
+
+  @override
+  String get deviceHealthArmPulls => 'Гребки';
+
+  @override
+  String get deviceHealthAverageStrokeRate => 'Средний темп гребка';
+
+  @override
+  String get deviceHealthMaximumStrokeRate => 'Макс. темп гребка';
+
+  @override
+  String get deviceHealthTurns => 'Повороты';
+
+  @override
+  String get deviceHealthAverageSwolf => 'Средний SWOLF';
+
+  @override
+  String get deviceHealthBestSwolf => 'Лучший SWOLF';
+
+  @override
+  String get deviceHealthPoolLength => 'Длина бассейна';
+
+  @override
+  String get deviceHealthJumps => 'Прыжки';
+
+  @override
+  String get deviceHealthAverageJumpRate => 'Средняя частота прыжков';
+
+  @override
+  String get deviceHealthBestJumpRate => 'Лучшая частота прыжков';
+
+  @override
+  String get deviceHealthTrips => 'Спотыкания';
+
+  @override
+  String get deviceHealthSets => 'Подходы';
+
+  @override
+  String get deviceHealthTotalStrokes => 'Всего гребков';
+
+  @override
+  String get deviceHealthAverageRowingRate => 'Средний темп гребли';
+
+  @override
+  String get deviceHealthBestRowingRate => 'Лучший темп гребли';
+
+  @override
+  String get deviceHealthChartHeartRate => 'Пульс';
+
+  @override
+  String get deviceHealthChartCadence => 'Каденция';
+
+  @override
+  String get deviceHealthChartPace => 'Темп';
+
+  @override
+  String get deviceHealthChartSpeed => 'Скорость';
+
+  @override
+  String get deviceHealthChartPower => 'Мощность';
+
+  @override
+  String get deviceHealthChartStrokeRate => 'Темп гребка';
+
+  @override
+  String get deviceHealthChartJumpRate => 'Частота прыжков';
+
+  @override
+  String get deviceHealthChartBloodOxygen => 'SpO2';
+
+  @override
+  String get deviceHealthChartStress => 'Стресс';
+
+  @override
+  String get deviceHealthWorkoutOutdoorRunning => 'Бег на улице';
+
+  @override
+  String get deviceHealthWorkoutOutdoorWalking => 'Ходьба на улице';
+
+  @override
+  String get deviceHealthWorkoutIndoorRunning => 'Бег в помещении';
+
+  @override
+  String get deviceHealthWorkoutMountaineering => 'Восхождение';
+
+  @override
+  String get deviceHealthWorkoutTrailRunning => 'Трейлраннинг';
+
+  @override
+  String get deviceHealthWorkoutOutdoorCycling => 'Велоспорт на улице';
+
+  @override
+  String get deviceHealthWorkoutIndoorCycling => 'Велоспорт в помещении';
+
+  @override
+  String get deviceHealthWorkoutFreeTraining => 'Свободная тренировка';
+
+  @override
+  String get deviceHealthWorkoutSwimming => 'Плавание';
+
+  @override
+  String get deviceHealthWorkoutElliptical => 'Эллиптический';
+
+  @override
+  String get deviceHealthWorkoutRowing => 'Гребля';
+
+  @override
+  String get deviceHealthWorkoutJumpRope => 'Скакалка';
+
+  @override
+  String get deviceHealthWorkoutHiking => 'Поход';
+
+  @override
+  String get deviceHealthWorkoutGeneric => 'Тренировка';
+
+  @override
+  String get deviceHealthWorkoutExport => 'Экспорт FIT';
+
+  @override
+  String deviceHealthWorkoutExported(Object path) {
+    return 'FIT экспортирован в $path';
+  }
+
+  @override
+  String deviceHealthWorkoutExportFailed(Object error) {
+    return 'Не удалось экспортировать FIT: $error';
+  }
+
+  @override
+  String get deviceHealthStrokeMedley => 'Комбинированный';
+
+  @override
+  String get deviceHealthStrokeBreaststroke => 'Брасс';
+
+  @override
+  String get deviceHealthStrokeFreestyle => 'Кроль';
+
+  @override
+  String get deviceHealthStrokeBackstroke => 'На спине';
+
+  @override
+  String get deviceHealthStrokeButterfly => 'Баттерфляй';
+
+  @override
+  String get deviceHealthSectionLabel => 'Секция';
+
+  @override
+  String deviceHealthVitalityRunSuggestion(Object minutes) {
+    return 'Бег $minutes мин до следующей цели';
+  }
+
+  @override
+  String deviceHealthVitalityActiveMinutes(Object minutes) {
+    return 'Ещё $minutes мин активности до цели';
+  }
+
+  @override
+  String get deviceHealthLatestHeartRate => 'Последний пульс';
+
+  @override
+  String get deviceHealthLatestBloodOxygen => 'Последний SpO2';
+
+  @override
+  String get deviceHealthLatestStress => 'Последний стресс';
+
+  @override
+  String get deviceHealthDebugSnapshots => 'Файлы активности';
+
+  @override
+  String get deviceHealthDebugSnapshotList => 'Файлы активности';
+
+  @override
+  String get deviceHealthDebugSnapshotsDescription =>
+      'Сохранённые файлы активности доступны для экспорта';
+
+  @override
+  String get deviceHealthDebugRefresh => 'Обновить';
+
+  @override
+  String get deviceHealthDebugRefreshDescription =>
+      'Reload the saved activity file list';
+
+  @override
+  String get deviceHealthDebugClearAll => 'Очистить всё';
+
+  @override
+  String get deviceHealthDebugClearAllDescription =>
+      'Delete every saved activity file';
+
+  @override
+  String get deviceHealthDebugNoSnapshots => 'Файлов активности пока нет';
+
+  @override
+  String get deviceHealthDebugReload => 'Воспроизвести';
+
+  @override
+  String get deviceHealthDebugReloaded => 'Activity file replayed';
+
+  @override
+  String deviceHealthDebugFiles(Object count) {
+    return 'Файлов: $count';
+  }
+
+  @override
+  String get creatorAccounts => 'Аккаунты';
+
+  @override
+  String get creatorPendingItems => 'Требуют внимания';
+
+  @override
+  String get creatorResourceStatus => 'Статус ресурсов';
+
+  @override
+  String get creatorOverview => 'Обзор';
+
+  @override
+  String get creatorManage => 'Управление';
+
+  @override
+  String get creatorManageUnavailable => 'Управление недоступно';
+
+  @override
+  String get creatorReviewTab => 'Проверка';
+
+  @override
+  String get creatorReviewQueue => 'Очередь проверки';
+
+  @override
+  String get creatorReviewStatus => 'Статус проверки';
+
+  @override
+  String get creatorReviewActive => 'Активные';
+
+  @override
+  String get creatorReviewChangesRequested => 'Требуются изменения';
+
+  @override
+  String get creatorReviewDeclined => 'Отклонено';
+
+  @override
+  String get creatorReviewClosed => 'Закрыто';
+
+  @override
+  String get creatorReviewFixedPending => 'Исправлено, ожидает проверки';
+
+  @override
+  String get creatorNoPendingReviews => 'Нет проверок в ожидании';
+
+  @override
+  String get creatorNoReviews => 'Нет проверок';
+
+  @override
+  String get creatorNeedsChanges => 'Требуются изменения';
+
+  @override
+  String get creatorConnected => 'Подключено';
+
+  @override
+  String get creatorNotConnected => 'Не подключено';
+
+  @override
+  String get creatorCenterExitTitle => 'Выйти из центра авторов';
+
+  @override
+  String get creatorCenterExitMessage => 'Выйти из центра авторов?';
+
+  @override
+  String get creatorEditComment => 'Изменить комментарий';
+
+  @override
+  String get creatorReply => 'Ответить';
+
+  @override
+  String creatorReplyingTo(Object id) {
+    return 'Ответ на #$id';
+  }
+
+  @override
+  String creatorReplyPrefix(Object id) {
+    return 'Ответ #$id: ';
+  }
+
+  @override
+  String get creatorSupplement => 'Дополнительно';
+
+  @override
+  String get creatorModifyResource => 'Изменить ресурс';
+
+  @override
+  String get creatorAstroBoxReview => 'Проверка AstroBox';
+
+  @override
+  String get creatorGithubPr => 'Репозиторий и PR GitHub';
+
+  @override
+  String get creatorApplyChanges => 'Применить изменения';
+
+  @override
+  String get creatorUpdatedAt => 'Обновлено';
+
+  @override
+  String get creatorSubmittedAt => 'Отправлено';
+
+  @override
+  String get creatorPublicationStatus => 'Статус публикации';
+
+  @override
+  String get creatorStageInfo => 'Редактирование';
+
+  @override
+  String get creatorStageFiles => 'Привязка файлов';
+
+  @override
+  String get creatorStagePublish => 'Публикация';
+
+  @override
+  String get creatorNextStep => 'Далее';
+
+  @override
+  String get creatorWatchfaceMissingId =>
+      'Не удалось распознать циферблат или он нулевой: нет ID, загрузка невозможна';
+
+  @override
+  String get creatorWatchfaceZeroIdTitle =>
+      'Обнаружен нулевой ID циферблата, измените его перед загрузкой';
+
+  @override
+  String get creatorWatchfacePayloadTooShort =>
+      'Файл циферблата слишком мал, чтобы содержать поле ID';
+
+  @override
+  String get creatorQuickAppMissingPackage =>
+      'Не удалось распознать мини-приложение: нет имени пакета, загрузка невозможна';
+
+  @override
+  String get creatorVelajsDefaultPackage =>
+      'Обнаружено имя пакета мини-приложения com.application.watch.demo — это значение по умолчанию проекта VelaJS, измените его перед загрузкой';
+
+  @override
+  String get creatorFilteredSupport => 'Поддержка отфильтрована';
+
+  @override
+  String get creatorSkippedPublication => 'Публикация пропущена';
+
+  @override
+  String get creatorAstroBoxUnsupportedDevicesNotice =>
+      'Некоторые выбранные поддерживаемые устройства пока не поддерживают публикацию в AstroBox; их заявления о поддержке будут отфильтрованы';
+
+  @override
+  String get creatorBandBbsUnsupportedDevicesNotice =>
+      'Некоторые выбранные поддерживаемые устройства пока не поддерживают публикацию в BandBBS; их публикация будет пропущена';
+
+  @override
+  String get errorSppBondRemovalFailed =>
+      'В Android ниже 11 removeBond не поддерживается системой. Если устройство часто отключается, переключитесь на другое устройство в Xiaomi Fitness или отключите разрешение «Устройства поблизости»';
+
+  @override
+  String get viewAllResources => 'Показать все';
+
+  @override
+  String get deviceHealthMinimum => 'Минимум';
+
+  @override
+  String get deviceHealthMaximum => 'Максимум';
+
+  @override
+  String get deviceHealthResting => 'Покой';
+
+  @override
+  String get deviceHealthDebugExport => 'Экспортировать файлы активности';
+
+  @override
+  String get deviceHealthDebugExportTooltip =>
+      'Экспортировать файлы активности';
+
+  @override
+  String deviceHealthDebugExported(String path) {
+    return 'Файлы активности экспортированы в $path';
+  }
+
+  @override
+  String deviceHealthDebugExportFailed(String error) {
+    return 'Не удалось экспортировать файлы активности: $error';
+  }
+
+  @override
+  String get deviceHealthDebugImport => 'Импортировать файлы активности';
+
+  @override
+  String get deviceHealthDebugImportDescription =>
+      'Импорт ранее экспортированных файлов активности';
+
+  @override
+  String deviceHealthDebugImported(String deviceCode, int files) {
+    return 'Импортировано $deviceCode ($files файлов)';
+  }
+
+  @override
+  String deviceHealthDebugImportFailed(String error) {
+    return 'Не удалось импортировать файлы активности: $error';
+  }
+
+  @override
+  String get commentDeletedPlaceholder => 'Комментарий удалён';
+
+  @override
+  String commentViewReplies(int count) {
+    return 'Все ответы: $count';
+  }
+
+  @override
+  String get commentThreadTitle => 'Подробности комментария';
+
+  @override
+  String commentReplyTarget(String username) {
+    return 'Ответить $username';
+  }
+
+  @override
+  String get commentLoadEarlier => 'Загрузить предыдущие ответы';
+
+  @override
+  String get messageCommentCreatedTitle => 'Новый комментарий к вашему ресурсу';
+
+  @override
+  String get scanQrCode => 'Сканировать QR-код';
+
+  @override
+  String get deviceSwitchQrImport =>
+      'Импортировать устройство по QR-коду общего доступа';
+
+  @override
+  String get creatorCollectionReplacePendingDescription =>
+      'Ожидающая проверки версия будет заменена\nОпубликованная версия останется доступной';
+
+  @override
+  String get creatorCollectionNoMatchingResources =>
+      'Нет ресурсов этого типа\nСначала создайте ресурс в центре автора';
+
+  @override
+  String get commentCreateFailed =>
+      'Не удалось отправить комментарий, повторите попытку';
+
+  @override
+  String get commentsReadFailed =>
+      'Не удалось загрузить комментарии, повторите попытку';
+
+  @override
+  String get commentDeleteFailed =>
+      'Не удалось удалить комментарий, повторите попытку';
+
+  @override
+  String get errorRequestTimeout =>
+      'Время ожидания запроса истекло, повторите попытку';
+
+  @override
+  String get creatorCollectionReplacePendingTitle =>
+      'Заменить версию на проверке?';
+
+  @override
+  String get creatorCollectionReplaceAndSubmit =>
+      'Заменить и отправить на проверку';
+
+  @override
+  String get creatorCollectionCreateTitle => 'Создать подборку';
+
+  @override
+  String get creatorCollectionEditTitle => 'Изменить подборку';
+
+  @override
+  String creatorCollectionCurrentRevision(String number) {
+    return 'Опубликованная версия: $number';
+  }
+
+  @override
+  String creatorCollectionPendingRevision(String number) {
+    return 'Версия на проверке: $number';
+  }
+
+  @override
+  String get creatorCollectionHistory => 'Просмотр предыдущих версий';
+
+  @override
+  String get creatorCollectionBody => 'Текст (Markdown)';
+
+  @override
+  String get creatorMediaIcon => 'Значок';
+
+  @override
+  String get creatorMediaCover => 'Обложка';
+
+  @override
+  String get creatorMediaUnset => 'Не задано';
+
+  @override
+  String get creatorMediaSet => 'Задано';
+
+  @override
+  String get creatorCollectionMemberOrder =>
+      'Порядок элементов и главный ресурс';
+
+  @override
+  String get creatorCollectionMemberUnavailable =>
+      'Ресурс недоступен, удалите его';
+
+  @override
+  String get creatorCollectionSetRepresentative => 'Сделать главным ресурсом';
+
+  @override
+  String get creatorCollectionAddMember => 'Добавить элементы';
+
+  @override
+  String get creatorImageReadFailed => 'Не удалось прочитать изображение';
+
+  @override
+  String get creatorImageProcessFailed => 'Не удалось обработать изображение';
+
+  @override
+  String get creatorPublicationRetry => 'Повторить публикацию';
+
+  @override
+  String get creatorTermsLoadFailed =>
+      'Не удалось загрузить условия публикации';
+
+  @override
+  String get creatorReviewItems => 'Запрошенные исправления';
+
+  @override
+  String get creatorReviewFixReplied => 'Об исправлении сообщено';
+
+  @override
+  String get creatorReviewReplyFix => 'Сообщить об исправлении';
+
+  @override
+  String get creatorTermsUpdated => 'Условия публикации обновлены';
+
+  @override
+  String get creatorPublishingLater => 'Не сейчас';
+
+  @override
+  String get creatorTermsAgree => 'Прочитано, согласен';
+
+  @override
+  String get updateAssetUnavailable =>
+      'В этой версии нет установочного пакета для текущей платформы';
+
+  @override
+  String get legalDocumentUnavailable =>
+      'Документ недоступен, повторите попытку';
+
+  @override
+  String get deviceImportTitle => 'Импорт устройства';
+
+  @override
+  String get qrScanFromImage => 'Распознать на изображении';
+
+  @override
+  String get qrScanNoCode => 'QR-код не найден';
+
+  @override
+  String get qrScanImageFailed => 'Не удалось прочитать изображение';
+
+  @override
+  String get qrScanCameraUnavailable =>
+      'Камера недоступна\nМожно выбрать изображение с QR-кодом';
+
+  @override
+  String get qrScanChooseCode => 'Выберите QR-код';
+
+  @override
+  String qrScanCodeLabel(int index) {
+    return 'QR-код $index';
+  }
+
+  @override
+  String get qrScanUnsupported =>
+      'Распознавание QR-кодов недоступно на этой платформе';
+
+  @override
+  String get featureLabTitle => 'Лаборатория функций';
+
+  @override
+  String get featureLabDescription => 'Тестирование функций в разработке';
+
+  @override
+  String get voiceAssistantDescription =>
+      'Приём и прослушивание звука устройства, отправка ответов';
+
+  @override
+  String get voiceLabConnectDevice =>
+      'Подключите устройство и запустите голосового помощника';
+
+  @override
+  String get voiceLabCaptureLimit =>
+      'Достигнут предел записи, очистите запись и повторите';
+
+  @override
+  String get voiceLabReplyTooLong => 'Ответ слишком длинный';
+
+  @override
+  String get voiceLabRecognitionLabel => 'Результат распознавания';
+
+  @override
+  String get voiceLabRecognitionHint => 'Введите распознанный текст';
+
+  @override
+  String get appDataTitle => 'Данные приложения';
+
+  @override
+  String get appDataDescription => 'Просмотр занятого места и экспорт файлов';
+
+  @override
+  String get appDataSpaceUsage => 'Объём по категориям';
+
+  @override
+  String get appDataHealth => 'Файлы активности';
+
+  @override
+  String get appDataPlugins => 'Плагины';
+
+  @override
+  String get appDataZeppos => 'Данные приложений ZeppOS';
+
+  @override
+  String get appDataRecovery => 'Данные восстановления импорта';
+
+  @override
+  String get appDataDownloads => 'Загрузки ресурсов и обновлений';
+
+  @override
+  String get appDataPluginCache => 'Кэш плагинов';
+
+  @override
+  String get appDataManageSnapshots =>
+      'Управление сохранёнными файлами активности';
+
+  @override
+  String get appDataExported => 'Экспортированный файл сохранён';
+
+  @override
+  String get appDataLoadFailed => 'Не удалось прочитать данные приложения';
+
+  @override
+  String get appDataExportFailed => 'Не удалось экспортировать файлы';
+
+  @override
+  String get appDataArchiveTooLarge =>
+      'Activity files are too large, export them separately';
+
+  @override
+  String get appDataUpdateFailed => 'Не удалось изменить данные приложения';
+
+  @override
+  String get appDataBackup => 'Экспорт резервной копии';
+
+  @override
+  String get appDataBackupDescription =>
+      'Выберите и экспортируйте локальные данные';
+
+  @override
+  String get appDataRestore => 'Восстановить копию';
+
+  @override
+  String get appDataRestoreDescription =>
+      'Выберите данные\nИстория здоровья совпадающих устройств будет заменена';
+
+  @override
+  String get appDataSettings => 'Настройки приложения';
+
+  @override
+  String appDataHealthDevices(int count) {
+    return 'История здоровья ($count устройств)';
+  }
+
+  @override
+  String get appDataRestored =>
+      'Копия восстановлена\nПерезапустите приложение для применения всех настроек';
+
+  @override
+  String get appDataRestoreFailed => 'Не удалось восстановить копию';
+
+  @override
+  String get appDataRecover => 'Отменить предыдущее восстановление';
+
+  @override
+  String get appDataRecoveryPending => 'Предыдущее восстановление прервано';
+
+  @override
+  String get appDataRecoverDescription =>
+      'Вернуть настройки и историю до последнего импорта\nБолее новые локальные данные здоровья также будут заменены';
+
+  @override
+  String get voiceAsrMethod => 'Способ распознавания';
+
+  @override
+  String get voiceAsrManual => 'Ручной ввод';
+
+  @override
+  String get voiceAsrLocal => 'Локальное распознавание';
+
+  @override
+  String get voiceAsrWeType => 'WeChat Input';
+
+  @override
+  String get voiceAsrDoubao => 'Doubao Input';
+
+  @override
+  String get voiceAsrWasm => 'Эксперимент WASM';
+
+  @override
+  String voiceAsrCloudConsent(String provider) {
+    return 'Аудио будет отправлено в $provider для распознавания\nТолько при использовании этой страницы';
+  }
+
+  @override
+  String get voiceAsrPreparing => 'Подготовка распознавания';
+
+  @override
+  String get voiceAsrRecognizing => 'Распознавание';
+
+  @override
+  String get voiceAsrFinishing => 'Обработка конца записи';
+
+  @override
+  String get voiceAsrFinished => 'Распознавание завершено';
+
+  @override
+  String get voiceAsrModelReady => 'Локальное распознавание готово';
+
+  @override
+  String get voiceAsrModelDescription =>
+      'Локальное распознавание китайского и английского\nПри первом использовании загрузите модели и компоненты';
+
+  @override
+  String get voiceAsrDownloadModel => 'Загрузить данные распознавания';
+
+  @override
+  String get voiceAsrDeleteModel => 'Удалить данные распознавания';
+
+  @override
+  String get voiceAsrSendRecognition => 'Отправить результат';
+
+  @override
+  String get voiceAsrModelMissing =>
+      'Сначала загрузите данные локального распознавания';
+
+  @override
+  String get voiceAsrModelDamaged =>
+      'Данные повреждены\nУдалите и загрузите их заново';
+
+  @override
+  String get voiceAsrDownloadFailed =>
+      'Не удалось загрузить модель\nПроверьте подключение';
+
+  @override
+  String get voiceAsrRegistrationFailed =>
+      'Не удалось запустить сервис\nПовторите позже';
+
+  @override
+  String get voiceAsrServiceRejected => 'Сервис распознавания отклонил запрос';
+
+  @override
+  String get voiceAsrTimeout =>
+      'Время ожидания истекло\nПроизнесите фразу снова';
+
+  @override
+  String get voiceAsrOpusUnsupported =>
+      'Аудио этого устройства не поддерживается WeChat Input';
+
+  @override
+  String get voiceAsrUnsupported =>
+      'Этот способ недоступен на данной платформе';
+
+  @override
+  String get voiceAsrTooSlow =>
+      'Распознавание слишком медленное\nЗавершите сеанс и повторите';
+
+  @override
+  String get voiceAsrNoSpeech => 'Речь не распознана';
+
+  @override
+  String get voiceAsrInvalidResponse => 'Сервис вернул некорректный результат';
+
+  @override
+  String get voiceAsrInferenceFailed =>
+      'Ошибка локального распознавания\nВыберите способ заново';
+
+  @override
+  String get voiceAsrCancelled => 'Распознавание отменено';
+
+  @override
+  String get voiceAsrConnectionFailed =>
+      'Не удалось подключиться к сервису\nПроверьте подключение';
+
+  @override
+  String get appDataModels => 'Данные распознавания речи';
+
+  @override
+  String get appDataTasks => 'История задач';
+
+  @override
+  String get appDataDocuments => 'Кэш документов';
+
+  @override
+  String get privateStateLoadFailed =>
+      'Не удалось прочитать сохранённые аккаунты и устройства\nПовторите попытку';
+
+  @override
+  String get privateStateSaveFailed =>
+      'Не удалось сохранить изменения аккаунта или устройства\nПовторите попытку';
+
+  @override
+  String get resetPrivateStorageAction => 'Сбросить учётные данные';
+
+  @override
+  String get resetPrivateStorageTitle => 'Сбросить аккаунты и устройства';
+
+  @override
+  String get resetPrivateStorageMessage =>
+      'После сброса потребуется повторно войти в аккаунт и переподключить устройства\nСохранённая история здоровья и настройки приложения не будут потеряны';
+
+  @override
+  String get confirmReset => 'Сбросить';
+
+  @override
+  String get voiceAsrStorageFull =>
+      'Недостаточно места\nОсвободите место и повторите попытку';
+
+  @override
+  String get voiceAsrReconnect => 'Переподключить распознавание';
+
+  @override
+  String get voiceAsrReconnectDescription =>
+      'Будет создано новое подключение к этому сервису\nВаши учётные записи не изменятся';
+
+  @override
+  String get voiceAsrReconnectFailed => 'Не удалось переподключиться';
+
+  @override
+  String get appDataClearCache => 'Очистить кэш';
+
+  @override
+  String get appDataClearCacheDescription =>
+      'Очистить кэш изображений, плагинов, документов и старые временные файлы\nРаботающие плагины и приложения устройства будут остановлены';
+
+  @override
+  String get appDataCacheCleared => 'Кэш очищен';
+
+  @override
+  String get voiceAsrReplayRecording => 'Повторить запись';
+
+  @override
+  String get voiceAsrImportWave => 'Импорт WAV';
+
+  @override
+  String get voiceAsrReplayDescription =>
+      'Выберите распознавание и повторите или импортируйте запись\nТолько 16 кГц моно PCM16, до 60 секунд\nОнлайн-распознавание отправляет звук выбранному сервису';
+
+  @override
+  String voiceAsrReplayMetrics(String elapsed, String first, String factor) {
+    return 'Время $elapsed мс · Первый результат $first мс · RTF $factor';
+  }
+
+  @override
+  String get voiceAsrExportReport => 'Экспорт отчёта';
+
+  @override
+  String get voiceAsrWaveFormat =>
+      'Выберите WAV 16 кГц моно PCM16\nНе более 60 секунд';
+
+  @override
+  String get voiceAsrReplayBusy => 'Сначала завершите текущий сеанс';
+
+  @override
+  String get appDataExtensionSettings =>
+      'Данные плагинов и приложений устройства';
+
+  @override
+  String get appDataExtensionSettingsDescription =>
+      'Настройки и данные плагинов и приложений устройств';
+
+  @override
+  String get appDataExtensionMissing =>
+      'Перед восстановлением установите те же версии плагинов и соответствующие приложения';
+
+  @override
+  String get appDataImageCache => 'Кэш изображений';
+
+  @override
+  String get appDataSelectBackup => 'Выберите данные для копии';
+
+  @override
+  String get appDataSettingsDescription => 'Тема, язык и настройки функций';
+
+  @override
+  String get appDataHealthDescription =>
+      'Синхронизированные данные активности и здоровья';
+
+  @override
+  String get appDataDeviceKeys => 'Сопряжения и ключи устройств';
+
+  @override
+  String get appDataDeviceKeysDescription =>
+      'Устройства и данные для подключения';
+
+  @override
+  String get appDataXiaomiAccount => 'Данные Xiaomi и Amazfit';
+
+  @override
+  String get appDataXiaomiAccountDescription =>
+      'Пароль аккаунта и текущий сеанс входа';
+
+  @override
+  String get appDataSensitiveBackup =>
+      'Копия содержит незашифрованные данные аккаунта\nХраните её безопасно и не делитесь ею';
+
+  @override
+  String get appDataImportDescription => 'Выбор данных для восстановления';
+
+  @override
+  String get appDataPluginDescription => 'Плагины и их локальные данные';
+
+  @override
+  String get appDataZepposDescription =>
+      'Скрипты приложений устройств и настройки';
+
+  @override
+  String get appDataLogsDescription => 'Журналы работы и диагностики';
+
+  @override
+  String get appDataRecoveryDescription =>
+      'Данные для прерванного восстановления';
+
+  @override
+  String get appDataDownloadsDescription =>
+      'Временные файлы загрузки и установки';
+
+  @override
+  String get appDataPluginCacheDescription => 'Кэш плагинов и временные файлы';
+
+  @override
+  String get appDataImagesDescription =>
+      'Кэш изображений просмотренных ресурсов';
+
+  @override
+  String get appDataModelsDescription =>
+      'Загруженные речевые модели и компоненты';
+
+  @override
+  String get appDataTasksDescription => 'Состояние загрузок и установок';
+
+  @override
+  String get appDataDocumentsDescription =>
+      'Локальные копии условий и политики';
+
+  @override
+  String get phoneLocationTitle => 'Вспомогательное позиционирование';
+
+  @override
+  String get deviceFeaturesGroupTitle => 'Функции и инструменты';
+
+  @override
+  String get deviceSettingsGroupTitle => 'Настройки устройства и обслуживание';
+
+  @override
+  String get phoneLocationStatusSection => 'Статус';
+
+  @override
+  String get phoneLocationPermissionsSection => 'Разрешения и службы';
+
+  @override
+  String get phoneLocationOptionsSection => 'Параметры координации';
+
+  @override
+  String get phoneLocationReady => 'Служба геопозиции готова';
+
+  @override
+  String get phoneLocationReadyDesc =>
+      'Геопозиция будет передаваться автоматически во время тренировок';
+
+  @override
+  String get phoneLocationServiceEnabled => 'Служба геолокации';
+
+  @override
+  String get phoneLocationPreciseTitle => 'Точная геопозиция';
+
+  @override
+  String get phoneLocationPreciseGranted => 'Точная геопозиция разрешена';
+
+  @override
+  String get phoneLocationPreciseDenied => 'Точная геопозиция не разрешена';
+
+  @override
+  String get phoneLocationBackgroundTitle => 'Фоновая геопозиция';
+
+  @override
+  String get phoneLocationBackgroundAlways => 'Всегда разрешено';
+
+  @override
+  String get phoneLocationBackgroundWhileInUse => 'Только при использовании';
+
+  @override
+  String get phoneLocationBackgroundDenied => 'Не разрешено';
+
+  @override
+  String get phoneLocationAutoSync => 'Автоматическая геопозиция';
+
+  @override
+  String get phoneLocationAutoSyncDesc =>
+      'Передавать GPS телефона при начале тренировки на устройстве';
+
+  @override
+  String get phoneLocationEnabledText => 'Включено';
+
+  @override
+  String get phoneLocationDisabledText => 'Выключено';
+
+  @override
+  String get phoneLocationNotification => 'Передавать координаты на устройство';
+
+  @override
+  String get phoneLocationDescription =>
+      'Передавать координаты при подготовке и во время тренировки';
+
+  @override
+  String get phoneLocationOpenApp => 'Откройте OronBox для геолокации';
+
+  @override
+  String get phoneLocationRecovery =>
+      'Откройте приложение и повторите запуск тренировки';
+
+  @override
+  String get phoneLocationPermission => 'Нужен доступ к точной геолокации';
+
+  @override
+  String get phoneLocationBackground => 'Фоновая геолокация';
+
+  @override
+  String get phoneLocationBackgroundDescription =>
+      'Принимать запросы геолокации от устройства в фоне';
+
+  @override
+  String get phoneLocationSettings => 'Открыть системные настройки';
+
+  @override
+  String get phoneLocationServiceOff => 'Геолокация отключена';
+
+  @override
+  String get phoneLocationPermissionHelp =>
+      'Разрешите точную геолокацию и повторите попытку';
+
+  @override
+  String get phoneLocationMobileOnly => 'Доступно на Android и iOS';
+
+  @override
+  String get phoneLocationUnavailable =>
+      'Не удалось получить геолокацию\nПроверьте разрешения и службу геолокации';
+
+  @override
+  String get deviceConnectionAbnormalTitle => 'Проблема подключения устройства';
+
+  @override
+  String get deviceConnectionAbnormalMessage =>
+      'Устройство часто отключается. Выполните повторное сопряжение или включите на устройстве режим подключения нового телефона.';
+
+  @override
+  String get deviceRePair => 'Сопрячь заново';
+
+  @override
+  String appDataClearCategoryTitle(String category) {
+    return 'Очистить $category?';
+  }
+
+  @override
+  String get appDataClearCategoryDescription =>
+      'Локальные данные этой категории будут удалены\nДругие категории сохранятся';
+
+  @override
+  String get appDataClearHealthDescription =>
+      'Синхронизированные файлы активности будут удалены\nЛокальные данные активности и здоровья будут очищены';
+
+  @override
+  String get appDataClearCachedCategoryDescription =>
+      'Будет удалён только неиспользуемый кэш\nПри необходимости файлы загрузятся снова';
+
+  @override
+  String get appDataClearModelsDescription =>
+      'Текущая модель сохранится\nНеиспользуемые версии и устаревшие загрузки будут удалены';
+
+  @override
+  String get settingsPermissionsTitle => 'Разрешения';
+
+  @override
+  String get settingsPermissionsDesc =>
+      'Вспомогательное позиционирование и фоновый режим';
+
+  @override
+  String get appArrangementTitle => 'Расположение приложений';
+
+  @override
+  String get appArrangementDescription =>
+      'Настройка порядка и макета приложений';
+
+  @override
+  String get appOrderMainSection => 'Отображаемые приложения';
+
+  @override
+  String get appOrderMoreSection => 'Другие приложения';
+
+  @override
+  String get appOrderHiddenSection => 'Скрытые приложения';
+
+  @override
+  String get appOrderMoreSectionDesc =>
+      'Приложения во вложенном меню устройства';
+
+  @override
+  String get appOrderHiddenSectionDesc => 'Скрытые на устройстве приложения';
+
+  @override
+  String get appOrderMoveToMore => 'В другие';
+
+  @override
+  String get appOrderMoveToMain => 'В основной список';
+
+  @override
+  String get appOrderHide => 'Скрыть';
+
+  @override
+  String get appOrderUnhide => 'Показать';
+
+  @override
+  String get appOrderCannotHide => 'Системное приложение нельзя скрыть';
+
+  @override
+  String get privateStateAccessPromptTitle =>
+      'OronBox требуется доступ к учетным данным аккаунта, защищенным безопасным хранилищем';
+
+  @override
+  String get privateStateAccessPromptMacOs =>
+      'При появлении системного запроса авторизации введите пароль для входа и нажмите «Разрешать всегда», чтобы избежать повторных запросов';
+
+  @override
+  String get privateStateAccessPromptLinux =>
+      'При появлении системного запроса разблокировки введите пароль пользователя для разблокировки связки ключей';
+
+  @override
+  String get creatorSubmissionPreview => 'Проверить отправку';
+
+  @override
+  String get creatorResourceBinding => 'Связанный ресурс';
+
+  @override
+  String get creatorPublicationIdentity => 'Аккаунты публикации';
+
+  @override
+  String get creatorPublicationRange => 'Состав публикации';
+
+  @override
+  String get creatorNewPublication => 'Первая публикация';
+
+  @override
+  String get creatorUpdatePublication => 'Обновить ресурс';
+
+  @override
+  String creatorAppendSubmission(String number) {
+    return 'Дополнить PR #$number';
+  }
+
+  @override
+  String creatorPublicationExcludedDevices(String devices) {
+    return 'Исключённые устройства: $devices';
+  }
+
+  @override
+  String get creatorBackToEdit => 'Вернуться к редактированию';
+
+  @override
+  String get creatorPackageVersionCodeMissing =>
+      'В пакете нет корректного кода версии\nПересоберите пакет и загрузите заново';
+
+  @override
+  String get creatorReopenSubmission => 'Запросить повторную проверку';
+
+  @override
+  String get creatorReopenRequested => 'Повторная проверка запрошена';
+
+  @override
+  String get creatorFixesForSubmission => 'Исправлено в этой отправке';
+
+  @override
+  String get creatorFixNote => 'Описание исправления';
+
+  @override
+  String get creatorNameRequired => 'Введите название ресурса';
+
+  @override
+  String get creatorSummaryRequired => 'Введите краткое описание';
+
+  @override
+  String get creatorSubmitForReview => 'Отправить на проверку';
+
+  @override
+  String get creatorAstroBoxPRBody => 'Описание PR (необязательно)';
+
+  @override
+  String get autoBackupTitle => 'Резервное копирование по расписанию';
+
+  @override
+  String get autoBackupDescription =>
+      'Автоматическое сохранение копий в системную папку документов';
+
+  @override
+  String get autoBackupEnabled => 'Включить резервное копирование';
+
+  @override
+  String get autoBackupInterval => 'Частота копирования';
+
+  @override
+  String get autoBackupEvery => 'Каждые';
+
+  @override
+  String get autoBackupUnitDay => 'дн.';
+
+  @override
+  String get autoBackupUnitWeek => 'нед.';
+
+  @override
+  String get autoBackupUnitMonth => 'мес.';
+
+  @override
+  String get autoBackupRetention => 'Хранить копий';
+
+  @override
+  String autoBackupRetentionCount(int count) {
+    return '$count шт.';
+  }
+
+  @override
+  String get autoBackupRetentionUnlimited => 'Без ограничений';
+
+  @override
+  String get autoBackupPasswordEnable => 'Защита паролем';
+
+  @override
+  String get autoBackupPasswordEnableDesc =>
+      'Шифрование резервной копии по стандарту AES-256';
+
+  @override
+  String get autoBackupPassword => 'Пароль';
+
+  @override
+  String get autoBackupPasswordConfirm => 'Подтверждение пароля';
+
+  @override
+  String get autoBackupPasswordMismatch => 'Введённые пароли не совпадают';
+
+  @override
+  String get autoBackupPasswordPlaceholder => 'Введите пароль';
+
+  @override
+  String get autoBackupScope => 'Область копирования';
+
+  @override
+  String get autoBackupScopeSettings => 'Настройки приложения';
+
+  @override
+  String get autoBackupScopeHealth => 'Данные здоровья';
+
+  @override
+  String get autoBackupScopeExtensions => 'Расширения и мини-приложения';
+
+  @override
+  String get autoBackupScopeDevices => 'Данные сопряжения устройств';
+
+  @override
+  String get autoBackupStorageLocation => 'Место хранения';
+
+  @override
+  String get autoBackupStorageLocationDesc =>
+      'Копии сохраняются в общедоступную системную папку документов';
+
+  @override
+  String get autoBackupOpenFolder => 'Открыть в диспетчере файлов';
+
+  @override
+  String autoBackupStatusEnabled(int value, String unit) {
+    return 'Включено · каждые $value $unit';
+  }
+
+  @override
+  String get autoBackupStatusDisabled => 'Отключено';
+
+  @override
+  String get autoBackupRunNow => 'Создать копию сейчас';
+
+  @override
+  String get autoBackupRunSuccess => 'Резервная копия успешно создана';
+
+  @override
+  String get autoBackupRunFailed => 'Ошибка создания резервной копии';
+
+  @override
+  String get backupPasswordDialogTitle => 'Пароль резервной копии';
+
+  @override
+  String get backupPasswordDialogMessage =>
+      'Эта копия зашифрована\nВведите пароль для восстановления';
+
+  @override
+  String get backupPasswordIncorrect => 'Неверный пароль';
+
+  @override
+  String get backupPasswordRequired => 'Требуется пароль';
+
+  @override
+  String get exportBackupPasswordOptional => 'Пароль копии (необязательно)';
+
+  @override
+  String get exportBackupPasswordPlaceholder =>
+      'Оставьте пустым без шифрования';
+
+  @override
+  String get backupTargetPublicDocuments =>
+      'Сохранить в системную папку «Документы»';
+
+  @override
+  String get backupTargetCustom => 'Сохранить как внешний файл';
+
+  @override
+  String get restoreFromDocumentsTitle => 'Выберите резервную копию';
+
+  @override
+  String get restorePickExternalFile => 'Выбрать другой файл...';
+
+  @override
+  String get backupSavedToDocuments =>
+      'Резервная копия сохранена в системную папку документов';
+
+  @override
+  String get appDataExporting => 'Экспорт и шифрование копии, подождите...';
+
+  @override
+  String get appDataDecrypting => 'Расшифровка резервной копии, подождите...';
+
+  @override
+  String get appDataRestoring => 'Восстановление данных, подождите...';
+
+  @override
+  String get autoBackupRetentionInputHint => '0 — без ограничений';
+
+  @override
+  String get autoBackupRetentionLabel =>
+      'Количество копий (0 — без ограничений)';
+
+  @override
+  String get autoBackupRetentionUnit => 'копий';
+
+  @override
+  String get backupTypeAuto => 'Автоматическая копия';
+
+  @override
+  String get backupTypeManual => 'Ручная копия';
+
+  @override
+  String autoBackupStatusDetail(int value, String unit, String retentionText) {
+    return 'Включено · каждые $value $unit · хранить $retentionText';
+  }
+
+  @override
+  String get globalAiTitle => 'Global AI';
+
+  @override
+  String get globalAiDescription =>
+      'Configure LLM and wearable voice assistant integration';
+
+  @override
+  String get globalAiEnableSwitch => 'Enable Global AI';
+
+  @override
+  String get globalAiEnableSwitchDesc =>
+      'Enable client-wide LLM integration and intelligent capabilities';
+
+  @override
+  String get globalAiProviders => 'Provider Management';
+
+  @override
+  String globalAiProvidersCount(int count) {
+    return '$count providers configured';
+  }
+
+  @override
+  String get globalAiModelSettings => 'Model Settings';
+
+  @override
+  String get globalAiTestConnection => 'Test Connection';
+
+  @override
+  String get globalAiStreamResponse => 'Streaming Response';
+
+  @override
+  String get globalAiStreamResponseDesc =>
+      'Stream output progressively to wearable device';
+
+  @override
+  String get globalAiWearableSection => 'Wearable Device';
+
+  @override
+  String get globalAiWearableEnable => 'Wearable Enable';
+
+  @override
+  String get globalAiWearableEnableDesc =>
+      'Wearable voice assistant will be handled by LLM when triggered';
+
+  @override
+  String get globalAiWearableAdvancedSettings => 'Wearable Settings';
+
+  @override
+  String get globalAiToolsScope => 'Tool Permission Scopes';
+
+  @override
+  String get globalAiToolDeviceStatus => 'Device Status';
+
+  @override
+  String get globalAiToolDeviceStatusDesc =>
+      'Read device connection, battery and basic info';
+
+  @override
+  String get globalAiToolHealthData => 'Health Data';
+
+  @override
+  String get globalAiToolHealthDataDesc =>
+      'Read steps, calories, distance and heart rate';
+
+  @override
+  String get globalAiToolWeather => 'Weather Query';
+
+  @override
+  String get globalAiToolWeatherDesc => 'Query real-time weather and forecast';
+
+  @override
+  String get globalAiToolSearchResources => 'Search Resources';
+
+  @override
+  String get globalAiToolSearchResourcesDesc =>
+      'Search watch faces and third-party apps';
+
+  @override
+  String get globalAiToolInstallResources => 'Install Resources';
+
+  @override
+  String get globalAiToolInstallResourcesDesc =>
+      'Download and install watch faces or apps to device';
+
+  @override
+  String get globalAiToolDeleteResources => 'Delete Resources';
+
+  @override
+  String get globalAiToolDeleteResourcesDesc =>
+      'Uninstall or delete resources on device';
+
+  @override
+  String get globalAiToolManageAlarms => 'Manage Alarms';
+
+  @override
+  String get globalAiToolManageAlarmsDesc => 'Create or manage wearable alarms';
+
+  @override
+  String get globalAiToolFindDevice => 'Find Device';
+
+  @override
+  String get globalAiToolFindDeviceDesc =>
+      'Make wearable device vibrate or ring continuously';
+
+  @override
+  String get globalAiToolAppArrangement => 'App Layout';
+
+  @override
+  String get globalAiToolAppArrangementDesc =>
+      'Query and rearrange device app ordering';
+
+  @override
+  String get globalAiToolPhoneLocation => 'Phone Location';
+
+  @override
+  String get globalAiToolPhoneLocationDesc =>
+      'Supported on client phone only, assist queries with location';
+
+  @override
+  String get globalAiAddProvider => 'Add Provider';
+
+  @override
+  String get globalAiEditProvider => 'Edit Provider';
+
+  @override
+  String get globalAiProviderName => 'Provider Name';
+
+  @override
+  String get globalAiProviderBaseUrl => 'API Base URL';
+
+  @override
+  String get globalAiProviderApiKey => 'API Key';
+
+  @override
+  String get globalAiProviderModels => 'Model List';
+
+  @override
+  String get globalAiAddModel => 'Add Model';
+
+  @override
+  String get globalAiModelId => 'Model ID';
+
+  @override
+  String get globalAiProtocolType => 'Protocol Type';
+
+  @override
+  String get globalAiProtocolCompletions => 'Completions';
+
+  @override
+  String get globalAiProtocolResponses => 'Responses';
+
+  @override
+  String get globalAiMultimodalSupport => 'Multimodal Capabilities';
+
+  @override
+  String get globalAiSupportImages => 'Images';
+
+  @override
+  String get globalAiSupportAudio => 'Audio';
+
+  @override
+  String get globalAiContextLength => 'Context Window';
+
+  @override
+  String get globalAiWearableReplyLength => 'Wearable Reply Length';
+
+  @override
+  String get globalAiWearableLengthShort => 'Short (<50 chars)';
+
+  @override
+  String get globalAiWearableLengthMedium => 'Medium (<100 chars)';
+
+  @override
+  String get globalAiWearableLengthLong => 'Long (<200 chars)';
+
+  @override
+  String get globalAiWearableLengthUnlimited => 'Unlimited';
+
+  @override
+  String get globalAiWearableToolPolicy => 'Tool Calling Policy';
+
+  @override
+  String get globalAiToolPolicyDisabled => 'Disabled';
+
+  @override
+  String get globalAiToolPolicyReadOnly => 'Read-Only';
+
+  @override
+  String get globalAiToolPolicyReadWrite => 'Read-Write';
+
+  @override
+  String get globalAiConfirmationMode => 'Confirmation Mode';
+
+  @override
+  String get globalAiConfirmModeWearableVoice => 'Wearable Voice Confirmation';
+
+  @override
+  String get globalAiConfirmModeManual => 'Client Manual Confirmation';
+
+  @override
+  String get globalAiTesting => 'Testing connection...';
+
+  @override
+  String get globalAiTestSuccess => 'Connection successful';
+
+  @override
+  String get globalAiTestFailed => 'Connection failed';
+
+  @override
+  String globalAiTestDuration(int ms) {
+    return 'Latency $ms ms';
+  }
+
+  @override
+  String get globalAiSectionModelAndProvider => 'Model and Provider';
+
+  @override
+  String get globalAiTestConnectionDesc =>
+      'Verify connectivity and latency of current provider and model';
+
+  @override
+  String get globalAiWearableAdvancedDesc =>
+      'Reply length, tool permission mode and confirmation mode';
+
+  @override
+  String get globalAiNoModelSelected => 'No model configured or selected';
+
+  @override
+  String get globalAiSave => 'Save';
+
+  @override
+  String get globalAiCancel => 'Cancel';
+
+  @override
+  String get globalAiClose => 'Close';
+
+  @override
+  String get globalAiBack => 'Back';
+
+  @override
+  String get globalAiRetry => 'Retry';
+
+  @override
+  String get globalAiDelete => 'Delete';
+
+  @override
+  String get globalAiNoProvidersPrompt =>
+      'No providers added\nPlease add a new provider above';
+
+  @override
+  String get globalAiNoModelsPrompt =>
+      'No models available, please add a model first';
+
+  @override
+  String get globalAiSystemPrompt => 'System prompt';
+
+  @override
+  String get globalAiSystemPromptDescription =>
+      'Edit the model instructions. Device and tool safety rules are added automatically.';
+
+  @override
+  String get globalAiSystemPromptHint => 'Enter the system prompt template';
+
+  @override
+  String get globalAiSystemPromptPlaceholders => 'Available placeholders';
+
+  @override
+  String get globalAiDeleteProvider => 'Delete this Provider';
+
+  @override
+  String get globalAiDeleteModel => 'Delete Model';
+
+  @override
+  String get globalAiConnecting => 'Connecting...';
+
+  @override
+  String get globalAiReceiving => 'Receiving response...';
+
+  @override
+  String get globalAiWaitingFirstToken => 'Waiting for first token...';
+
+  @override
+  String globalAiTargetLabel(String provider, String model) {
+    return 'Target $provider / $model';
+  }
+
+  @override
+  String get globalAiNoProviderConfigured =>
+      'No valid provider or model configured';
+
+  @override
+  String get globalAiNoApiKeyConfigured =>
+      'No API key found, please check provider settings';
+
+  @override
+  String get globalAiSelectActiveModel => 'Select Active Model';
+
+  @override
+  String get globalAiContextLengthHint => 'e.g. 4096, 8192, 131072';
+
+  @override
+  String get globalAiModelNameHint => 'e.g. deepseek-flash, qwen3.8-flash';
+
+  @override
+  String get globalAiProviderNameHint => 'e.g. DeepSeek, OpenAI, SiliconFlow';
+
+  @override
+  String get globalAiBaseUrlHint => 'e.g. https://api.deepseek.com';
+
+  @override
+  String get globalAiApiKeyHint => 'sk-...';
+
+  @override
+  String get globalAiConfirmDeleteProvider =>
+      'Delete this provider and all its models?';
+
+  @override
+  String get globalAiConfirmDeleteModel => 'Delete this model configuration?';
+
+  @override
+  String get globalAiModelAlreadyExists => 'Model ID already exists';
+
+  @override
+  String get globalAiModelAdded => 'Model added';
+
+  @override
+  String get globalAiProviderAdded => 'Provider added';
+
+  @override
+  String get globalAiVoiceAssistantProcessing =>
+      'AI is thinking and streaming reply...';
+
+  @override
+  String globalAiVoiceAssistantError(String error) {
+    return 'AI reply error: $error';
+  }
+
+  @override
+  String get globalAiAsrEngine => 'Speech Recognition Engine';
+
+  @override
+  String get globalAiAsrManual => 'Manual Input';
+
+  @override
+  String get globalAiAsrNative => 'Local Offline Model';
+
+  @override
+  String get globalAiAsrWeType => 'WeType Cloud';
+
+  @override
+  String get globalAiAsrDoubao => 'Volcengine Doubao';
+
+  @override
+  String get globalAiTestRequestLabel => 'Request Sent';
+
+  @override
+  String get globalAiTestResponseLabel => 'Model Response';
+
+  @override
+  String get globalAiTestStart => 'Start Test';
 }

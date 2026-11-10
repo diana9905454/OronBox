@@ -1,7 +1,7 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/theme/app_theme.dart';
+import 'package:oronbox/src/app/widgets/app_state_view.dart';
 import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/core/constants/style_constants.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
@@ -16,6 +16,7 @@ class CreatorResourceList extends StatefulWidget {
     required this.collections,
     required this.collectionsLoading,
     required this.onRefresh,
+    this.topContent,
     this.onOpenCollection,
     this.onOpen,
     this.selectedResourceIds = const {},
@@ -29,6 +30,7 @@ class CreatorResourceList extends StatefulWidget {
   final List<Map<String, Object?>> collections;
   final bool collectionsLoading;
   final Future<void> Function() onRefresh;
+  final Widget? topContent;
   final ValueChanged<Map<String, Object?>>? onOpenCollection;
   final ValueChanged<CreatorWorkspace>? onOpen;
   final Set<String> selectedResourceIds;
@@ -74,26 +76,31 @@ class _CreatorResourceListState extends State<CreatorResourceList> {
       );
     }
     if (entries.isEmpty) {
-      return PageContainer(
-        padding: const EdgeInsets.fromLTRB(
-          StyleConstants.pagePadding,
-          8,
-          StyleConstants.pagePadding,
-          0,
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.edit_outlined,
-                size: 56,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+      return RefreshIndicator(
+        onRefresh: widget.onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.only(bottom: widget.bottomPadding),
+          children: [
+            PageContainer(
+              padding: const EdgeInsets.fromLTRB(
+                StyleConstants.pagePadding,
+                8,
+                StyleConstants.pagePadding,
+                0,
               ),
-              const SizedBox(height: 12),
-              Text(l10n.creatorNoResources),
-            ],
-          ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (widget.topContent != null) widget.topContent!,
+                  EmptyStateView(
+                    icon: Icons.edit_outlined,
+                    title: l10n.creatorNoResources,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -128,6 +135,7 @@ class _CreatorResourceListState extends State<CreatorResourceList> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (widget.topContent != null) widget.topContent!,
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(
@@ -247,77 +255,6 @@ class _CreatorListEntry {
   final int collectionResourceCount;
 }
 
-class CreatorResourceThumbnail extends StatefulWidget {
-  const CreatorResourceThumbnail({
-    super.key,
-    required this.workspace,
-    required this.controller,
-    this.size = 64,
-  });
-
-  final CreatorWorkspace workspace;
-  final CreatorWorkspaceController controller;
-  final double size;
-
-  @override
-  State<CreatorResourceThumbnail> createState() =>
-      _CreatorResourceThumbnailState();
-}
-
-class _CreatorResourceThumbnailState extends State<CreatorResourceThumbnail> {
-  Uint8List? _bytes;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  @override
-  void didUpdateWidget(covariant CreatorResourceThumbnail oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.workspace.resource.id != widget.workspace.resource.id ||
-        creatorThumbnailMedia(oldWidget.workspace)?.sha256 !=
-            creatorThumbnailMedia(widget.workspace)?.sha256) {
-      _bytes = null;
-      _load();
-    }
-  }
-
-  Future<void> _load() async {
-    final media = creatorThumbnailMedia(widget.workspace);
-    if (media == null) return;
-    try {
-      final bytes = await widget.controller.blob(
-        widget.workspace.resource.id,
-        media.sha256,
-      );
-      if (mounted) setState(() => _bytes = bytes);
-    } catch (_) {}
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    final bytes = _bytes;
-    return SizedBox(
-      width: widget.size,
-      height: widget.size,
-      child: bytes != null
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.memory(bytes, fit: BoxFit.cover),
-            )
-          : Icon(
-              widget.workspace.resource.kind == CreatorResourceKind.watchface
-                  ? Icons.watch_outlined
-                  : Icons.apps_outlined,
-              color: colors.onSurfaceVariant,
-            ),
-    );
-  }
-}
-
 class CreatorResourceCard extends StatelessWidget {
   const CreatorResourceCard({
     super.key,
@@ -352,7 +289,7 @@ class CreatorResourceCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       color: selected
-          ? colors.primaryContainer.withValues(alpha: .72)
+          ? context.appSelectionContainer.withValues(alpha: .72)
           : colors.surfaceContainerHighest.withValues(alpha: .5),
       margin: EdgeInsets.zero,
       child: InkWell(
@@ -475,9 +412,8 @@ class CreatorResourceCard extends StatelessWidget {
                     '${l10n.reviewNote}: $note',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: colors.error),
+                    style: Theme.of(context).textTheme.bodySmall
+                        ?.copyWith(color: colors.error),
                   ),
                 ),
             ],

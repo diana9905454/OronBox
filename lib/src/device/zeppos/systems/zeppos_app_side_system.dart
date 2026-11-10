@@ -48,8 +48,10 @@ class ZeppOsAppSideDebugEvent {
   final Uint8List? payload;
 }
 
-typedef ZeppOsZmlHookHandler =
-    Future<Object?> Function(String hook, Object? payload);
+typedef ZeppOsZmlHookHandler = Future<Object?> Function(
+  String hook,
+  Object? payload,
+);
 
 class ZeppOsAppSideSystem extends System {
   ZeppOsAppSideSystem({ZeppOsAppSideStorage? storage})
@@ -235,6 +237,9 @@ class ZeppOsAppSideSystem extends System {
     String? sourceOverride,
     ZeppOsZmlHookHandler? zmlHookHandler,
   }) async {
+    if (ZeppOsLocalDataGuard.active) {
+      throw StateError('Data maintenance is active');
+    }
     if (_sessions.containsKey(appId)) {
       _addEvent(
         appId,

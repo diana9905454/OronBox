@@ -21,6 +21,7 @@
         "startWindowIcon": "$media:icon",
         "startWindowBackground": "$color:start_window_background",
         "exported": true,
+        "backgroundModes": ["bluetoothInteraction"],
         "skills": [
           {
             "entities": [
@@ -42,17 +43,56 @@
                 "scheme": "oronbox"
               }
             ]
+          },
+          {
+            "actions": [
+              "ohos.want.action.viewData"
+            ],
+            "uris": [
+              {
+                "scheme": "file",
+                "type": "org.zxor.oronbox.rpk",
+                "linkFeature": "FileOpen"
+              },
+              {
+                "scheme": "file",
+                "type": "org.zxor.oronbox.obp",
+                "linkFeature": "FileOpen"
+              },
+              {
+                "scheme": "file",
+                "type": "org.zxor.oronbox.abp",
+                "linkFeature": "FileOpen"
+              },
+              {
+                "scheme": "file",
+                "type": "org.zxor.oronbox.zpk",
+                "linkFeature": "FileOpen"
+              },
+              {
+                "scheme": "file",
+                "type": "org.zxor.oronbox.mwz",
+                "linkFeature": "FileOpen"
+              },
+              {
+                "scheme": "file",
+                "type": "org.zxor.oronbox.face",
+                "linkFeature": "FileOpen"
+              }
+            ]
           }
         ]
       }
     ],
     "requestPermissions": [
+      { "name": "ohos.permission.VIBRATE" },
       { "name": "ohos.permission.ACCESS_BLUETOOTH", "reason": "$string:perm_ble", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } },
       { "name": "ohos.permission.USE_BLUETOOTH", "reason": "$string:perm_ble", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } },
       { "name": "ohos.permission.LOCATION", "reason": "$string:perm_loc", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } },
       { "name": "ohos.permission.APPROXIMATELY_LOCATION", "reason": "$string:perm_loc", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } },
       { "name": "ohos.permission.INTERNET", "reason": "$string:perm_net", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } },
-      { "name": "ohos.permission.KEEP_BACKGROUND_RUNNING", "reason": "$string:perm_bg", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } }
+      { "name": "ohos.permission.KEEP_BACKGROUND_RUNNING", "reason": "$string:perm_bg", "usedScene": { "abilities": ["EntryAbility"], "when": "always" } },
+      { "name": "ohos.permission.READ_WRITE_DOWNLOAD_DIRECTORY", "reason": "$string:perm_download", "usedScene": { "abilities": ["EntryAbility"], "when": "inuse" } }
     ]
   }
 }

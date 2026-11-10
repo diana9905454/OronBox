@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import 'package:oronbox/src/commands/command_protocol.dart';
 import 'package:oronbox/src/core/errors/coded_error.dart';
-import 'package:oronbox/src/core/extensions/riverpod_mounted_ext.dart';
 import 'package:oronbox/src/core/logging/logging_service.dart';
 import 'package:oronbox/src/features/resources/domain/creator_workspace.dart';
 import 'package:oronbox/src/host/application_host_provider.dart';
@@ -91,6 +90,8 @@ class CreatorWorkspaceController extends Notifier<CreatorWorkspaceState> {
   }
 
   OronBoxCommandBus get _host => ref.read(applicationHostProvider);
+
+  CreatorWorkspaceState get currentState => state;
 
   Future<Object?> _execute(
     String method, [
@@ -216,6 +217,22 @@ class CreatorWorkspaceController extends Notifier<CreatorWorkspaceState> {
     clearSelected: workspace == null,
   );
 
+  Future<bool> openResource(String resourceId) async {
+    final existing = state.resources
+        .where((item) => item.resource.id == resourceId)
+        .firstOrNull;
+    if (existing != null) {
+      select(existing);
+      return true;
+    }
+    await refresh();
+    final loaded = state.resources
+        .where((item) => item.resource.id == resourceId)
+        .firstOrNull;
+    select(loaded);
+    return loaded != null;
+  }
+
   Future<void> create(
     String slug,
     String name,
@@ -305,6 +322,23 @@ class CreatorWorkspaceController extends Notifier<CreatorWorkspaceState> {
     }
   }
 
+  Future<void> retryPublication(String id) async {
+    await _execute('creator.publication.retry', {'publication': id});
+    final selected = state.selected;
+    if (selected != null) {
+      _acceptWorkspace(
+        CreatorWorkspace.fromJson(
+          _map(
+            await _execute('creator.get', {'resource': selected.resource.id}),
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<Map<String, Object?>> publicationOptions() async =>
+      _map(await _execute('creator.publicationOptions', const {}));
+
   Future<void> publish({required Uint8List bundle}) async {
     final workspace = state.selected;
     if (workspace == null) return;
@@ -316,9 +350,13 @@ class CreatorWorkspaceController extends Notifier<CreatorWorkspaceState> {
       clearError: true,
     );
     final subscription = _host.events.listen((event) {
-      if (ref.mounted &&
-          event.event == 'creator.publish.progress' &&
-          event.data['operationId'] == operationId) {
+      if (!ref.mounted || event.data['operationId'] != operationId) return;
+      if (event.event == 'creator.publish.draftSaved') {
+        _acceptWorkspace(
+          CreatorWorkspace.fromJson(_map(event.data['workspace'])),
+          finishOperation: false,
+        );
+      } else if (event.event == 'creator.publish.progress') {
         state = state.copyWith(
           publishProgress: (event.data['progress'] as num?)?.toDouble() ?? 0,
         );
@@ -327,6 +365,7 @@ class CreatorWorkspaceController extends Notifier<CreatorWorkspaceState> {
     try {
       final value = await _execute('creator.publish', {
         'resource': workspace.resource.id,
+        'editVersion': workspace.resource.editVersion,
         'bundle': base64Encode(bundle),
         'operationId': operationId,
       });
@@ -362,10 +401,12 @@ class CreatorWorkspaceController extends Notifier<CreatorWorkspaceState> {
     }
   }
 
-  Future<void> saveDraft({required Uint8List bundle}) => _mutate(
-    'creator.draft',
-    {'resource': state.selected!.resource.id, 'bundle': base64Encode(bundle)},
-  );
+  Future<void> saveDraft({required Uint8List bundle}) =>
+      _mutate('creator.draft', {
+        'resource': state.selected!.resource.id,
+        'editVersion': state.selected!.resource.editVersion,
+        'bundle': base64Encode(bundle),
+      });
 
   final _blobCache = <String, Uint8List>{};
 

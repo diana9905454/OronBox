@@ -10,8 +10,7 @@ void main() {
       const MaterialApp(
         home: Scaffold(
           body: CommunityHtmlContent(
-            html:
-                '<p>Hello <strong>OronBox</strong></p><blockquote>Quote</blockquote><script>bad()</script>',
+            html: '<p>Hello <strong>OronBox</strong></p><blockquote>Quote</blockquote><script>bad()</script>',
           ),
         ),
       ),

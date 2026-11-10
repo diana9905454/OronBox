@@ -1,34 +1,71 @@
 import 'dart:async';
 
+import 'package:oronbox/src/features/settings/services/legal_agreements.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:segmented_list/segmented_list.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
+import 'package:oronbox/src/app/widgets/page_container.dart';
 import 'package:oronbox/src/app/widgets/sys_app_bar.dart';
 import 'package:oronbox/src/app/widgets/stable_fab.dart';
+import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:oronbox/src/core/services/shared_prefs_service.dart';
 import 'package:oronbox/src/features/accounts/application/host_accounts.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
 import 'package:oronbox/src/features/resources/pages/creator/creator_resource_list.dart';
+import 'package:oronbox/src/features/resources/pages/creator/creator_review_list_page.dart';
 import 'package:oronbox/src/features/resources/pages/creator/creator_shared.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
 
 class CreatorCenterPage extends ConsumerStatefulWidget {
-  const CreatorCenterPage({super.key});
+  const CreatorCenterPage({
+    super.key,
+    this.initialTab = 1,
+    this.initialReviewFilter,
+  });
+  final int initialTab;
+  final String? initialReviewFilter;
 
   @override
   ConsumerState<CreatorCenterPage> createState() => _CreatorCenterPageState();
 }
 
 class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
+  int get _tab => widget.initialTab;
   Set<String> _selectedResourceIds = const {};
   var _authorizingBandBbs = false;
   var _authorizingGitHub = false;
 
   Future<void> _refresh(CreatorWorkspaceController controller) async {
-    await controller.refresh();
+    await Future.wait([
+      controller.refresh(),
+      ref.read(hostAccountsProvider.notifier).refresh(),
+    ]);
+  }
+
+  void _handleBack() {
+    if (_tab == 1) {
+      context.pop();
+    } else {
+      context.replace('/resources/creator/resources');
+    }
+  }
+
+  void _switchTab(int index, {String? reviewFilter}) {
+    final targetTab = index == 0 ? 1 : 2;
+    if (targetTab == _tab && reviewFilter == null) return;
+    final location = switch (index) {
+      0 => '/resources/creator/resources',
+      1 =>
+        '/resources/creator/reviews'
+            '${reviewFilter == null ? '' : '?filter=${Uri.encodeComponent(reviewFilter)}'}',
+      _ => '/resources/creator/resources',
+    };
+    context.replace(location);
   }
 
   @override
@@ -38,72 +75,104 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     final bandBbs = ref.watch(hostAccountsProvider).bandbbs;
     final l10n = AppLocalizations.of(context)!;
     ref.listen(
-      hostAccountsProvider.select(
-        (value) => (value.bandbbs.isSignedIn, value.revision),
-      ),
+      hostAccountsProvider.select((value) => value.bandbbs.isSignedIn),
       (previous, current) {
-        if (previous != current && current.$1) {
+        if (previous != current && current) {
           unawaited(_refresh(controller));
         }
       },
     );
-    return Scaffold(
-      appBar: SysAppBar(
-        secondary: true,
-        title: Text(l10n.creatorCenter),
-        actions: [
-          IconButton(
-            tooltip: l10n.refresh,
-            icon: const Icon(Icons.refresh),
-            onPressed: state.loading
-                ? null
-                : () => unawaited(_refresh(controller)),
-          ),
-        ],
-      ),
-      body: !bandBbs.isSignedIn
-          ? _CreatorLoginGate(
-              busy: bandBbs.isBusy,
-              onLogin: ref
-                  .read(hostAccountsProvider.notifier)
-                  .startBandBbsLogin,
-            )
-          : state.governance != null
-          ? _CreatorGovernanceGate(code: state.governance!)
-          : _CreatorTermsGate(
-              loading: state.loading,
-              onCreate: () => _openCreateWizard(context, controller),
-              selectionActive: _selectedResourceIds.isNotEmpty,
-              onMoveSelection: () => _moveSelection(state, controller),
-              floatingAccess: _PublishingAccessCard(
-                grants: state.grants,
-                bandBbsBusy: _authorizingBandBbs,
-                githubBusy: _authorizingGitHub,
-                onAuthorizeBandBbs: () => _authorizeBandBbs(controller),
-                onConnectGitHub: () => _authorizeGitHub(controller),
-              ),
-              child: CreatorResourceList(
-                state: state,
-                controller: controller,
-                collections: state.collections,
-                collectionsLoading: false,
-                onRefresh: () => _refresh(controller),
-                onOpenCollection: (item) => context.push(
-                  '/resources/creator/collection/${item['id']}',
-                  extra: item,
-                ),
-                onOpen: (workspace) {
-                  controller.select(workspace);
-                  context.push('/resources/creator/resource');
-                },
-                selectedResourceIds: _selectedResourceIds,
-                onSelectionChanged: (value) =>
-                    setState(() => _selectedResourceIds = value),
-                onDissolveCollection: (item) =>
-                    _dissolveCollection(item, controller),
-                bottomPadding: 220,
-              ),
+    return PopScope(
+      canPop: _tab == 1,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _handleBack();
+      },
+      child: Scaffold(
+        appBar: SysAppBar(
+          secondary: true,
+          leading: BackButton(onPressed: _handleBack),
+          title: Text(l10n.creatorCenter),
+          actions: [
+            IconButton(
+              tooltip: l10n.refresh,
+              icon: const Icon(Icons.refresh),
+              onPressed: state.loading
+                  ? null
+                  : () => unawaited(_refresh(controller)),
             ),
+            IconButton(
+              tooltip: l10n.notifications,
+              icon: const Icon(Icons.notifications_none_outlined),
+              onPressed: () => context.push('/inbox'),
+            ),
+          ],
+        ),
+        bottomNavigationBar: NavigationBar(
+          selectedIndex: _tab == 2 ? 1 : 0,
+          onDestinationSelected: _switchTab,
+          destinations: [
+            NavigationDestination(
+              icon: const Icon(Icons.apps_outlined),
+              selectedIcon: const Icon(Icons.apps),
+              label: l10n.resources,
+            ),
+            NavigationDestination(
+              icon: const Icon(Icons.edit_outlined),
+              selectedIcon: const Icon(Icons.edit),
+              label: l10n.creatorReviewTab,
+            ),
+          ],
+        ),
+        body: state.governance != null
+            ? _CreatorGovernanceGate(code: state.governance!)
+            : _tab == 2
+            ? CreatorReviewListPage(
+                embedded: true,
+                initialFilter: widget.initialReviewFilter,
+              )
+            : _CreatorTermsGate(
+                loading: state.loading,
+                onCreate: () => _openCreateWizard(context, controller),
+                selectionActive: _selectedResourceIds.isNotEmpty,
+                onMoveSelection: () => _moveSelection(state, controller),
+                floatingAccess: null,
+                child: CreatorResourceList(
+                  state: state,
+                  controller: controller,
+                  collections: state.collections,
+                  collectionsLoading: false,
+                  onRefresh: () => _refresh(controller),
+                  topContent: SegmentedSection(
+                    margin: const EdgeInsetsDirectional.only(bottom: 12),
+                    tiles: _accountTiles(
+                      l10n: l10n,
+                      state: state,
+                      bandBbs: bandBbs,
+                      onAuthorizeBandBbs: () => _authorizeBandBbs(controller),
+                      onConnectGitHub: () => _authorizeGitHub(controller),
+                      bandBbsBusy: _authorizingBandBbs,
+                      githubBusy: _authorizingGitHub,
+                    ),
+                  ),
+                  onOpenCollection: (item) => context.push(
+                    '/resources/creator/collection/${item['id']}',
+                    extra: item,
+                  ),
+                  onOpen: (workspace) {
+                    controller.select(workspace);
+                    context.push(
+                      '/resources/creator/resources/${workspace.resource.id}',
+                    );
+                  },
+                  selectedResourceIds: _selectedResourceIds,
+                  onSelectionChanged: (value) =>
+                      setState(() => _selectedResourceIds = value),
+                  onDissolveCollection: (item) =>
+                      _dissolveCollection(item, controller),
+                  bottomPadding: bottomContentPadding(context, extra: 96),
+                ),
+              ),
+      ),
     );
   }
 
@@ -111,9 +180,14 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     if (_authorizingBandBbs) return;
     setState(() => _authorizingBandBbs = true);
     try {
-      await ref
-          .read(hostAccountsProvider.notifier)
-          .startBandBbsPublishingAuthorization();
+      final account = ref.read(hostAccountsProvider).bandbbs;
+      if (!account.isSignedIn) {
+        await ref.read(hostAccountsProvider.notifier).startBandBbsLogin();
+      } else {
+        await ref
+            .read(hostAccountsProvider.notifier)
+            .startBandBbsPublishingAuthorization();
+      }
       await controller.refresh();
     } catch (error) {
       if (mounted) showCreatorFailure(context, error);
@@ -143,6 +217,61 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     } finally {
       if (mounted) setState(() => _authorizingGitHub = false);
     }
+  }
+
+  List<AbstractSegmentedTile> _accountTiles({
+    required AppLocalizations l10n,
+    required CreatorWorkspaceState state,
+    required HostAccount bandBbs,
+    required VoidCallback onAuthorizeBandBbs,
+    required VoidCallback onConnectGitHub,
+    required bool bandBbsBusy,
+    required bool githubBusy,
+  }) {
+    final bandBbsReady = state.grants['bandbbs_publish'] == true;
+    final github = state.grants['github_login']?.toString() ?? '';
+    return [
+      SegmentedTile.navigation(
+        leading: const CreatorBrandLogo(
+          asset: 'assets/images/brands/github.svg',
+          label: 'GitHub',
+        ),
+        title: const Text('GitHub'),
+        description: Text(
+          github.isNotEmpty
+              ? l10n.creatorGitHubOwnPublishReady
+              : l10n.creatorGitHubOwnPublishMissing,
+        ),
+        value: githubBusy
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : (github.isEmpty ? Text(l10n.creatorConnect) : null),
+        onPressed: githubBusy ? null : (_) => onConnectGitHub(),
+        enabled: !githubBusy,
+      ),
+      SegmentedTile.navigation(
+        leading: const CreatorBrandLogo(
+          asset: 'assets/images/brands/bandbbs.svg',
+          label: 'BandBBS',
+        ),
+        title: Text(l10n.bandbbs),
+        description: Text(
+          bandBbsReady
+              ? l10n.creatorBandBbsWriteReady
+              : l10n.creatorBandBbsWriteMissing,
+        ),
+        value: bandBbsBusy
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : (!bandBbsReady ? Text(l10n.creatorAuthorize) : null),
+        onPressed: bandBbsBusy ? null : (_) => onAuthorizeBandBbs(),
+        enabled: !bandBbsBusy,
+      ),
+    ];
   }
 
   Future<void> _moveSelection(
@@ -247,80 +376,8 @@ class _CreatorCenterPageState extends ConsumerState<CreatorCenterPage> {
     BuildContext context,
     CreatorWorkspaceController controller,
   ) async {
-    await context.push('/resources/creator/create');
+    await context.push('/resources/creator/resources/create');
     if (context.mounted) await _refresh(controller);
-  }
-}
-
-class _PublishingAccessCard extends StatelessWidget {
-  const _PublishingAccessCard({
-    required this.grants,
-    required this.bandBbsBusy,
-    required this.githubBusy,
-    required this.onAuthorizeBandBbs,
-    required this.onConnectGitHub,
-  });
-
-  final Map<String, Object?> grants;
-  final bool bandBbsBusy;
-  final bool githubBusy;
-  final VoidCallback onAuthorizeBandBbs;
-  final VoidCallback onConnectGitHub;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final bandBbsReady = grants['bandbbs_publish'] == true;
-    final githubLogin = grants['github_login']?.toString() ?? '';
-    return Card(
-      margin: EdgeInsets.zero,
-      elevation: 0,
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          ListTile(
-            leading: const CreatorBrandLogo(
-              asset: 'assets/images/brands/bandbbs.svg',
-              label: 'BandBBS',
-            ),
-            title: Text(
-              'BandBBS',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            subtitle: Text(
-              bandBbsReady
-                  ? l10n.creatorBandBbsWriteReady
-                  : l10n.creatorBandBbsWriteMissing,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            onTap: bandBbsReady || bandBbsBusy ? null : onAuthorizeBandBbs,
-          ),
-          ListTile(
-            leading: const CreatorBrandLogo(
-              asset: 'assets/images/brands/github.svg',
-              label: 'GitHub',
-            ),
-            title: Text(
-              'GitHub',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            subtitle: Text(
-              githubLogin.isEmpty
-                  ? l10n.creatorGitHubOwnPublishMissing
-                  : l10n.creatorGitHubOwnPublishReady,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            onTap: githubLogin.isNotEmpty || githubBusy
-                ? null
-                : onConnectGitHub,
-          ),
-        ],
-      ),
-    );
   }
 }
 
@@ -360,70 +417,9 @@ class _CreatorGovernanceGate extends StatelessWidget {
                   banned
                       ? l10n.creatorBannedDescription
                       : l10n.creatorFrozenDescription,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
+                  style: Theme.of(context).textTheme.bodyLarge
+                      ?.copyWith(color: colors.onSurfaceVariant),
                   textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CreatorLoginGate extends StatelessWidget {
-  const _CreatorLoginGate({required this.busy, required this.onLogin});
-
-  final bool busy;
-  final Future<void> Function() onLogin;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colors = Theme.of(context).colorScheme;
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520),
-        child: Card(
-          color: colors.surfaceContainerHigh,
-          margin: const EdgeInsets.all(24),
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.account_circle_outlined,
-                  size: 56,
-                  color: colors.primary,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  l10n.creatorLoginRequiredTitle,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  l10n.creatorLoginRequiredDescription,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: colors.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                FilledButton.icon(
-                  onPressed: busy ? null : onLogin,
-                  icon: busy
-                      ? const SizedBox.square(
-                          dimension: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.login),
-                  label: Text(l10n.creatorLoginAction),
                 ),
               ],
             ),
@@ -449,7 +445,7 @@ class _CreatorTermsGate extends ConsumerStatefulWidget {
   final VoidCallback onCreate;
   final bool selectionActive;
   final VoidCallback onMoveSelection;
-  final Widget floatingAccess;
+  final Widget? floatingAccess;
 
   @override
   ConsumerState<_CreatorTermsGate> createState() => _CreatorTermsGateState();
@@ -465,7 +461,7 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
   @override
   void initState() {
     super.initState();
-    _accepted = SharedPrefsService.instance.getBool(keyAccepted) ?? false;
+    _accepted = LegalAgreements.accepted('resource-publishing');
     _termsScrollController.addListener(_markBottomReached);
   }
 
@@ -484,6 +480,7 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
   }
 
   Future<void> _continue() async {
+    if (!await LegalAgreements.acceptShown('resource-publishing')) return;
     await SharedPrefsService.instance.setBool(keyAccepted, true);
     if (mounted) setState(() => _accepted = true);
   }
@@ -495,18 +492,19 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
       return Stack(
         children: [
           widget.child,
-          Positioned(
-            left: 16,
-            right: 196,
-            bottom: 16,
-            child: Align(
-              alignment: AlignmentDirectional.bottomStart,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 360),
-                child: widget.floatingAccess,
+          if (widget.floatingAccess != null)
+            Positioned(
+              left: 16,
+              right: 196,
+              bottom: 16,
+              child: Align(
+                alignment: AlignmentDirectional.bottomStart,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 360),
+                  child: widget.floatingAccess,
+                ),
               ),
             ),
-          ),
           Positioned(
             right: 16,
             bottom: 16,
@@ -562,6 +560,20 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
                               language,
                             ),
                             builder: (context, snapshot) {
+                              if (snapshot.hasError) {
+                                return Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(l10n.creatorTermsLoadFailed),
+                                      TextButton(
+                                        onPressed: () => setState(() {}),
+                                        child: Text(l10n.retry),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
                               if (!snapshot.hasData) {
                                 return const Center(
                                   child: CircularProgressIndicator(),
@@ -580,7 +592,7 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
                                   20,
                                   16,
                                 ),
-                                styleSheet: MarkdownStyleSheet.fromTheme(theme)
+                                styleSheet: markdownStyleSheetFromTheme(theme)
                                     .copyWith(
                                       p: theme.textTheme.bodyMedium?.copyWith(
                                         height: 1.5,
@@ -625,26 +637,33 @@ class _CreatorTermsGateState extends ConsumerState<_CreatorTermsGate> {
         CreatorBottomBar(
           children: [
             Expanded(
-              child: InkWell(
-                onTap: _bottomReached
-                    ? () => setState(() => _checked = !_checked)
-                    : null,
-                child: Row(
-                  children: [
-                    Checkbox(
-                      value: _checked,
-                      onChanged: _bottomReached
-                          ? (value) => setState(() => _checked = value == true)
-                          : null,
-                    ),
-                    Flexible(
-                      child: Text(
-                        _bottomReached
-                            ? l10n.creatorTermsAccept
-                            : l10n.oobeAgreementHint,
+              child: MouseRegion(
+                cursor: _bottomReached
+                    ? SystemMouseCursors.click
+                    : SystemMouseCursors.basic,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _bottomReached
+                      ? () => setState(() => _checked = !_checked)
+                      : null,
+                  child: Row(
+                    children: [
+                      Checkbox(
+                        value: _checked,
+                        onChanged: _bottomReached
+                            ? (value) =>
+                                  setState(() => _checked = value == true)
+                            : null,
                       ),
-                    ),
-                  ],
+                      Flexible(
+                        child: Text(
+                          _bottomReached
+                              ? l10n.creatorTermsAccept
+                              : l10n.oobeAgreementHint,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

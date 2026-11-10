@@ -6,17 +6,50 @@ import 'package:oronbox/src/features/resources/application/creator/creator_works
 import 'package:oronbox/src/features/resources/pages/creator/creator_editor_page.dart';
 import 'package:oronbox/src/features/resources/pages/creator/creator_shared.dart';
 
-class CreatorResourcePage extends ConsumerWidget {
-  const CreatorResourcePage({super.key});
+class CreatorResourcePage extends ConsumerStatefulWidget {
+  const CreatorResourcePage({super.key, this.resourceId});
+  final String? resourceId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CreatorResourcePage> createState() =>
+      _CreatorResourcePageState();
+}
+
+class _CreatorResourcePageState extends ConsumerState<CreatorResourcePage> {
+  Future<bool>? _openFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.resourceId != null) {
+      _openFuture = ref
+          .read(creatorWorkspaceProvider.notifier)
+          .openResource(widget.resourceId!);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(creatorWorkspaceProvider);
     final controller = ref.read(creatorWorkspaceProvider.notifier);
     final workspace = state.selected;
+    final openingDifferentResource =
+        widget.resourceId != null &&
+        workspace?.resource.id != widget.resourceId;
+    if (openingDifferentResource) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final future = _openFuture;
+        if (!context.mounted || future == null) return;
+        future.then((found) {
+          if (!context.mounted || found) return;
+          context.go('/resources/creator/resources');
+        });
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     if (workspace == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) context.go('/resources/creator');
+        if (context.mounted) context.go('/resources/creator/resources');
       });
       return const SizedBox.shrink();
     }
@@ -28,14 +61,6 @@ class CreatorResourcePage extends ConsumerWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: Center(
-              child: CreatorStateBadge(state: creatorWorkspaceState(workspace)),
-            ),
-          ),
-        ],
       ),
       body: CreatorEditorView(
         key: ValueKey(

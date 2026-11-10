@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
 import 'package:oronbox/src/app/utils/error_localization.dart';
+import 'package:oronbox/src/app/widgets/markdown_style_sheet.dart';
 import 'package:oronbox/src/features/resources/application/creator/creator_workspace_controller.dart';
 import 'package:oronbox/src/features/resources/domain/creator_workspace.dart';
 import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
@@ -12,12 +15,18 @@ import 'package:oronbox/src/features/settings/pages/legal_documents_page.dart';
 const creatorStateOrder = [
   'draft',
   'pending',
-  'rejected',
+  'reviewing',
+  'needs_changes',
+  'publishing',
+  'external_review',
+  'fixed_pending_review',
   'failed',
   'approved',
   'published',
+  'rejected',
   'suspended',
   'frozen',
+  'superseded',
 ];
 
 String creatorWorkspaceState(CreatorWorkspace workspace) {
@@ -26,12 +35,55 @@ String creatorWorkspaceState(CreatorWorkspace workspace) {
   if (workspace.revisions.isEmpty) return 'draft';
   if (workspace.latestRevision?.state == 'draft') return 'draft';
   final review = workspace.review?['state']?.toString();
-  if (review == 'pending') return 'pending';
-  if (review == 'rejected') return 'rejected';
+  if (review == 'pending' ||
+      review == 'reviewing' ||
+      review == 'fixed_pending_review') {
+    return 'pending';
+  }
+  if (review == 'rejected' ||
+      review == 'needs_changes' ||
+      review == 'changes_requested') {
+    return 'rejected';
+  }
   if (workspace.publications.any(
     (publication) => publication['state'] == 'failed',
   )) {
     return 'failed';
+  }
+  if (workspace.publications.any(
+    (publication) =>
+        publication['state'] == 'reviewing' &&
+        (publication['status_detail'] as Map?)?['review_state'] ==
+            'fixed_waiting',
+  )) {
+    return 'fixed_pending_review';
+  }
+  if (workspace.publications.any(
+    (publication) =>
+        publication['state'] == 'waiting_external_review' ||
+        publication['state'] == 'external_fixed_waiting' ||
+        (publication['state'] == 'reviewing' &&
+            (publication['status_detail'] as Map?)?['review_state'] !=
+                'changes_requested'),
+  )) {
+    return 'external_review';
+  }
+  if (workspace.publications.any(
+    (publication) =>
+        publication['state'] == 'external_changes_requested' ||
+        (publication['state'] == 'reviewing' &&
+            (publication['status_detail'] as Map?)?['review_state'] ==
+                'changes_requested'),
+  )) {
+    return 'needs_changes';
+  }
+  if (workspace.publications.any(
+    (publication) =>
+        publication['state'] == 'dispatching' ||
+        publication['state'] == 'running' ||
+        (review == 'approved' && publication['state'] == 'pending'),
+  )) {
+    return 'publishing';
   }
   if (workspace.publications.any(
     (publication) => publication['state'] == 'published',
@@ -47,10 +99,19 @@ String creatorStateLabel(AppLocalizations l10n, String state) =>
       'suspended' => l10n.creatorStateSuspended,
       'frozen' => l10n.creatorStateFrozen,
       'pending' || 'submitted' => l10n.pendingReview,
+      'reviewing' => l10n.creatorStateReviewing,
+      'publishing' || 'dispatching' => l10n.creatorStatePublishing,
+      'external_review' ||
+      'waiting_external_review' => l10n.creatorStateExternalReview,
       'approved' => l10n.creatorStateApproved,
       'rejected' => l10n.creatorReviewRejected,
+      'needs_changes' ||
+      'changes_requested' ||
+      'external_changes_requested' => l10n.creatorReviewChangesRequested,
+      'fixed_pending_review' ||
+      'external_fixed_waiting' => l10n.creatorReviewFixedPending,
+      'closed' => l10n.creatorReviewClosed,
       'published' => l10n.published,
-      'reviewing' => l10n.creatorStateExternalReview,
       'failed' => l10n.creatorStateFailed,
       'superseded' => l10n.creatorStateSuperseded,
       'cancelled' => l10n.creatorStateCancelled,
@@ -106,6 +167,118 @@ CreatorMedia? creatorThumbnailMedia(CreatorWorkspace workspace) {
     }
   }
   return preview;
+}
+
+class CreatorResourceThumbnail extends ConsumerStatefulWidget {
+  const CreatorResourceThumbnail({
+    super.key,
+    this.workspace,
+    this.resourceId,
+    this.media,
+    this.kind = CreatorResourceKind.watchface,
+    this.controller,
+    this.size = 48,
+    this.borderRadius = 12,
+  });
+
+  final CreatorWorkspace? workspace;
+  final String? resourceId;
+  final CreatorMedia? media;
+  final CreatorResourceKind kind;
+  final CreatorWorkspaceController? controller;
+  final double size;
+  final double borderRadius;
+
+  @override
+  ConsumerState<CreatorResourceThumbnail> createState() =>
+      _CreatorResourceThumbnailState();
+}
+
+class _CreatorResourceThumbnailState
+    extends ConsumerState<CreatorResourceThumbnail> {
+  Uint8List? _bytes;
+
+  String? get _effectiveResourceId =>
+      widget.workspace?.resource.id ?? widget.resourceId;
+
+  CreatorMedia? get _effectiveMedia => widget.workspace != null
+      ? creatorThumbnailMedia(widget.workspace!)
+      : widget.media;
+
+  CreatorResourceKind get _effectiveKind =>
+      widget.workspace?.resource.kind ?? widget.kind;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant CreatorResourceThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.workspace?.resource.id != widget.workspace?.resource.id ||
+        oldWidget.resourceId != widget.resourceId ||
+        oldWidget.media?.sha256 != widget.media?.sha256 ||
+        (oldWidget.workspace != null &&
+            widget.workspace != null &&
+            creatorThumbnailMedia(oldWidget.workspace!)?.sha256 !=
+                creatorThumbnailMedia(widget.workspace!)?.sha256)) {
+      _bytes = null;
+      _load();
+    }
+  }
+
+  Future<void> _load() async {
+    final resId = _effectiveResourceId;
+    final media = _effectiveMedia;
+    if (resId == null ||
+        resId.isEmpty ||
+        media == null ||
+        media.sha256.isEmpty) {
+      return;
+    }
+    try {
+      final ctrl =
+          widget.controller ?? ref.read(creatorWorkspaceProvider.notifier);
+      final bytes = await ctrl?.blob(resId, media.sha256);
+      if (mounted) setState(() => _bytes = bytes);
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final bytes = _bytes;
+    final radius = BorderRadius.circular(widget.borderRadius);
+    if (bytes != null) {
+      return SizedBox(
+        width: widget.size,
+        height: widget.size,
+        child: ClipRRect(
+          borderRadius: radius,
+          child: Image.memory(bytes, fit: BoxFit.cover),
+        ),
+      );
+    }
+    return Container(
+      width: widget.size,
+      height: widget.size,
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest,
+        borderRadius: radius,
+      ),
+      child: Center(
+        child: Icon(
+          _effectiveKind == CreatorResourceKind.watchface
+              ? Icons.watch_outlined
+              : Icons.apps_outlined,
+          color: colors.onSurfaceVariant,
+          size: widget.size * 0.5,
+        ),
+      ),
+    );
+  }
 }
 
 void showCreatorFailure(BuildContext context, Object error) {
@@ -174,14 +347,20 @@ class CreatorOronBoxLogo extends StatelessWidget {
 }
 
 class CreatorEditorCard extends StatelessWidget {
-  const CreatorEditorCard({super.key, required this.child, this.padding});
+  const CreatorEditorCard({
+    super.key,
+    required this.child,
+    this.padding,
+    this.color,
+  });
 
   final Widget child;
   final EdgeInsetsGeometry? padding;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) => Material(
-    color: Theme.of(context).colorScheme.surfaceContainerLow,
+    color: color ?? Theme.of(context).colorScheme.surfaceContainerLow,
     borderRadius: BorderRadius.circular(12),
     clipBehavior: Clip.antiAlias,
     child: Padding(padding: padding ?? const EdgeInsets.all(16), child: child),
@@ -213,9 +392,8 @@ class CreatorStateBadge extends StatelessWidget {
       ),
       child: Text(
         creatorStateLabel(AppLocalizations.of(context)!, state),
-        style: Theme.of(
-          context,
-        ).textTheme.labelSmall?.copyWith(color: foreground),
+        style: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(color: foreground),
       ),
     );
   }
@@ -319,9 +497,8 @@ class CreatorSectionTitle extends StatelessWidget {
       const SizedBox(width: 10),
       Text(
         title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+        style: Theme.of(context).textTheme.titleMedium
+            ?.copyWith(fontWeight: FontWeight.w600),
       ),
     ],
   );
@@ -393,7 +570,7 @@ class CreatorReviewRulesDialog extends ConsumerWidget {
                             data: snapshot.data!,
                             selectable: true,
                             padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
-                            styleSheet: MarkdownStyleSheet.fromTheme(theme)
+                            styleSheet: markdownStyleSheetFromTheme(theme)
                                 .copyWith(
                                   p: theme.textTheme.bodyMedium?.copyWith(
                                     height: 1.5,

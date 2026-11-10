@@ -7,6 +7,36 @@ import 'package:oronbox/src/features/resources/domain/resource_catalog.dart';
 import 'package:oronbox/src/features/resources/pages/resource_detail_page.dart';
 
 void main() {
+  test('reads the full body independently of the searchable summary', () async {
+    final dio = Dio();
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.resolve(
+            Response<Object?>(
+              requestOptions: options,
+              statusCode: 200,
+              data: {
+                'id': 'body-test',
+                'name': 'Body',
+                'kind': 'watchface',
+                'summary': 'short keywords',
+                'description': '# Full body',
+                'description_format': 'markdown',
+              },
+            ),
+          );
+        },
+      ),
+    );
+    final detail = await OronBoxResourceCatalog(dio: dio).getDetail(
+      const ResourceRef(source: CommunitySourceId.oronBox, id: 'body-test'),
+    );
+    expect(detail.summary, 'short keywords');
+    expect(detail.content.value, '# Full body');
+    expect(detail.content.format, ResourceContentFormat.markdown);
+  });
+
   test(
     'preserves collection kind and representative media from the public API',
     () async {
@@ -48,9 +78,8 @@ void main() {
         ),
       );
 
-      final detail = await OronBoxResourceCatalog(
-        dio: dio,
-      ).getCollection('collection');
+      final detail = await OronBoxResourceCatalog(dio: dio)
+          .getCollection('collection');
 
       expect(detail.type, CommunityResourceType.watchface);
       expect(detail.resourceCount, 2);
@@ -147,54 +176,57 @@ void main() {
     expect(item.coverUrl?.pathSegments.last, iconDigest);
   });
 
-  test('falls back to the local blob line when R2 size probing fails', () async {
-    final requestedLines = <String>[];
-    final dio = Dio();
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) {
-          final line = options.uri.queryParameters['line'] ?? '';
-          requestedLines.add(line);
-          if (line == 'r2') {
-            handler.reject(
-              DioException(
-                requestOptions: options,
-                type: DioExceptionType.badResponse,
-                response: Response<Object?>(
+  test(
+    'falls back to the local blob line when R2 size probing fails',
+    () async {
+      final requestedLines = <String>[];
+      final dio = Dio();
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            final line = options.uri.queryParameters['line'] ?? '';
+            requestedLines.add(line);
+            if (line == 'r2') {
+              handler.reject(
+                DioException(
                   requestOptions: options,
-                  statusCode: 503,
+                  type: DioExceptionType.badResponse,
+                  response: Response<Object?>(
+                    requestOptions: options,
+                    statusCode: 503,
+                  ),
                 ),
+              );
+              return;
+            }
+            handler.resolve(
+              Response<Object?>(
+                requestOptions: options,
+                statusCode: 200,
+                headers: Headers.fromMap({
+                  Headers.contentLengthHeader: ['1234'],
+                }),
               ),
             );
-            return;
-          }
-          handler.resolve(
-            Response<Object?>(
-              requestOptions: options,
-              statusCode: 200,
-              headers: Headers.fromMap({
-                Headers.contentLengthHeader: ['1234'],
-              }),
-            ),
-          );
-        },
-      ),
-    );
-
-    final size = await OronBoxResourceCatalog(dio: dio).probeDownloadSize(
-      CommunityResourceFile(
-        id: 'artifact',
-        fileName: 'app.rpk',
-        version: '1.0.0',
-        downloadUrl: Uri.parse(
-          'https://ob-api.example/api/blobs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          },
         ),
-      ),
-    );
+      );
 
-    expect(size, 1234);
-    expect(requestedLines, ['r2', 'local']);
-  });
+      final size = await OronBoxResourceCatalog(dio: dio).probeDownloadSize(
+        CommunityResourceFile(
+          id: 'artifact',
+          fileName: 'app.rpk',
+          version: '1.0.0',
+          downloadUrl: Uri.parse(
+            'https://ob-api.example/api/v1/blobs/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          ),
+        ),
+      );
+
+      expect(size, 1234);
+      expect(requestedLines, ['r2', 'local']);
+    },
+  );
 
   test('uses the R2 blob line when size probing succeeds', () async {
     final requestedLines = <String>[];
@@ -223,7 +255,7 @@ void main() {
         fileName: 'app.rpk',
         version: '1.0.0',
         downloadUrl: Uri.parse(
-          'https://ob-api.example/api/blobs/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+          'https://ob-api.example/api/v1/blobs/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
         ),
       ),
     );
@@ -341,6 +373,35 @@ void main() {
     expect(choices.single.codename, isEmpty);
     expect(
       preferredResourceInstallChoice(detail, choices, 'any-current-device'),
+      same(choices.single),
+    );
+  });
+  test('BandBBS installation ignores cached inferred device metadata', () {
+    const detail = CommunityResourceDetail(
+      ref: ResourceRef(source: CommunitySourceId.bandbbs, id: 'resource'),
+      name: 'Resource',
+      type: CommunityResourceType.quickApp,
+      paidType: CommunityPaidType.free,
+      authors: [],
+      supportedDevices: {'n66'},
+      content: CommunityResourceContent(
+        format: ResourceContentFormat.plainText,
+        value: '',
+      ),
+      files: [
+        CommunityResourceFile(
+          id: 'file',
+          fileName: 'n66.rpk',
+          version: '1',
+          supportedDevices: {'n66'},
+        ),
+      ],
+    );
+    final choices = buildResourceInstallChoices(detail);
+    expect(choices, hasLength(1));
+    expect(choices.single.codename, isEmpty);
+    expect(
+      preferredResourceInstallChoice(detail, choices, 'n67'),
       same(choices.single),
     );
   });

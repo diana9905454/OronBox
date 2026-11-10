@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:oronbox/src/app/generated/app_localizations.dart';
-import 'package:oronbox/src/app/widgets/app_error_gate.dart';
+import 'package:oronbox/src/app/widgets/app_scaffold_messenger.dart';
 import 'package:oronbox/src/core/network/app_http_transport.dart';
 import 'package:oronbox/src/core/network/github_cdn.dart';
 import 'package:oronbox/src/core/providers/app_settings_providers.dart';
@@ -17,9 +17,7 @@ final appDioProvider = Provider<Dio>((ref) {
       final l10n = AppLocalizations.of(context);
       if (l10n == null) return;
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.githubCdnFallback(fallback.displayName)),
-        ),
+        SnackBar(content: Text(l10n.githubCdnFallback(fallback.displayName))),
       );
     },
   );

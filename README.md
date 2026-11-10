@@ -4,26 +4,23 @@
 
 <h1 align="center">OronBox</h1>
 
-<p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建
-此页为为鸿蒙版OronBox的fork</p>
+<p align="center">一个又好看又快的 VelaOS / ZeppOS 可穿戴设备管理软件，使用 Flutter 构建</p>
 
 <p align="center">
-  <a href="https://github.com/zxor-org/OronBox/releases"><img src="https://img.shields.io/github/v/release/zxor-org/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
-  <a href="https://github.com/zxor-org/OronBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/zxor-org/OronBox/ci.yml?label=CI" alt="CI status"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/zxor-org/OronBox" alt="License"></a>
-  <a href="https://github.com/zxor-org/OronBox/stargazers"><img src="https://img.shields.io/github/stars/zxor-org/OronBox?style=flat" alt="GitHub stars"></a>
+  <a href="https://github.com/OronCanopy/OronBox/releases"><img src="https://img.shields.io/github/v/release/OronCanopy/OronBox?display_name=tag&sort=semver&label=release" alt="Latest release"></a>
+  <a href="https://github.com/OronCanopy/OronBox/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/OronCanopy/OronBox/ci.yml?label=CI" alt="CI status"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/OronCanopy/OronBox" alt="License"></a>
+  <a href="https://github.com/OronCanopy/OronBox/stargazers"><img src="https://img.shields.io/github/stars/OronCanopy/OronBox?style=flat" alt="GitHub stars"></a>
 </p>
 
 <p align="center"><a href="README.en.md">English</a> · 简体中文</p>
 
 ## 快速入口
 
-- [下载其他端最新版本](https://github.com/zxor-org/OronBox/releases)
-- [下载鸿蒙端最新版本](https://github.com/diana9905454/OronBox/releases)
+- [下载最新版本](https://github.com/OronCanopy/OronBox/releases)
 - [用户文档](https://oronbox.zxor.org/user)
 - [开发文档](https://oronbox.zxor.org/developer)
-- [问题反馈](https://github.com/zxor-org/OronBox/issues)
-- [鸿蒙项目开源代码地址](https://github.com/diana9905454/OronBox/tree/feat/harmonyos-ohos-port)
+- [问题反馈](https://github.com/OronCanopy/OronBox/issues)
 
 ## OronBox 是什么？
 
@@ -33,15 +30,15 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 
 > 我们首先希望您的设备支持蓝牙，如果你正在使用 Ubuntu，我们希望它的版本最好是 24.04+
 
-| 平台 | 状态 | 说明 | 下载 |
-|------|------|------|------|
-| Android | ✅ 已支持 | Android 7+ | [ 下载](https://github.com/zxor-org/OronBox/releases) |
-| Linux | ✅ 已支持 | x86_64 / aarch64 | [下载](https://github.com/zxor-org/OronBox/releases) |
-| Web | ✅ 已支持 | 浏览器需要支持 Web Serial / Bluetooth | [下载](https://github.com/zxor-org/OronBox/releases) |
-| macOS | ✅ 已支持 | macOS 12+ | [下载](https://github.com/zxor-org/OronBox/releases) |
-| Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 | [下载](https://github.com/zxor-org/OronBox/releases) |
-| iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ | 暂无 |
-| Harmonyos | ✅ 已支持 | OH API23+ 暂无插件功能 | [下载](https://github.com/diana9905454/OronBox/releases) |
+| 平台 | 状态 | 说明 |
+|------|------|------|
+| Android | ✅ 已支持 | Android 7+ |
+| Linux | ✅ 已支持 | x86_64 / aarch64 |
+| Web | ✅ 已支持 | 浏览器需要支持 Web Serial / Bluetooth |
+| macOS | ✅ 已支持 | macOS 12+ |
+| Windows | ✅ 已支持 | Windows 10+，小米账号 2FA 登录需 WebView2 |
+| iOS | ❌ 暂不支持 | 我们没有用于调试和测试的实机！ |
+
 
 ## 设备支持
 
@@ -77,33 +74,70 @@ OronBox 是一款跨平台可穿戴设备管理工具，无需官方客户端，
 | 同步并导出设备录音 | 从设备取回录音并保存 |
 | 接收并保存手表截图 | 保存到用户图片目录 |
 | 同步城市天气数据到设备 | 为设备更新选定城市的天气信息 |
+| 小米设备 eSIM 管理 | 支持标准 GSMA LPA eSIM 配置文件下载、启用、停用与删除 |
+| 小爱同学语音协同与语音转文字 | 监听设备小爱语音唤醒与音频流，支持本地与云端 ASR 接管解析 |
+| Wi-Fi 凭据协同同步 | 响应手表 Wi-Fi 扫描与网络认证请求，完成设备 Wi-Fi 快速配网 |
+| 手机辅助定位协同 | 手机后台为无独立 GPS 设备实时下发定位数据，辅助轨迹记录 |
 | 登录小米账号并支持 2FA | 提供 GNSS 星历数据下载和设备 authkey 获取能力 |
 | 从小米运动健康日志读取 authkey | 从本地小米运动健康应用日志中解析并读取设备 authkey |
 | 同步小米设备 GNSS 星历 | 支持手表发起星历更新请求，需要登录小米账号 |
 | 访问 AstroBox-Repo 与米坛资源 | 浏览和获取社区资源 |
 | 通过 OAuth 登录米坛社区 | 获取米坛社区资源 |
 | 从创作者中心发布资源 | 支持同步发布到米坛和 AstroBox-Repo |
+| 本地 API 服务 | 为外部开发与自动化工具提供局域网 HTTP / SSE 服务，支持 mDNS 自动发现与 Ed25519 签名质询认证 |
 
-## CLI 使用
+## CLI 工具
 
-OronBox 提供功能完整且可脚本化的命令行界面，可在无 GUI 模式下管理设备、安装资源、访问社区源以及控制后台任务，用法参见 [OronBox 文档站](https://oronbox.zxor.org/user/cli)
+OronBox 提供独立的跨平台官方命令行客户端 [OronBox-CLI](https://github.com/OronCanopy/OronBox-CLI)
+在 OronBox 客户端开启【设置】->【高级设置】->【本地 API 服务】后，即可在计算机终端通过局域网免密质询连接，执行穿戴设备管理、应用与表盘安装、实时系统诊断日志导出等操作：
+
+```bash
+# 全局安装（推荐）
+npm install -g oronbox-cli
+
+# 自动发现并配对
+oronbox-cli pair
+
+# 或无需安装直接执行
+npx oronbox-cli pair
+```
+
+详细用法参见 [OronBox-CLI 仓库](https://github.com/OronCanopy/OronBox-CLI) 及其[使用指南](https://github.com/OronCanopy/OronBox-CLI/blob/main/GUIDE.md)与 [API 规范](https://github.com/OronCanopy/OronBox-CLI/blob/main/API.md)
 
 ## 从源码构建
 
 ### 环境准备
 
-- Flutter stable（推荐用 [fvm](https://fvm.app) 管理，仓库根目录的 `.fvmrc` 已指定版本），然后 `flutter pub get`
-- 各平台额外依赖：
-  - **Linux**：`gtk3` `webkit2gtk-4.1` `bluez` `libblkid` `libasound2`（构建时为 `libasound2-dev`）`xz`；打包工具按需：`dpkg-deb`（deb）、`rpmbuild`（rpm）、`makepkg`（arch）、`linuxdeploy` 或 `appimagetool`（AppImage）、`flatpak-builder` 与 GNOME SDK（Flatpak）
-  - **Linux ARM64**：还需 `libflac-dev` `libogg-dev` `libopus-dev` `libvorbis-dev`；`flutter_soloud` 的配套 Xiph `.so` 只有 amd64 版本，ARM64 会自动切换并使用系统库，ARM64 产物也会声明对应运行时依赖
-  - **Android**：Flutter 标配的 Android SDK/NDK
-  - **Windows**：Visual Studio 2022（C++ 桌面工作负载）；WebView2 SDK 可通过脚本安装：`windows/scripts/install_webview2_sdk.ps1`
-  - **macOS**：Xcode，仅可在 macOS 主机构建
-  - **Web**：无额外依赖
+Flutter stable 与 Rust stable 是所有平台的前提：
+
+- Flutter stable：版本见 `.fvmrc`，可用 [fvm](https://fvm.app) 安装，装好后 `flutter pub get`
+- Rust stable：用 rustup 安装；WASM 运行库在首次构建时从源码编译
+
+Debian / Ubuntu 依赖：
+
+```sh
+sudo apt install libsecret-1-dev clang cmake ninja-build pkg-config zip curl \
+  libgtk-3-dev libblkid-dev liblzma-dev libasound2-dev libwebkit2gtk-4.1-dev \
+  libbluetooth-dev libayatana-appindicator3-dev dpkg-dev rpm flatpak flatpak-builder
+```
+
+ARM64 另需音频库（`flutter_soloud` 自带的 Xiph `.so` 仅 amd64，ARM64 改用系统库）：
+
+```sh
+sudo apt install libflac-dev libogg-dev libopus-dev libvorbis-dev
+```
+
+其他发行版按对应包名安装同等依赖与打包工具：gtk3、webkit2gtk-4.1、bluez、libblkid、libasound2、xz，以及 dpkg-deb / rpmbuild / makepkg / linuxdeploy / appimagetool / flatpak-builder
+
+Windows：Visual Studio 2022（C++ 桌面工作负载）；WebView2 SDK 可用 `windows/scripts/install_webview2_sdk.ps1` 安装
+
+macOS：Xcode，仅能在 macOS 主机上构建
+
+Android / Web：无额外依赖
 
 ### 一键构建
 
-```bash
+```sh
 tool/build_all.sh [--dev]
 ```
 
@@ -111,72 +145,78 @@ tool/build_all.sh [--dev]
 
 ### 分平台构建
 
-```bash
-# Android
+#### Android
+
+```sh
 tool/build_android.sh [--format apk|appbundle|all] [--abi arm64-v8a|armeabi-v7a|x86_64]
-
-# Linux
-tool/build_linux.sh [--format tar.gz|deb|rpm|arch|appimage|flatpak|all] [--abi x86_64|aarch64]
-
-# macOS（仅 macOS 主机）
-tool/build_macos.sh
-
-# Windows（任选其一）
-tool\build_windows.bat [--dev]
-powershell -File tool/build_windows.ps1 [-Dev] [-SkipWebView2Sdk] [-WebView2SdkVersion <版本>]
-
-# Web
-tool/build_web.sh
 ```
 
-- `--format` / `--abi` 缺省时构建全部格式 / 全部 ABI；Linux `--abi` 缺省取宿主架构
-- Android 发布签名通过环境变量配置：`ORONBOX_KEYSTORE_PATH`、`ORONBOX_KEYSTORE_PASSWORD`、`ORONBOX_KEY_ALIAS`、`ORONBOX_KEY_PASSWORD`；未设置时使用 debug 签名
-- Linux 交叉编译 aarch64（x86_64 宿主）需将 `ORONBOX_LINUX_ARM64_SYSROOT` 指向包含 gtk3/webkit2gtk/alsa/flac/ogg/opus/vorbis 等开发包的 arm64 sysroot；交叉模式只产出 tar.gz / deb / rpm / arch
+- `--format` / `--abi` 缺省时构建全部格式 / 全部 ABI
+- 发布签名通过环境变量配置：`ORONBOX_KEYSTORE_PATH`、`ORONBOX_KEYSTORE_PASSWORD`、`ORONBOX_KEY_ALIAS`、`ORONBOX_KEY_PASSWORD`；未设置时使用 debug 签名
 
-### 版本与产物约定
+#### Linux
 
-- 版本号取自 `pubspec.yaml` 的 `version` 字段
-- 默认要求 git 工作区干净；加 `--dev` 允许脏工作区并在版本号后附加 git 元数据（如 `1.0.0.dirty.abc1234`）
-- 产物命名：`oronbox-<version>-<platform>[-<arch>].<ext>`，符号表随包一并归档
+```sh
+tool/build_linux.sh [--format tar.gz|deb|rpm|arch|appimage|flatpak|all] [--abi x86_64|aarch64]
+```
+
+- 缺省时打包全部可用格式，`--abi` 缺省取宿主架构
+- 交叉编译 aarch64（x86_64 宿主）需将 `ORONBOX_LINUX_ARM64_SYSROOT` 指向包含 gtk3/webkit2gtk/alsa/flac/ogg/opus/vorbis 等开发包的 arm64 sysroot；交叉模式产出 tar.gz / deb / rpm / arch
+
+#### macOS（仅 macOS 宿主）
+
+```sh
+tool/build_macos.sh
+```
+
+#### Windows
+
+```powershell
+powershell -File tool/build_windows.ps1 [-Dev] [-SkipWebView2Sdk] [-WebView2SdkVersion <版本>]
+```
+
+或在 CMD 中执行批处理：
+
+```bat
+tool\build_windows.bat [--dev]
+```
+
+#### Web
+
+```sh
+tool/build_web.sh
+```
 
 ## AI 开发声明
 
 本项目使用了 AI Agent 工具协助开发
 
-使用情况：
-| 模型 | 协助的部分 |
-|------|------|
-| GPT 5.5/5.6-Sol | Dart 蓝牙连接行为/协议、后端逻辑重写、部分前端 |
-| GPT 5.6-Luna | GitHub CI / Release 脚本重写与修复、运动健康实现 |
-| Kimi K3 | OOBE、创作者相关逻辑 |
-| Kimi K2.6 | 部分前端、UI/UX、初版后端 |
-| Deepseek V4 Pro | 协助HarmonyOS适配 |
-
 ## 鸣谢
 
-OronBox 参考和使用了来自以下优秀项目的部分代码：
+OronBox 使用或参考了以下项目：
 
-| 项目 | 参考的内容 |
+| 项目 | 来源性质 |
 |------|----------------|
-| [AstroBox-Public](https://github.com/AstralSightStudios/AstroBox-Public) | 界面结构、资源流程与交互设计 |
-| [AstroBox-NG-Module-Core](https://github.com/AstralSightStudios/AstroBox-NG-Module-Core) | 小米设备协议、安装流程与传输行为 |
-| [AstroBox-NG-Module-Bluetooth](https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth) | 蓝牙连接行为 |
-| [AstroBox-NG-Module-Account](https://github.com/AstralSightStudios/AstroBox-NG-Module-Account) | 小米账号登录、设备同步与 authkey 获取 |
-| [AstroBox-NG-Module-Provider](https://github.com/AstralSightStudios/AstroBox-NG-Module-Provider) | 社区资源索引、CDN 与清单解析 |
-| [AstroBox-NG-Module-AppWasm](https://github.com/AstralSightStudios/AstroBox-NG-Module-AppWasm) | Web Serial 与浏览器端连接流程 |
-| [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge) | ZeppOS 与可穿戴设备协议研究 |
+| [AstralSightStudios/AstroBox-Public](https://github.com/AstralSightStudios/AstroBox-Public) | 界面结构与交互设计参考 |
+| [AstralSightStudios/AstroBox-NG-Module-Core](https://github.com/AstralSightStudios/AstroBox-NG-Module-Core) | 小米设备协议与传输层，移植改写 |
+| [AstralSightStudios/AstroBox-NG-Module-Pb](https://github.com/AstralSightStudios/AstroBox-NG-Module-Pb) | 小米 wear 协议定义，逐字采用 |
+| [AstralSightStudios/AstroBox-NG-Module-Bluetooth](https://github.com/AstralSightStudios/AstroBox-NG-Module-Bluetooth) | 蓝牙连接流程参考 |
+| [AstralSightStudios/AstroBox-NG-Module-Account](https://github.com/AstralSightStudios/AstroBox-NG-Module-Account) | 小米账号登录与 authkey 获取流程参考 |
+| [AstralSightStudios/AstroBox-NG-Module-Provider](https://github.com/AstralSightStudios/AstroBox-NG-Module-Provider) | 社区资源索引与清单解析流程参考 |
+| [AstralSightStudios/AstroBox-NG-Module-AppWasm](https://github.com/AstralSightStudios/AstroBox-NG-Module-AppWasm) | Web Serial 连接流程参考 |
+| [Gadgetbridge](https://codeberg.org/Freeyourgadget/Gadgetbridge) | ZeppOS 协议实现，移植改写 |
 | [Kazumi](https://github.com/Predidit/Kazumi) | Material Design 组件与界面设计 |
 
 ## 许可证
 
-OronBox 采用 [GNU Affero General Public License v3.0](LICENSE) 许可证
+[GNU Affero General Public License v3.0](LICENSE) · [附加条款](ADDITIONAL-TERMS.md) · [第三方声明](THIRD-PARTY-NOTICES.md)
 
 ## Star History
 
-<a href="https://www.star-history.com/?repos=zxor-org%2FOronBox&type=date&legend=bottom-right">
+<a href="https://www.star-history.com/?repos=OronCanopy%2FOronBox&type=date&legend=bottom-right">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&theme=dark&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
-   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=zxor-org/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&theme=dark&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=OronCanopy/OronBox&type=date&legend=bottom-right&sealed_token=zjHhbYRQSFR--PiwPij12KvbSLyZpMjCTzHDFKh0Tmg1j9Od44-VRoc2Z_O7YjiNpEWX2n72xgKNaSEpSAXqDiRF709__x-d5YB-JXY2_yqVgDV1FGdGOCwsNkXUFXs37GfZqGiqTnNCKAiIuQh2Njdoxx_yE9I48b4Q6iItHM-O40tXhJhnMJsHn908" />
  </picture>
 </a>

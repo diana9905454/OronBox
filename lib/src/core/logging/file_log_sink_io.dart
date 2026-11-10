@@ -1,15 +1,14 @@
 import 'dart:async';
-import 'dart:io';
+import 'dart:convert';
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:archive/archive.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:oronbox/src/core/services/build_info_service.dart';
 
-/// 日志打开/分享通道。
-/// - Android：DocumentsProvider + ACTION_SEND（MainActivity 实现）
-/// - 鸿蒙：LogsBridge.ets 用沙箱文件 URI + FLAG_AUTH_READ_URI_PERMISSION 拉起系统分享
+/// 日志导出通道。Android 走 DocumentsProvider，鸿蒙走系统下载授权。
 const _logsChannel = MethodChannel('oronbox/logs');
 
 bool _isManagedLogFile(File file) {
@@ -179,18 +178,35 @@ Future<List<LogFileInfo>> listLogFiles() async {
   return result;
 }
 
+/// Reads the most recent part of a text log without loading the entire file.
+Future<String> readLogPreview(LogFileInfo file) async {
+  const previewLimit = 64 * 1024;
+  final reader = await File(file.path).open();
+  try {
+    final size = await reader.length();
+    final truncated = size > previewLimit;
+    if (truncated) await reader.setPosition(size - previewLimit);
+    final bytes = await reader.read(truncated ? previewLimit : size);
+    final start = truncated ? bytes.indexOf(0x0A) + 1 : 0;
+    final text = utf8.decode(bytes.sublist(start), allowMalformed: true);
+    return truncated ? '…\n$text' : text;
+  } finally {
+    await reader.close();
+  }
+}
+
 Future<String?> saveDeviceLogFile(String name, List<int> bytes) async {
-  final directoryPath = await getLogDirectoryPath();
-  if (directoryPath == null || bytes.isEmpty) return null;
+  if (bytes.isEmpty) return null;
   final safeName = name
       .split(RegExp(r'[/\\]'))
       .last
       .replaceAll(RegExp(r'[\x00-\x1F<>:"/\\|?*]'), '_')
       .trim()
       .replaceFirst(RegExp(r'[. ]+$'), '');
-  final fileName = safeName.isEmpty ? 'device-logs.zip' : safeName;
+  final fileName = safeName.isEmpty ? 'device-logs.tar.gz' : safeName;
+  final directory = await _exportDirectory();
   final file = await _uniqueLogFile(
-    File('$directoryPath${Platform.pathSeparator}$fileName'),
+    File('${directory.path}${Platform.pathSeparator}$fileName'),
   );
   final temporary = File('${file.path}.part');
   try {
@@ -202,6 +218,24 @@ Future<String?> saveDeviceLogFile(String name, List<int> bytes) async {
     } catch (_) {}
     rethrow;
   }
+
+  if (Platform.isAndroid) {
+    try {
+      final exportedPath = await _logsChannel.invokeMethod<String>('export', {
+        'name': file.uri.pathSegments.last,
+      });
+      if (exportedPath != null && exportedPath.isNotEmpty) {
+        return exportedPath;
+      }
+    } catch (_) {
+      // Fallback to internal file path if export fails
+    } finally {
+      try {
+        await file.delete();
+      } catch (_) {}
+    }
+  }
+
   return file.path;
 }
 
@@ -222,7 +256,13 @@ Future<File> _uniqueLogFile(File requested) async {
 }
 
 Future<bool> openLogFile(LogFileInfo file) async {
-  if (Platform.isAndroid || Platform.isOhos) {
+  if (Platform.isOhos) {
+    return await _logsChannel.invokeMethod<String>('saveToDownloads', {
+          'name': file.name,
+        }) !=
+        null;
+  }
+  if (Platform.isAndroid) {
     try {
       return await _logsChannel.invokeMethod<bool>('share', {
             'name': file.name,
@@ -277,21 +317,32 @@ Future<String?> exportLogsZip() async {
   }
   if (archive.isEmpty) return null;
   final zipped = ZipEncoder().encode(archive);
-  final directory = await _exportDirectory();
   final now = DateTime.now();
   final timestamp =
       '${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-'
       '${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
-  final target = File(
-    '${directory.path}${Platform.pathSeparator}oronbox-logs-$timestamp.zip',
+  final name = 'oronbox-logs-$timestamp.zip';
+  final directory = await _exportDirectory();
+  final target = await _uniqueLogFile(
+    File('${directory.path}${Platform.pathSeparator}$name'),
   );
   await target.writeAsBytes(zipped);
+  if (Platform.isOhos) {
+    try {
+      return await _logsChannel.invokeMethod<String>('saveToDownloads', {
+        'name': target.uri.pathSegments.last,
+      });
+    } finally {
+      try {
+        await target.delete();
+      } catch (_) {}
+    }
+  }
   if (Platform.isAndroid) {
     try {
-      final exportedPath = await _logsChannel.invokeMethod<String>(
-        'export',
-        {'name': target.uri.pathSegments.last},
-      );
+      final exportedPath = await _logsChannel.invokeMethod<String>('export', {
+        'name': target.uri.pathSegments.last,
+      });
       if (exportedPath != null && exportedPath.isNotEmpty) {
         return exportedPath;
       }
@@ -307,9 +358,9 @@ Future<String?> exportLogsZip() async {
 }
 
 Future<Directory> _exportDirectory() async {
-  // On mobile the zip lands next to the logs so the DocumentsProvider
-  // (Android) / Files app (iOS) can reach it.
-  if (Platform.isAndroid || Platform.isIOS) {
+  // Keep device logs alongside the runtime logs on mobile. Android's
+  // DocumentsProvider also resolves export archives by name from this directory.
+  if (Platform.isAndroid || Platform.isIOS || Platform.isOhos) {
     final path = await getLogDirectoryPath();
     if (path != null) return Directory(path);
   }
@@ -317,8 +368,13 @@ Future<Directory> _exportDirectory() async {
     final home =
         Platform.environment['HOME'] ?? Platform.environment['USERPROFILE'];
     if (home != null) {
-      final documents = Directory('$home${Platform.pathSeparator}Documents');
-      if (await documents.exists()) return documents;
+      final logsDir = Directory(
+        '$home${Platform.pathSeparator}Documents${Platform.pathSeparator}OronBox${Platform.pathSeparator}Logs',
+      );
+      if (!await logsDir.exists()) {
+        await logsDir.create(recursive: true);
+      }
+      return logsDir;
     }
   }
   return getApplicationDocumentsDirectory();
@@ -336,16 +392,25 @@ Future<String?> getLogDirectoryPath() async {
   return _logDirectory?.path;
 }
 
-Future<bool> openLogDirectory() async {
+/// Opens the log directory in the platform file manager where supported.
+Future<String?> openLogDirectory() async {
+  if (Platform.isOhos) {
+    try {
+      return await _logsChannel.invokeMethod<String>('exportDirectory');
+    } on PlatformException {
+      return null;
+    }
+  }
   if (Platform.isAndroid) {
     try {
-      return await _logsChannel.invokeMethod<bool>('open') ?? false;
+      final opened = await _logsChannel.invokeMethod<bool>('open') ?? false;
+      return opened ? '' : null;
     } catch (_) {
-      return false;
+      return null;
     }
   }
   final path = await getLogDirectoryPath();
-  if (path == null) return false;
+  if (path == null) return null;
   try {
     final result = Platform.isWindows
         ? await Process.run('explorer.exe', [path])
@@ -354,8 +419,8 @@ Future<bool> openLogDirectory() async {
         : Platform.isLinux
         ? await Process.run('xdg-open', [path])
         : null;
-    return result?.exitCode == 0;
+    return (result?.exitCode ?? 1) == 0 ? '' : null;
   } catch (_) {
-    return false;
+    return null;
   }
 }
